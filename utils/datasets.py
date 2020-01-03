@@ -1,3 +1,18 @@
+# coding=utf-8
+# Copyright 2019 Arbetsförmedlingen AI-center.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
 import numpy as np
 import torch
@@ -47,6 +62,7 @@ class InputExampleToTensors(object):
     def __call__(self, example):
         
         label_map = {label : i for i, label in enumerate(self.label_list)}
+        
         tokens_a = self.tokenizer.tokenize(example.text_a)
         
         tokens_b = None
@@ -103,10 +119,7 @@ class InputExampleToTensors(object):
         assert len(segment_ids) == self.max_seq_length
         
         if isinstance(example.label, list):
-            label_id = []
-            #for label in example.label:
-            #    label_id.append(label_map.get(label))
-            label_id = [label_map.get(label) for label in example.label]
+            label_id = [label_map[label] for label in example.label]
             #label_padding = [0] * (self.max_seq_length - len(label_id))
             #label_id += label_padding
             #label_id = torch.tensor(label_id, dtype=torch.long)
