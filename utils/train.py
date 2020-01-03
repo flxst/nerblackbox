@@ -60,7 +60,8 @@ class NERTrainer(object):
         self.warmup_proportion = warmup_proportion
         
         self.optimizer = self.create_optimizer(self.fp16)
-        self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
+        if self.device == "cpu":
+            self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
         self.total_steps = self.total_steps()
         
         self.accuracy_hist = np.array([])
@@ -299,7 +300,8 @@ class NERTrainer(object):
             #optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
             
         else:
-            optimizer = FusedAdam(optimizer_grouped_parameters, lr=self.learning_rate)
+            optimizer = Adam(optimizer_grouped_parameters, lr=self.learning_rate)
+            # optimizer = FusedAdam(optimizer_grouped_parameters, lr=self.learning_rate)
         
         #optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
