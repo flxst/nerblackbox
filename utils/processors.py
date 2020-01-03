@@ -1,3 +1,18 @@
+# coding=utf-8
+# Copyright 2019 Arbetsförmedlingen AI-center.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import csv
 import logging
@@ -296,16 +311,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
 
-        if isinstance(example.label, list):
-            label_id = [label_map[label] for label in example.label]
-            #label_padding = [0] * (self.max_seq_length - len(label_id))
-            #label_id += label_padding
-            #label_id = torch.tensor(label_id, dtype=torch.long)
-            
-            label_id = self._pad_sequence(label_id, self.max_seq_length, 0)
-            assert len(label_id) == self.max_seq_length
-        else:
-            label_id = label_map[example.label]
+        label_id = label_map[example.label]
         if ex_index < 5:
             logger.debug("*** Example ***")
             logger.debug("guid: %s" % (example.guid))
