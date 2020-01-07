@@ -150,14 +150,13 @@ class SUCProcessor(DataProcessor):
         return examples
 
     def bert_labels(self, conll_sentence):
-        bert_labels = []
-        bert_labels.append('[CLS]')
+        bert_labels = ['[CLS]']
         for conll in conll_sentence:
             self.token_count += 1
             token, label = conll[0], conll[1]
             bert_tokens = self.tokenizer.tokenize(token)
             bert_labels.append(label)
-            for bert_token in bert_tokens[1:]:
+            for _ in bert_tokens[1:]:
                 bert_labels.append(self.wordpiece_conll_map[label])
         return bert_labels
 
