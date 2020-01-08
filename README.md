@@ -1,20 +1,21 @@
 # nlp-bert
 
-This repository provides 
-
-- Arbetsförmedlingens Swedish BERT models
-- Tools for downstream task application using publicly available datasets
-
-
-## Overview
-
-BERT and other transformer models are readily available in different
+BERT and other transformer models are available in different
 languages from the transformers package. 
 
 Arbetsförmedlingen (Swedish Public Employment Service) has developed 
 Swedish BERT models which were trained on Swedish Wikipedia with approximatelly 2 million articles and 300 million words.
 
+This repository provides 
+
+- `Models`: Arbetsförmedlingens Swedish BERT models
+- `Downstream Task Support`: Tools for downstream task training on publicly available Swedish datasets
+
+  
+  
 ## Models
+
+### Usage
 
 The Swedish BERT models are provided in the format used by the transformers package. 
 
@@ -27,45 +28,52 @@ of the BERT-related transformers classes like so:
     model = BertForTokenClassification.from_pretrained(<model type>) 
     ..
 
-
-The following model types are available:
+### Available Model Types  
+  
 - `swe-bert-base`
 
-    12-layer, 768-hidden, 12-heads, 110M parameters
-     
-    (zipped: ~1.5 GB, unzipped: ~1.7 GB)
+    12-layer, 768-hidden, 12-heads, 110M parameters --- size: ~1.5 GB zipped, ~1.7 GB unzipped
 - `swe-bert-large`
 
-    24-layer, 1024-hidden, 16-heads, 340M parameters
-    
-    (zipped: ~x.x GB, unzipped: ~x.x GB)
+    24-layer, 1024-hidden, 16-heads, 340M parameters --- size: ~4.6 GB zipped, ~5.0 GB unzipped
     
 For download see the "Setup" section or right click on the desired model type.
 
-## Example Applications / Downstream Tasks
+  
+  
+## Downstream Task Support
 
 - Named Entity Recognition (NER)
 
+  
+    
+## Getting Started
 
-## Setup
+It is recommended to run all commands and notebooks within a virtual environment.
 
-It is recommended to run all commands within a virtual environment.
+### Setup
 
-- Basic Setup
+- Install packages:
 
 
-    pip install -r requirements.txt  # install required packages
-    bash setup_apex.sh               # installs apex from https://github.com/NVIDIA/apex
+    pip install -r requirements.txt
+    bash setup_apex.sh                            # installs apex from https://github.com/NVIDIA/apex
     
         
 - Download the models to directory `./pretrained_models`:
 
 
-    bash setup_pretrained_models.sh --all          # use --base or --large if you only want to download one model
+    bash setup_pretrained_models.sh (base/large)  # use base or large if you only want to download one model
     
     
 - Optional: Download the NER dataset to directory `./datasets`:
 
 
-    bash setup_datasets.sh --all                   # use --ner if you only want to download one dataset
+    bash setup_datasets.sh (ner)                  # use ner if you only want to download one dataset
 
+
+### Notebooks
+
+- `bert.ipynb` shows how to get started with the Swedish BERT models
+- `bert_ner.ipynb` shows how to train a Swedish BERT model on the 
+NER downstream task using the publicly available Swedish NER corpus dataset.  
