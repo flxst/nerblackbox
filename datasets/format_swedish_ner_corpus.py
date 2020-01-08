@@ -1,7 +1,4 @@
 
-import csv
-
-
 def read_txt(phase):
     file_path = f'datasets/ner/swedish_ner_corpus/{phase}_corpus.txt'
 
@@ -37,7 +34,6 @@ def write_csv(phase, rows):
 def main():
     # train
     rows = read_txt('train')
-    # print(rows)
     write_csv('train', rows)
 
     # valid/test

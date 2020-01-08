@@ -26,28 +26,6 @@ def get_available_datasets(dataset_type):
     ]
 
 
-class SentenceGetter(object):
-
-    def __init__(self, data):
-        self.n_sent = 1
-        self.data = data
-        self.empty = False
-        agg_func = lambda s: [(w, p, t) for w, p, t in zip(s["Word"].values.tolist(),
-                                                           s["POS"].values.tolist(),
-                                                           s["Tag"].values.tolist())]
-        self.grouped = self.data.groupby("Sentence").apply(agg_func)
-        self.sentences = [s for s in self.grouped]
-
-    def get_next(self):
-        try:
-            # s = self.grouped["{}".format(self.n_sent)]
-            s = self.grouped[self.n_sent]
-            self.n_sent += 1
-            return s
-        except:
-            return None
-
-
 def prune_examples(_examples, ratio=None):
     if ratio is None:
         return _examples
@@ -55,5 +33,3 @@ def prune_examples(_examples, ratio=None):
         num_examples_new = int(ratio*float(len(_examples)))
         print(f'use {num_examples_new} of {len(_examples)} examples')
         return _examples[:num_examples_new]
-
-
