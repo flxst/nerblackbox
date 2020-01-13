@@ -60,13 +60,13 @@ It is recommended to run all commands and notebooks within a virtual environment
     bash setup_apex.sh                            # installs apex from https://github.com/NVIDIA/apex
     
         
-- Download the models to directory `./pretrained_models`:
+- Download models to directory `./pretrained_models`:
 
 
     bash setup_pretrained_models.sh (base/large)  # use base or large if you only want to download one model
     
     
-- Optional: Download the NER dataset to directory `./datasets`:
+- Optional: Download datasets to directory `./datasets`:
 
 
     bash setup_datasets.sh (ner)                  # use ner if you only want to download one dataset
