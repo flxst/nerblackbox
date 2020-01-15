@@ -25,20 +25,22 @@ class InputExampleToTensors(object):
         self.tokenizer = tokenizer
         self.max_seq_length = max_seq_length
         self.label_tuple = label_tuple
+        self.label2id = {label: i for i, label in enumerate(self.label_tuple)}
 
     def __call__(self, input_example):
         """
-        transform input_example to tensors
+        transform input_example to tensors of length self.max_seq_length
         ----------------------------------
-        :param input_example: [InputExample]
-        :return: input_ids:   [torch tensor] of shape ..
-        :return: input_mask:  [torch tensor] of shape ..
-        :return: segment_ids: [torch tensor] of shape ..
-        :return: label_id:    [torch tensor] of shape ..
+        :param input_example: [InputExample], e.g. text_a = 'is this jacksonville?'
+                                                   text_b = 'no it is not.'
+        :return: input_ids:   [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
+        :return: input_mask:  [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
+        :return: segment_ids: [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
+        :return: label_ids:   [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]  cf Processor
         """
-
-        label_map = {label: i for i, label in enumerate(self.label_tuple)}
-
+        ####################
+        # tokens_a, tokens_b
+        ####################
         tokens_a = self.tokenizer.tokenize(input_example.text_a)
 
         tokens_b = None
@@ -53,15 +55,19 @@ class InputExampleToTensors(object):
             if len(tokens_a) > self.max_seq_length - 2:
                 tokens_a = tokens_a[:(self.max_seq_length - 2)]
 
+        ####################
+        # tokens & segment_ids
+        ####################
+
         # The convention in BERT is:
         # (a) For sequence pairs:
-        #  tokens:   [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]
-        #  type_ids: 0   0  0    0    0     0       0 0    1  1  1  1   1 1
+        #  tokens:          [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]
+        #  tokens_type_ids: 0     0  0    0    0     0       0 0     1  1  1  1   1 1
         # (b) For single sequences:
-        #  tokens:   [CLS] the dog is hairy . [SEP]
-        #  type_ids: 0   0   0   0  0     0 0
+        #  tokens:          [CLS] the dog is hairy . [SEP]
+        #  tokens_type_ids: 0     0   0   0  0     0 0
         #
-        # Where "type_ids" are used to indicate whether this is the first
+        # Where "tokens_type_ids" are used to indicate whether this is the first
         # sequence or the second sequence. The embedding vectors for `type=0` and
         # `type=1` were learned during pre-training and are added to the wordpiece
         # embedding vector (and position vector). This is not *strictly* necessary
@@ -78,12 +84,21 @@ class InputExampleToTensors(object):
             tokens += tokens_b + ["[SEP]"]
             segment_ids += [1] * (len(tokens_b) + 1)
 
+        ####################
+        # input_ids
+        ####################
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
 
+        ####################
+        # input_mask
+        ####################
         # The mask has 1 for real tokens and 0 for padding tokens. Only real
         # tokens are attended to.
         input_mask = [1] * len(input_ids)
 
+        ####################
+        # padding
+        ####################
         # Zero-pad up to the sequence length.
         padding = [0] * (self.max_seq_length - len(input_ids))
         input_ids += padding
@@ -94,23 +109,26 @@ class InputExampleToTensors(object):
         assert len(input_mask) == self.max_seq_length
         assert len(segment_ids) == self.max_seq_length
 
+        ####################
+        # label_ids
+        ####################
         if isinstance(input_example.label, list):
-            label_id = [label_map[label] for label in input_example.label]
+            label_ids = [self.label2id[label] for label in input_example.label]
             # label_padding = [0] * (self.max_seq_length - len(label_id))
             # label_id += label_padding
             # label_id = torch.tensor(label_id, dtype=torch.long)
 
-            label_id = self._pad_sequence(label_id, 0)
-            assert len(label_id) == self.max_seq_length
+            label_ids = self._pad_sequence(label_ids, 0)
+            assert len(label_ids) == self.max_seq_length
         else:
-            label_id = label_map[input_example.label]
-            label_id = torch.tensor(label_id, dtype=torch.long)
+            label_ids = self.label2id[input_example.label]
+            label_ids = torch.tensor(label_ids, dtype=torch.long)
 
         input_ids = torch.tensor(input_ids, dtype=torch.long)
         input_mask = torch.tensor(input_mask, dtype=torch.long)
         segment_ids = torch.tensor(segment_ids, dtype=torch.long)
 
-        return input_ids, input_mask, segment_ids, label_id
+        return input_ids, input_mask, segment_ids, label_ids
 
     ####################################################################################################################
     # PRIVATE METHODS

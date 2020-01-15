@@ -93,7 +93,7 @@ class NerProcessor:
             labels = self._get_ner_labels_for_tokenized_text(text, row.labels)
 
             # input example
-            guid = "%s-%s" % (set_type, i)
+            guid = f'{set_type}-{i}'
             input_example = InputExample(guid=guid, text_a=text, text_b='', label=labels)
 
             # append
