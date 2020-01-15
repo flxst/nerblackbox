@@ -19,6 +19,12 @@ class BertDataset(Dataset):
         return self.max_len if self.max_len else len(self.samples)
 
     def __getitem__(self, index):
+        """
+        apply self.transform on single sample w/ index = index
+        ------------------------------------------------------
+        :param index: [int]
+        :return: transformed sample
+        """
         return self.transform(self.samples[index])
 
 

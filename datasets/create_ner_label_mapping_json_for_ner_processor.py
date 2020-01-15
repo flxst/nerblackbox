@@ -16,7 +16,7 @@ def main(ner_dataset):
     else:
         raise Exception(f'ner_dataset = {ner_dataset} unknown.')
 
-    json_path = f'datasets/ner/{ner_dataset}/wordpiece_conll_map.json'
+    json_path = f'datasets/ner/{ner_dataset}/ner_label_mapping.json'
     with open(json_path, 'w') as f:
         json.dump(wordpiece_conll_map, f)
 

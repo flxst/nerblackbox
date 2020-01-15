@@ -11,26 +11,39 @@ logger = logging.getLogger(__name__)
 
 
 class InputExampleToTensors(object):
-    """ Converts a InputExample to a tuple of feature tensors.
+    """ Converts an InputExample to a tuple of feature tensors. """
 
-    Args:
-        tokenizer: BertTokenizer used to tokenize to Wordpieces and transform to indices
-    """
-
-    def __init__(self, tokenizer, max_seq_length=128, label_list=['0', '1']):
+    def __init__(self,
+                 tokenizer,
+                 max_seq_length: int = 128,
+                 label_tuple: tuple = ('0', '1')):
+        """
+        :param tokenizer:      [BertTokenizer] used to tokenize to Wordpieces and transform to indices
+        :param max_seq_length: [int]
+        :param label_tuple:    [tuple] of [str]
+        """
         self.tokenizer = tokenizer
         self.max_seq_length = max_seq_length
-        self.label_list = label_list
+        self.label_tuple = label_tuple
 
-    def __call__(self, example):
+    def __call__(self, input_example):
+        """
+        transform input_example to tensors
+        ----------------------------------
+        :param input_example: [InputExample]
+        :return: input_ids:   [torch tensor] of shape ..
+        :return: input_mask:  [torch tensor] of shape ..
+        :return: segment_ids: [torch tensor] of shape ..
+        :return: label_id:    [torch tensor] of shape ..
+        """
 
-        label_map = {label: i for i, label in enumerate(self.label_list)}
+        label_map = {label: i for i, label in enumerate(self.label_tuple)}
 
-        tokens_a = self.tokenizer.tokenize(example.text_a)
+        tokens_a = self.tokenizer.tokenize(input_example.text_a)
 
         tokens_b = None
-        if example.text_b:
-            tokens_b = self.tokenizer.tokenize(example.text_b)
+        if input_example.text_b:
+            tokens_b = self.tokenizer.tokenize(input_example.text_b)
             # Modifies `tokens_a` and `tokens_b` in place so that the total
             # length is less than the specified length.
             # Account for [CLS], [SEP], [SEP] with "- 3"
@@ -81,16 +94,16 @@ class InputExampleToTensors(object):
         assert len(input_mask) == self.max_seq_length
         assert len(segment_ids) == self.max_seq_length
 
-        if isinstance(example.label, list):
-            label_id = [label_map[label] for label in example.label]
+        if isinstance(input_example.label, list):
+            label_id = [label_map[label] for label in input_example.label]
             # label_padding = [0] * (self.max_seq_length - len(label_id))
             # label_id += label_padding
             # label_id = torch.tensor(label_id, dtype=torch.long)
 
-            label_id = self._pad_sequence(label_id, self.max_seq_length, 0)
+            label_id = self._pad_sequence(label_id, 0)
             assert len(label_id) == self.max_seq_length
         else:
-            label_id = label_map[example.label]
+            label_id = label_map[input_example.label]
             label_id = torch.tensor(label_id, dtype=torch.long)
 
         input_ids = torch.tensor(input_ids, dtype=torch.long)
@@ -99,7 +112,10 @@ class InputExampleToTensors(object):
 
         return input_ids, input_mask, segment_ids, label_id
 
-    def _pad_sequence(self, _input, maxlen, value):
+    ####################################################################################################################
+    # PRIVATE METHODS
+    ####################################################################################################################
+    def _pad_sequence(self, _input, value):
         padded = pad_sequences(
             [_input],
             maxlen=self.max_seq_length,

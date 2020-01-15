@@ -1,4 +1,5 @@
 
+import os
 import pandas as pd
 import json
 import logging
@@ -12,57 +13,111 @@ logger = logging.getLogger(__name__)
 
 class NerProcessor:
 
-    def __init__(self, path, tokenizer, do_lower_case=True, separator='\t'):
-        self.separator = separator
-        with open(path + 'wordpiece_conll_map.json', 'r') as f:
-            self.wordpiece_conll_map = json.load(f)
-        self.train_data = self._read_csv(path + 'train.csv')
-        self.valid_data = self._read_csv(path + 'valid.csv')
-        self.test_data = self._read_csv(path + 'test.csv')
+    def __init__(self, path, tokenizer, do_lower_case=True, csv_file_separator='\t'):
+        """
+        :param path:               [str] to folder that contains dataset csv files (train, valid, test)
+        :param tokenizer:          [transformers Tokenizer]
+        :param do_lower_case:      [bool]
+        :param csv_file_separator: [str], for datasets' csv files, e.g. '\t'
+        """
+        # input arguments
+        self.path = path
         self.tokenizer = tokenizer
         self.do_lower_case = do_lower_case
+        self.csv_file_separator = csv_file_separator
 
-    def get_train_examples(self):
-        return self._create_examples(self.train_data, 'train')
+        # additional attributes
+        self.token_count = None
 
-    def get_val_examples(self):
-        return self._create_examples(self.valid_data, 'val')
+        # processing
+        with open(os.path.join(self.path, 'ner_label_mapping.json'), 'r') as f:
+            self.ner_label_mapping = json.load(f)
 
-    def get_test_examples(self):
-        return self._create_examples(self.test_data, 'test')
+        self.data = dict()
+        for phase in ['train', 'valid', 'test']:
+            self.data[phase] = self._read_csv(os.path.join(self.path, f'{phase}.csv'))
+
+    ####################################################################################################################
+    # PUBLIC METHODS
+    ####################################################################################################################
+    def get_input_examples(self, phase):
+        """
+        gets list of input examples for specified phase
+        -----------------------------------------------
+        :param phase: [str], e.g. 'train', 'valid', 'test'
+        :return: [list] of [InputExample]
+        """
+        return self._create_list_of_input_examples(self.data[phase], phase)
 
     def get_label_list(self):
-        return ['<pad>', '[CLS]', '[SEP]'] + [key.replace('*', '') for key in self.wordpiece_conll_map.keys()]
+        """
+        get label list derived from ner_label_mapping
+        ---------------------------------------------
+        :return: [list] of [str]
+        """
+        return ['<pad>', '[CLS]', '[SEP]'] + [key.replace('*', '') for key in self.ner_label_mapping.keys()]
 
+    ####################################################################################################################
+    # PRIVATE METHODS
+    ####################################################################################################################
     def _read_csv(self, path):
-        data = pd.read_csv(path, names=['labels', 'text'], header=0, sep=self.separator)
-        return data
+        """
+        read csv using pandas.
 
-    def _create_examples(self, data, set_type):
-        examples = []
+        Note: The csv is expected to
+        - have two columns seperated by self.seperator
+        - not have a header with column names
+        ----------------------------------------------
+        :param path: [str]
+        :return: [pandas dataframe]
+        """
+        return pd.read_csv(path, names=['labels', 'text'], header=None, sep=self.csv_file_separator)
+
+    def _create_list_of_input_examples(self, df, set_type):
+        """
+        create list of input examples from pandas dataframe created from _read_csv() method
+        -----------------------------------------------------------------------------------
+        :param df:                 [pandas dataframe] with columns 'labels', 'text'
+        :param set_type:           [str], e.g. 'train', 'valid', 'test'
+        :changed attr: token_count [int] total number of tokens in df
+        :return: [list] of [InputExample]
+        """
         self.token_count = 0
 
-        for i, row in enumerate(data.itertuples()):
-            if self.do_lower_case:
-                text_a = row.text.lower()
-            else:
-                text_a = row.text
+        examples = []
+        for i, row in enumerate(df.itertuples()):
+            # text
+            text = row.text.lower() if self.do_lower_case else row.text
 
-            labels = row.labels
-            conll_sentence = zip(text_a.split(' '), labels.split(' '))
+            # labels
+            labels = self._get_ner_labels_for_tokenized_text(text, row.labels)
 
+            # input example
             guid = "%s-%s" % (set_type, i)
-            labels = self._bert_labels(conll_sentence)
-            examples.append(InputExample(guid=guid, text_a=text_a, text_b='', label=labels))
+            input_example = InputExample(guid=guid, text_a=text, text_b='', label=labels)
+
+            # append
+            examples.append(input_example)
         return examples
 
-    def _bert_labels(self, conll_sentence):
-        bert_labels = ['[CLS]']
-        for conll in conll_sentence:
+    def _get_ner_labels_for_tokenized_text(self, _text, _labels):
+        """
+        gets NER labels for tokenized version of text
+        ---------------------------------------------
+        :param _text: [str] 'at Arbetsförmedlingen'
+        :param _labels: [str] '0 ORG'
+        :changed attr: token_count [int] total number of tokens in df
+        :return: ner_labels: [list] of [str], e.g. ['[CLS]', '0', '[ORG]', '[ORG]', '[ORG]']
+        """
+        # [list] of (token, label) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
+        token_label_pairs = zip(_text.split(' '), _labels.split(' '))
+
+        ner_labels = ['[CLS]']
+        for token_label_pair in token_label_pairs:
             self.token_count += 1
-            token, label = conll[0], conll[1]
-            bert_tokens = self.tokenizer.tokenize(token)
-            bert_labels.append(label)
-            for _ in bert_tokens[1:]:
-                bert_labels.append(self.wordpiece_conll_map[label])
-        return bert_labels
+            token, label = token_label_pair[0], token_label_pair[1]
+            subtokens = self.tokenizer.tokenize(token)
+            ner_labels.append(label)
+            for _ in subtokens[1:]:
+                ner_labels.append(self.ner_label_mapping[label])
+        return ner_labels
