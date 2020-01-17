@@ -28,7 +28,8 @@ class NERTrainer(object):
 
         self.writer = SummaryWriter()
         
-        self.loss_fct = CrossEntropyLoss()
+        self.loss_fct = CrossEntropyLoss(ignore_index=0)  # NEW: HERE 3
+        # self.loss_fct = CrossEntropyLoss()  # OLD: HERE 3
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
         self.label_list = label_list
@@ -56,7 +57,7 @@ class NERTrainer(object):
         self.optimizer = self.create_optimizer(self.fp16)
         if self.device == "cpu":
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
-        self.total_steps = self.total_steps()
+        self.total_steps = self.get_total_steps()
         
         self.accuracy_hist = np.array([])
         self.f1_score_hist = np.array([])
@@ -66,33 +67,54 @@ class NERTrainer(object):
         self.val_loss_hist = np.array([])
         
         self.labelDict = {
-            'PER': {'total': 0, 'correct': 0},
-            'LOC': {'total': 0, 'correct': 0},
-            'ORG': {'total': 0, 'correct': 0},
-            'O': {'total': 0, 'correct': 0},
-            'WRK': {'total': 0, 'correct': 0},
-            'OBJ': {'total': 0, 'correct': 0},
-            '[CLS]': {'total': 0, 'correct': 0},
-            '<pad>': {'total': 0, 'correct': 0},
-            '[SEP]': {'total': 0, 'correct': 0}
+            k: {'total': 0, 'correct': 0}
+            for k in self.label_list
         }
         
         # epoch_process = master_bar(range(self.num_epochs))
         # for epoch in epoch_process:
         pbar = tqdm(total=self.num_epochs*len(self.train_dataloader))
         global_step = None
+        self.model.zero_grad()  ## HERE 2
         for epoch in range(self.num_epochs):
+            print()
+            print(">>> Train Epoch: {}".format(epoch))
             self.model.train()
             
             # for step, batch in enumerate(progress_bar(self.train_dataloader, parent=epoch_process)):
             for step, batch in enumerate(self.train_dataloader):
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
+                if step == 0:
+                    print('> input_ids[0]:', input_ids.shape)
+                    print(input_ids[0])
+                    print('> input_mask[0]:', input_mask.shape)
+                    print(input_mask[0])
+                    print('> segment_ids[0]:', segment_ids.shape)
+                    print(segment_ids[0])
+                    print('> label_ids[0]:', label_ids.shape)
+                    print(label_ids[0])
+                """
                 logits = self.model(input_ids,
-                                    attention_mask=segment_ids,
-                                    token_type_ids=input_mask)
+                                    attention_mask=input_mask,
+                                    token_type_ids=segment_ids,
+
+                                    # OLD: HERE 4a
+                                    # attention_mask=segment_ids,
+                                    # token_type_ids=input_mask,
+                                    )
                 loss = self.loss(logits, label_ids)
-                
+                """
+                # NEW: HERE 5
+                outputs = self.model(input_ids,
+                                     attention_mask=input_mask,
+                                     token_type_ids=segment_ids,
+                                     labels=label_ids,
+                                     )
+                loss, logits_tmp = outputs[:2]
+                logits = [logits_tmp]
+                print(f'loss: {loss}')
+
                 accuracy = self.accuracy(logits, label_ids)
                 f1_score = self.f1_score_accuracy(logits, label_ids)
                 
@@ -112,7 +134,7 @@ class NERTrainer(object):
                 # TODO undersök varför man vill göra det här, det får ibland modellen att inte lära sig
                 # self.clip_grad_norm(max_grad_norm)
                 
-                global_step = self.global_step(epoch, step)
+                global_step = self.get_global_step(epoch, step)
                  
                 # epoch_process.child.comment = ("Train F1 score: {:.2}".format(self.f1_score_hist.mean()))
                 
@@ -130,28 +152,23 @@ class NERTrainer(object):
                 self.optimizer.step()
                 self.model.zero_grad()
                 
-            self.validation(global_step)
+            self.validation(global_step, epoch)
                 
     def loss(self, logits, label_ids):
         loss = self.loss_fct(logits[0].view(-1, self.model.num_labels), label_ids.view(-1))
         return loss
     
-    def validation(self, global_step):
+    def validation(self, global_step, epoch):
+        print()
+        print(">>> Valid Epoch: {}".format(epoch))
         self.model.eval()
         eval_loss, eval_accuracy = 0, 0
         nb_eval_steps, nb_eval_examples = 0, 0
         predictions, true_labels = [], []
         
         resLabelDict = {
-            'PER': {'total': 0, 'correct': 0, 'false_positives': 0},
-            'LOC': {'total': 0, 'correct': 0, 'false_positives': 0},
-            'ORG': {'total': 0, 'correct': 0, 'false_positives': 0},
-            'O': {'total': 0, 'correct': 0, 'false_positives': 0},
-            'WRK': {'total': 0, 'correct': 0, 'false_positives': 0},
-            'OBJ': {'total': 0, 'correct': 0, 'false_positives': 0},
-            '[CLS]': {'total': 0, 'correct': 0, 'false_positives': 0},
-            '<pad>': {'total': 0, 'correct': 0, 'false_positives': 0},
-            '[SEP]': {'total': 0, 'correct': 0, 'false_positives': 0}
+            k: {'total': 0, 'correct': 0, 'false_positives': 0}
+            for k in self.label_list
         }
             
         for batch in self.valid_dataloader:
@@ -159,15 +176,26 @@ class NERTrainer(object):
             b_input_ids, b_input_mask, b_segment_ids, b_labels = batch
             
             with torch.no_grad():
-                tmp_eval_loss = self.model(b_input_ids,
-                                           token_type_ids=b_segment_ids,
-                                           attention_mask=b_input_mask,
-                                           labels=b_labels)
-                logits = self.model(b_input_ids, b_segment_ids, b_input_mask)
-                # loss, logits = outputs[:2]
-            
+                outputs = self.model(b_input_ids,
+                                     attention_mask=b_input_mask,
+                                     token_type_ids=b_segment_ids,
+                                     labels=b_labels)
+                """
+                logits = self.model(b_input_ids,
+                                    attention_mask=b_input_mask,
+                                    token_type_ids=b_segment_ids,
+
+                                    # OLD: HERE 4b
+                                    # attention_mask=b_segment_ids,
+                                    # token_type_ids=b_input_mask,
+                                    )
+                """
+                tmp_eval_loss, logits_tmp = outputs[:2]
+                logits = [logits_tmp]
+                # print(f'eval_loss: {tmp_eval_loss}')
+
             f1_score = self.f1_score_accuracy(logits, b_labels)
-            # print("F1-Score sklearn: {}".format(f1_score))
+            # print("F1-Score (macro) sklearn: {}".format(f1_score))
             
             logits = logits[0].detach().cpu().numpy()
             label_ids = b_labels.to('cpu').numpy()
@@ -176,7 +204,7 @@ class NERTrainer(object):
             
             tmp_eval_accuracy = self.flat_accuracy(logits, label_ids)
             
-            eval_loss += tmp_eval_loss[0].mean().item()
+            eval_loss += tmp_eval_loss.mean().item()
             eval_accuracy += tmp_eval_accuracy
 
             nb_eval_examples += b_input_ids.size(0)
@@ -184,34 +212,63 @@ class NERTrainer(object):
         
             self.val_f1_score_hist = np.append(self.val_f1_score_hist, f1_score)
             self.val_accuracy_hist = np.append(self.val_accuracy_hist, tmp_eval_accuracy)
-            self.val_loss_hist = np.append(self.val_loss_hist, tmp_eval_loss[0].mean().item())
+            self.val_loss_hist = np.append(self.val_loss_hist, tmp_eval_loss.mean().item())
             
         eval_loss = eval_loss/nb_eval_steps
         eval_accuracy = eval_accuracy/nb_eval_steps
+        print("Validation loss: {}".format(eval_loss))
+        print("Validation Accuracy: {}".format(eval_accuracy))
 
-        # print("Validation loss: {}".format(eval_loss))
-        # print("Validation Accuracy: {}".format(eval_accuracy))
         pred_tags = [self.label_list[p_i] for p in predictions for p_i in p]
         valid_tags = [self.label_list[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
+
+        # enrich pred_tags & valid_tags
+        def enrich(_tag, _previous_tag):
+            if _tag == 'O' or _tag.startswith('['):
+                return _tag
+            elif _previous_tag is None:
+                return f'B-{_tag}'
+            elif _tag != _previous_tag:
+                return f'B-{_tag}'
+            else:
+                return f'I-{_tag}'
+
+        pred_tags_enriched = [enrich(pred_tags[i], pred_tags[i-1] if i > 0 else None) for i in range(len(pred_tags))]
+        valid_tags_enriched = [enrich(valid_tags[i], valid_tags[i-1] if i > 0 else None) for i in range(len(valid_tags))]
+
+        print(pred_tags[:10], len(pred_tags))
+        print(valid_tags[:10], len(valid_tags))
+        print(pred_tags_enriched[:10], len(pred_tags_enriched))
+        print(valid_tags_enriched[:10], len(valid_tags_enriched))
+
         # (valid_tags, pred_tags) = self.stripTags(valid_tags, pred_tags)
-        f1_score = f1_score_sklearn(pred_tags, valid_tags, average='macro')
+        f1_score = f1_score_sklearn(pred_tags_enriched, valid_tags_enriched, average='macro')
+        print("Validation F1-Score: {}".format(f1_score))
+
         self.calculate_percentage_correct(pred_tags, valid_tags)
         
-        print(classification_report(valid_tags, pred_tags))
-        
+        print(classification_report(valid_tags_enriched, pred_tags_enriched))
+
         for idx, tag in enumerate(valid_tags):
             if tag in resLabelDict:
                 resLabelDict[tag]['total'] += 1
                 if pred_tags[idx] == tag:
                     resLabelDict[tag]['correct'] += 1
-                    
-        print(resLabelDict)
-                    
+
+        count = {'total': 0, 'correct': 0}
+        for label in self.label_list:
+            if label in resLabelDict.keys():
+                print(label, resLabelDict[label])
+                for field in count.keys():
+                    count[field] += resLabelDict[label][field]
+        for field in count.keys():
+            c = count[field]
+            print(f'{field} = {c}')
+
         self.writer.add_scalar('validation/loss', eval_loss, global_step)
         self.writer.add_scalar('validation/accuracy', eval_accuracy, global_step)
         self.writer.add_scalar('validation/f1_score', f1_score, global_step)
-        print("Validation F1-Score: {}".format(f1_score))
-        
+
     def calculate_percentage_correct(self, pred_tags, valid_tags):
         for idx, tag in enumerate(valid_tags):
             if tag in self.labelDict:
@@ -242,7 +299,7 @@ class NERTrainer(object):
     def stripTags(self, labels_flat, pred_flat):
         # Only calculate F1-score on interesting labels.
         for idx, lbl in enumerate(labels_flat):
-            if lbl == 'O' or lbl == '<pad>' or lbl == '[CLS]' or lbl == '[SEP]':
+            if lbl == 'O' or lbl == '[PAD]' or lbl == '[CLS]' or lbl == '[SEP]':
                 pred_flat.pop(idx)
                 labels_flat.pop(idx)
         return (labels_flat, pred_flat)
@@ -262,10 +319,10 @@ class NERTrainer(object):
         labels_flat = np_label_ids.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
     
-    def global_step(self, epoch, step):
+    def get_global_step(self, epoch, step):
         return epoch * len(self.train_dataloader) + step
     
-    def total_steps(self):
+    def get_total_steps(self):
         return self.num_epochs * len(self.train_dataloader)
     
     def clip_grad_norm(self, max_grad_norm):

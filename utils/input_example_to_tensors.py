@@ -31,108 +31,131 @@ class InputExampleToTensors(object):
         """
         transform input_example to tensors of length self.max_seq_length
         ----------------------------------
-        :param input_example: [InputExample], e.g. text_a = 'is this jacksonville?'
-                                                   text_b = 'no it is not.'
+        :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
+                                                   text_b = None
+                                                   labels_a = '0 ORG'
+                                                   labels_b = None
         :return: input_ids:   [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
         :return: input_mask:  [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
         :return: segment_ids: [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
         :return: label_ids:   [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]  cf Processor
         """
         ####################
-        # tokens_a, tokens_b
+        # A0. tokens_*, token_labels_*
         ####################
-        tokens_a = self.tokenizer.tokenize(input_example.text_a)
+        tokens_a, token_labels_a = self._tokenize_words_and_labels(input_example, segment='a')
+        tokens_b, token_labels_b = self._tokenize_words_and_labels(input_example, segment='b')
 
-        tokens_b = None
-        if input_example.text_b:
-            tokens_b = self.tokenizer.tokenize(input_example.text_b)
+        if tokens_b is None:
+            # Account for [CLS] and [SEP] with "- 2"
+            if len(tokens_a) > self.max_seq_length - 2:
+                tokens_a = tokens_a[:(self.max_seq_length - 2)]
+        else:
             # Modifies `tokens_a` and `tokens_b` in place so that the total
             # length is less than the specified length.
             # Account for [CLS], [SEP], [SEP] with "- 3"
             self._truncate_seq_pair(tokens_a, tokens_b, self.max_seq_length - 3)
-        else:
-            # Account for [CLS] and [SEP] with "- 2"
-            if len(tokens_a) > self.max_seq_length - 2:
-                tokens_a = tokens_a[:(self.max_seq_length - 2)]
 
         ####################
-        # tokens & segment_ids
+        # A1. tokens
         ####################
-
-        # The convention in BERT is:
-        # (a) For sequence pairs:
-        #  tokens:          [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]
-        #  tokens_type_ids: 0     0  0    0    0     0       0 0     1  1  1  1   1 1
-        # (b) For single sequences:
-        #  tokens:          [CLS] the dog is hairy . [SEP]
-        #  tokens_type_ids: 0     0   0   0  0     0 0
-        #
-        # Where "tokens_type_ids" are used to indicate whether this is the first
-        # sequence or the second sequence. The embedding vectors for `type=0` and
-        # `type=1` were learned during pre-training and are added to the wordpiece
-        # embedding vector (and position vector). This is not *strictly* necessary
-        # since the [SEP] token unambigiously separates the sequences, but it makes
-        # it easier for the model to learn the concept of sequences.
-        #
-        # For classification tasks, the first vector (corresponding to [CLS]) is
-        # used as as the "sentence vector". Note that this only makes sense because
-        # the entire model is fine-tuned.
         tokens = ["[CLS]"] + tokens_a + ["[SEP]"]
-        segment_ids = [0] * len(tokens)
-
         if tokens_b:
             tokens += tokens_b + ["[SEP]"]
-            segment_ids += [1] * (len(tokens_b) + 1)
 
         ####################
-        # input_ids
+        # A2. label_ids
         ####################
+        label_ids = [self.label2id['[CLS]']] + \
+                    [self.label2id[token_label] for token_label in token_labels_a] + \
+                    [self.label2id['[SEP]']]
+        if tokens_b:
+            label_ids += \
+                [self.label2id[token_label] for token_label in token_labels_b] + \
+                [self.label2id['[SEP]']]
+
+        label_ids = self._pad_sequence(label_ids, 0)
+        assert len(label_ids) == self.max_seq_length
+
+        ####################
+        # B. input_ids, input_mask, segment_ids
+        ####################
+        # 1. input_ids
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
 
-        ####################
-        # input_mask
-        ####################
-        # The mask has 1 for real tokens and 0 for padding tokens. Only real
-        # tokens are attended to.
-        input_mask = [1] * len(input_ids)
+        # 2. input_mask
+        input_mask = [1] * len(input_ids)  # 1 = real tokens, 0 = padding tokens. Only real tokens are attended to.
 
-        ####################
-        # padding
-        ####################
+        # 3. segment_ids
+        if tokens_b is None:
+            segment_ids = [0] * len(tokens)
+        else:
+            segment_ids = [0] * len(tokens_a) + [1] * (len(tokens_b) + 1)
+
+        # 4. padding
         # Zero-pad up to the sequence length.
         padding = [0] * (self.max_seq_length - len(input_ids))
         input_ids += padding
         input_mask += padding
         segment_ids += padding
-
         assert len(input_ids) == self.max_seq_length
         assert len(input_mask) == self.max_seq_length
         assert len(segment_ids) == self.max_seq_length
-
-        ####################
-        # label_ids
-        ####################
-        if isinstance(input_example.label, list):
-            label_ids = [self.label2id[label] for label in input_example.label]
-            # label_padding = [0] * (self.max_seq_length - len(label_id))
-            # label_id += label_padding
-            # label_id = torch.tensor(label_id, dtype=torch.long)
-
-            label_ids = self._pad_sequence(label_ids, 0)
-            assert len(label_ids) == self.max_seq_length
-        else:
-            label_ids = self.label2id[input_example.label]
-            label_ids = torch.tensor(label_ids, dtype=torch.long)
 
         input_ids = torch.tensor(input_ids, dtype=torch.long)
         input_mask = torch.tensor(input_mask, dtype=torch.long)
         segment_ids = torch.tensor(segment_ids, dtype=torch.long)
 
+        ####################
+        # return
+        ####################
         return input_ids, input_mask, segment_ids, label_ids
 
     ####################################################################################################################
     # PRIVATE METHODS
     ####################################################################################################################
+    def _tokenize_words_and_labels(self, input_example, segment):
+        """
+        gets NER labels for tokenized version of text
+        ---------------------------------------------
+        :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
+                                                   text_b = None
+                                                   labels_a = '0 ORG'
+                                                   labels_b = None
+        :param segment:       [str], 'a' or 'b'
+        :changed attr: token_count [int] total number of tokens in df
+        :return: tokens:        [list] of [str], e.g. ['at', 'arbetsförmedling', '##en]
+                 tokens_labels: [list] of [str], e.g. [0, 'ORG', 'ORG']
+        """
+        # [list] of (word, label) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
+        if segment == 'a':
+            word_label_pairs = zip(input_example.text_a.split(' '), input_example.labels_a.split(' '))
+        elif segment == 'b':
+            if input_example.text_b is None or input_example.labels_b is None:
+                return None, None
+            else:
+                word_label_pairs = zip(input_example.text_b.split(' '), input_example.labels_b.split(' '))
+        else:
+            raise Exception(f'> segment = {segment} unknown')
+
+        tokens = []
+        tokens_labels = []
+        for word_label_pair in word_label_pairs:
+            word, label = word_label_pair[0], word_label_pair[1]
+            word_tokens = self.tokenizer.tokenize(word)
+            tokens.extend(word_tokens)
+            if label == 'O':
+                b_label = label
+                i_label = label
+            else:
+                b_label = label  # f'B-{label}'
+                i_label = label  # f'I-{label}'
+            tokens_labels.append(b_label)
+            for _ in word_tokens[1:]:
+                tokens_labels.append(i_label)
+
+        return tokens, tokens_labels
+
     def _pad_sequence(self, _input, value):
         padded = pad_sequences(
             [_input],

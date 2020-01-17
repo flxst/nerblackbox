@@ -55,7 +55,7 @@ class NerProcessor:
         ---------------------------------------------
         :return: [list] of [str]
         """
-        return ['<pad>', '[CLS]', '[SEP]'] + [key.replace('*', '') for key in self.ner_label_mapping.keys()]
+        return ['[PAD]', '[CLS]', '[SEP]'] + list(set([key.replace('*', '') for key in self.ner_label_mapping.keys()]))
 
     ####################################################################################################################
     # PRIVATE METHODS
@@ -86,38 +86,16 @@ class NerProcessor:
 
         examples = []
         for i, row in enumerate(df.itertuples()):
-            # text
-            text = row.text.lower() if self.do_lower_case else row.text
-
-            # labels
-            labels = self._get_ner_labels_for_tokenized_text(text, row.labels)
-
-            # input example
+            # input_example
             guid = f'{set_type}-{i}'
-            input_example = InputExample(guid=guid, text_a=text, text_b='', label=labels)
+            text_a = row.text.lower() if self.do_lower_case else row.text
+            labels_a = row.labels  # self._get_ner_labels_for_tokenized_text(text, row.labels)
+
+            input_example = InputExample(guid=guid,
+                                         text_a=text_a,
+                                         labels_a=labels_a)
 
             # append
             examples.append(input_example)
         return examples
 
-    def _get_ner_labels_for_tokenized_text(self, _text, _labels):
-        """
-        gets NER labels for tokenized version of text
-        ---------------------------------------------
-        :param _text: [str] 'at Arbetsförmedlingen'
-        :param _labels: [str] '0 ORG'
-        :changed attr: token_count [int] total number of tokens in df
-        :return: ner_labels: [list] of [str], e.g. ['[CLS]', '0', '[ORG]', '[ORG]', '[ORG]']
-        """
-        # [list] of (token, label) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
-        token_label_pairs = zip(_text.split(' '), _labels.split(' '))
-
-        ner_labels = ['[CLS]']
-        for token_label_pair in token_label_pairs:
-            self.token_count += 1
-            token, label = token_label_pair[0], token_label_pair[1]
-            subtokens = self.tokenizer.tokenize(token)
-            ner_labels.append(label)
-            for _ in subtokens[1:]:
-                ner_labels.append(self.ner_label_mapping[label])
-        return ner_labels
