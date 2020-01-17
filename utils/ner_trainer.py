@@ -49,6 +49,9 @@ class NERTrainer(object):
         self.val_loss_hist = None
         self.labelDict = None
 
+    ####################################################################################################################
+    # 1. FIT & VALIDATION
+    ####################################################################################################################
     def fit(self, num_epochs=25, max_grad_norm=2.0, learning_rate=3e-5, warmup_proportion=0.1):
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
@@ -154,10 +157,6 @@ class NERTrainer(object):
                 
             self.validation(global_step, epoch)
                 
-    def loss(self, logits, label_ids):
-        loss = self.loss_fct(logits[0].view(-1, self.model.num_labels), label_ids.view(-1))
-        return loss
-    
     def validation(self, global_step, epoch):
         print()
         print(">>> Valid Epoch: {}".format(epoch))
@@ -269,6 +268,13 @@ class NERTrainer(object):
         self.writer.add_scalar('validation/accuracy', eval_accuracy, global_step)
         self.writer.add_scalar('validation/f1_score', f1_score, global_step)
 
+    ####################################################################################################################
+    # 2. METRICS
+    ####################################################################################################################
+    def loss(self, logits, label_ids):
+        loss = self.loss_fct(logits[0].view(-1, self.model.num_labels), label_ids.view(-1))
+        return loss
+
     def calculate_percentage_correct(self, pred_tags, valid_tags):
         for idx, tag in enumerate(valid_tags):
             if tag in self.labelDict:
@@ -333,9 +339,11 @@ class NERTrainer(object):
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr_this_step
         return lr_this_step
-    
-    def warmup_linear(self, x, warmup=0.002):
-        if x < warmup: return x/warmup
+
+    @staticmethod
+    def warmup_linear(x, warmup=0.002):
+        if x < warmup:
+            return x/warmup
         return 1.0 - x
     
     def create_optimizer(self, fp16=True, no_decay=['bias', 'gamma', 'beta']):

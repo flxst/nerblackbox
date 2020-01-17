@@ -41,44 +41,32 @@ class InputExampleToTensors(object):
         :return: label_ids:   [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]  cf Processor
         """
         ####################
-        # A0. tokens_*, token_labels_*
+        # A0. tokens_*, labels_*
         ####################
-        tokens_a, token_labels_a = self._tokenize_words_and_labels(input_example, segment='a')
-        tokens_b, token_labels_b = self._tokenize_words_and_labels(input_example, segment='b')
+        tokens_a, labels_a = self._tokenize_words_and_labels(input_example, segment='a')
+        tokens_b, labels_b = self._tokenize_words_and_labels(input_example, segment='b')
 
+        # Modify `tokens_a` (and `tokens_b`) in place so that the total length is less than the specified length.
         if tokens_b is None:
             # Account for [CLS] and [SEP] with "- 2"
-            if len(tokens_a) > self.max_seq_length - 2:
-                tokens_a = tokens_a[:(self.max_seq_length - 2)]
+            self._truncate_seq_pair(self.max_seq_length - 2, tokens_a)
+            self._truncate_seq_pair(self.max_seq_length - 2, labels_a)
         else:
-            # Modifies `tokens_a` and `tokens_b` in place so that the total
-            # length is less than the specified length.
             # Account for [CLS], [SEP], [SEP] with "- 3"
-            self._truncate_seq_pair(tokens_a, tokens_b, self.max_seq_length - 3)
+            self._truncate_seq_pair(self.max_seq_length - 3, tokens_a, tokens_b)
+            self._truncate_seq_pair(self.max_seq_length - 3, labels_a, labels_b)
 
         ####################
-        # A1. tokens
+        # A1. tokens, labels
         ####################
-        tokens = ["[CLS]"] + tokens_a + ["[SEP]"]
-        if tokens_b:
-            tokens += tokens_b + ["[SEP]"]
+        tokens = ['[CLS]'] + tokens_a + ['[SEP]']
+        labels = ['[CLS]'] + labels_a + ['[SEP]']
+        if tokens_b and labels_b:
+            tokens += tokens_b + ['[SEP]']
+            labels += labels_b + ['[SEP]']
 
         ####################
-        # A2. label_ids
-        ####################
-        label_ids = [self.label2id['[CLS]']] + \
-                    [self.label2id[token_label] for token_label in token_labels_a] + \
-                    [self.label2id['[SEP]']]
-        if tokens_b:
-            label_ids += \
-                [self.label2id[token_label] for token_label in token_labels_b] + \
-                [self.label2id['[SEP]']]
-
-        label_ids = self._pad_sequence(label_ids, 0)
-        assert len(label_ids) == self.max_seq_length
-
-        ####################
-        # B. input_ids, input_mask, segment_ids
+        # B. input_ids, input_mask, segment_ids, label_ids
         ####################
         # 1. input_ids
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
@@ -92,19 +80,18 @@ class InputExampleToTensors(object):
         else:
             segment_ids = [0] * len(tokens_a) + [1] * (len(tokens_b) + 1)
 
-        # 4. padding
-        # Zero-pad up to the sequence length.
-        padding = [0] * (self.max_seq_length - len(input_ids))
-        input_ids += padding
-        input_mask += padding
-        segment_ids += padding
-        assert len(input_ids) == self.max_seq_length
-        assert len(input_mask) == self.max_seq_length
-        assert len(segment_ids) == self.max_seq_length
+        # 4. label_ids
+        label_ids = [self.label2id[label] for label in labels]
 
-        input_ids = torch.tensor(input_ids, dtype=torch.long)
-        input_mask = torch.tensor(input_mask, dtype=torch.long)
-        segment_ids = torch.tensor(segment_ids, dtype=torch.long)
+        # 5. padding
+        input_ids = self._pad_sequence(input_ids, 0)
+        input_mask = self._pad_sequence(input_mask, 0)
+        segment_ids = self._pad_sequence(segment_ids, 0)
+        label_ids = self._pad_sequence(label_ids, 0)
+        assert input_ids.shape[0] == self.max_seq_length
+        assert input_mask.shape[0] == self.max_seq_length
+        assert segment_ids.shape[0] == self.max_seq_length
+        assert label_ids.shape[0] == self.max_seq_length
 
         ####################
         # return
@@ -112,7 +99,7 @@ class InputExampleToTensors(object):
         return input_ids, input_mask, segment_ids, label_ids
 
     ####################################################################################################################
-    # PRIVATE METHODS
+    # PRIVATE HELPER METHODS
     ####################################################################################################################
     def _tokenize_words_and_labels(self, input_example, segment):
         """
@@ -124,8 +111,8 @@ class InputExampleToTensors(object):
                                                    labels_b = None
         :param segment:       [str], 'a' or 'b'
         :changed attr: token_count [int] total number of tokens in df
-        :return: tokens:        [list] of [str], e.g. ['at', 'arbetsförmedling', '##en]
-                 tokens_labels: [list] of [str], e.g. [0, 'ORG', 'ORG']
+        :return: tokens: [list] of [str], e.g. ['at', 'arbetsförmedling', '##en]
+                 labels: [list] of [str], e.g. [   0,              'ORG', 'ORG']
         """
         # [list] of (word, label) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
         if segment == 'a':
@@ -156,7 +143,30 @@ class InputExampleToTensors(object):
 
         return tokens, tokens_labels
 
+    @staticmethod
+    def _truncate_seq_pair(max_length, seq_a, seq_b=()):
+        """Truncates a sequence pair in place to the maximum length."""
+        # This is a simple heuristic which will always truncate the longer sequence
+        # one token at a time. This makes more sense than truncating an equal percent
+        # of tokens from each, since if one sequence is very short then each token
+        # that's truncated likely contains more information than a longer sequence.
+        while True:
+            total_length = len(seq_a) + len(seq_b)
+            if total_length <= max_length:
+                break
+            if len(seq_a) > len(seq_b):
+                seq_a.pop()
+            else:
+                seq_b.pop()
+
     def _pad_sequence(self, _input, value):
+        """
+        pad _input sequence with value until self.max_seq_length is reached
+        -------------------------------------------------------------------
+        :param _input: [list]
+        :param value:  [int], e.g. 0
+        :return: _input as [torch tensor]
+        """
         padded = pad_sequences(
             [_input],
             maxlen=self.max_seq_length,
@@ -166,20 +176,3 @@ class InputExampleToTensors(object):
             truncating="post"
         )
         return torch.tensor(padded, dtype=torch.long).view(-1)
-
-    @staticmethod
-    def _truncate_seq_pair(tokens_a, tokens_b, max_length):
-        """Truncates a sequence pair in place to the maximum length."""
-
-        # This is a simple heuristic which will always truncate the longer sequence
-        # one token at a time. This makes more sense than truncating an equal percent
-        # of tokens from each, since if one sequence is very short then each token
-        # that's truncated likely contains more information than a longer sequence.
-        while True:
-            total_length = len(tokens_a) + len(tokens_b)
-            if total_length <= max_length:
-                break
-            if len(tokens_a) > len(tokens_b):
-                tokens_a.pop()
-            else:
-                tokens_b.pop()

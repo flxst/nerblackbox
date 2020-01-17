@@ -13,7 +13,11 @@ logger = logging.getLogger(__name__)
 
 class NerProcessor:
 
-    def __init__(self, path, tokenizer, do_lower_case=True, csv_file_separator='\t'):
+    def __init__(self,
+                 path,
+                 tokenizer,
+                 do_lower_case=True,
+                 csv_file_separator='\t'):
         """
         :param path:               [str] to folder that contains dataset csv files (train, valid, test)
         :param tokenizer:          [transformers Tokenizer]
@@ -98,4 +102,3 @@ class NerProcessor:
             # append
             examples.append(input_example)
         return examples
-
