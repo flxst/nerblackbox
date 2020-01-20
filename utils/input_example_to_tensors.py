@@ -165,7 +165,7 @@ class InputExampleToTensors(object):
         -------------------------------------------------------------------
         :param _input: [list]
         :param value:  [int], e.g. 0
-        :return: _input as [torch tensor]
+        :return: padded _input as [torch tensor]
         """
         padded = pad_sequences(
             [_input],

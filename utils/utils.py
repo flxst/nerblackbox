@@ -48,3 +48,32 @@ def prune_examples(list_of_examples, ratio=None):
         num_examples_new = int(ratio*float(num_examples_old))
         print(f'use {num_examples_new} of {num_examples_old} examples')
         return list_of_examples[:num_examples_new]
+
+
+def add_bio_to_label_list(label_list):
+    """
+    adds bio prefixes to labels
+    ---------------------------
+    :param label_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
+    :return: bio_label_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
+    """
+    return [_add_bio_to_label(label_list[i], previous=label_list[i - 1] if i > 0 else None)
+            for i in range(len(label_list))]
+
+
+def _add_bio_to_label(label, previous):
+    """
+    add bio prefix to label, depending on previous label
+    ----------------------------------------------------
+    :param label:       [str], e.g. 'ORG'
+    :param previous:    [str], e.g. 'ORG'
+    :return: bio_label: [str], e.g. 'I-ORG'
+    """
+    if label == 'O' or label.startswith('['):
+        return label
+    elif previous is None:
+        return f'B-{label}'
+    elif label != previous:
+        return f'B-{label}'
+    else:
+        return f'I-{label}'
