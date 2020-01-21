@@ -14,6 +14,7 @@ def main(ner_dataset, with_tags=False):
     if ner_dataset == 'swedish_ner_corpus':
         label_list = ['PER', 'ORG', 'LOC', 'MISC']
 
+        # full label list
         if with_tags:
             label_lists_extended = [[f'B-{label}', f'I-{label}'] for label in label_list]
             label_lists_full = ['O'] + [l_i for l in label_lists_extended for l_i in l]
@@ -29,6 +30,18 @@ def main(ner_dataset, with_tags=False):
             ner_label_mapping['I-ORG*'] = 'I-ORG'
         else:
             ner_label_mapping['ORG*'] = 'ORG'
+    elif ner_dataset == 'SUC':
+        label_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
+
+        # full label list
+        if with_tags:
+            label_lists_extended = [[f'B-{label}', f'I-{label}'] for label in label_list]
+            label_lists_full = ['O'] + [l_i for l in label_lists_extended for l_i in l]
+        else:
+            label_lists_full = ['O'] + label_list
+
+        # map each label to itself
+        ner_label_mapping = {k: k for k in label_lists_full}
     else:
         raise Exception(f'ner_dataset = {ner_dataset} unknown.')
 
