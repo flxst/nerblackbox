@@ -3,7 +3,6 @@ import numpy as np
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from tensorboardX import SummaryWriter
-from seqeval.metrics import f1_score as f1_score_seqeval
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
 
@@ -111,7 +110,6 @@ class NERTrainer(object):
         for epoch in range(num_epochs):
             print("\n>>> Train Epoch: {}".format(epoch))
 
-            # for step, batch in enumerate(progress_bar(self.train_dataloader, parent=epoch_process)):
             for step, batch in enumerate(self.train_dataloader):
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
@@ -144,33 +142,24 @@ class NERTrainer(object):
                                      token_type_ids=segment_ids,
                                      labels=label_ids,
                                      )
-                batch_train_loss, logits_tmp = outputs[:2]
-                logits = [logits_tmp]
+                batch_train_loss, logits = outputs[:2]
+
+                # batch loss
                 if verbose:
                     print(f'Batch #{step} train loss: {batch_train_loss:.2f}')
 
                 # to cpu/numpy
-                np_logits = logits[0].detach().cpu().numpy()
-                np_label_ids = label_ids.to('cpu').numpy()
+                np_batch_train_loss = batch_train_loss.detach().cpu().numpy()
+                np_logits = logits.detach().cpu().numpy()     # shape: [batch_size, seq_length, num_labels]
+                np_label_ids = label_ids.to('cpu').numpy()    # shape: [batch_size, seq_legnth]
 
-                # metrics
-                batch_train_acc = self.accuracy(np_logits, np_label_ids)
-                batch_train_f1_macro_all, batch_train_f1_micro_all = \
-                    self.f1_score(np_logits, np_label_ids, flatten=True, filtered_label_ids=False)
-                batch_train_f1_macro_fil, batch_train_f1_micro_fil = \
-                    self.f1_score(np_logits, np_label_ids, flatten=True, filtered_label_ids=True, label_str=False)
-                batch_train_loss_mean = batch_train_loss.mean().item()
-                self.metrics['batch']['train']['loss'].append(batch_train_loss_mean)
-                self.metrics['batch']['train']['acc'].append(batch_train_acc)
-                self.metrics['batch']['train']['f1']['macro']['all'].append(batch_train_f1_macro_all)
-                self.metrics['batch']['train']['f1']['micro']['all'].append(batch_train_f1_micro_all)
-                self.metrics['batch']['train']['f1']['macro']['fil'].append(batch_train_f1_macro_fil)
-                self.metrics['batch']['train']['f1']['micro']['fil'].append(batch_train_f1_micro_fil)
+                # batch train metrics
+                batch_train_metrics, _, progress_bar = \
+                    self.compute_batch_metrics(np_batch_train_loss, np_logits, np_label_ids)
+
+                # training progressbar
                 pbar.update(1)  # TQDM - progressbar
-                description_str = f'acc: {batch_train_acc:.2f} | ' + \
-                                  f'f1 (macro, all): {batch_train_f1_macro_all:.2f} | ' + \
-                                  f'f1 (micro, all): {batch_train_f1_micro_all:.2f}'
-                pbar.set_description(description_str)
+                pbar.set_description(progress_bar)
 
                 # update learning rate
                 global_step = self.get_global_step(epoch, step)
@@ -192,20 +181,24 @@ class NERTrainer(object):
                 self.model.zero_grad()
 
                 # writer
-                self.writer.add_scalar('train/loss', batch_train_loss_mean, global_step)
-                self.writer.add_scalar('train/acc', batch_train_acc, global_step)
-                self.writer.add_scalar('train/f1_macro_all', batch_train_f1_macro_all, global_step)
+                self.writer.add_scalar('train/loss', batch_train_metrics['loss'], global_step)
+                self.writer.add_scalar('train/acc', batch_train_metrics['acc'], global_step)
+                self.writer.add_scalar('train/f1_macro_all', batch_train_metrics['f1_macro_all'], global_step)
                 self.writer.add_scalar('train/learning_rate', lr_this_step, global_step)
 
             self.validation(global_step, epoch)
-                
+
     def validation(self, global_step, epoch, verbose=False):
         print("\n>>> Valid Epoch: {}".format(epoch))
         self.model.eval()
-        epoch_valid_loss, epoch_valid_acc = 0, 0
+        epoch_valid_metrics = {
+            'loss': 0,
+            'acc': 0,
+        }
         nb_eval_steps, nb_eval_examples = 0, 0
-        pred_label_ids, true_label_ids = [], []
-        
+        epoch_valid_pred_label_ids = list()
+        epoch_valid_true_label_ids = list()
+
         for batch in self.valid_dataloader:
             batch = tuple(t.to(self.device) for t in batch)
             input_ids, input_mask, segment_ids, label_ids = batch
@@ -225,139 +218,170 @@ class NERTrainer(object):
                                     # token_type_ids=b_input_mask,
                                     )
                 """
-                batch_valid_loss, logits_tmp = outputs[:2]
-                logits = [logits_tmp]
+                batch_valid_loss, logits = outputs[:2]
 
             # to cpu/numpy
-            np_logits = logits[0].detach().cpu().numpy()
+            np_batch_valid_loss = batch_valid_loss.detach().cpu().numpy()
+            np_logits = logits.detach().cpu().numpy()
             np_label_ids = label_ids.to('cpu').numpy()
 
-            pred_label_ids.extend([list(p) for p in np.argmax(np_logits, axis=2)])
-            true_label_ids.append(np_label_ids)
+            # batch valid metrics
+            batch_valid_metrics, batch_valid_label_ids, _ = \
+                self.compute_batch_metrics(np_batch_valid_loss, np_logits, np_label_ids)
 
-            batch_valid_loss_mean = batch_valid_loss.mean().item()
-            batch_valid_acc = self.accuracy(np_logits, np_label_ids)
-            batch_valid_f1_macro_all, batch_valid_f1_micro_all = \
-                self.f1_score(np_logits, np_label_ids, flatten=True, filtered_label_ids=False)
-            batch_valid_f1_macro_fil, batch_valid_f1_micro_fil = \
-                self.f1_score(np_logits, np_label_ids, flatten=True, filtered_label_ids=True, label_str=False)
+            # epoch
+            epoch_valid_pred_label_ids.extend(batch_valid_label_ids['pred'])
+            epoch_valid_true_label_ids.extend(batch_valid_label_ids['true'])
 
-            self.metrics['batch']['valid']['loss'].append(batch_valid_loss_mean)
-            self.metrics['batch']['valid']['acc'].append(batch_valid_acc)
-            self.metrics['batch']['valid']['f1']['macro']['all'].append(batch_valid_f1_macro_all)
-            self.metrics['batch']['valid']['f1']['micro']['all'].append(batch_valid_f1_micro_all)
-            self.metrics['batch']['valid']['f1']['macro']['fil'].append(batch_valid_f1_macro_fil)
-            self.metrics['batch']['valid']['f1']['micro']['fil'].append(batch_valid_f1_micro_fil)
-
-            epoch_valid_loss += batch_valid_loss_mean
-            epoch_valid_acc += batch_valid_acc
+            # epoch metrics
+            epoch_valid_metrics['loss'] += batch_valid_metrics['loss']
+            epoch_valid_metrics['acc'] += batch_valid_metrics['acc']
 
             nb_eval_examples += input_ids.size(0)
             nb_eval_steps += 1
 
-        epoch_valid_loss = epoch_valid_loss/nb_eval_steps
-        epoch_valid_acc = epoch_valid_acc/nb_eval_steps
-
-        ##########################
-        # flatten pred & true
-        ##########################
-        # turn nested label_ids (=[[0, 1, 2], [3, 4, 5]]) into flat labels (=['O', 'ORG', .., 'PER'])
-        pred_labels_flat_all = [self.label_list[p_i] for p in pred_label_ids for p_i in p]
-        true_labels_flat_all = [self.label_list[l_ii] for l in true_label_ids for l_i in l for l_ii in l_i]
+        epoch_valid_metrics['loss'] = epoch_valid_metrics['loss']/nb_eval_steps
+        epoch_valid_metrics['acc'] = epoch_valid_metrics['acc']/nb_eval_steps
 
         ##########################
         # compute f1 score
         ##########################
         # all
-        epoch_valid_f1_macro_all, epoch_valid_f1_micro_all = \
-            self.f1_score(pred_labels_flat_all, true_labels_flat_all,
-                          flatten=False, filtered_label_ids=False)
+        epoch_valid_metrics['f1_macro_all'], epoch_valid_metrics['f1_micro_all'] = \
+            self.f1_score(epoch_valid_pred_label_ids, epoch_valid_true_label_ids)
 
         # fil
-        epoch_valid_f1_macro_fil, epoch_valid_f1_micro_fil = \
-            self.f1_score(pred_labels_flat_all, true_labels_flat_all,
-                          flatten=False, filtered_label_ids=True, label_str=True)
+        epoch_valid_metrics['f1_macro_fil'], epoch_valid_metrics['f1_micro_fil'] = \
+            self.f1_score(epoch_valid_pred_label_ids, epoch_valid_true_label_ids, filtered_label_ids=True)
 
         ##########################
         # report
         ##########################
-        self.metrics['epoch']['valid']['loss'].append(epoch_valid_loss)
-        self.metrics['epoch']['valid']['acc'].append(epoch_valid_acc)
-        self.metrics['epoch']['valid']['f1']['macro']['all'].append(epoch_valid_f1_macro_all)
-        self.metrics['epoch']['valid']['f1']['micro']['all'].append(epoch_valid_f1_micro_all)
-        self.metrics['epoch']['valid']['f1']['macro']['fil'].append(epoch_valid_f1_macro_fil)
-        self.metrics['epoch']['valid']['f1']['micro']['fil'].append(epoch_valid_f1_micro_fil)
+        self.metrics['epoch']['valid']['loss'].append(epoch_valid_metrics['loss'])
+        self.metrics['epoch']['valid']['acc'].append(epoch_valid_metrics['acc'])
+        self.metrics['epoch']['valid']['f1']['macro']['all'].append(epoch_valid_metrics['f1_macro_all'])
+        self.metrics['epoch']['valid']['f1']['micro']['all'].append(epoch_valid_metrics['f1_micro_all'])
+        self.metrics['epoch']['valid']['f1']['macro']['fil'].append(epoch_valid_metrics['f1_macro_fil'])
+        self.metrics['epoch']['valid']['f1']['micro']['fil'].append(epoch_valid_metrics['f1_micro_fil'])
 
-        print(f'Epoch #{epoch} valid loss:              {epoch_valid_loss:.2f}')
-        print(f'Epoch #{epoch} valid acc:               {epoch_valid_acc:.2f}')
-        print(f'Epoch #{epoch} valid f1 (macro, all):   {epoch_valid_f1_macro_all:.2f}')
-        print(f'Epoch #{epoch} valid f1 (micro, all):   {epoch_valid_f1_micro_all:.2f}')
-        print(f'Epoch #{epoch} valid f1 (macro, fil):   {epoch_valid_f1_macro_fil:.2f}')
-        print(f'Epoch #{epoch} valid f1 (micro, fil):   {epoch_valid_f1_micro_fil:.2f}')
-
-        print('\n--- token-based (sklearn) classification report ---')
-        print(classification_report_sklearn(true_labels_flat_all,
-                                            pred_labels_flat_all,
-                                            labels=[label for label in self.label_list if label != 'O']))
+        print('Epoch #{} valid loss:              {:.2f}'.format(epoch, epoch_valid_metrics['loss']))
+        print('Epoch #{} valid acc:               {:.2f}'.format(epoch, epoch_valid_metrics['acc']))
+        print('Epoch #{} valid f1 (macro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_all']))
+        print('Epoch #{} valid f1 (micro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_all']))
+        print('Epoch #{} valid f1 (macro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_fil']))
+        print('Epoch #{} valid f1 (micro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_fil']))
 
         # writer
-        self.writer.add_scalar('validation/loss', epoch_valid_loss, global_step)
-        self.writer.add_scalar('validation/acc', epoch_valid_acc, global_step)
-        self.writer.add_scalar('validation/f1_score_macro_all', epoch_valid_f1_macro_all, global_step)
-        self.writer.add_scalar('validation/f1_score_micro_all', epoch_valid_f1_micro_all, global_step)
+        self.writer.add_scalar('validation/loss', epoch_valid_metrics['loss'], global_step)
+        self.writer.add_scalar('validation/acc', epoch_valid_metrics['acc'], global_step)
+        self.writer.add_scalar('validation/f1_score_macro_all', epoch_valid_metrics['f1_macro_all'], global_step)
+        self.writer.add_scalar('validation/f1_score_micro_all', epoch_valid_metrics['f1_micro_all'], global_step)
 
         ##########################
-        # BIO-prefixes and chunk-based metrics
+        # classification reports
         ##########################
+        # use labels instead of label_ids
+        epoch_valid_pred_labels = [self.label_list[label_id] for label_id in epoch_valid_pred_label_ids]
+        epoch_valid_true_labels = [self.label_list[label_id] for label_id in epoch_valid_true_label_ids]
+
+        # token-based classification report
+        print('\n--- token-based (sklearn) classification report ---')
+        print(classification_report_sklearn(epoch_valid_pred_labels,
+                                            epoch_valid_true_labels,
+                                            labels=[label for label in self.label_list if label != 'O']))
+
         # enrich pred_tags & valid_tags with bio prefixes
-        pred_labels_flat_all_bio = utils.add_bio_to_label_list(pred_labels_flat_all)
-        true_labels_flat_all_bio = utils.add_bio_to_label_list(true_labels_flat_all)
+        epoch_valid_pred_labels_bio = utils.add_bio_to_label_list(epoch_valid_pred_labels)
+        epoch_valid_true_labels_bio = utils.add_bio_to_label_list(epoch_valid_true_labels)
         if verbose:
             print('\n--- predicted and true labels ---')
-            print(pred_labels_flat_all[:10], len(pred_labels_flat_all))
-            print(true_labels_flat_all[:10], len(true_labels_flat_all))
-            print(pred_labels_flat_all_bio[:10], len(pred_labels_flat_all_bio))
-            print(true_labels_flat_all_bio[:10], len(true_labels_flat_all_bio))
+            print(epoch_valid_pred_labels[:10], len(epoch_valid_pred_labels))
+            print(epoch_valid_true_labels[:10], len(epoch_valid_true_labels))
+            print(epoch_valid_pred_labels_bio[:10], len(epoch_valid_pred_labels_bio))
+            print(epoch_valid_true_labels_bio[:10], len(epoch_valid_true_labels_bio))
 
+        # chunk-based classification report
         print('\n--- chunk-based (seqeval) classification report ---')
-        print(classification_report_seqeval(true_labels_flat_all_bio,
-                                            pred_labels_flat_all_bio,
+        print(classification_report_seqeval(epoch_valid_true_labels_bio,
+                                            epoch_valid_pred_labels_bio,
                                             suffix=False))
 
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
     @staticmethod
-    def accuracy(_np_logits, _np_label_ids, flatten=True):
-        if flatten:
-            pred_flat = np.argmax(_np_logits, axis=2).flatten()
-            labels_flat = _np_label_ids.flatten()
-        else:
-            pred_flat = _np_logits
-            labels_flat = _np_label_ids
+    def reduce_and_flatten(_np_logits, _np_label_ids):
+        """
+        reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
+        ---------------------------------------------------------------
+        :param _np_logits:    [np array] of shape [batch_size, seq_length, num_labels]
+        :param _np_label_ids: [np array] of shape [batch_size, seq_length]
+        :return: pred_flat:   [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
+                 true_flat:   [np array] of shape [batch_size * seq_length], _np_label_ids             flattened
+        """
+        pred_flat = np.argmax(_np_logits, axis=2).flatten()
+        true_flat = _np_label_ids.flatten()
+        return pred_flat, true_flat
 
-        return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    def compute_batch_metrics(self, np_batch_train_loss, np_logits, np_label_ids):
+        metrics = {'loss': np_batch_train_loss}
 
-    def f1_score(self,
-                 _np_logits,
-                 _np_label_ids,
-                 flatten=True,
-                 filtered_label_ids=False,
-                 label_str=False):
+        # batch
+        label_ids = dict()
+        label_ids['pred'], label_ids['true'] = \
+            self.reduce_and_flatten(np_logits, np_label_ids)  # shape: batch_size * seq_length
 
+        # batch metrics
+        metrics['acc'] = self.accuracy(label_ids['pred'], label_ids['true'])
+        metrics['f1_macro_all'], metrics['f1_micro_all'] = \
+            self.f1_score(label_ids['pred'], label_ids['true'])
+        metrics['f1_macro_fil'], metrics['f1_micro_fil'] = \
+            self.f1_score(label_ids['pred'], label_ids['true'], filtered_label_ids=True)
+
+        # append to self.metrics
+        self.metrics['batch']['train']['loss'].append(metrics['loss'])
+        self.metrics['batch']['train']['acc'].append(metrics['acc'])
+        self.metrics['batch']['train']['f1']['macro']['all'].append(metrics['f1_macro_all'])
+        self.metrics['batch']['train']['f1']['micro']['all'].append(metrics['f1_micro_all'])
+        self.metrics['batch']['train']['f1']['macro']['fil'].append(metrics['f1_macro_fil'])
+        self.metrics['batch']['train']['f1']['micro']['fil'].append(metrics['f1_micro_fil'])
+
+        # progress bar
+        _progress_bar = 'acc: {:.2f} | f1 (macro, all): {:.2f} | f1 (micro, all): {:.2f}'.format(
+            metrics['acc'],
+            metrics['f1_macro_all'],
+            metrics['f1_micro_all'],
+        )
+
+        return metrics, label_ids, _progress_bar
+
+    @staticmethod
+    def accuracy(_pred_flat, _true_flat):
+        """
+        computes accuracy of predictions (_np_logits) w.r.t. ground truth (_np_label_ids)
+        ---------------------------------------------------------------------------------
+        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
+        :param _true_flat:   [np array] of shape [batch_size * seq_length]
+        :return: acc [np float]
+        """
+        return np.sum(_pred_flat == _true_flat) / len(_true_flat)
+
+    def f1_score(self, _pred_flat, _true_flat, filtered_label_ids=False):
+        """
+        computes f1 score (macro/micro) of predictions (_pred_flat) w.r.t. ground truth (_true_flat)
+        -----------------------------------------------------------------------------------------------
+        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
+        :param _true_flat:   [np array] of shape [batch_size * seq_length]
+        :param filtered_label_ids: [bool] if True, filter label_ids such that only relevant label_ids remain
+        :return: f1_score_macro [np array] f1 score for each class, then averaged
+                 f1_score_micro [np array] f1 score for all examples
+        """
+        # filter label_ids
         labels = self.label_ids_filtered if filtered_label_ids else None
-        if filtered_label_ids and label_str:
-            labels = [self.label_list[i] for i in labels]
 
-        if flatten:
-            pred_flat = np.argmax(_np_logits, axis=2).flatten()
-            labels_flat = _np_label_ids.flatten()
-        else:
-            pred_flat = _np_logits
-            labels_flat = _np_label_ids
-
-        return f1_score_sklearn(pred_flat, labels_flat, labels=labels, average='macro'), \
-            f1_score_sklearn(pred_flat, labels_flat, labels=labels, average='micro')
+        # compute f1 scores
+        return f1_score_sklearn(_pred_flat, _true_flat, labels=labels, average='macro'), \
+            f1_score_sklearn(_pred_flat, _true_flat, labels=labels, average='micro')
 
     ####################################################################################################################
     # 3. STEPS
