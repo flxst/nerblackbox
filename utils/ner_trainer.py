@@ -110,11 +110,11 @@ class NERTrainer(object):
         for epoch in range(num_epochs):
             print("\n>>> Train Epoch: {}".format(epoch))
 
-            for step, batch in enumerate(self.train_dataloader):
+            for batch_train_step, batch in enumerate(self.train_dataloader):
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
 
-                if verbose and step == 0:
+                if verbose and batch_train_step == 0:
                     print('\n--- input tensors ---')
                     print('> input_ids[0]:', input_ids.shape)
                     print(input_ids[0])
@@ -146,7 +146,7 @@ class NERTrainer(object):
 
                 # batch loss
                 if verbose:
-                    print(f'Batch #{step} train loss: {batch_train_loss:.2f}')
+                    print(f'Batch #{batch_train_step} train loss: {batch_train_loss:.2f}')
 
                 # to cpu/numpy
                 np_batch_train_loss = batch_train_loss.detach().cpu().numpy()
@@ -154,15 +154,16 @@ class NERTrainer(object):
                 np_label_ids = label_ids.to('cpu').numpy()    # shape: [batch_size, seq_legnth]
 
                 # batch train metrics
-                batch_train_metrics, _, progress_bar = \
-                    self.compute_batch_metrics(np_batch_train_loss, np_logits, np_label_ids)
+                batch_train_metrics, _, progress_bar = self.compute_batch_metrics(np_batch_train_loss,
+                                                                                  np_label_ids,
+                                                                                  np_logits)
 
                 # training progressbar
                 pbar.update(1)  # TQDM - progressbar
                 pbar.set_description(progress_bar)
 
                 # update learning rate
-                global_step = self.get_global_step(epoch, step)
+                global_step = self.get_global_step(epoch, batch_train_step)
                 lr_this_step = self.update_learning_rate(global_step)
                 self.metrics['batch']['train']['lr'].append(lr_this_step)
                 if verbose:
@@ -190,15 +191,25 @@ class NERTrainer(object):
 
     def validation(self, global_step, epoch, verbose=False):
         print("\n>>> Valid Epoch: {}".format(epoch))
-        self.model.eval()
+
         epoch_valid_metrics = {
             'loss': 0,
             'acc': 0,
         }
-        nb_eval_steps, nb_eval_examples = 0, 0
-        epoch_valid_pred_label_ids = list()
-        epoch_valid_true_label_ids = list()
+        epoch_valid_label_ids = {
+            'true': list(),
+            'pred': list(),
+        }
+        epoch_valid_labels = {
+            'true': list(),
+            'pred': list(),
+        }
+        epoch_valid_labels_bio = {
+            'true': list(),
+            'pred': list(),
+        }
 
+        self.model.eval()
         for batch in self.valid_dataloader:
             batch = tuple(t.to(self.device) for t in batch)
             input_ids, input_mask, segment_ids, label_ids = batch
@@ -226,33 +237,31 @@ class NERTrainer(object):
             np_label_ids = label_ids.to('cpu').numpy()
 
             # batch valid metrics
-            batch_valid_metrics, batch_valid_label_ids, _ = \
-                self.compute_batch_metrics(np_batch_valid_loss, np_logits, np_label_ids)
+            batch_valid_metrics, batch_valid_label_ids, _ = self.compute_batch_metrics(np_batch_valid_loss,
+                                                                                       np_label_ids,
+                                                                                       np_logits)
 
             # epoch
-            epoch_valid_pred_label_ids.extend(batch_valid_label_ids['pred'])
-            epoch_valid_true_label_ids.extend(batch_valid_label_ids['true'])
+            epoch_valid_label_ids['true'].extend(batch_valid_label_ids['true'])
+            epoch_valid_label_ids['pred'].extend(batch_valid_label_ids['pred'])
 
             # epoch metrics
             epoch_valid_metrics['loss'] += batch_valid_metrics['loss']
             epoch_valid_metrics['acc'] += batch_valid_metrics['acc']
 
-            nb_eval_examples += input_ids.size(0)
-            nb_eval_steps += 1
-
-        epoch_valid_metrics['loss'] = epoch_valid_metrics['loss']/nb_eval_steps
-        epoch_valid_metrics['acc'] = epoch_valid_metrics['acc']/nb_eval_steps
+        epoch_valid_metrics['loss'] = epoch_valid_metrics['loss']/len(self.valid_dataloader)
+        epoch_valid_metrics['acc'] = epoch_valid_metrics['acc']/len(self.valid_dataloader)
 
         ##########################
         # compute f1 score
         ##########################
         # all
         epoch_valid_metrics['f1_macro_all'], epoch_valid_metrics['f1_micro_all'] = \
-            self.f1_score(epoch_valid_pred_label_ids, epoch_valid_true_label_ids)
+            self.f1_score(epoch_valid_label_ids['true'], epoch_valid_label_ids['pred'])
 
         # fil
         epoch_valid_metrics['f1_macro_fil'], epoch_valid_metrics['f1_micro_fil'] = \
-            self.f1_score(epoch_valid_pred_label_ids, epoch_valid_true_label_ids, filtered_label_ids=True)
+            self.f1_score(epoch_valid_label_ids['true'], epoch_valid_label_ids['pred'], filtered_label_ids=True)
 
         ##########################
         # report
@@ -281,62 +290,56 @@ class NERTrainer(object):
         # classification reports
         ##########################
         # use labels instead of label_ids
-        epoch_valid_pred_labels = [self.label_list[label_id] for label_id in epoch_valid_pred_label_ids]
-        epoch_valid_true_labels = [self.label_list[label_id] for label_id in epoch_valid_true_label_ids]
+        epoch_valid_labels['true'] = [self.label_list[label_id] for label_id in epoch_valid_label_ids['true']]
+        epoch_valid_labels['pred'] = [self.label_list[label_id] for label_id in epoch_valid_label_ids['pred']]
 
         # token-based classification report
         print('\n--- token-based (sklearn) classification report ---')
-        print(classification_report_sklearn(epoch_valid_pred_labels,
-                                            epoch_valid_true_labels,
+        print(classification_report_sklearn(epoch_valid_labels['true'],
+                                            epoch_valid_labels['pred'],
                                             labels=[label for label in self.label_list if label != 'O']))
 
         # enrich pred_tags & valid_tags with bio prefixes
-        epoch_valid_pred_labels_bio = utils.add_bio_to_label_list(epoch_valid_pred_labels)
-        epoch_valid_true_labels_bio = utils.add_bio_to_label_list(epoch_valid_true_labels)
+        epoch_valid_labels_bio['true'] = utils.add_bio_to_label_list(epoch_valid_labels['true'])
+        epoch_valid_labels_bio['pred'] = utils.add_bio_to_label_list(epoch_valid_labels['pred'])
         if verbose:
             print('\n--- predicted and true labels ---')
-            print(epoch_valid_pred_labels[:10], len(epoch_valid_pred_labels))
-            print(epoch_valid_true_labels[:10], len(epoch_valid_true_labels))
-            print(epoch_valid_pred_labels_bio[:10], len(epoch_valid_pred_labels_bio))
-            print(epoch_valid_true_labels_bio[:10], len(epoch_valid_true_labels_bio))
+            print(epoch_valid_labels['true'][:10], len(epoch_valid_labels['true']))
+            print(epoch_valid_labels['pred'][:10], len(epoch_valid_labels['pred']))
+            print(epoch_valid_labels_bio['true'][:10], len(epoch_valid_labels_bio['true']))
+            print(epoch_valid_labels_bio['pred'][:10], len(epoch_valid_labels_bio['pred']))
 
         # chunk-based classification report
         print('\n--- chunk-based (seqeval) classification report ---')
-        print(classification_report_seqeval(epoch_valid_true_labels_bio,
-                                            epoch_valid_pred_labels_bio,
+        print(classification_report_seqeval(epoch_valid_labels_bio['true'],
+                                            epoch_valid_labels_bio['pred'],
                                             suffix=False))
 
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
-    @staticmethod
-    def reduce_and_flatten(_np_logits, _np_label_ids):
+    def compute_batch_metrics(self, _np_batch_train_loss, _np_label_ids, _np_logits):
         """
-        reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
-        ---------------------------------------------------------------
-        :param _np_logits:    [np array] of shape [batch_size, seq_length, num_labels]
-        :param _np_label_ids: [np array] of shape [batch_size, seq_length]
-        :return: pred_flat:   [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
-                 true_flat:   [np array] of shape [batch_size * seq_length], _np_label_ids             flattened
+        computes loss, acc, f1 scores for batch
+        ---------------------------------------
+        :param _np_batch_train_loss: [np value]
+        :param _np_label_ids:        [np array] of shape [batch_size, seq_length]
+        :param _np_logits:           [np array] of shape [batch_size, seq_length, num_labels]
+        :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
+                 labels_ids    [dict] w/ keys 'true', 'pred'      & values = [np array]
+                 _progress_bar [str] to display during training
         """
-        pred_flat = np.argmax(_np_logits, axis=2).flatten()
-        true_flat = _np_label_ids.flatten()
-        return pred_flat, true_flat
-
-    def compute_batch_metrics(self, np_batch_train_loss, np_logits, np_label_ids):
-        metrics = {'loss': np_batch_train_loss}
+        metrics = {'loss': _np_batch_train_loss}
 
         # batch
         label_ids = dict()
-        label_ids['pred'], label_ids['true'] = \
-            self.reduce_and_flatten(np_logits, np_label_ids)  # shape: batch_size * seq_length
+        label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_label_ids, _np_logits)
 
         # batch metrics
-        metrics['acc'] = self.accuracy(label_ids['pred'], label_ids['true'])
-        metrics['f1_macro_all'], metrics['f1_micro_all'] = \
-            self.f1_score(label_ids['pred'], label_ids['true'])
-        metrics['f1_macro_fil'], metrics['f1_micro_fil'] = \
-            self.f1_score(label_ids['pred'], label_ids['true'], filtered_label_ids=True)
+        metrics['acc'] = self.accuracy(label_ids['true'], label_ids['pred'])
+        metrics['f1_macro_all'], metrics['f1_micro_all'] = self.f1_score(label_ids['true'], label_ids['pred'])
+        metrics['f1_macro_fil'], metrics['f1_micro_fil'] = self.f1_score(label_ids['true'], label_ids['pred'],
+                                                                         filtered_label_ids=True)
 
         # append to self.metrics
         self.metrics['batch']['train']['loss'].append(metrics['loss'])
@@ -356,22 +359,36 @@ class NERTrainer(object):
         return metrics, label_ids, _progress_bar
 
     @staticmethod
-    def accuracy(_pred_flat, _true_flat):
+    def reduce_and_flatten(_np_label_ids, _np_logits):
+        """
+        reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
+        ---------------------------------------------------------------
+        :param _np_label_ids: [np array] of shape [batch_size, seq_length]
+        :param _np_logits:    [np array] of shape [batch_size, seq_length, num_labels]
+        :return: true_flat:   [np array] of shape [batch_size * seq_length], _np_label_ids             flattened
+                 pred_flat:   [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
+        """
+        true_flat = _np_label_ids.flatten()
+        pred_flat = np.argmax(_np_logits, axis=2).flatten()
+        return true_flat, pred_flat
+
+    @staticmethod
+    def accuracy(_true_flat, _pred_flat):
         """
         computes accuracy of predictions (_np_logits) w.r.t. ground truth (_np_label_ids)
         ---------------------------------------------------------------------------------
-        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
         :param _true_flat:   [np array] of shape [batch_size * seq_length]
+        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
         :return: acc [np float]
         """
         return np.sum(_pred_flat == _true_flat) / len(_true_flat)
 
-    def f1_score(self, _pred_flat, _true_flat, filtered_label_ids=False):
+    def f1_score(self, _true_flat, _pred_flat, filtered_label_ids=False):
         """
         computes f1 score (macro/micro) of predictions (_pred_flat) w.r.t. ground truth (_true_flat)
         -----------------------------------------------------------------------------------------------
-        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
         :param _true_flat:   [np array] of shape [batch_size * seq_length]
+        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
         :param filtered_label_ids: [bool] if True, filter label_ids such that only relevant label_ids remain
         :return: f1_score_macro [np array] f1 score for each class, then averaged
                  f1_score_micro [np array] f1 score for all examples
@@ -380,23 +397,30 @@ class NERTrainer(object):
         labels = self.label_ids_filtered if filtered_label_ids else None
 
         # compute f1 scores
-        return f1_score_sklearn(_pred_flat, _true_flat, labels=labels, average='macro'), \
-            f1_score_sklearn(_pred_flat, _true_flat, labels=labels, average='micro')
+        return f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='macro'), \
+            f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='micro')
 
     ####################################################################################################################
     # 3. STEPS
     ####################################################################################################################
-    def get_global_step(self, epoch, step):
-        return epoch * len(self.train_dataloader) + step
+    def get_global_step(self, _epoch, _batch_train_step):
+        """
+        get global training step
+        ------------------------
+        :param _epoch:            [int] >= 0
+        :param _batch_train_step: [int] >= 0
+        :return: global step:     [int]
+        """
+        return _epoch * len(self.train_dataloader) + _batch_train_step
     
-    def get_total_steps(self, num_epochs):
+    def get_total_steps(self, _num_epochs):
         """
         gets total_steps = num_epochs * (number of training data samples)
         -----------------------------------------------------------------
-        :param num_epochs:    [int], e.g. 10
+        :param _num_epochs:    [int], e.g. 10
         :return: total_steps: [int], e.g. 2500 (in case of 250 training data samples)
         """
-        return num_epochs * len(self.train_dataloader)
+        return _num_epochs * len(self.train_dataloader)
 
     ####################################################################################################################
     # 4. OPTIMIZER
@@ -404,24 +428,35 @@ class NERTrainer(object):
     def clip_grad_norm(self, max_grad_norm):
         torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=max_grad_norm)
         
-    def update_learning_rate(self, global_step):
-        lr_this_step = self.learning_rate * self.warmup_linear((global_step + 1) / self.total_steps,
-                                                               self.warmup_proportion)
+    def update_learning_rate(self, _global_step):
         """
-        print('> global_step:', global_step)
-        print('> self.learning_rate:', self.learning_rate)
-        print('> self.total_steps:', self.total_steps)
-        print('> (global_step+1)/self.total_steps:', (global_step + 1) / self.total_steps)
+        dynamically update learning rate depending on global_step
+        ---------------------------------------------------------
+        :param _global_step: [int] >= 0
+        :return: _lr_this_step: [float] > 0
         """
+        _lr_this_step = self.learning_rate * self.warmup_linear((_global_step + 1) / self.total_steps,
+                                                                self.warmup_proportion)
         for param_group in self.optimizer.param_groups:
-            param_group['lr'] = lr_this_step
-        return lr_this_step
+            param_group['lr'] = _lr_this_step
+        return _lr_this_step
 
     @staticmethod
-    def warmup_linear(x, warmup=0.002):
-        if x < warmup:
-            return x/warmup
-        return 1.0 - (x - warmup)/(1 - warmup)
+    def warmup_linear(current_fraction, warmup_fraction=0.002):
+        """
+        returns a dynamic weight to be multiplied with the learning rate.
+        the weight
+        increases linearly from (current_fraction=0,weight=0) to (current_fraction=warmup_fraction, weight=1), then
+        decreases linearly from (current_fraction=warmup_fraction, weight=1) to (current_fraction=1,weight=0)
+        --------------------------------
+        :param current_fraction: [float] between 0 and 1
+        :param warmup_fraction:  [float] between 0 and 1
+        :return: weight:         [float] between 0 and 1
+        """
+        if current_fraction < warmup_fraction:
+            return current_fraction/warmup_fraction
+        else:
+            return 1.0 - (current_fraction - warmup_fraction)/(1 - warmup_fraction)
     
     def create_optimizer(self, learning_rate, fp16=True, no_decay=['bias', 'gamma', 'beta']):
         # Remove unused pooler that otherwise break Apex
