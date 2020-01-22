@@ -27,7 +27,7 @@ class NERTrainer(object):
         :param model:            [transformers BertForTokenClassification]
         :param train_dataloader: [pytorch DataLoader]
         :param valid_dataloader: [pytorch DataLoader]
-        :param label_list:       [list] of [str]
+        :param label_list:       [list] of [str], e.g. ['[PAD]', '[CLS]', '[SEP]', 'O', 'PER', ..]
         :param fp16:             [bool]
         """
         # input attributes
@@ -41,6 +41,8 @@ class NERTrainer(object):
         self.label_ids_filtered = [self.label_list.index(label)
                                    for label in self.label_list
                                    if not (label.startswith('[') or label == 'O')]
+
+        # device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         # if fp16:
@@ -53,12 +55,10 @@ class NERTrainer(object):
         # self.loss_fct = CrossEntropyLoss()  # OLD: HERE 3
         """
 
-        # no input arguments
-        # learning rate
+        # no input arguments (set in methods)
         self.learning_rate = None
-        self.warmup_proportion = None
+        self.warmup_fraction = None
         self.optimizer = None
-
         self.total_steps = None
 
         # metrics
@@ -82,14 +82,14 @@ class NERTrainer(object):
     ####################################################################################################################
     def fit(self,
             num_epochs=25,
-            max_grad_norm=2.0,
+            max_grad_norm=None,  # 2.0
             learning_rate=3e-5,
-            warmup_proportion=0.1,
+            warmup_fraction=0.1,
             verbose=False):
 
         # learning rate
         self.learning_rate = learning_rate
-        self.warmup_proportion = warmup_proportion
+        self.warmup_fraction = warmup_fraction
 
         # optimizer
         self.optimizer = self.create_optimizer(self.learning_rate, self.fp16)
@@ -176,8 +176,9 @@ class NERTrainer(object):
                 else:
                     batch_train_loss.backward()
 
-                # TODO undersök varför man vill göra det här, det får ibland modellen att inte lära sig
-                # self.clip_grad_norm(max_grad_norm)
+                if max_grad_norm is not None:
+                    # TODO: undersök varför man vill göra det här, det får ibland modellen att inte lära sig
+                    self.clip_grad_norm(max_grad_norm)
                 self.optimizer.step()
                 self.model.zero_grad()
 
@@ -436,7 +437,7 @@ class NERTrainer(object):
         :return: _lr_this_step: [float] > 0
         """
         _lr_this_step = self.learning_rate * self.warmup_linear((_global_step + 1) / self.total_steps,
-                                                                self.warmup_proportion)
+                                                                self.warmup_fraction)
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = _lr_this_step
         return _lr_this_step
