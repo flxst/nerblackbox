@@ -57,7 +57,6 @@ class NERTrainer(object):
 
         # no input arguments (set in methods)
         self.learning_rate = None
-        self.warmup_fraction = None
         self.optimizer = None
         self.total_steps = None
 
@@ -83,16 +82,20 @@ class NERTrainer(object):
     def fit(self,
             num_epochs=25,
             max_grad_norm=None,  # 2.0
-            learning_rate=3e-5,
-            warmup_fraction=0.1,
+            lr_max=3e-5,
+            lr_schedule='linear_with_warmup',
+            lr_warmup_fraction=0.1,
             verbose=False):
 
         # learning rate
-        self.learning_rate = learning_rate
-        self.warmup_fraction = warmup_fraction
+        self.learning_rate = {
+            'lr_max': lr_max,
+            'lr_schedule': lr_schedule,
+            'lr_warmup_fraction': lr_warmup_fraction,
+        }
 
         # optimizer
-        self.optimizer = self.create_optimizer(self.learning_rate, self.fp16)
+        self.optimizer = self.create_optimizer(self.learning_rate['lr_max'], self.fp16)
         if self.device == "cpu":
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
 
@@ -436,8 +439,8 @@ class NERTrainer(object):
         :param _global_step: [int] >= 0
         :return: _lr_this_step: [float] > 0
         """
-        _lr_this_step = self.learning_rate * self.warmup_linear((_global_step + 1) / self.total_steps,
-                                                                self.warmup_fraction)
+        _lr_this_step = self.learning_rate['lr_max'] * self.warmup_linear((_global_step + 1) / self.total_steps,
+                                                                          self.learning_rate['lr_warmup_fraction'])
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = _lr_this_step
         return _lr_this_step

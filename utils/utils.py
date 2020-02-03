@@ -1,11 +1,58 @@
 
 import os
+import pandas as pd
+import matplotlib.pyplot as plt
+import pickle
+import torch
+
+from utils.bert_dataset import BertDataset
+from utils.ner_processor import NerProcessor
+from utils.input_example_to_tensors import InputExampleToTensors
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 ENV_VARIABLE = {
     'DIR_PRETRAINED_MODELS': './pretrained_models',  # TODO: get rid of this line
     'DIR_DATASETS': './datasets',
     'DIR_CHECKPOINTS': './checkpoints',
 }
+
+
+def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prune_ratio=1.0):
+    input_examples = dict()
+    data = dict()
+    dataloader = dict()
+
+    # processor
+    processor = NerProcessor(dataset_path, tokenizer, do_lower_case=True)  # needs to be True (applies .lower()) !!
+    label_list = processor.get_label_list()
+
+    # train data
+    input_examples_train_all = processor.get_input_examples('train')
+    input_examples['train'] = prune_examples(input_examples_train_all, ratio=prune_ratio)
+
+    # validation data
+    input_examples_valid_all = processor.get_input_examples('test')
+    input_examples['valid'] = prune_examples(input_examples_valid_all, ratio=prune_ratio)
+
+    # input_examples_to_tensors
+    input_examples_to_tensors = InputExampleToTensors(tokenizer,
+                                                      max_seq_length=max_seq_length,
+                                                      label_tuple=tuple(label_list))
+
+    # dataloader
+    data['train'] = BertDataset(input_examples['train'],
+                                transform=input_examples_to_tensors)
+    dataloader['train'] = DataLoader(data['train'],
+                                     sampler=RandomSampler(data['train']),
+                                     batch_size=batch_size)
+
+    data['valid'] = BertDataset(input_examples['valid'],
+                                transform=input_examples_to_tensors)
+    dataloader['valid'] = DataLoader(data['valid'],
+                                     sampler=SequentialSampler(data['valid']),
+                                     batch_size=batch_size)
+
+    return dataloader, label_list
 
 
 def get_available_models():
@@ -31,6 +78,24 @@ def get_available_datasets(downstream_task):
         for folder in os.listdir(d)
         if os.path.isdir(os.path.join(d, folder))
     ]
+
+
+def get_dataset_path(dir_datasets, dataset):
+    """
+    get dataset path for dataset
+    ----------------------------
+    :param dir_datasets:   [str] path to datasets directory
+    :param dataset:        [str] dataset name, e.g. 'SUC', 'swedish_ner_corpus'
+    :return: dataset_path: [str] path to dataset directory
+    """
+    if dataset == 'SUC':
+        dataset_path = f'{dir_datasets}/SUC/'
+    elif dataset == 'swedish_ner_corpus':
+        dataset_path = f'{dir_datasets}/swedish_ner_corpus/'
+    else:
+        raise Exception(f'dataset = {dataset} unknown.')
+
+    return dataset_path
 
 
 def prune_examples(list_of_examples, ratio=None):
@@ -77,3 +142,131 @@ def _add_bio_to_label(label, previous):
         return f'B-{label}'
     else:
         return f'I-{label}'
+
+
+def save_model_checkpoint(model, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio):
+    model_name = pretrained_model_name.split('/')[-1]
+    pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+
+    torch.save(model.state_dict(), pkl_path)
+    print(f'checkpoint saved at {pkl_path}')
+
+
+def save_metrics(trainer, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio):
+    model_name = pretrained_model_name.split('/')[-1]
+    pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    with open(pkl_path, 'wb') as f:
+        pickle.dump(trainer.metrics, f)
+    print(f'metrics saved at {pkl_path}')
+
+
+def load_metrics(dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio):
+    model_name = pretrained_model_name.split('/')[-1]
+    pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    with open(pkl_path, 'rb') as f:
+        metrics = pickle.load(f)
+    return metrics
+
+
+def display_available_metrics(dir_checkpoints):
+    columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio']
+
+    files = [file for file in os.listdir(dir_checkpoints) if file.endswith('.pkl')]
+    files_metrics = [file for file in files if file.startswith('metrics')]
+    files_metrics_tup = [file.replace('.pkl', '').split('__')[1:] for file in files_metrics]
+
+    df = pd.DataFrame(files_metrics_tup, columns=columns).sort_values(by=columns).reset_index(drop=True)
+    df['num_epochs'] = df['num_epochs'].astype(int)
+    df['prune_ratio'] = df['prune_ratio'].astype(float)
+
+    return df
+
+
+########################################################################################################################
+# PLOT
+########################################################################################################################
+def load_and_plot_metrics(dir_checkpoints, pick):
+    # LOAD #
+    metrics = load_metrics(dir_checkpoints, **pick)
+
+    # PLOT #
+    # display(metrics)
+
+    plot_learning_rate(metrics)
+
+    fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+    plot_metric(metrics, pick['num_epochs'], 'loss', ax=ax[0])
+    plot_metric(metrics, pick['num_epochs'], 'acc', ax=ax[1])
+
+    fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+    plot_metric(metrics, pick['num_epochs'], 'f1', ('macro', 'all'), ax=ax[0])
+    plot_metric(metrics, pick['num_epochs'], 'f1', ('macro', 'fil'), ax=ax[1])
+
+    fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+    plot_metric(metrics, pick['num_epochs'], 'f1', ('micro', 'all'), ax=ax[0])
+    plot_metric(metrics, pick['num_epochs'], 'f1', ('micro', 'fil'), ax=ax[1])
+
+
+def display(_metrics):
+    print('--- train ---')
+    print('> batch')
+    print(_metrics['batch']['train'])
+    print('--- valid ---')
+    print('> batch')
+    print(_metrics['batch']['valid'])
+    print('> epoch')
+    print(_metrics['epoch']['valid'])
+
+
+def plot_learning_rate(metrics):
+    lr = metrics['batch']['train']['lr']
+    fig, ax = plt.subplots()
+    ax.plot(lr, linestyle='', marker='.')
+    ax.set_xlabel('batch')
+    ax.set_ylabel('learning rate')
+
+
+def plot_metric(metrics, num_epochs, metric, f1_spec=None, ax=None):
+    # PREP #
+    if f1_spec is None:
+        batch_train = metrics['batch']['train'][metric]
+        epoch_valid = metrics['epoch']['valid'][metric]
+    else:
+        batch_train = metrics['batch']['train'][metric][f1_spec[0]][f1_spec[1]]
+        epoch_valid = metrics['epoch']['valid'][metric][f1_spec[0]][f1_spec[1]]
+
+    clr = {'loss': 'r',
+           'acc': 'green',
+           'f1_macro': 'orange',
+           'f1_micro': 'blue',
+           }
+    if f1_spec is None:
+        metric_spec = metric
+    else:
+        f1_spec_1st = f1_spec[0]
+        metric_spec = f'{metric}_{f1_spec_1st}'
+
+    # PLOT #
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    ax.plot(batch_train,
+            linestyle='-', marker='.', color=clr[metric_spec], alpha=0.3, label='train')
+
+    x = [len(batch_train) * float(i) / num_epochs for i in range(1, num_epochs + 1)]
+    ax.plot(x, epoch_valid,
+            linestyle='', marker='o', color=clr[metric_spec], label='valid')
+
+    ax.set_xlabel('batch')
+    ax.set_ylabel(metric)
+    if metric == 'loss':
+        ax.set_ylim([0, None])
+    else:
+        ax.set_ylim([0, 1])
+    if metric in ['loss', 'acc']:
+        ax.set_title(metric)
+    elif metric == 'f1':
+        f1_spec_1st = f1_spec[0]
+        f1_spec_2nd = f1_spec[1]
+        ax.set_title(f'f1 score: {f1_spec_1st}, {f1_spec_2nd}')
+    ax.legend()
