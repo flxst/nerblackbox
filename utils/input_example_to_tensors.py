@@ -10,8 +10,11 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message
 logger = logging.getLogger(__name__)
 
 
-class InputExampleToTensors(object):
-    """ Converts an InputExample to a tuple of feature tensors. """
+class InputExampleToTensors:
+    """
+    Converts an InputExample to a tuple of feature tensors:
+    (input_ids, input_mask, segment_ids, label_ids)
+    """
 
     def __init__(self,
                  tokenizer,

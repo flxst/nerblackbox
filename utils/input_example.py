@@ -1,20 +1,16 @@
 
-class InputExample(object):
-    """A single training/test example for simple sequence classification."""
+class InputExample:
+    """
+    A single training/test example for simple sequence classification
+    """
 
     def __init__(self, guid, text_a, labels_a=None, text_b=None, labels_b=None):
-        """Constructs an InputExample.
-
-        Args:
-            guid: Unique id for the example.
-            text_a: string. The untokenized text of the first sequence. For single
-            sequence tasks, only this sequence must be specified.
-            labels_a: (Optional) string. The label of the example. This should be
-            specified for train and dev examples, but not for test examples.
-            text_b: (Optional) string. The untokenized text of the second sequence.
-            Only must be specified for sequence pair tasks.
-            labels_b: (Optional) string. The label of the example. This should be
-            specified for train and dev examples, but not for test examples.
+        """
+        :param guid:     [int] unique id for input example
+        :param text_a:   [str] raw (untokenized) text of first sequence.
+        :param labels_a: [str] labels of first sequence, separated by whitespace.
+        :param text_b:   [str, optional] raw (untokenized) text of second sequence.
+        :param labels_b: [str, optional] labels of second sequence, separated by whitespace.
         """
         self.guid = guid
         self.text_a = text_a

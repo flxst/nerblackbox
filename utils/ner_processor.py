@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class NerProcessor:
+    """
+    reads text data from csv and creates list of InputExamples
+    """
 
     def __init__(self,
                  path,
