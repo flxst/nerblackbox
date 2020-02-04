@@ -1,21 +1,24 @@
 import torch
 import numpy as np
-from torch.optim import Adam
-from torch.nn import CrossEntropyLoss
+# from torch.nn import CrossEntropyLoss
 from tensorboardX import SummaryWriter
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
 
 from sklearn.metrics import f1_score as f1_score_sklearn
 from apex import amp
+# from torch.optim import Adam
 from transformers import AdamW
+from transformers import get_linear_schedule_with_warmup, get_constant_schedule_with_warmup
 from tqdm import tqdm_notebook as tqdm
 
 from utils import utils
 
 
-class NERTrainer(object):
-    """ Trainer of BERT model """
+class NERTrainer:
+    """
+    Trainer of BERT model for NER downstream task
+    """
 
     def __init__(self,
                  model,
@@ -56,9 +59,9 @@ class NERTrainer(object):
         """
 
         # no input arguments (set in methods)
-        self.learning_rate = None
         self.optimizer = None
         self.total_steps = None
+        self.scheduler = None
 
         # metrics
         self.metrics = dict()
@@ -86,22 +89,40 @@ class NERTrainer(object):
             lr_schedule='linear_with_warmup',
             lr_warmup_fraction=0.1,
             verbose=False):
-
-        # learning rate
-        self.learning_rate = {
-            'lr_max': lr_max,
-            'lr_schedule': lr_schedule,
-            'lr_warmup_fraction': lr_warmup_fraction,
-        }
+        """
+        train & validate
+        ----------------
+        :param num_epochs:          [int]
+        :param max_grad_norm:       [float]
+        :param lr_max:              [float] basic learning rate
+        :param lr_schedule:         [str], e.g. 'linear_with_warmup', 'constant_with_warmup'
+        :param lr_warmup_fraction:  [float], e.g. 0.1, fraction of steps during which lr is warmed up
+                                                       (if lr_schedule includes warm-up)
+        :param verbose:             [bool] verbose print
+        :return: -
+        """
 
         # optimizer
-        self.optimizer = self.create_optimizer(self.learning_rate['lr_max'], self.fp16)
+        self.optimizer = self.create_optimizer(lr_max, self.fp16)
         if self.device == "cpu":
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
 
         # total_steps & global_step
         self.total_steps = self.get_total_steps(num_epochs)
         global_step = None
+
+        # learning rate
+        scheduler_params = {
+            'num_warmup_steps': int(lr_warmup_fraction*self.total_steps),
+            'last_epoch': -1,
+        }
+        if lr_schedule == 'linear_with_warmup':
+            scheduler_params['num_training_steps'] = self.total_steps
+            self.scheduler = get_linear_schedule_with_warmup(self.optimizer, **scheduler_params)
+        elif lr_schedule == 'constant_with_warmup':
+            self.scheduler = get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
+        else:
+            raise Exception(f'lr_schedule = {lr_schedule} not implemented.')
 
         ################################################################################################################
         # start training
@@ -165,13 +186,6 @@ class NERTrainer(object):
                 pbar.update(1)  # TQDM - progressbar
                 pbar.set_description(progress_bar)
 
-                # update learning rate
-                global_step = self.get_global_step(epoch, batch_train_step)
-                lr_this_step = self.update_learning_rate(global_step)
-                self.metrics['batch']['train']['lr'].append(lr_this_step)
-                if verbose:
-                    print(f'          learning rate: {lr_this_step:.2e}')
-
                 # backpropagation
                 if self.fp16:
                     with amp.scale_loss(batch_train_loss, self.optimizer) as scaled_loss:
@@ -185,7 +199,17 @@ class NERTrainer(object):
                 self.optimizer.step()
                 self.model.zero_grad()
 
+                # update learning rate (after optimization step!)
+                lr_this_step = self.scheduler.get_lr()[0]
+                self.metrics['batch']['train']['lr'].append(lr_this_step)
+                if verbose:
+                    print(f'          learning rate: {lr_this_step:.2e}')
+
+                self.scheduler.step()
+                print('updated learning rate for next batch !!', lr_this_step)
+
                 # writer
+                global_step = self.get_global_step(epoch, batch_train_step)
                 self.writer.add_scalar('train/loss', batch_train_metrics['loss'], global_step)
                 self.writer.add_scalar('train/acc', batch_train_metrics['acc'], global_step)
                 self.writer.add_scalar('train/f1_macro_all', batch_train_metrics['f1_macro_all'], global_step)
@@ -431,53 +455,34 @@ class NERTrainer(object):
     ####################################################################################################################
     def clip_grad_norm(self, max_grad_norm):
         torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=max_grad_norm)
-        
-    def update_learning_rate(self, _global_step):
-        """
-        dynamically update learning rate depending on global_step
-        ---------------------------------------------------------
-        :param _global_step: [int] >= 0
-        :return: _lr_this_step: [float] > 0
-        """
-        _lr_this_step = self.learning_rate['lr_max'] * self.warmup_linear((_global_step + 1) / self.total_steps,
-                                                                          self.learning_rate['lr_warmup_fraction'])
-        for param_group in self.optimizer.param_groups:
-            param_group['lr'] = _lr_this_step
-        return _lr_this_step
 
-    @staticmethod
-    def warmup_linear(current_fraction, warmup_fraction=0.002):
+    def create_optimizer(self, learning_rate, fp16=True, no_decay=('bias', 'gamma', 'beta')):
         """
-        returns a dynamic weight to be multiplied with the learning rate.
-        the weight
-        increases linearly from (current_fraction=0,weight=0) to (current_fraction=warmup_fraction, weight=1), then
-        decreases linearly from (current_fraction=warmup_fraction, weight=1) to (current_fraction=1,weight=0)
-        --------------------------------
-        :param current_fraction: [float] between 0 and 1
-        :param warmup_fraction:  [float] between 0 and 1
-        :return: weight:         [float] between 0 and 1
+        create optimizer with basic learning rate and L2 normalization for some parameters
+        ----------------------------------------------------------------------------------
+        :param learning_rate: [float] basic learning rate
+        :param fp16:          [bool]
+        :param no_decay:      [tuple of str] parameters that contain one of those are not subject to L2 normalization
+        :return: optimizer:   [pytorch optimizer]
         """
-        if current_fraction < warmup_fraction:
-            return current_fraction/warmup_fraction
-        else:
-            return 1.0 - (current_fraction - warmup_fraction)/(1 - warmup_fraction)
-    
-    def create_optimizer(self, learning_rate, fp16=True, no_decay=['bias', 'gamma', 'beta']):
         # Remove unused pooler that otherwise break Apex
         param_optimizer = list(self.model.named_parameters())
         param_optimizer = [n for n in param_optimizer if 'pooler' not in n[0]]
-        
         optimizer_grouped_parameters = [
-            {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay_rate': 0.02},
-            {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay_rate': 0.0}
+            {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.02},
+            {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
+        # print('> param_optimizer')
+        # print([n for n, p in param_optimizer])
+        print('> {} parameters w/  weight decay'.format(len(optimizer_grouped_parameters[0]['params'])))
+        print('> {} parameters w/o weight decay'.format(len(optimizer_grouped_parameters[1]['params'])))
         if fp16:
-            # optimizer = FusedAdam(optimizer_grouped_parameters, lr=self.learning_rate, bias_correction=False)
             optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
+            # optimizer = FusedAdam(optimizer_grouped_parameters, lr=self.learning_rate, bias_correction=False)
             # optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
             
         else:
-            optimizer = Adam(optimizer_grouped_parameters, lr=learning_rate)
+            optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
             # optimizer = FusedAdam(optimizer_grouped_parameters, lr=learning_rate)
         
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)

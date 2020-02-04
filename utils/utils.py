@@ -144,32 +144,35 @@ def _add_bio_to_label(label, previous):
         return f'I-{label}'
 
 
-def save_model_checkpoint(model, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio):
+def save_model_checkpoint(model, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
     model_name = pretrained_model_name.split('/')[-1]
-    pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
 
     torch.save(model.state_dict(), pkl_path)
     print(f'checkpoint saved at {pkl_path}')
 
 
-def save_metrics(trainer, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio):
+def save_metrics(trainer, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
     model_name = pretrained_model_name.split('/')[-1]
-    pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
     with open(pkl_path, 'wb') as f:
         pickle.dump(trainer.metrics, f)
     print(f'metrics saved at {pkl_path}')
 
 
-def load_metrics(dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio):
+def load_metrics(dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
     model_name = pretrained_model_name.split('/')[-1]
-    pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    if lr_schedule is None:
+        pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    else:
+        pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
     with open(pkl_path, 'rb') as f:
         metrics = pickle.load(f)
     return metrics
 
 
 def display_available_metrics(dir_checkpoints):
-    columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio']
+    columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio', 'lr_schedule']
 
     files = [file for file in os.listdir(dir_checkpoints) if file.endswith('.pkl')]
     files_metrics = [file for file in files if file.startswith('metrics')]
