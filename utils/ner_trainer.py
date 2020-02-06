@@ -1,4 +1,5 @@
 import torch
+import pickle
 import numpy as np
 # from torch.nn import CrossEntropyLoss
 from tensorboardX import SummaryWriter
@@ -16,6 +17,7 @@ from transformers import get_cosine_with_hard_restarts_schedule_with_warmup
 from tqdm import tqdm_notebook as tqdm
 
 from utils import utils
+from utils.env_variable import ENV_VARIABLE
 
 
 class NERTrainer:
@@ -211,6 +213,14 @@ class NERTrainer:
             self.validation(global_step, epoch)
 
     def validation(self, global_step, epoch, verbose=False):
+        """
+        validation after each training epoch
+        ------------------------------------
+        :param global_step: [int]
+        :param epoch:       [int]
+        :param verbose:     [bool] verbose print
+        :return: -
+        """
         print("\n>>> Valid Epoch: {}".format(epoch))
 
         epoch_valid_metrics = {
@@ -517,3 +527,24 @@ class NERTrainer:
                     return get_cosine_with_hard_restarts_schedule_with_warmup(self.optimizer, **scheduler_params)
                 else:
                     raise Exception('create scheduler: logic is broken.')  # this should never happen
+
+    ####################################################################################################################
+    # 5. SAVE MODEL & METRICS
+    ####################################################################################################################
+    def save_model_checkpoint(self, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
+        dir_checkpoints = ENV_VARIABLE['DIR_CHECKPOINTS']
+
+        model_name = pretrained_model_name.split('/')[-1]
+        pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
+
+        torch.save(self.model.state_dict(), pkl_path)
+        print(f'checkpoint saved at {pkl_path}')
+
+    def save_metrics(self, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
+        dir_checkpoints = ENV_VARIABLE['DIR_CHECKPOINTS']
+
+        model_name = pretrained_model_name.split('/')[-1]
+        pkl_path = f'{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
+        with open(pkl_path, 'wb') as f:
+            pickle.dump(self.metrics, f)
+        print(f'metrics saved at {pkl_path}')

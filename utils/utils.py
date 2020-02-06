@@ -9,12 +9,7 @@ from utils.bert_dataset import BertDataset
 from utils.ner_processor import NerProcessor
 from utils.input_example_to_tensors import InputExampleToTensors
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-
-ENV_VARIABLE = {
-    'DIR_PRETRAINED_MODELS': './pretrained_models',  # TODO: get rid of this line
-    'DIR_DATASETS': './datasets',
-    'DIR_CHECKPOINTS': './checkpoints',
-}
+from utils.env_variable import ENV_VARIABLE
 
 
 def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prune_ratio=1.0):
@@ -65,14 +60,13 @@ def get_available_models():
     ]
 
 
-def get_available_datasets(downstream_task):
+def get_available_datasets():
     """
     get datasets that are available in DIR_DATASETS directory
     ---------------------------------------------------------
-    :param downstream_task: [str] e.g. 'ner'
     :return: available datasets: [list] of [str], e.g. ['SUC', 'swedish_ner_corpus']
     """
-    d = os.path.join(ENV_VARIABLE['DIR_DATASETS'], downstream_task)
+    d = os.path.join(ENV_VARIABLE['DIR_DATASETS'])
     return [
         folder
         for folder in os.listdir(d)
@@ -80,14 +74,15 @@ def get_available_datasets(downstream_task):
     ]
 
 
-def get_dataset_path(dir_datasets, dataset):
+def get_dataset_path(dataset):
     """
     get dataset path for dataset
     ----------------------------
-    :param dir_datasets:   [str] path to datasets directory
     :param dataset:        [str] dataset name, e.g. 'SUC', 'swedish_ner_corpus'
     :return: dataset_path: [str] path to dataset directory
     """
+    dir_datasets = ENV_VARIABLE['DIR_DATASETS']
+
     if dataset == 'SUC':
         dataset_path = f'{dir_datasets}/SUC/'
     elif dataset == 'swedish_ner_corpus':
@@ -144,38 +139,11 @@ def _add_bio_to_label(label, previous):
         return f'I-{label}'
 
 
-def save_model_checkpoint(model, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
-    model_name = pretrained_model_name.split('/')[-1]
-    pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
-
-    torch.save(model.state_dict(), pkl_path)
-    print(f'checkpoint saved at {pkl_path}')
-
-
-def save_metrics(trainer, dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
-    model_name = pretrained_model_name.split('/')[-1]
-    pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
-    with open(pkl_path, 'wb') as f:
-        pickle.dump(trainer.metrics, f)
-    print(f'metrics saved at {pkl_path}')
-
-
-def load_metrics(dir_checkpoints, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
-    model_name = pretrained_model_name.split('/')[-1]
-    if lr_schedule is None:
-        pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
-    else:
-        pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
-    with open(pkl_path, 'rb') as f:
-        metrics = pickle.load(f)
-    return metrics
-
-
-def display_available_metrics(dir_checkpoints):
+def display_available_metrics():
     # basic & hyperparameters
     columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio', 'lr_schedule']
 
-    files = [file for file in os.listdir(dir_checkpoints) if file.endswith('.pkl')]
+    files = [file for file in os.listdir(ENV_VARIABLE['DIR_CHECKPOINTS']) if file.endswith('.pkl')]
     files_metrics = [file for file in files if file.startswith('metrics')]
     files_metrics_tup = [file.replace('.pkl', '').split('__')[1:] for file in files_metrics]
 
@@ -188,7 +156,7 @@ def display_available_metrics(dir_checkpoints):
     data_metrics = []
     for file in files_metrics:
         data_metrics_row = []
-        with open(os.path.join(dir_checkpoints, file), 'rb') as f:
+        with open(os.path.join(ENV_VARIABLE['DIR_CHECKPOINTS'], file), 'rb') as f:
             metrics = pickle.load(f)
             data_metrics_row.append(metrics['epoch']['valid']['f1']['macro']['all'][-1])
             data_metrics_row.append(metrics['epoch']['valid']['f1']['micro']['all'][-1])
@@ -208,11 +176,11 @@ def display_available_metrics(dir_checkpoints):
 ########################################################################################################################
 # PLOT
 ########################################################################################################################
-def load_and_plot_metrics(dir_checkpoints, pick):
+def load_and_plot_metrics(pick):
     # LOAD #
     columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio', 'lr_schedule']
     _pick = {k: pick[k] for k in columns}
-    metrics = load_metrics(dir_checkpoints, **_pick)
+    metrics = load_metrics(**_pick)
 
     # PLOT #
     # display(metrics)
@@ -230,6 +198,20 @@ def load_and_plot_metrics(dir_checkpoints, pick):
     fig, ax = plt.subplots(1, 2, figsize=(12, 4))
     plot_metric(metrics, pick['num_epochs'], 'f1', ('micro', 'all'), ax=ax[0])
     plot_metric(metrics, pick['num_epochs'], 'f1', ('micro', 'fil'), ax=ax[1])
+
+
+def load_metrics(dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
+
+    dir_checkpoints = ENV_VARIABLE['DIR_CHECKPOINTS']
+
+    model_name = pretrained_model_name.split('/')[-1]
+    if lr_schedule is None:
+        pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}.pkl'
+    else:
+        pkl_path = f'./{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
+    with open(pkl_path, 'rb') as f:
+        metrics = pickle.load(f)
+    return metrics
 
 
 def display(_metrics):
