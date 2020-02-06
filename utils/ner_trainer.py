@@ -9,7 +9,10 @@ from sklearn.metrics import f1_score as f1_score_sklearn
 from apex import amp
 # from torch.optim import Adam
 from transformers import AdamW
-from transformers import get_linear_schedule_with_warmup, get_constant_schedule_with_warmup
+from transformers import get_linear_schedule_with_warmup
+from transformers import get_constant_schedule_with_warmup
+from transformers import get_cosine_schedule_with_warmup
+from transformers import get_cosine_with_hard_restarts_schedule_with_warmup
 from tqdm import tqdm_notebook as tqdm
 
 from utils import utils
@@ -86,8 +89,9 @@ class NERTrainer:
             num_epochs=25,
             max_grad_norm=None,  # 2.0
             lr_max=3e-5,
-            lr_schedule='linear_with_warmup',
+            lr_schedule='linear',
             lr_warmup_fraction=0.1,
+            lr_num_cycles=None,
             verbose=False):
         """
         train & validate
@@ -95,9 +99,9 @@ class NERTrainer:
         :param num_epochs:          [int]
         :param max_grad_norm:       [float]
         :param lr_max:              [float] basic learning rate
-        :param lr_schedule:         [str], e.g. 'linear_with_warmup', 'constant_with_warmup'
+        :param lr_schedule:         [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
         :param lr_warmup_fraction:  [float], e.g. 0.1, fraction of steps during which lr is warmed up
-                                                       (if lr_schedule includes warm-up)
+        :param lr_num_cycles:       [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules
         :param verbose:             [bool] verbose print
         :return: -
         """
@@ -112,17 +116,7 @@ class NERTrainer:
         global_step = None
 
         # learning rate
-        scheduler_params = {
-            'num_warmup_steps': int(lr_warmup_fraction*self.total_steps),
-            'last_epoch': -1,
-        }
-        if lr_schedule == 'linear_with_warmup':
-            scheduler_params['num_training_steps'] = self.total_steps
-            self.scheduler = get_linear_schedule_with_warmup(self.optimizer, **scheduler_params)
-        elif lr_schedule == 'constant_with_warmup':
-            self.scheduler = get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
-        else:
-            raise Exception(f'lr_schedule = {lr_schedule} not implemented.')
+        self.scheduler = self.create_scheduler(lr_schedule, lr_warmup_fraction, lr_num_cycles)
 
         ################################################################################################################
         # start training
@@ -206,7 +200,7 @@ class NERTrainer:
                     print(f'          learning rate: {lr_this_step:.2e}')
 
                 self.scheduler.step()
-                print('updated learning rate for next batch !!', lr_this_step)
+                # print('updated learning rate for next batch !!', lr_this_step)
 
                 # writer
                 global_step = self.get_global_step(epoch, batch_train_step)
@@ -487,3 +481,40 @@ class NERTrainer:
         
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
+
+    def create_scheduler(self, _lr_schedule, _lr_warmup_fraction, _lr_num_cycles=None):
+        """
+        create scheduler with warmup
+        ----------------------------
+        :param _lr_schedule:        [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
+        :param _lr_warmup_fraction: [float], e.g. 0.1, fraction of steps during which lr is warmed up
+        :param _lr_num_cycles:      [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules
+        :return: scheduler          [torch LambdaLR] learning rate scheduler
+        """
+        if _lr_schedule not in ['constant', 'linear', 'cosine', 'cosine_with_hard_restarts']:
+            raise Exception(f'lr_schedule = {_lr_schedule} not implemented.')
+
+        scheduler_params = {
+            'num_warmup_steps': int(_lr_warmup_fraction * self.total_steps),
+            'last_epoch': -1,
+        }
+
+        if _lr_schedule == 'constant':
+            return get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
+        else:
+            scheduler_params['num_training_steps'] = self.total_steps
+
+            if _lr_schedule == 'linear':
+                return get_linear_schedule_with_warmup(self.optimizer, **scheduler_params)
+            else:
+                if _lr_num_cycles is not None:
+                    scheduler_params['num_cycles'] = _lr_num_cycles  # else: use default values
+
+                if _lr_schedule == 'cosine':
+                    scheduler_params['num_training_steps'] = self.total_steps
+                    return get_cosine_schedule_with_warmup(self.optimizer, **scheduler_params)
+                elif _lr_schedule == 'cosine_with_hard_restarts':
+                    scheduler_params['num_training_steps'] = self.total_steps
+                    return get_cosine_with_hard_restarts_schedule_with_warmup(self.optimizer, **scheduler_params)
+                else:
+                    raise Exception('create scheduler: logic is broken.')  # this should never happen
