@@ -200,7 +200,6 @@ class NERTrainer:
                     print(f'          learning rate: {lr_this_step:.2e}')
 
                 self.scheduler.step()
-                # print('updated learning rate for next batch !!', lr_this_step)
 
                 # writer
                 global_step = self.get_global_step(epoch, batch_train_step)

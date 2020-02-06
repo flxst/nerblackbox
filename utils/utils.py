@@ -172,6 +172,7 @@ def load_metrics(dir_checkpoints, dataset, pretrained_model_name, num_epochs, pr
 
 
 def display_available_metrics(dir_checkpoints):
+    # basic & hyperparameters
     columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio', 'lr_schedule']
 
     files = [file for file in os.listdir(dir_checkpoints) if file.endswith('.pkl')]
@@ -182,7 +183,26 @@ def display_available_metrics(dir_checkpoints):
     df['num_epochs'] = df['num_epochs'].astype(int)
     df['prune_ratio'] = df['prune_ratio'].astype(float)
 
-    return df
+    # metrics
+    columns_metrics = ['f1_macro_all', 'f1_micro_all', 'f1_macro_fil', 'f1_micro_fil']
+    data_metrics = []
+    for file in files_metrics:
+        data_metrics_row = []
+        with open(os.path.join(dir_checkpoints, file), 'rb') as f:
+            metrics = pickle.load(f)
+            data_metrics_row.append(metrics['epoch']['valid']['f1']['macro']['all'][-1])
+            data_metrics_row.append(metrics['epoch']['valid']['f1']['micro']['all'][-1])
+            data_metrics_row.append(metrics['epoch']['valid']['f1']['macro']['fil'][-1])
+            data_metrics_row.append(metrics['epoch']['valid']['f1']['micro']['fil'][-1])
+
+        data_metrics.append(data_metrics_row)
+        
+    # print(data_metrics)
+
+    df_metrics = pd.DataFrame(data_metrics, columns=columns_metrics)
+    # print(df_metrics)
+
+    return pd.concat([df, df_metrics], axis=1)
 
 
 ########################################################################################################################
@@ -190,7 +210,9 @@ def display_available_metrics(dir_checkpoints):
 ########################################################################################################################
 def load_and_plot_metrics(dir_checkpoints, pick):
     # LOAD #
-    metrics = load_metrics(dir_checkpoints, **pick)
+    columns = ['dataset', 'pretrained_model_name', 'num_epochs', 'prune_ratio', 'lr_schedule']
+    _pick = {k: pick[k] for k in columns}
+    metrics = load_metrics(dir_checkpoints, **_pick)
 
     # PLOT #
     # display(metrics)
