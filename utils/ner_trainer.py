@@ -56,6 +56,7 @@ class NERTrainer:
         # if fp16:
         #     self.model.half()
 
+        # tensorboard
         self.writer = SummaryWriter()
 
         """
@@ -203,7 +204,7 @@ class NERTrainer:
 
                 self.scheduler.step()
 
-                # writer
+                # tensorboard
                 global_step = self.get_global_step(epoch, batch_train_step)
                 self.writer.add_scalar('train/loss', batch_train_metrics['loss'], global_step)
                 self.writer.add_scalar('train/acc', batch_train_metrics['acc'], global_step)
@@ -545,6 +546,7 @@ class NERTrainer:
 
         model_name = pretrained_model_name.split('/')[-1]
         pkl_path = f'{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
+
         with open(pkl_path, 'wb') as f:
             pickle.dump(self.metrics, f)
         print(f'metrics saved at {pkl_path}')

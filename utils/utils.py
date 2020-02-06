@@ -26,8 +26,7 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
     input_examples['train'] = prune_examples(input_examples_train_all, ratio=prune_ratio)
 
     # validation data
-    input_examples_valid_all = processor.get_input_examples('test')
-    input_examples['valid'] = prune_examples(input_examples_valid_all, ratio=prune_ratio)
+    input_examples['valid'] = processor.get_input_examples('test')
 
     # input_examples_to_tensors
     input_examples_to_tensors = InputExampleToTensors(tokenizer,
@@ -147,7 +146,7 @@ def display_available_metrics():
     files_metrics = [file for file in files if file.startswith('metrics')]
     files_metrics_tup = [file.replace('.pkl', '').split('__')[1:] for file in files_metrics]
 
-    df = pd.DataFrame(files_metrics_tup, columns=columns).sort_values(by=columns).reset_index(drop=True)
+    df = pd.DataFrame(files_metrics_tup, columns=columns)
     df['num_epochs'] = df['num_epochs'].astype(int)
     df['prune_ratio'] = df['prune_ratio'].astype(float)
 
@@ -170,7 +169,7 @@ def display_available_metrics():
     df_metrics = pd.DataFrame(data_metrics, columns=columns_metrics)
     # print(df_metrics)
 
-    return pd.concat([df, df_metrics], axis=1)
+    return pd.concat([df, df_metrics], axis=1).sort_values(by=columns).reset_index(drop=True)
 
 
 ########################################################################################################################
