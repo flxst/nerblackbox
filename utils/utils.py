@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from utils.env_variable import ENV_VARIABLE
 
 
-def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prune_ratio=1.0):
+def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prune_ratio=(1.0, 1.0)):
     input_examples = dict()
     data = dict()
     dataloader = dict()
@@ -23,10 +23,11 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
 
     # train data
     input_examples_train_all = processor.get_input_examples('train')
-    input_examples['train'] = prune_examples(input_examples_train_all, ratio=prune_ratio)
+    input_examples['train'] = prune_examples(input_examples_train_all, ratio=prune_ratio[0])
 
     # validation data
-    input_examples['valid'] = processor.get_input_examples('test')
+    input_examples_valid_all = processor.get_input_examples('test')
+    input_examples['valid'] = prune_examples(input_examples_valid_all, ratio=prune_ratio[1])
 
     # input_examples_to_tensors
     input_examples_to_tensors = InputExampleToTensors(tokenizer,
@@ -107,6 +108,20 @@ def prune_examples(list_of_examples, ratio=None):
         num_examples_new = int(ratio*float(num_examples_old))
         print(f'use {num_examples_new} of {num_examples_old} examples')
         return list_of_examples[:num_examples_new]
+
+
+def get_rid_of_special_tokens(label_list):
+    """
+    replace special tokens ('[CLS]', '[SEP]', '[PAD]') by 'O'
+    ---------------------------------------------------------
+    :param label_list:           [list] of [str], e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
+    :return: cleaned_label_list: [list] of [str], e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
+    """
+    return [label
+            if not label.startswith('[')
+            else 'O'
+            for label in label_list
+            ]
 
 
 def add_bio_to_label_list(label_list):

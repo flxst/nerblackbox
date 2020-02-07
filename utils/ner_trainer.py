@@ -64,20 +64,7 @@ class NERTrainer:
         self.scheduler = None
 
         # metrics
-        self.metrics = dict()
-        for elem1 in ['batch', 'epoch']:
-            self.metrics[elem1] = dict()
-            for elem2 in ['train', 'valid']:
-                self.metrics[elem1][elem2] = dict()
-                for elem3 in ['loss', 'acc']:
-                    self.metrics[elem1][elem2][elem3] = list()
-                for elem3 in ['f1']:
-                    self.metrics[elem1][elem2][elem3] = dict()
-                    for elem4 in ['macro', 'micro']:
-                        self.metrics[elem1][elem2][elem3][elem4] = dict()
-                        for elem5 in ['all', 'fil']:
-                            self.metrics[elem1][elem2][elem3][elem4][elem5] = list()
-        self.metrics['batch']['train']['lr'] = list()
+        self.metrics = self.instantiate_metrics_dict()
 
     ####################################################################################################################
     # 1. FIT & VALIDATION
@@ -119,7 +106,7 @@ class NERTrainer:
         # start training
         ################################################################################################################
         pbar = tqdm(total=num_epochs*len(self.train_dataloader))
-        self.model.zero_grad()  ## HERE 2
+        self.model.zero_grad()
         self.model.train()
 
         for epoch in range(num_epochs):
@@ -128,17 +115,6 @@ class NERTrainer:
             for batch_train_step, batch in enumerate(self.train_dataloader):
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
-
-                if verbose and batch_train_step == 0:
-                    print('\n--- input tensors ---')
-                    print('> input_ids[0]:', input_ids.shape)
-                    print(input_ids[0])
-                    print('> input_mask[0]:', input_mask.shape)
-                    print(input_mask[0])
-                    print('> segment_ids[0]:', segment_ids.shape)
-                    print(segment_ids[0])
-                    print('> label_ids[0]:', label_ids.shape)
-                    print(label_ids[0])
 
                 outputs = self.model(input_ids,
                                      attention_mask=input_mask,
@@ -153,13 +129,15 @@ class NERTrainer:
 
                 # to cpu/numpy
                 np_batch_train_loss = batch_train_loss.detach().cpu().numpy()
-                np_logits = logits.detach().cpu().numpy()     # shape: [batch_size, seq_length, num_labels]
-                np_label_ids = label_ids.to('cpu').numpy()    # shape: [batch_size, seq_legnth]
+                np_batch_train_label_ids = label_ids.to('cpu').numpy()    # shape: [batch_size, seq_legnth]
+                np_batch_train_logits = logits.detach().cpu().numpy()     # shape: [batch_size, seq_length, num_labels]
 
                 # batch train metrics
-                batch_train_metrics, _, progress_bar = self.compute_batch_metrics(np_batch_train_loss,
-                                                                                  np_label_ids,
-                                                                                  np_logits)
+                batch_train_metrics, _, progress_bar = self.compute_metrics('batch',
+                                                                            'train',
+                                                                            np_batch_train_loss,
+                                                                            np_batch_train_label_ids,
+                                                                            np_batch_train_logits)
 
                 # training progressbar
                 pbar.update(1)  # TQDM - progressbar
@@ -188,40 +166,23 @@ class NERTrainer:
 
                 # tensorboard
                 global_step = self.get_global_step(epoch, batch_train_step)
-                self.writer.add_scalar('train/loss', batch_train_metrics['loss'], global_step)
-                self.writer.add_scalar('train/acc', batch_train_metrics['acc'], global_step)
-                self.writer.add_scalar('train/f1_macro_all', batch_train_metrics['f1_macro_all'], global_step)
-                self.writer.add_scalar('train/learning_rate', lr_this_step, global_step)
+                self.write_metrics_for_tensorboard('train', batch_train_metrics, global_step, lr_this_step)
 
             self.validation(global_step, epoch)
 
-    def validation(self, global_step, epoch, verbose=False):
+    def validation(self, global_step, epoch):
         """
         validation after each training epoch
         ------------------------------------
         :param global_step: [int]
         :param epoch:       [int]
-        :param verbose:     [bool] verbose print
         :return: -
         """
         print("\n>>> Valid Epoch: {}".format(epoch))
 
-        epoch_valid_metrics = {
-            'loss': 0,
-            'acc': 0,
-        }
-        epoch_valid_label_ids = {
-            'true': list(),
-            'pred': list(),
-        }
-        epoch_valid_labels = {
-            'true': list(),
-            'pred': list(),
-        }
-        epoch_valid_labels_bio = {
-            'true': list(),
-            'pred': list(),
-        }
+        np_epoch_valid_loss = 0
+        np_epoch_valid_label_ids_list = list()
+        np_epoch_valid_logits_list = list()
 
         self.model.eval()
         for batch in self.valid_dataloader:
@@ -237,103 +198,69 @@ class NERTrainer:
 
             # to cpu/numpy
             np_batch_valid_loss = batch_valid_loss.detach().cpu().numpy()
-            np_logits = logits.detach().cpu().numpy()
-            np_label_ids = label_ids.to('cpu').numpy()
-
-            # batch valid metrics
-            batch_valid_metrics, batch_valid_label_ids, _ = self.compute_batch_metrics(np_batch_valid_loss,
-                                                                                       np_label_ids,
-                                                                                       np_logits)
-
-            # epoch
-            epoch_valid_label_ids['true'].extend(batch_valid_label_ids['true'])
-            epoch_valid_label_ids['pred'].extend(batch_valid_label_ids['pred'])
+            np_batch_valid_label_ids = label_ids.to('cpu').numpy()
+            np_batch_valid_logits = logits.detach().cpu().numpy()
 
             # epoch metrics
-            epoch_valid_metrics['loss'] += batch_valid_metrics['loss']
-            epoch_valid_metrics['acc'] += batch_valid_metrics['acc']
+            np_epoch_valid_loss += np_batch_valid_loss
+            np_epoch_valid_label_ids_list.append(np_batch_valid_label_ids)
+            np_epoch_valid_logits_list.append(np_batch_valid_logits)
 
-        epoch_valid_metrics['loss'] = epoch_valid_metrics['loss']/len(self.valid_dataloader)
-        epoch_valid_metrics['acc'] = epoch_valid_metrics['acc']/len(self.valid_dataloader)
+        # epoch metrics
+        np_epoch_valid_loss /= len(self.valid_dataloader)
+        np_epoch_valid_label_ids = np.vstack(np_epoch_valid_label_ids_list)
+        np_epoch_valid_logits = np.vstack(np_epoch_valid_logits_list)
 
-        ##########################
-        # compute f1 score
-        ##########################
-        # all
-        epoch_valid_metrics['f1_macro_all'], epoch_valid_metrics['f1_micro_all'] = \
-            self.f1_score(epoch_valid_label_ids['true'], epoch_valid_label_ids['pred'])
+        epoch_valid_metrics, epoch_valid_label_ids, _ = self.compute_metrics('epoch',
+                                                                             'valid',
+                                                                             np_epoch_valid_loss,
+                                                                             np_epoch_valid_label_ids,
+                                                                             np_epoch_valid_logits)
 
-        # fil
-        epoch_valid_metrics['f1_macro_fil'], epoch_valid_metrics['f1_micro_fil'] = \
-            self.f1_score(epoch_valid_label_ids['true'], epoch_valid_label_ids['pred'], filtered_label_ids=True)
-
-        ##########################
-        # report
-        ##########################
-        self.metrics['epoch']['valid']['loss'].append(epoch_valid_metrics['loss'])
-        self.metrics['epoch']['valid']['acc'].append(epoch_valid_metrics['acc'])
-        self.metrics['epoch']['valid']['f1']['macro']['all'].append(epoch_valid_metrics['f1_macro_all'])
-        self.metrics['epoch']['valid']['f1']['micro']['all'].append(epoch_valid_metrics['f1_micro_all'])
-        self.metrics['epoch']['valid']['f1']['macro']['fil'].append(epoch_valid_metrics['f1_macro_fil'])
-        self.metrics['epoch']['valid']['f1']['micro']['fil'].append(epoch_valid_metrics['f1_micro_fil'])
-
-        print('Epoch #{} valid loss:              {:.2f}'.format(epoch, epoch_valid_metrics['loss']))
-        print('Epoch #{} valid acc:               {:.2f}'.format(epoch, epoch_valid_metrics['acc']))
-        print('Epoch #{} valid f1 (macro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_all']))
-        print('Epoch #{} valid f1 (micro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_all']))
-        print('Epoch #{} valid f1 (macro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_fil']))
-        print('Epoch #{} valid f1 (micro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_fil']))
+        self.print_metrics(epoch, epoch_valid_metrics)
 
         # writer
-        self.writer.add_scalar('validation/loss', epoch_valid_metrics['loss'], global_step)
-        self.writer.add_scalar('validation/acc', epoch_valid_metrics['acc'], global_step)
-        self.writer.add_scalar('validation/f1_score_macro_all', epoch_valid_metrics['f1_macro_all'], global_step)
-        self.writer.add_scalar('validation/f1_score_micro_all', epoch_valid_metrics['f1_micro_all'], global_step)
+        self.write_metrics_for_tensorboard('valid', epoch_valid_metrics, global_step)
 
-        ##########################
         # classification reports
-        ##########################
-        # use labels instead of label_ids
-        epoch_valid_labels['true'] = [self.label_list[label_id] for label_id in epoch_valid_label_ids['true']]
-        epoch_valid_labels['pred'] = [self.label_list[label_id] for label_id in epoch_valid_label_ids['pred']]
-
-        # token-based classification report
-        print('\n--- token-based (sklearn) classification report ---')
-        print(classification_report_sklearn(epoch_valid_labels['true'],
-                                            epoch_valid_labels['pred'],
-                                            labels=[label for label in self.label_list if label != 'O']))
-
-        # enrich pred_tags & valid_tags with bio prefixes
-        epoch_valid_labels_bio['true'] = utils.add_bio_to_label_list(epoch_valid_labels['true'])
-        epoch_valid_labels_bio['pred'] = utils.add_bio_to_label_list(epoch_valid_labels['pred'])
-        if verbose:
-            print('\n--- predicted and true labels ---')
-            print(epoch_valid_labels['true'][:10], len(epoch_valid_labels['true']))
-            print(epoch_valid_labels['pred'][:10], len(epoch_valid_labels['pred']))
-            print(epoch_valid_labels_bio['true'][:10], len(epoch_valid_labels_bio['true']))
-            print(epoch_valid_labels_bio['pred'][:10], len(epoch_valid_labels_bio['pred']))
-
-        # chunk-based classification report
-        print('\n--- chunk-based (seqeval) classification report ---')
-        print(classification_report_seqeval(epoch_valid_labels_bio['true'],
-                                            epoch_valid_labels_bio['pred'],
-                                            suffix=False))
+        self.print_classification_reports(epoch_valid_label_ids)
 
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
-    def compute_batch_metrics(self, _np_batch_train_loss, _np_label_ids, _np_logits):
+    @staticmethod
+    def instantiate_metrics_dict():
+        metrics = dict()
+        for elem1 in ['batch', 'epoch']:
+            metrics[elem1] = dict()
+            for elem2 in ['train', 'valid']:
+                metrics[elem1][elem2] = dict()
+                for elem3 in ['loss', 'acc']:
+                    metrics[elem1][elem2][elem3] = list()
+                for elem3 in ['f1']:
+                    metrics[elem1][elem2][elem3] = dict()
+                    for elem4 in ['macro', 'micro']:
+                        metrics[elem1][elem2][elem3][elem4] = dict()
+                        for elem5 in ['all', 'fil']:
+                            metrics[elem1][elem2][elem3][elem4][elem5] = list()
+        metrics['batch']['train']['lr'] = list()
+
+        return metrics
+
+    def compute_metrics(self, size, phase, _np_loss, _np_label_ids, _np_logits):
         """
-        computes loss, acc, f1 scores for batch
-        ---------------------------------------
-        :param _np_batch_train_loss: [np value]
-        :param _np_label_ids:        [np array] of shape [batch_size, seq_length]
-        :param _np_logits:           [np array] of shape [batch_size, seq_length, num_labels]
+        computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
+        -------------------------------------------------------------------------
+        :param size:           [str] 'batch' or 'epoch'
+        :param phase:          [str] 'train' or 'valid'
+        :param _np_loss:       [np value]
+        :param _np_label_ids:  [np array] of shape [batch_size, seq_length]
+        :param _np_logits:     [np array] of shape [batch_size, seq_length, num_labels]
         :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
                  labels_ids    [dict] w/ keys 'true', 'pred'      & values = [np array]
                  _progress_bar [str] to display during training
         """
-        metrics = {'loss': _np_batch_train_loss}
+        metrics = {'loss': _np_loss}
 
         # batch
         label_ids = dict()
@@ -346,12 +273,12 @@ class NERTrainer:
                                                                          filtered_label_ids=True)
 
         # append to self.metrics
-        self.metrics['batch']['train']['loss'].append(metrics['loss'])
-        self.metrics['batch']['train']['acc'].append(metrics['acc'])
-        self.metrics['batch']['train']['f1']['macro']['all'].append(metrics['f1_macro_all'])
-        self.metrics['batch']['train']['f1']['micro']['all'].append(metrics['f1_micro_all'])
-        self.metrics['batch']['train']['f1']['macro']['fil'].append(metrics['f1_macro_fil'])
-        self.metrics['batch']['train']['f1']['micro']['fil'].append(metrics['f1_micro_fil'])
+        self.metrics[size][phase]['loss'].append(metrics['loss'])
+        self.metrics[size][phase]['acc'].append(metrics['acc'])
+        self.metrics[size][phase]['f1']['macro']['all'].append(metrics['f1_macro_all'])
+        self.metrics[size][phase]['f1']['micro']['all'].append(metrics['f1_micro_all'])
+        self.metrics[size][phase]['f1']['macro']['fil'].append(metrics['f1_macro_fil'])
+        self.metrics[size][phase]['f1']['micro']['fil'].append(metrics['f1_micro_fil'])
 
         # progress bar
         _progress_bar = 'acc: {:.2f} | f1 (macro, all): {:.2f} | f1 (micro, all): {:.2f}'.format(
@@ -403,6 +330,64 @@ class NERTrainer:
         # compute f1 scores
         return f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='macro'), \
             f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='micro')
+
+    @staticmethod
+    def print_metrics(epoch, epoch_valid_metrics):
+        print('Epoch #{} valid loss:              {:.2f}'.format(epoch, epoch_valid_metrics['loss']))
+        print('Epoch #{} valid acc:               {:.2f}'.format(epoch, epoch_valid_metrics['acc']))
+        print('Epoch #{} valid f1 (macro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_all']))
+        print('Epoch #{} valid f1 (micro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_all']))
+        print('Epoch #{} valid f1 (macro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_fil']))
+        print('Epoch #{} valid f1 (micro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_fil']))
+
+    def write_metrics_for_tensorboard(self, phase, metrics, _global_step, _lr_this_step=None):
+        """
+        write metrics for tensorboard
+        -----------------------------
+        :param phase:         [str] 'train' or 'valid'
+        :param metrics:       [dict] w/ keys 'loss', 'acc', 'f1_macro_all', 'f1_micro_all'
+        :param _global_step:  [int]
+        :param _lr_this_step: [float] only needed if phase == 'train'
+        :return: -
+        """
+        self.writer.add_scalar(f'{phase}/loss', metrics['loss'], _global_step)
+        self.writer.add_scalar(f'{phase}/acc', metrics['acc'], _global_step)
+        self.writer.add_scalar(f'{phase}/f1_macro_all', metrics['f1_macro_all'], _global_step)
+        self.writer.add_scalar(f'{phase}/f1_micro_all', metrics['f1_micro_all'], _global_step)
+        if phase == 'train' and _lr_this_step is not None:
+            self.writer.add_scalar(f'{phase}/learning_rate', _lr_this_step, _global_step)
+
+    def print_classification_reports(self, epoch_valid_label_ids):
+        """
+        print token-based (sklearn) & chunk-based (seqeval) classification reports
+        --------------------------------------------------------------------------
+        :param epoch_valid_label_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :return: -
+        """
+        # use labels instead of label_ids
+        epoch_valid_labels = {
+            field: [self.label_list[label_id] for label_id in epoch_valid_label_ids[field]]
+            for field in ['true', 'pred']
+        }
+
+        # token-based classification report
+        print('\n--- token-based (sklearn) classification report ---')
+        selected_labels = [label for label in self.label_list if label != 'O' and not label.startswith('[')]
+        print(classification_report_sklearn(epoch_valid_labels['true'],
+                                            epoch_valid_labels['pred'],
+                                            labels=selected_labels))
+
+        # enrich pred_tags & valid_tags with bio prefixes
+        epoch_valid_labels_bio = {
+            field: utils.add_bio_to_label_list(utils.get_rid_of_special_tokens(epoch_valid_labels[field]))
+            for field in ['true', 'pred']
+        }
+
+        # chunk-based classification report
+        print('\n--- chunk-based (seqeval) classification report ---')
+        print(classification_report_seqeval(epoch_valid_labels_bio['true'],
+                                            epoch_valid_labels_bio['pred'],
+                                            suffix=False))
 
     ####################################################################################################################
     # 3. STEPS
