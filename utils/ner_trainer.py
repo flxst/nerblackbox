@@ -29,13 +29,15 @@ class NERTrainer:
                  train_dataloader,
                  valid_dataloader,
                  label_list,
-                 fp16=False):
+                 fp16=False,
+                 verbose=False):
         """
         :param model:            [transformers BertForTokenClassification]
         :param train_dataloader: [pytorch DataLoader]
         :param valid_dataloader: [pytorch DataLoader]
         :param label_list:       [list] of [str], e.g. ['[PAD]', '[CLS]', '[SEP]', 'O', 'PER', ..]
         :param fp16:             [bool]
+        :param verbose:             [bool] verbose print
         """
         # input attributes
         self.model = model
@@ -43,6 +45,7 @@ class NERTrainer:
         self.valid_dataloader = valid_dataloader
         self.label_list = label_list
         self.fp16 = fp16
+        self.verbose = verbose
 
         # derived attributes
         self.label_ids_filtered = [self.label_list.index(label)
@@ -60,8 +63,9 @@ class NERTrainer:
 
         # no input arguments (set in methods)
         self.optimizer = None
-        self.total_steps = None
         self.scheduler = None
+        self.pbar = None
+        self.max_grad_norm = None
 
         # metrics
         self.metrics = self.instantiate_metrics_dict()
@@ -75,8 +79,7 @@ class NERTrainer:
             lr_max=3e-5,
             lr_schedule='linear',
             lr_warmup_fraction=0.1,
-            lr_num_cycles=None,
-            verbose=False):
+            lr_num_cycles=None):
         """
         train & validate
         ----------------
@@ -86,103 +89,106 @@ class NERTrainer:
         :param lr_schedule:         [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
         :param lr_warmup_fraction:  [float], e.g. 0.1, fraction of steps during which lr is warmed up
         :param lr_num_cycles:       [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules
-        :param verbose:             [bool] verbose print
         :return: -
         """
+        self.max_grad_norm = max_grad_norm
 
         # optimizer
         self.optimizer = self.create_optimizer(lr_max, self.fp16)
         if self.device == "cpu":
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
 
-        # total_steps & global_step
-        self.total_steps = self.get_total_steps(num_epochs)
-        global_step = None
-
         # learning rate
-        self.scheduler = self.create_scheduler(lr_schedule, lr_warmup_fraction, lr_num_cycles)
+        self.scheduler = self.create_scheduler(num_epochs, lr_schedule, lr_warmup_fraction, lr_num_cycles)
 
         ################################################################################################################
         # start training
         ################################################################################################################
-        pbar = tqdm(total=num_epochs*len(self.train_dataloader))
-        self.model.zero_grad()
-        self.model.train()
+        self.pbar = tqdm(total=num_epochs*len(self.train_dataloader))
 
         for epoch in range(num_epochs):
-            print("\n>>> Train Epoch: {}".format(epoch))
+            print('\n>>> Epoch: {}'.format(epoch))
+            self.train(epoch)
+            self.validate(epoch)
 
-            for batch_train_step, batch in enumerate(self.train_dataloader):
-                batch = tuple(t.to(self.device) for t in batch)
-                input_ids, input_mask, segment_ids, label_ids = batch
+    def train(self, epoch):
+        """
+        train one epoch
+        ---------------
+        :param epoch: [int]
+        :return: -
+        """
+        print('> Train')
+        self.model.train()
 
-                outputs = self.model(input_ids,
-                                     attention_mask=input_mask,
-                                     token_type_ids=segment_ids,
-                                     labels=label_ids,
-                                     )
-                batch_train_loss, logits = outputs[:2]
+        for batch_train_step, batch in enumerate(self.train_dataloader):
+            self.model.zero_grad()
 
-                # batch loss
-                if verbose:
-                    print(f'Batch #{batch_train_step} train loss: {batch_train_loss:.2f}')
+            # get batch data
+            batch = tuple(t.to(self.device) for t in batch)
+            input_ids, input_mask, segment_ids, label_ids = batch
 
-                # to cpu/numpy
-                np_batch_train = {
-                    'loss': batch_train_loss.detach().cpu().numpy(),
-                    'label_ids': label_ids.to('cpu').numpy(),    # shape: [batch_size, seq_legnth]
-                    'logits': logits.detach().cpu().numpy(),     # shape: [batch_size, seq_length, num_labels]
-                }
+            # forward pass
+            outputs = self.model(input_ids,
+                                 attention_mask=input_mask,
+                                 token_type_ids=segment_ids,
+                                 labels=label_ids,
+                                 )
+            batch_train_loss, logits = outputs[:2]
 
-                # batch train metrics
-                batch_train_metrics, _, progress_bar = self.compute_metrics('batch', 'train', np_batch_train)
+            # to cpu/numpy
+            np_batch_train = {
+                'loss': batch_train_loss.detach().cpu().numpy(),
+                'label_ids': label_ids.to('cpu').numpy(),    # shape: [batch_size, seq_legnth]
+                'logits': logits.detach().cpu().numpy(),     # shape: [batch_size, seq_length, num_labels]
+            }
 
-                # training progressbar
-                pbar.update(1)  # TQDM - progressbar
-                pbar.set_description(progress_bar)
+            # batch train metrics
+            batch_train_metrics, _, progress_bar = self.compute_metrics('batch', 'train', np_batch_train)
 
-                # backpropagation
-                if self.fp16:
-                    with amp.scale_loss(batch_train_loss, self.optimizer) as scaled_loss:
-                        scaled_loss.backward()
-                else:
-                    batch_train_loss.backward()
+            # backpropagation
+            if self.fp16:
+                with amp.scale_loss(batch_train_loss, self.optimizer) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                batch_train_loss.backward()
 
-                if max_grad_norm is not None:
-                    # TODO: undersök varför man vill göra det här, det får ibland modellen att inte lära sig
-                    self.clip_grad_norm(max_grad_norm)
-                self.optimizer.step()
-                self.model.zero_grad()
+            if self.max_grad_norm is not None:
+                # TODO: undersök varför man vill göra det här, det får ibland modellen att inte lära sig
+                self.clip_grad_norm()
+            self.optimizer.step()
 
-                # update learning rate (after optimization step!)
-                lr_this_step = self.scheduler.get_lr()[0]
-                self.metrics['batch']['train']['lr'].append(lr_this_step)
-                if verbose:
-                    print(f'          learning rate: {lr_this_step:.2e}')
+            # update learning rate (after optimization step!)
+            lr_this_step = self.scheduler.get_lr()[0]
+            self.metrics['batch']['train']['lr'].append(lr_this_step)
+            self.scheduler.step()
 
-                self.scheduler.step()
+            # output
+            global_step = self.get_global_step(epoch, batch_train_step)
+            self.write_metrics_for_tensorboard('train', batch_train_metrics, global_step, lr_this_step)
 
-                # tensorboard
-                global_step = self.get_global_step(epoch, batch_train_step)
-                self.write_metrics_for_tensorboard('train', batch_train_metrics, global_step, lr_this_step)
+            self.pbar.update(1)  # TQDM - training progressbar
+            self.pbar.set_description(progress_bar)
 
-            self.validation(global_step, epoch)
+            # batch loss
+            if self.verbose:
+                print(f'Batch #{batch_train_step} train loss:    {batch_train_loss:.2f}')
+                print(f'                          learning rate: {lr_this_step:.2e}')
 
-    def validation(self, global_step, epoch):
+    def validate(self, epoch):
         """
         validation after each training epoch
         ------------------------------------
-        :param global_step: [int]
-        :param epoch:       [int]
+        :param epoch: [int]
         :return: -
         """
-        print("\n>>> Valid Epoch: {}".format(epoch))
+        print('\n> Validate')
+        self.model.eval()
 
         valid_fields = ['loss', 'label_ids', 'logits']
         np_epoch_valid = {valid_field: None for valid_field in valid_fields}
         np_epoch_valid_list = {valid_field: list() for valid_field in valid_fields}
 
-        self.model.eval()
         for batch in self.valid_dataloader:
             batch = tuple(t.to(self.device) for t in batch)
             input_ids, input_mask, segment_ids, label_ids = batch
@@ -214,6 +220,7 @@ class NERTrainer:
 
         # output
         self.print_metrics(epoch, epoch_valid_metrics)
+        global_step = self.get_global_step(epoch, len(self.train_dataloader)-1)
         self.write_metrics_for_tensorboard('valid', epoch_valid_metrics, global_step)
         self.print_classification_reports(epoch_valid_label_ids)
 
@@ -274,10 +281,10 @@ class NERTrainer:
         self.metrics[size][phase]['f1']['micro']['fil'].append(metrics['f1_micro_fil'])
 
         # progress bar
-        _progress_bar = 'acc: {:.2f} | f1 (macro, all): {:.2f} | f1 (micro, all): {:.2f}'.format(
+        _progress_bar = 'acc: {:.2f} | f1 (macro, fil): {:.2f} | f1 (micro, fil): {:.2f}'.format(
             metrics['acc'],
-            metrics['f1_macro_all'],
-            metrics['f1_micro_all'],
+            metrics['f1_macro_fil'],
+            metrics['f1_micro_fil'],
         )
 
         return metrics, label_ids, _progress_bar
@@ -407,8 +414,8 @@ class NERTrainer:
     ####################################################################################################################
     # 4. OPTIMIZER
     ####################################################################################################################
-    def clip_grad_norm(self, max_grad_norm):
-        torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=max_grad_norm)
+    def clip_grad_norm(self):
+        torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=self.max_grad_norm)
 
     def create_optimizer(self, learning_rate, fp16=True, no_decay=('bias', 'gamma', 'beta')):
         """
@@ -442,7 +449,7 @@ class NERTrainer:
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
 
-    def create_scheduler(self, _lr_schedule, _lr_warmup_fraction, _lr_num_cycles=None):
+    def create_scheduler(self, _num_epochs, _lr_schedule, _lr_warmup_fraction, _lr_num_cycles=None):
         """
         create scheduler with warmup
         ----------------------------
@@ -454,15 +461,17 @@ class NERTrainer:
         if _lr_schedule not in ['constant', 'linear', 'cosine', 'cosine_with_hard_restarts']:
             raise Exception(f'lr_schedule = {_lr_schedule} not implemented.')
 
+        total_steps = self.get_total_steps(_num_epochs)
+
         scheduler_params = {
-            'num_warmup_steps': int(_lr_warmup_fraction * self.total_steps),
+            'num_warmup_steps': int(_lr_warmup_fraction * total_steps),
             'last_epoch': -1,
         }
 
         if _lr_schedule == 'constant':
             return get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
         else:
-            scheduler_params['num_training_steps'] = self.total_steps
+            scheduler_params['num_training_steps'] = total_steps
 
             if _lr_schedule == 'linear':
                 return get_linear_schedule_with_warmup(self.optimizer, **scheduler_params)
@@ -471,10 +480,10 @@ class NERTrainer:
                     scheduler_params['num_cycles'] = _lr_num_cycles  # else: use default values
 
                 if _lr_schedule == 'cosine':
-                    scheduler_params['num_training_steps'] = self.total_steps
+                    scheduler_params['num_training_steps'] = total_steps
                     return get_cosine_schedule_with_warmup(self.optimizer, **scheduler_params)
                 elif _lr_schedule == 'cosine_with_hard_restarts':
-                    scheduler_params['num_training_steps'] = self.total_steps
+                    scheduler_params['num_training_steps'] = total_steps
                     return get_cosine_with_hard_restarts_schedule_with_warmup(self.optimizer, **scheduler_params)
                 else:
                     raise Exception('create scheduler: logic is broken.')  # this should never happen
