@@ -1,7 +1,6 @@
 import torch
 import pickle
 import numpy as np
-# from torch.nn import CrossEntropyLoss
 from tensorboardX import SummaryWriter
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
@@ -58,11 +57,6 @@ class NERTrainer:
 
         # tensorboard
         self.writer = SummaryWriter()
-
-        """
-        self.loss_fct = CrossEntropyLoss(ignore_index=0)  # NEW: HERE 3
-        # self.loss_fct = CrossEntropyLoss()  # OLD: HERE 3
-        """
 
         # no input arguments (set in methods)
         self.optimizer = None
@@ -146,18 +140,6 @@ class NERTrainer:
                     print('> label_ids[0]:', label_ids.shape)
                     print(label_ids[0])
 
-                """
-                logits = self.model(input_ids,
-                                    attention_mask=input_mask,
-                                    token_type_ids=segment_ids,
-
-                                    # OLD: HERE 4a
-                                    # attention_mask=segment_ids,
-                                    # token_type_ids=input_mask,
-                                    )
-                loss = self.loss(logits, label_ids)
-                """
-                # NEW: HERE 5
                 outputs = self.model(input_ids,
                                      attention_mask=input_mask,
                                      token_type_ids=segment_ids,
@@ -251,16 +233,6 @@ class NERTrainer:
                                      attention_mask=input_mask,
                                      token_type_ids=segment_ids,
                                      labels=label_ids)
-                """
-                logits = self.model(b_input_ids,
-                                    attention_mask=b_input_mask,
-                                    token_type_ids=b_segment_ids,
-
-                                    # OLD: HERE 4b
-                                    # attention_mask=b_segment_ids,
-                                    # token_type_ids=b_input_mask,
-                                    )
-                """
                 batch_valid_loss, logits = outputs[:2]
 
             # to cpu/numpy
