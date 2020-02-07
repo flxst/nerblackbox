@@ -128,16 +128,14 @@ class NERTrainer:
                     print(f'Batch #{batch_train_step} train loss: {batch_train_loss:.2f}')
 
                 # to cpu/numpy
-                np_batch_train_loss = batch_train_loss.detach().cpu().numpy()
-                np_batch_train_label_ids = label_ids.to('cpu').numpy()    # shape: [batch_size, seq_legnth]
-                np_batch_train_logits = logits.detach().cpu().numpy()     # shape: [batch_size, seq_length, num_labels]
+                np_batch_train = {
+                    'loss': batch_train_loss.detach().cpu().numpy(),
+                    'label_ids': label_ids.to('cpu').numpy(),    # shape: [batch_size, seq_legnth]
+                    'logits': logits.detach().cpu().numpy(),     # shape: [batch_size, seq_length, num_labels]
+                }
 
                 # batch train metrics
-                batch_train_metrics, _, progress_bar = self.compute_metrics('batch',
-                                                                            'train',
-                                                                            np_batch_train_loss,
-                                                                            np_batch_train_label_ids,
-                                                                            np_batch_train_logits)
+                batch_train_metrics, _, progress_bar = self.compute_metrics('batch', 'train', np_batch_train)
 
                 # training progressbar
                 pbar.update(1)  # TQDM - progressbar
@@ -180,9 +178,9 @@ class NERTrainer:
         """
         print("\n>>> Valid Epoch: {}".format(epoch))
 
-        np_epoch_valid_loss = 0
-        np_epoch_valid_label_ids_list = list()
-        np_epoch_valid_logits_list = list()
+        valid_fields = ['loss', 'label_ids', 'logits']
+        np_epoch_valid = {valid_field: None for valid_field in valid_fields}
+        np_epoch_valid_list = {valid_field: list() for valid_field in valid_fields}
 
         self.model.eval()
         for batch in self.valid_dataloader:
@@ -197,32 +195,26 @@ class NERTrainer:
                 batch_valid_loss, logits = outputs[:2]
 
             # to cpu/numpy
-            np_batch_valid_loss = batch_valid_loss.detach().cpu().numpy()
-            np_batch_valid_label_ids = label_ids.to('cpu').numpy()
-            np_batch_valid_logits = logits.detach().cpu().numpy()
+            np_batch_valid = {
+                'loss': batch_valid_loss.detach().cpu().numpy(),
+                'label_ids': label_ids.to('cpu').numpy(),
+                'logits': logits.detach().cpu().numpy(),
+            }
 
             # epoch metrics
-            np_epoch_valid_loss += np_batch_valid_loss
-            np_epoch_valid_label_ids_list.append(np_batch_valid_label_ids)
-            np_epoch_valid_logits_list.append(np_batch_valid_logits)
+            for valid_field in valid_fields:
+                np_epoch_valid_list[valid_field].append(np_batch_valid[valid_field])
 
         # epoch metrics
-        np_epoch_valid_loss /= len(self.valid_dataloader)
-        np_epoch_valid_label_ids = np.vstack(np_epoch_valid_label_ids_list)
-        np_epoch_valid_logits = np.vstack(np_epoch_valid_logits_list)
+        np_epoch_valid['loss'] = np.mean(np_epoch_valid_list['loss'])
+        np_epoch_valid['label_ids'] = np.vstack(np_epoch_valid_list['label_ids'])
+        np_epoch_valid['logits'] = np.vstack(np_epoch_valid_list['logits'])
 
-        epoch_valid_metrics, epoch_valid_label_ids, _ = self.compute_metrics('epoch',
-                                                                             'valid',
-                                                                             np_epoch_valid_loss,
-                                                                             np_epoch_valid_label_ids,
-                                                                             np_epoch_valid_logits)
+        epoch_valid_metrics, epoch_valid_label_ids, _ = self.compute_metrics('epoch', 'valid', np_epoch_valid)
 
+        # output
         self.print_metrics(epoch, epoch_valid_metrics)
-
-        # writer
         self.write_metrics_for_tensorboard('valid', epoch_valid_metrics, global_step)
-
-        # classification reports
         self.print_classification_reports(epoch_valid_label_ids)
 
     ####################################################################################################################
@@ -247,24 +239,25 @@ class NERTrainer:
 
         return metrics
 
-    def compute_metrics(self, size, phase, _np_loss, _np_label_ids, _np_logits):
+    def compute_metrics(self, size, phase, _np_dict):
         """
         computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
         -------------------------------------------------------------------------
         :param size:           [str] 'batch' or 'epoch'
         :param phase:          [str] 'train' or 'valid'
-        :param _np_loss:       [np value]
-        :param _np_label_ids:  [np array] of shape [batch_size, seq_length]
-        :param _np_logits:     [np array] of shape [batch_size, seq_length, num_labels]
+        :param _np_dict:       [dict] w/ key-value pairs:
+                                     'loss':       [np value]
+                                     'label_ids':  [np array] of shape [batch_size, seq_length]
+                                     'logits'      [np array] of shape [batch_size, seq_length, num_labels]
         :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
                  labels_ids    [dict] w/ keys 'true', 'pred'      & values = [np array]
                  _progress_bar [str] to display during training
         """
-        metrics = {'loss': _np_loss}
+        metrics = {'loss': _np_dict['loss']}
 
         # batch
         label_ids = dict()
-        label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_label_ids, _np_logits)
+        label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_dict['label_ids'], _np_dict['logits'])
 
         # batch metrics
         metrics['acc'] = self.accuracy(label_ids['true'], label_ids['pred'])
