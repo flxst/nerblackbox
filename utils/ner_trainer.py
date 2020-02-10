@@ -350,10 +350,11 @@ class NERTrainer:
         :param _lr_this_step: [float] only needed if phase == 'train'
         :return: -
         """
-        self.writer.add_scalar(f'{phase}/loss', metrics['loss'], _global_step)
-        self.writer.add_scalar(f'{phase}/acc', metrics['acc'], _global_step)
-        self.writer.add_scalar(f'{phase}/f1_macro_all', metrics['f1_macro_all'], _global_step)
-        self.writer.add_scalar(f'{phase}/f1_micro_all', metrics['f1_micro_all'], _global_step)
+        fields = ['loss', 'acc', 'f1_macro_all', 'f1_micro_all', 'f1_macro_fil', 'f1_micro_fil']
+        for field in fields:
+            self.writer.add_scalar(f'{phase}/{field}', metrics[field], _global_step)
+            print(f'global_step = {_global_step}, phase/field = {phase}/{field}:', metrics[field])
+
         if phase == 'train' and _lr_this_step is not None:
             self.writer.add_scalar(f'{phase}/learning_rate', _lr_this_step, _global_step)
 

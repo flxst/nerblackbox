@@ -49,11 +49,12 @@ def main(args):
                          train_dataloader=dataloader['train'],
                          valid_dataloader=dataloader['valid'],
                          label_list=label_list,
-                         fp16=True if torch.cuda.is_available() else False
+                         fp16=True if torch.cuda.is_available() else False,
+                         verbose=False,
                          )
     trainer.fit(num_epochs=hyperparams['num_epochs'],
                 **hyperparams['learning_rate'],
-                verbose=False)
+                )
 
     trainer.save_model_checkpoint(args.dataset_name,
                                   args.pretrained_model_name,
