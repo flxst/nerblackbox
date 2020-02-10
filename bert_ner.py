@@ -49,6 +49,7 @@ def main(args):
                          train_dataloader=dataloader['train'],
                          valid_dataloader=dataloader['valid'],
                          label_list=label_list,
+                         hyperparams=hyperparams,
                          fp16=True if torch.cuda.is_available() else False,
                          verbose=False,
                          )

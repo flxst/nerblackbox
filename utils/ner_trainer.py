@@ -1,3 +1,4 @@
+import os
 import torch
 import pickle
 import numpy as np
@@ -17,6 +18,7 @@ from tqdm import tqdm_notebook as tqdm
 
 from utils import utils
 from utils.env_variable import ENV_VARIABLE
+from utils.mlflow_client import MLflowClient
 
 
 class NERTrainer:
@@ -29,6 +31,7 @@ class NERTrainer:
                  train_dataloader,
                  valid_dataloader,
                  label_list,
+                 hyperparams=None,
                  fp16=False,
                  verbose=False):
         """
@@ -36,6 +39,7 @@ class NERTrainer:
         :param train_dataloader: [pytorch DataLoader]
         :param valid_dataloader: [pytorch DataLoader]
         :param label_list:       [list] of [str], e.g. ['[PAD]', '[CLS]', '[SEP]', 'O', 'PER', ..]
+        :param hyperparams:      [dict] for mlflow tracking
         :param fp16:             [bool]
         :param verbose:             [bool] verbose print
         """
@@ -58,8 +62,10 @@ class NERTrainer:
         # if fp16:
         #     self.model.half()
 
-        # tensorboard
-        self.writer = SummaryWriter()
+        # tensorboard & mlflow
+        self.writer = SummaryWriter()  # tensorflow
+        self.mlflow_client = MLflowClient()
+        self.mlflow_client.log_params(hyperparams)
 
         # no input arguments (set in methods)
         self.optimizer = None
@@ -110,6 +116,8 @@ class NERTrainer:
             print('\n>>> Epoch: {}'.format(epoch))
             self.train(epoch)
             self.validate(epoch)
+
+        self.mlflow_client.log_artifact_final()
 
     def train(self, epoch):
         """
@@ -222,7 +230,8 @@ class NERTrainer:
         self.print_metrics(epoch, epoch_valid_metrics)
         global_step = self.get_global_step(epoch, len(self.train_dataloader)-1)
         self.write_metrics_for_tensorboard('valid', epoch_valid_metrics, global_step)
-        self.print_classification_reports(epoch_valid_label_ids)
+        self.mlflow_client.log_metrics(epoch, epoch_valid_metrics)
+        self.print_classification_reports(epoch, epoch_valid_label_ids)
 
     ####################################################################################################################
     # 2. METRICS
@@ -331,6 +340,9 @@ class NERTrainer:
         return f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='macro'), \
             f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='micro')
 
+    ####################################################################################################################
+    # 2b. METRICS LOGGING
+    ####################################################################################################################
     @staticmethod
     def print_metrics(epoch, epoch_valid_metrics):
         print('Epoch #{} valid loss:              {:.2f}'.format(epoch, epoch_valid_metrics['loss']))
@@ -353,18 +365,21 @@ class NERTrainer:
         fields = ['loss', 'acc', 'f1_macro_all', 'f1_micro_all', 'f1_macro_fil', 'f1_micro_fil']
         for field in fields:
             self.writer.add_scalar(f'{phase}/{field}', metrics[field], _global_step)
-            print(f'global_step = {_global_step}, phase/field = {phase}/{field}:', metrics[field])
+            # print(f'global_step = {_global_step}, phase/field = {phase}/{field}:', metrics[field])
 
         if phase == 'train' and _lr_this_step is not None:
             self.writer.add_scalar(f'{phase}/learning_rate', _lr_this_step, _global_step)
 
-    def print_classification_reports(self, epoch_valid_label_ids):
+    def print_classification_reports(self, epoch, epoch_valid_label_ids):
         """
         print token-based (sklearn) & chunk-based (seqeval) classification reports
         --------------------------------------------------------------------------
-        :param epoch_valid_label_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param: epoch:                 [int]
+        :param: epoch_valid_label_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
         :return: -
         """
+        self.mlflow_client.clear_artifact()
+
         # use labels instead of label_ids
         epoch_valid_labels = {
             field: [self.label_list[label_id] for label_id in epoch_valid_label_ids[field]]
@@ -372,11 +387,12 @@ class NERTrainer:
         }
 
         # token-based classification report
-        print('\n--- token-based (sklearn) classification report ---')
+        self.mlflow_client.log_artifact(f'\n>>> Epoch: {epoch}')
+        self.mlflow_client.log_artifact('\n--- token-based (sklearn) classification report ---')
         selected_labels = [label for label in self.label_list if label != 'O' and not label.startswith('[')]
-        print(classification_report_sklearn(epoch_valid_labels['true'],
-                                            epoch_valid_labels['pred'],
-                                            labels=selected_labels))
+        self.mlflow_client.log_artifact(classification_report_sklearn(epoch_valid_labels['true'],
+                                                                      epoch_valid_labels['pred'],
+                                                                      labels=selected_labels))
 
         # enrich pred_tags & valid_tags with bio prefixes
         epoch_valid_labels_bio = {
@@ -385,10 +401,10 @@ class NERTrainer:
         }
 
         # chunk-based classification report
-        print('\n--- chunk-based (seqeval) classification report ---')
-        print(classification_report_seqeval(epoch_valid_labels_bio['true'],
-                                            epoch_valid_labels_bio['pred'],
-                                            suffix=False))
+        self.mlflow_client.log_artifact('\n--- chunk-based (seqeval) classification report ---')
+        self.mlflow_client.log_artifact(classification_report_seqeval(epoch_valid_labels_bio['true'],
+                                                                      epoch_valid_labels_bio['pred'],
+                                                                      suffix=False))
 
     ####################################################################################################################
     # 3. STEPS
