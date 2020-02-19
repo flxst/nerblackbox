@@ -20,7 +20,9 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def main(args):
-
+    ####################################################################################################################
+    # mlflow
+    ####################################################################################################################
     # set env variable experiment name
     if args.experiment_name is not None:
         os.environ['MLFLOW_EXPERIMENT_NAME'] = args.experiment_name
@@ -28,13 +30,24 @@ def main(args):
         os.environ['MLFLOW_RUN_NAME'] = args.run_name
 
     try:
-        print(os.environ['MLFLOW_EXPERIMENT_NAME'])
-        print(os.environ['MLFLOW_RUN_NAME'])
+        print('mlflow experiment_name:', os.environ['MLFLOW_EXPERIMENT_NAME'])
+        print('mlflow run_name:       ', os.environ['MLFLOW_RUN_NAME'])
     except:
         pass
 
+    ####################################################################################################################
+    # device
+    ####################################################################################################################
+    device = torch.device('cuda' if torch.cuda.is_available() and args.device == 'gpu' else 'cpu')
+    print(f'> Available GPUs: {torch.cuda.device_count()}')
+    print(f'> Using device:   {device}')
+    print('---------------------------')
+
+    ####################################################################################################################
     # hyperparameters
+    ####################################################################################################################
     hyperparams = {
+        'device': device.type,
         'batch_size': args.batch_size,
         'max_seq_length': args.max_seq_length,
         'num_epochs': args.num_epochs,
@@ -68,6 +81,7 @@ def main(args):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     trainer = NERTrainer(model,
+                         device,
                          train_dataloader=dataloader['train'],
                          valid_dataloader=dataloader['valid'],
                          label_list=label_list,
@@ -96,6 +110,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--device', type=str, default='gpu')
     parser.add_argument('--experiment_name', type=str, default=None)
     parser.add_argument('--run_name', type=str, default=None)
     parser.add_argument('--pretrained_model_name', type=str, default='af-ai-center/bert-base-swedish-uncased')

@@ -1,4 +1,5 @@
-import os
+
+import time
 import torch
 import pickle
 import numpy as np
@@ -28,6 +29,7 @@ class NERTrainer:
 
     def __init__(self,
                  model,
+                 device,
                  train_dataloader,
                  valid_dataloader,
                  label_list,
@@ -36,18 +38,20 @@ class NERTrainer:
                  verbose=False):
         """
         :param model:            [transformers BertForTokenClassification]
+        :param device:           [torch device] 'cuda' or 'cpu'
         :param train_dataloader: [pytorch DataLoader]
         :param valid_dataloader: [pytorch DataLoader]
         :param label_list:       [list] of [str], e.g. ['[PAD]', '[CLS]', '[SEP]', 'O', 'PER', ..]
         :param hyperparams:      [dict] for mlflow tracking
         :param fp16:             [bool]
-        :param verbose:             [bool] verbose print
+        :param verbose:          [bool] verbose print
         """
         # input attributes
         self.model = model
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
         self.label_list = label_list
+        self.device = device
         self.fp16 = fp16
         self.verbose = verbose
 
@@ -57,7 +61,6 @@ class NERTrainer:
                                    if not (label.startswith('[') or label == 'O')]
 
         # device
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         # if fp16:
         #     self.model.half()
@@ -101,7 +104,7 @@ class NERTrainer:
 
         # optimizer
         self.optimizer = self.create_optimizer(lr_max, self.fp16)
-        if self.device == "cpu":
+        if self.device == 'cpu':
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
 
         # learning rate
@@ -112,10 +115,14 @@ class NERTrainer:
         ################################################################################################################
         self.pbar = tqdm(total=num_epochs*len(self.train_dataloader))
 
+        start = time.time()
         for epoch in range(num_epochs):
             print('\n>>> Epoch: {}'.format(epoch))
             self.train(epoch)
             self.validate(epoch)
+        end = time.time()
+        print(f'> train & validate time on device = {self.device} for {num_epochs} epochs: {end - start:.2f}s')
+        self.mlflow_client.log_time(end - start)
 
         self.mlflow_client.finish()
 
@@ -462,7 +469,7 @@ class NERTrainer:
         else:
             optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
             # optimizer = FusedAdam(optimizer_grouped_parameters, lr=learning_rate)
-        
+
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
 
@@ -470,6 +477,7 @@ class NERTrainer:
         """
         create scheduler with warmup
         ----------------------------
+        :param _num_epochs:         [int]
         :param _lr_schedule:        [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
         :param _lr_warmup_fraction: [float], e.g. 0.1, fraction of steps during which lr is warmed up
         :param _lr_num_cycles:      [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules

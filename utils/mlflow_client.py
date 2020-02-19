@@ -48,7 +48,7 @@ class MLflowClient:
         mlflow.log_param('hyperparameters', _hyperparams)
 
         # most important hyperparameters
-        most_important_hyperparameters = ['num_epochs', 'prune_ratio', 'lr_max', 'lr_schedule']
+        most_important_hyperparameters = ['device', 'num_epochs', 'prune_ratio', 'lr_max', 'lr_schedule']
         for hyperparameter in most_important_hyperparameters:
             if hyperparameter.startswith('lr'):
                 mlflow.log_param(hyperparameter, _hyperparams['learning_rate'][hyperparameter])
@@ -68,6 +68,10 @@ class MLflowClient:
         mlflow.log_metric('epoch', _epoch)
         for metric in ['loss', 'acc', 'f1_macro_all', 'f1_micro_all', 'f1_macro_fil', 'f1_micro_fil']:
             mlflow.log_metric(metric, _epoch_valid_metrics[metric])
+
+    @staticmethod
+    def log_time(_time):
+        mlflow.log_metric('time', _time)
 
     def clear_artifact(self):
         """
