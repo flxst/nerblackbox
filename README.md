@@ -22,6 +22,10 @@ It is recommended to run all commands and notebooks within a virtual environment
     pip install -r requirements.txt
     bash setup_apex.sh                            # installs apex from https://github.com/NVIDIA/apex
     
+    # on linux, reinstall torch torchvision (for cuda support):
+    pip uninstall torch torchvision
+    pip install torch==1.4.0+cu92 torchvision==0.5.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+    
         
 - Download datasets to directory `./datasets`:
 
@@ -44,3 +48,6 @@ NER downstream task using the publicly available Swedish NER corpus dataset.
   - metrics & results are logged with mlflow
   - use flags `--experiment_name <experiment_name> --run_name <run_name>` to structure runs 
   - display metrics & results with `mlflow ui`
+
+  
+- `mlflow run mlflow_experiments/test --no-conda`

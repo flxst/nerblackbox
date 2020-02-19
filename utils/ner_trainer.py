@@ -62,8 +62,8 @@ class NERTrainer:
 
         # device
         self.model.to(self.device)
-        # if fp16:
-        #     self.model.half()
+        if fp16:
+            self.model.half()
 
         # tensorboard & mlflow
         self.writer = SummaryWriter()  # tensorflow

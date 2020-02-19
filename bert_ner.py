@@ -39,8 +39,10 @@ def main(args):
     # device
     ####################################################################################################################
     device = torch.device('cuda' if torch.cuda.is_available() and args.device == 'gpu' else 'cpu')
+    fp16 = True if args.fp16 and device == 'cuda' else False
     print(f'> Available GPUs: {torch.cuda.device_count()}')
     print(f'> Using device:   {device}')
+    print(f'> Using fp16:     {fp16}')
     print('---------------------------')
 
     ####################################################################################################################
@@ -48,6 +50,7 @@ def main(args):
     ####################################################################################################################
     hyperparams = {
         'device': device.type,
+        'fp16': fp16,
         'batch_size': args.batch_size,
         'max_seq_length': args.max_seq_length,
         'num_epochs': args.num_epochs,
@@ -86,7 +89,7 @@ def main(args):
                          valid_dataloader=dataloader['valid'],
                          label_list=label_list,
                          hyperparams=hyperparams,
-                         fp16=True if torch.cuda.is_available() else False,
+                         fp16=fp16,
                          verbose=False,
                          )
     trainer.fit(num_epochs=hyperparams['num_epochs'],
@@ -111,6 +114,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='gpu')
+    parser.add_argument('--fp16', type=bool, default=False)
     parser.add_argument('--experiment_name', type=str, default=None)
     parser.add_argument('--run_name', type=str, default=None)
     parser.add_argument('--pretrained_model_name', type=str, default='af-ai-center/bert-base-swedish-uncased')
