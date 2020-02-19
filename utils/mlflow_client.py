@@ -1,4 +1,5 @@
 
+import os
 import mlflow
 
 
@@ -6,6 +7,34 @@ class MLflowClient:
 
     def __init__(self):
         self.mlflow_artifact = 'mlruns/mlflow_artifact.txt'
+
+        self._set_experiment_and_run_name()
+
+    @staticmethod
+    def _set_experiment_and_run_name():
+        """
+        set mlflow experiment and run name from env variables if available
+        ------------------------------------------------------------------
+        :return: -
+        """
+        try:
+            experiment_name = os.environ['MLFLOW_EXPERIMENT_NAME']
+        except KeyError:
+            experiment_name = 'Default'
+
+        mlflow.set_experiment(experiment_name)
+
+        try:
+            run_name = os.environ['MLFLOW_RUN_NAME']
+        except KeyError:
+            run_name = None
+
+        print(experiment_name, run_name)
+        if run_name:
+            mlflow.start_run(run_name=run_name)
+
+        print(f'mlflow experiment name: {experiment_name}')
+        print(f'mlflow run        name: {run_name}')
 
     @staticmethod
     def log_params(_hyperparams):
@@ -60,7 +89,9 @@ class MLflowClient:
         with open(self.mlflow_artifact, "a") as f:
             f.write(content + '\n')
 
-    def log_artifact_final(self):
+    def finish(self):
         mlflow.log_artifact(self.mlflow_artifact)
         print(f'mlflow log artifact at {self.mlflow_artifact}')
+
+        mlflow.end_run()
 

@@ -29,7 +29,18 @@ It is recommended to run all commands and notebooks within a virtual environment
     bash setup_datasets.sh (ner)                  # use ner if you only want to download one dataset
 
 
-### Notebooks
+### Notebooks (to get started / prototypes)
 
 - `bert_ner.ipynb` shows how to train SweBERT on the 
 NER downstream task using the publicly available Swedish NER corpus dataset.  
+
+- `bert_ner_plot_metrics.ipynb` displays training and evaluation metrics.
+
+
+### Scripts
+
+- `bert_ner.py`: train SweBERT on NER downstream task. 
+
+  - metrics & results are logged with mlflow
+  - use flags `--experiment_name <experiment_name> --run_name <run_name>` to structure runs 
+  - display metrics & results with `mlflow ui`

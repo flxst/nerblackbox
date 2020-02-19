@@ -1,3 +1,5 @@
+
+import os
 import logging
 import argparse
 
@@ -14,9 +16,24 @@ warnings.filterwarnings('ignore')
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 def main(args):
 
+    # set env variable experiment name
+    if args.experiment_name is not None:
+        os.environ['MLFLOW_EXPERIMENT_NAME'] = args.experiment_name
+    if args.run_name is not None:
+        os.environ['MLFLOW_RUN_NAME'] = args.run_name
+
+    try:
+        print(os.environ['MLFLOW_EXPERIMENT_NAME'])
+        print(os.environ['MLFLOW_RUN_NAME'])
+    except:
+        pass
+
+    # hyperparameters
     hyperparams = {
         'batch_size': args.batch_size,
         'max_seq_length': args.max_seq_length,
@@ -29,7 +46,12 @@ def main(args):
             'lr_num_cycles': args.lr_num_cycles,
         },
     }
-    dataset_path = get_dataset_path(args.dataset_name)
+
+    ####################################################################################################################
+    # START
+    ####################################################################################################################
+    dataset_path = os.path.join(BASE_DIR, get_dataset_path(args.dataset_name))
+    print(dataset_path)
 
     tokenizer = BertTokenizer.from_pretrained(args.pretrained_model_name, do_lower_case=False)  # needs to be False !!
 
@@ -74,6 +96,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--experiment_name', type=str, default=None)
+    parser.add_argument('--run_name', type=str, default=None)
     parser.add_argument('--pretrained_model_name', type=str, default='af-ai-center/bert-base-swedish-uncased')
     parser.add_argument('--dataset_name', type=str, default='swedish_ner_corpus')
     parser.add_argument('--batch_size', type=int, default=16)

@@ -117,7 +117,7 @@ class NERTrainer:
             self.train(epoch)
             self.validate(epoch)
 
-        self.mlflow_client.log_artifact_final()
+        self.mlflow_client.finish()
 
     def train(self, epoch):
         """
