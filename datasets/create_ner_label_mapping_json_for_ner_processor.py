@@ -12,7 +12,7 @@ def main(ner_dataset, with_tags=False):
     :return: -
     """
     if ner_dataset == 'swedish_ner_corpus':
-        label_list = ['PER', 'ORG', 'LOC', 'MISC']
+        label_list = ['PER', 'ORG', 'LOC', 'MISC', 'PRG']
 
         # full label list
         if with_tags:

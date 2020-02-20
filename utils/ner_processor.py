@@ -62,7 +62,7 @@ class NerProcessor:
         ---------------------------------------------
         :return: [list] of [str]
         """
-        return ['[PAD]', '[CLS]', '[SEP]'] + list(set([key.replace('*', '') for key in self.ner_label_mapping.keys()]))
+        return ['[PAD]', '[CLS]', '[SEP]'] + list(set(self.ner_label_mapping.values()))
 
     ####################################################################################################################
     # PRIVATE METHODS
@@ -96,7 +96,7 @@ class NerProcessor:
             # input_example
             guid = f'{set_type}-{i}'
             text_a = row.text.lower() if self.do_lower_case else row.text
-            labels_a = row.labels  # self._get_ner_labels_for_tokenized_text(text, row.labels)
+            labels_a = row.labels
 
             input_example = InputExample(guid=guid,
                                          text_a=text_a,
