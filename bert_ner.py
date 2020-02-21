@@ -113,12 +113,16 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--device', type=str, default='gpu')
-    parser.add_argument('--fp16', type=bool, default=False)
+    # mlflow
     parser.add_argument('--experiment_name', type=str, default=None)
     parser.add_argument('--run_name', type=str, default=None)
+    # model & dataset
     parser.add_argument('--pretrained_model_name', type=str, default='af-ai-center/bert-base-swedish-uncased')
     parser.add_argument('--dataset_name', type=str, default='swedish_ner_corpus')
+    # device
+    parser.add_argument('--device', type=str, default='gpu')
+    parser.add_argument('--fp16', type=bool, default=False)
+    # hyperparameters
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--max_seq_length', type=int, default=64)
     parser.add_argument('--num_epochs', type=int, default=1)

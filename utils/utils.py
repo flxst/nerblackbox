@@ -26,7 +26,7 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
     input_examples['train'] = prune_examples(input_examples_train_all, ratio=prune_ratio[0])
 
     # validation data
-    input_examples_valid_all = processor.get_input_examples('test')
+    input_examples_valid_all = processor.get_input_examples('valid')
     input_examples['valid'] = prune_examples(input_examples_valid_all, ratio=prune_ratio[1])
 
     # input_examples_to_tensors
