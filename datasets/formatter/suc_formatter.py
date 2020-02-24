@@ -1,4 +1,6 @@
 
+import pandas as pd
+
 import os
 import sys
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -10,9 +12,13 @@ from datasets.formatter.base_formatter import BaseFormatter
 class SUCFormatter(BaseFormatter):
 
     def __init__(self):
-        label_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
-        super().__init__(label_list)
+        ner_dataset = 'SUC'
+        ner_label_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
+        super().__init__(ner_dataset, ner_label_list)
 
+    ####################################################################################################################
+    # ABSTRACT BASE METHODS
+    ####################################################################################################################
     def modify_ner_label_mapping(self, ner_label_mapping_original, with_tags: bool):
         """
         customize ner label mapping if wanted
@@ -24,3 +30,10 @@ class SUCFormatter(BaseFormatter):
         """
         ner_label_mapping = ner_label_mapping_original
         return ner_label_mapping
+
+    def read_original_file(self, phase):
+        pass
+
+    def write_formatted_csv(self, phase, rows, dataset_path):
+        pass
+

@@ -1,7 +1,16 @@
 
-class BaseFormatter:
+import pandas as pd
+from abc import ABC, abstractmethod
 
-    def __init__(self, ner_label_list):
+
+class BaseFormatter(ABC):
+
+    def __init__(self, ner_dataset, ner_label_list):
+        """
+        :param ner_dataset:    [str] 'swedish_ner_corpus' or 'SUC'
+        :param ner_label_list: [list] of [str], e.g. ['PER', 'LOC', ..]
+        """
+        self.ner_dataset = ner_dataset
         self.ner_label_list = ner_label_list
 
     def create_ner_label_mapping(self, with_tags: bool, modify: bool):
@@ -31,6 +40,7 @@ class BaseFormatter:
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
+    @abstractmethod
     def modify_ner_label_mapping(self, ner_label_mapping_original, with_tags: bool):
         """
         customize ner label mapping if wanted
@@ -42,10 +52,43 @@ class BaseFormatter:
         """
         pass
 
-    @staticmethod
-    def read_original_file(phase):
+    @abstractmethod
+    def read_original_file(self, phase):
         pass
 
-    @staticmethod
-    def write_formatted_csv(phase, rows, dataset_path):
+    @abstractmethod
+    def write_formatted_csv(self, phase, rows, dataset_path):
         pass
+
+    ####################################################################################################################
+    # BASE METHODS
+    ####################################################################################################################
+    def read_formatted_csv(self, phase):
+        """
+        - read formatted csv files
+        ----------------------------------------------
+        :param phase:         [str] 'train' or 'test'
+        :return: num_sentences:    [int]
+                 stats_aggregated: [pandas Series] with indices = labels, values = number of occurrences
+        """
+        file_path = f'datasets/ner/{self.ner_dataset}/{phase}.csv'
+
+        df = pd.read_csv(file_path, sep='\t')
+        # print(len(df), len(df.columns))
+        # print(df.head())
+
+        columns = ['O'] + self.ner_label_list
+        stats = pd.DataFrame([], columns=columns)
+        labels = df.iloc[:, 0].apply(lambda x: x.split())
+        # print(labels.head())
+
+        for column in columns:
+            stats[column] = labels.apply(lambda x: len([elem for elem in x if elem == column]))
+        # print(stats.head())
+
+        assert len(df) == len(stats)
+
+        num_sentences = len(stats)
+        stats_aggregated = stats.sum()
+
+        return num_sentences, stats_aggregated

@@ -8,6 +8,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(BASE_DIR)
 
 from datasets.formatter.swedish_ner_corpus_formatter import SwedishNerCorpusFormatter
+from datasets.formatter.suc_formatter import SUCFormatter
 
 
 def main(args):
@@ -19,6 +20,8 @@ def main(args):
     """
     if args.ner_dataset == 'swedish_ner_corpus':
         formatter = SwedishNerCorpusFormatter()
+    elif args.ner_dataset == 'SUC':
+        formatter = SUCFormatter()
     else:
         raise Exception(f'ner_dataset = {args.ner_dataset} unknown.')
 

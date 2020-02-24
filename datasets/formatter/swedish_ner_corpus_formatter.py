@@ -1,6 +1,5 @@
 
 import json
-import pandas as pd
 
 import os
 import sys
@@ -13,9 +12,13 @@ from datasets.formatter.base_formatter import BaseFormatter
 class SwedishNerCorpusFormatter(BaseFormatter):
 
     def __init__(self):
+        ner_dataset = 'swedish_ner_corpus'
         ner_label_list = ['PER', 'ORG', 'LOC', 'MISC', 'PRG', 'ORG*']
-        super().__init__(ner_label_list)
+        super().__init__(ner_dataset, ner_label_list)
 
+    ####################################################################################################################
+    # ABSTRACT BASE METHODS
+    ####################################################################################################################
     def modify_ner_label_mapping(self, ner_label_mapping_original, with_tags: bool):
         """
         customize ner label mapping if wanted
@@ -39,8 +42,7 @@ class SwedishNerCorpusFormatter(BaseFormatter):
 
         return ner_label_mapping
 
-    @staticmethod
-    def read_original_file(phase):
+    def read_original_file(self, phase):
         """
         - read original text files
         ---------------------------------------------
@@ -59,8 +61,7 @@ class SwedishNerCorpusFormatter(BaseFormatter):
 
         return _rows
 
-    @staticmethod
-    def write_formatted_csv(phase, rows, dataset_path):
+    def write_formatted_csv(self, phase, rows, dataset_path):
         """
         - write formatted csv files
         ----------------------------------------------
@@ -92,32 +93,3 @@ class SwedishNerCorpusFormatter(BaseFormatter):
                         sentence = list()
 
         print(f'> phase = {phase}: wrote {len(rows)} words in {num_sentences} sentences to {file_path}')
-
-    def read_formatted_csv(self, phase):
-        """
-        - read formatted csv files
-        ----------------------------------------------
-        :param phase:         [str] 'train' or 'test'
-        :return: -
-        """
-        file_path = f'datasets/ner/swedish_ner_corpus/{phase}.csv'
-
-        df = pd.read_csv(file_path, sep='\t')
-        # print(len(df), len(df.columns))
-        # print(df.head())
-
-        columns = ['O'] + self.ner_label_list
-        stats = pd.DataFrame([], columns=columns)
-        labels = df.iloc[:, 0].apply(lambda x: x.split())
-        # print(labels.head())
-
-        for column in columns:
-            stats[column] = labels.apply(lambda x: len([elem for elem in x if elem == column]))
-        # print(stats.head())
-
-        assert len(df) == len(stats)
-
-        num_sentences = len(stats)
-        stats_aggregated = stats.sum()
-
-        return num_sentences, stats_aggregated

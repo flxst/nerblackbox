@@ -30,9 +30,8 @@ It is recommended to run all commands and notebooks within a virtual environment
 - Download datasets to directory `./datasets`:
 
 
-    bash setup_datasets.sh (ner)                  # use ner if you only want to download one dataset
-
-
+    bash setup_datasets.sh <ner_dataset>   # <ner_dataset> = swedish_ner_corpus, SUC
+    
 ### Notebooks (to get started / prototypes)
 
 - `bert_ner.ipynb` shows how to train SweBERT on the 

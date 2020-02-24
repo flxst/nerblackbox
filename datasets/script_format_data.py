@@ -34,6 +34,8 @@ def main(args):
         rows_test = rows[split_index:]
         formatter.write_formatted_csv('valid', rows_valid, dataset_path=dataset_path)
         formatter.write_formatted_csv('test', rows_test, dataset_path=dataset_path)
+    elif args.ner_dataset == 'SUC':
+        pass
     else:
         raise Exception(f'ner_dataset = {args.ner_dataset} unknown.')
 
