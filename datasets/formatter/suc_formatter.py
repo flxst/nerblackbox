@@ -32,8 +32,10 @@ class SUCFormatter(BaseFormatter):
         return ner_label_mapping
 
     def read_original_file(self, phase):
-        pass
+        file_path = f'datasets/ner/SUC/{phase}_original.csv'
+        return pd.read_csv(file_path, sep='\t', header=None)
 
-    def write_formatted_csv(self, phase, rows, dataset_path):
-        pass
+    def write_formatted_csv(self, phase, csvs, dataset_path):
+        file_path = f'datasets/ner/SUC/{phase}.csv'
+        csvs.to_csv(file_path, sep='\t', index=False, header=None)
 
