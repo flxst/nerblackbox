@@ -89,6 +89,20 @@ class BaseFormatter(ABC):
         assert len(df) == len(stats)
 
         num_sentences = len(stats)
-        stats_aggregated = stats.sum()
+        stats_aggregated = stats.sum().to_frame()
+        stats_aggregated.columns = ['count']
 
         return num_sentences, stats_aggregated
+
+    @staticmethod
+    def stats_aggregated_add_columns(df, number_of_sentences):
+        df['count/sentence'] = df['count']/float(number_of_sentences)
+        df['count/sentence'] = df['count/sentence'].apply(lambda x: '{:.2f}'.format(x))
+
+        number_of_filtered_occurrences = df['count'].sum() - df.loc['O']['count']
+        df['relative'] = df['count'] / number_of_filtered_occurrences
+        df['relative']['O'] = 0
+        df['relative'] = df['relative'].apply(lambda x: '{:.2f}'.format(x))
+
+        return df
+

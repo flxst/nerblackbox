@@ -84,12 +84,12 @@ def main(args):
         # formatter
         formatter = SUCFormatter()
 
-        # train, valid -> train
-        csvs = read_csvs(formatter, ['train', 'valid'])
+        # valid, test -> train
+        csvs = read_csvs(formatter, ['valid', 'test'])
         write_csvs_train(formatter, dataset_path, csvs)
 
-        # test  -> valid (& test)
-        csvs = read_csvs(formatter, ['test'])
+        # train       -> valid (& test)
+        csvs = read_csvs(formatter, ['train'])
         write_csvs_valid_test(formatter, dataset_path, csvs, args.valid_fraction)
     else:
         raise Exception(f'ner_dataset = {args.ner_dataset} unknown.')

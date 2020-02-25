@@ -38,15 +38,15 @@ def main(args):
         if args.verbose:
             print()
             print(f'>>> {phase} <<<<')
-            print(f'num_sentences = {_num_sentences}')
+            print(f'num_sentences = {_num_sentences} (of total = {num_sentences})')
             print('stats_aggregated:')
-            print(_stats_aggregated)
+            print(formatter.stats_aggregated_add_columns(_stats_aggregated, _num_sentences))
 
     print()
     print(f'>>> total <<<<')
     print(f'num_sentences = {num_sentences}')
     print('stats_aggregated:')
-    print(stats_aggregated)
+    print(formatter.stats_aggregated_add_columns(stats_aggregated, num_sentences))
 
 
 if __name__ == '__main__':

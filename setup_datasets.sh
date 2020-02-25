@@ -16,4 +16,4 @@ fi
 
 python datasets/script_create_ner_label_mapping_json_for_ner_processor.py --ner_dataset $1 --modify
 python datasets/script_format_data.py --ner_dataset $1
-python datasets/script_analyze_data.py --ner_dataset $1
+python datasets/script_analyze_data.py --ner_dataset $1 --verbose
