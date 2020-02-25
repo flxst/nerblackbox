@@ -49,16 +49,6 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
     return dataloader, label_list
 
 
-def get_available_models():
-    """ TODO: TEMPORARY METHOD: GET RID OF THIS"""
-    d = ENV_VARIABLE['DIR_PRETRAINED_MODELS']
-    return [
-        folder
-        for folder in os.listdir(d)
-        if os.path.isdir(os.path.join(d, folder))
-    ]
-
-
 def get_available_datasets():
     """
     get datasets that are available in DIR_DATASETS directory

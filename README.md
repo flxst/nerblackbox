@@ -38,12 +38,12 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
 - `bert_ner.py`: train SweBERT on NER downstream task. 
 
   - flags:
-    - `--experiment_name * --run_name *` to structure runs 
+    - ###### `--experiment_name * --run_name *` to structure runs 
     - `--pretrained_model_name * --dataset_name *` to choose model & dataset
     - `--num_epochs * --lr_max * [..]` to choose hyperparameters 
-  - metrics & results are logged with 
+  - metrics & results are logged in directory `results` with 
     - mlflow, display with `mlflow ui`
-    - tensorboard, display with `tensorboard --logdir ./runs`
+    - tensorboard, display with `tensorboard --logdir tensorboard`
 
   
 - `mlflow run mlflow_experiments/test --no-conda`

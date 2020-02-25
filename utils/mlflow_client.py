@@ -5,8 +5,9 @@ import mlflow
 
 class MLflowClient:
 
-    def __init__(self):
-        self.mlflow_artifact = 'mlruns/mlflow_artifact.txt'
+    def __init__(self, log_dir):
+        mlflow.set_tracking_uri(log_dir)
+        self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
 
         self._set_experiment_and_run_name()
 

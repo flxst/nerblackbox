@@ -1,4 +1,5 @@
 
+import os
 import time
 import torch
 import pickle
@@ -66,8 +67,11 @@ class NERTrainer:
             self.model.half()
 
         # tensorboard & mlflow
-        self.writer = SummaryWriter()  # tensorflow
-        self.mlflow_client = MLflowClient()
+        tensorboard_dir = os.path.join(ENV_VARIABLE['DIR_TENSORBOARD'],
+                                       os.environ['MLFLOW_EXPERIMENT_NAME'],
+                                       os.environ['MLFLOW_RUN_NAME'])
+        self.writer = SummaryWriter(log_dir=tensorboard_dir)
+        self.mlflow_client = MLflowClient(log_dir=ENV_VARIABLE['DIR_MLFLOW'])
         self.mlflow_client.log_params(hyperparams)
 
         # no input arguments (set in methods)
@@ -122,9 +126,11 @@ class NERTrainer:
             self.validate(epoch)
         end = time.time()
         print(f'> train & validate time on device = {self.device} for {num_epochs} epochs: {end - start:.2f}s')
-        self.mlflow_client.log_time(end - start)
 
+        # mlflow & tensorboard
+        self.mlflow_client.log_time(end - start)
         self.mlflow_client.finish()
+        self.writer.close()
 
     def train(self, epoch):
         """
@@ -369,10 +375,9 @@ class NERTrainer:
         :param _lr_this_step: [float] only needed if phase == 'train'
         :return: -
         """
-        fields = ['loss', 'acc', 'f1_macro_all', 'f1_micro_all', 'f1_macro_fil', 'f1_micro_fil']
+        fields = ['loss', 'acc', 'f1_macro_fil', 'f1_micro_fil']
         for field in fields:
             self.writer.add_scalar(f'{phase}/{field}', metrics[field], _global_step)
-            # print(f'global_step = {_global_step}, phase/field = {phase}/{field}:', metrics[field])
 
         if phase == 'train' and _lr_this_step is not None:
             self.writer.add_scalar(f'{phase}/learning_rate', _lr_this_step, _global_step)

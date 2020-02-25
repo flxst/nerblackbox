@@ -24,10 +24,8 @@ def main(args):
     # mlflow
     ####################################################################################################################
     # set env variable experiment name
-    if args.experiment_name is not None:
-        os.environ['MLFLOW_EXPERIMENT_NAME'] = args.experiment_name
-    if args.run_name is not None:
-        os.environ['MLFLOW_RUN_NAME'] = args.run_name
+    os.environ['MLFLOW_EXPERIMENT_NAME'] = args.experiment_name if args.experiment_name is not None else 'DEFAULT'
+    os.environ['MLFLOW_RUN_NAME'] = args.run_name if args.run_name is not None else 'DEFAULT'
 
     try:
         print('mlflow experiment_name:', os.environ['MLFLOW_EXPERIMENT_NAME'])
@@ -96,19 +94,23 @@ def main(args):
                 **hyperparams['learning_rate'],
                 )
 
-    trainer.save_model_checkpoint(args.dataset_name,
-                                  args.pretrained_model_name,
-                                  hyperparams['num_epochs'],
-                                  hyperparams['prune_ratio'][0],
-                                  hyperparams['learning_rate']['lr_schedule'],
-                                  )
+    ####################################################################################################################
+    # MANUAL MODELS & METRICS SAVING
+    ####################################################################################################################
+    if args.checkpoints:
+        trainer.save_model_checkpoint(args.dataset_name,
+                                      args.pretrained_model_name,
+                                      hyperparams['num_epochs'],
+                                      hyperparams['prune_ratio'][0],
+                                      hyperparams['learning_rate']['lr_schedule'],
+                                      )
 
-    trainer.save_metrics(args.dataset_name,
-                         args.pretrained_model_name,
-                         hyperparams['num_epochs'],
-                         hyperparams['prune_ratio'][0],
-                         hyperparams['learning_rate']['lr_schedule'],
-                         )
+        trainer.save_metrics(args.dataset_name,
+                             args.pretrained_model_name,
+                             hyperparams['num_epochs'],
+                             hyperparams['prune_ratio'][0],
+                             hyperparams['learning_rate']['lr_schedule'],
+                             )
 
 
 if __name__ == '__main__':
@@ -132,6 +134,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr_schedule', type=str, default='constant')
     parser.add_argument('--lr_warmup_fraction', type=float, default=0.1)
     parser.add_argument('--lr_num_cycles', type=float, default=None)
+    # additional
+    parser.add_argument('--checkpoints', action='store_true')
 
     _args = parser.parse_args()
     main(_args)
