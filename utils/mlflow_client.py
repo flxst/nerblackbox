@@ -66,7 +66,7 @@ class MLflowClient:
         :return: -
         """
         mlflow.log_metric('epoch', _epoch)
-        for metric in ['loss', 'acc', 'f1_macro_all', 'f1_micro_all', 'f1_macro_fil', 'f1_micro_fil']:
+        for metric in ['loss', 'acc', 'f1_macro_fil', 'f1_micro_fil']:
             mlflow.log_metric(metric, _epoch_valid_metrics[metric])
 
     @staticmethod

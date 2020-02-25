@@ -66,11 +66,11 @@ def main(args):
     ####################################################################################################################
     # START
     ####################################################################################################################
-    dataset_path = os.path.join(BASE_DIR, get_dataset_path(args.dataset_name))
-    print(dataset_path)
-
+    # tokenizer
     tokenizer = BertTokenizer.from_pretrained(args.pretrained_model_name, do_lower_case=False)  # needs to be False !!
 
+    # data
+    dataset_path = os.path.join(BASE_DIR, get_dataset_path(args.dataset_name))
     dataloader, label_list = preprocess_data(dataset_path,
                                              tokenizer,
                                              hyperparams['batch_size'],
@@ -78,11 +78,11 @@ def main(args):
                                              prune_ratio=hyperparams['prune_ratio']
                                              )
 
+    # model
     model = BertForTokenClassification.from_pretrained(args.pretrained_model_name,
                                                        num_labels=len(label_list))
 
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    # trainer
     trainer = NERTrainer(model,
                          device,
                          train_dataloader=dataloader['train'],

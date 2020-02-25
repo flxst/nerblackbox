@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle
-import torch
 
 from utils.bert_dataset import BertDataset
 from utils.ner_processor import NerProcessor
