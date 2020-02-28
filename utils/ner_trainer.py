@@ -27,7 +27,6 @@ class NERTrainer:
     """
     Trainer of BERT model for NER downstream task
     """
-
     def __init__(self,
                  model,
                  device,
@@ -67,11 +66,12 @@ class NERTrainer:
             self.model.half()
 
         # tensorboard & mlflow
+        self.logged_metrics = ['all_loss', 'all_acc', 'fil_f1_macro', 'fil_f1_micro']
         tensorboard_dir = os.path.join(ENV_VARIABLE['DIR_TENSORBOARD'],
                                        os.environ['MLFLOW_EXPERIMENT_NAME'],
                                        os.environ['MLFLOW_RUN_NAME'])
         self.writer = SummaryWriter(log_dir=tensorboard_dir)
-        self.mlflow_client = MLflowClient(log_dir=ENV_VARIABLE['DIR_MLFLOW'])
+        self.mlflow_client = MLflowClient(log_dir=ENV_VARIABLE['DIR_MLFLOW'], logged_metrics=self.logged_metrics)
         self.mlflow_client.log_params(hyperparams)
 
         # no input arguments (set in methods)
@@ -256,14 +256,14 @@ class NERTrainer:
             metrics[elem1] = dict()
             for elem2 in ['train', 'valid']:
                 metrics[elem1][elem2] = dict()
-                for elem3 in ['loss', 'acc']:
-                    metrics[elem1][elem2][elem3] = list()
-                for elem3 in ['f1']:
+                for elem3 in ['all', 'fil']:
                     metrics[elem1][elem2][elem3] = dict()
-                    for elem4 in ['macro', 'micro']:
+                    for elem4 in ['f1']:
                         metrics[elem1][elem2][elem3][elem4] = dict()
-                        for elem5 in ['all', 'fil']:
+                        for elem5 in ['macro', 'micro']:
                             metrics[elem1][elem2][elem3][elem4][elem5] = list()
+                for elem4 in ['loss', 'acc']:
+                    metrics[elem1][elem2]['all'][elem4] = list()
         metrics['batch']['train']['lr'] = list()
 
         return metrics
@@ -282,31 +282,31 @@ class NERTrainer:
                  labels_ids    [dict] w/ keys 'true', 'pred'      & values = [np array]
                  _progress_bar [str] to display during training
         """
-        metrics = {'loss': _np_dict['loss']}
+        metrics = {'all_loss': _np_dict['loss']}
 
         # batch
         label_ids = dict()
         label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_dict['label_ids'], _np_dict['logits'])
 
         # batch metrics
-        metrics['acc'] = self.accuracy(label_ids['true'], label_ids['pred'])
-        metrics['f1_macro_all'], metrics['f1_micro_all'] = self.f1_score(label_ids['true'], label_ids['pred'])
-        metrics['f1_macro_fil'], metrics['f1_micro_fil'] = self.f1_score(label_ids['true'], label_ids['pred'],
+        metrics['all_acc'] = self.accuracy(label_ids['true'], label_ids['pred'])
+        metrics['all_f1_macro'], metrics['all_f1_micro'] = self.f1_score(label_ids['true'], label_ids['pred'])
+        metrics['fil_f1_macro'], metrics['fil_f1_micro'] = self.f1_score(label_ids['true'], label_ids['pred'],
                                                                          filtered_label_ids=True)
 
         # append to self.metrics
-        self.metrics[size][phase]['loss'].append(metrics['loss'])
-        self.metrics[size][phase]['acc'].append(metrics['acc'])
-        self.metrics[size][phase]['f1']['macro']['all'].append(metrics['f1_macro_all'])
-        self.metrics[size][phase]['f1']['micro']['all'].append(metrics['f1_micro_all'])
-        self.metrics[size][phase]['f1']['macro']['fil'].append(metrics['f1_macro_fil'])
-        self.metrics[size][phase]['f1']['micro']['fil'].append(metrics['f1_micro_fil'])
+        self.metrics[size][phase]['all']['loss'].append(metrics['all_loss'])
+        self.metrics[size][phase]['all']['acc'].append(metrics['all_acc'])
+        self.metrics[size][phase]['all']['f1']['macro'].append(metrics['all_f1_macro'])
+        self.metrics[size][phase]['all']['f1']['micro'].append(metrics['all_f1_micro'])
+        self.metrics[size][phase]['fil']['f1']['macro'].append(metrics['fil_f1_macro'])
+        self.metrics[size][phase]['fil']['f1']['micro'].append(metrics['fil_f1_micro'])
 
         # progress bar
-        _progress_bar = 'acc: {:.2f} | f1 (macro, fil): {:.2f} | f1 (micro, fil): {:.2f}'.format(
-            metrics['acc'],
-            metrics['f1_macro_fil'],
-            metrics['f1_micro_fil'],
+        _progress_bar = 'all acc: {:.2f} | fil f1 (macro): {:.2f} | fil f1 (micro): {:.2f}'.format(
+            metrics['all_acc'],
+            metrics['fil_f1_macro'],
+            metrics['fil_f1_micro'],
         )
 
         return metrics, label_ids, _progress_bar
@@ -358,12 +358,12 @@ class NERTrainer:
     ####################################################################################################################
     @staticmethod
     def print_metrics(epoch, epoch_valid_metrics):
-        print('Epoch #{} valid loss:              {:.2f}'.format(epoch, epoch_valid_metrics['loss']))
-        print('Epoch #{} valid acc:               {:.2f}'.format(epoch, epoch_valid_metrics['acc']))
-        print('Epoch #{} valid f1 (macro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_all']))
-        print('Epoch #{} valid f1 (micro, all):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_all']))
-        print('Epoch #{} valid f1 (macro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_macro_fil']))
-        print('Epoch #{} valid f1 (micro, fil):   {:.2f}'.format(epoch, epoch_valid_metrics['f1_micro_fil']))
+        print('Epoch #{} valid all loss:         {:.2f}'.format(epoch, epoch_valid_metrics['all_loss']))
+        print('Epoch #{} valid all acc:          {:.2f}'.format(epoch, epoch_valid_metrics['all_acc']))
+        print('Epoch #{} valid all f1 (macro):   {:.2f}'.format(epoch, epoch_valid_metrics['all_f1_macro']))
+        print('Epoch #{} valid all f1 (micro):   {:.2f}'.format(epoch, epoch_valid_metrics['all_f1_micro']))
+        print('Epoch #{} valid fil f1 (macro):   {:.2f}'.format(epoch, epoch_valid_metrics['fil_f1_macro']))
+        print('Epoch #{} valid fil f1 (micro):   {:.2f}'.format(epoch, epoch_valid_metrics['fil_f1_micro']))
 
     def write_metrics_for_tensorboard(self, phase, metrics, _global_step, _lr_this_step=None):
         """
@@ -375,8 +375,7 @@ class NERTrainer:
         :param _lr_this_step: [float] only needed if phase == 'train'
         :return: -
         """
-        fields = ['loss', 'acc', 'f1_macro_fil', 'f1_micro_fil']
-        for field in fields:
+        for field in self.logged_metrics:
             self.writer.add_scalar(f'{phase}/{field}', metrics[field], _global_step)
 
         if phase == 'train' and _lr_this_step is not None:

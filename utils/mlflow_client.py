@@ -5,9 +5,11 @@ import mlflow
 
 class MLflowClient:
 
-    def __init__(self, log_dir):
+    def __init__(self, log_dir, logged_metrics):
         mlflow.set_tracking_uri(log_dir)
         self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
+
+        self.logged_metrics = logged_metrics
 
         self._set_experiment_and_run_name()
 
@@ -56,9 +58,7 @@ class MLflowClient:
             else:
                 mlflow.log_param(hyperparameter, _hyperparams[hyperparameter])
 
-
-    @staticmethod
-    def log_metrics(_epoch, _epoch_valid_metrics):
+    def log_metrics(self, _epoch, _epoch_valid_metrics):
         """
         mlflow metrics logging
         -----------------------------
@@ -67,7 +67,7 @@ class MLflowClient:
         :return: -
         """
         mlflow.log_metric('epoch', _epoch)
-        for metric in ['loss', 'acc', 'f1_macro_fil', 'f1_micro_fil']:
+        for metric in self.logged_metrics:
             mlflow.log_metric(metric, _epoch_valid_metrics[metric])
 
     @staticmethod
