@@ -21,6 +21,7 @@ from tqdm import tqdm_notebook as tqdm
 from utils import utils
 from utils.env_variable import ENV_VARIABLE
 from utils.mlflow_client import MLflowClient
+from utils.ner_metrics import NerMetrics
 
 
 class NERTrainer:
@@ -66,7 +67,13 @@ class NERTrainer:
             self.model.half()
 
         # tensorboard & mlflow
-        self.logged_metrics = ['all_loss', 'all_acc', 'fil_f1_macro', 'fil_f1_micro']
+        self.logged_metrics = ['all_loss', 'all_acc',
+                               'all_precision_macro', 'all_precision_micro',
+                               'all_recall_macro', 'all_recall_micro',
+                               'all_f1_macro', 'all_f1_micro',
+                               'fil_precision_macro', 'fil_precision_micro',
+                               'fil_recall_macro', 'fil_recall_micro',
+                               'fil_f1_macro', 'fil_f1_micro']
         tensorboard_dir = os.path.join(ENV_VARIABLE['DIR_TENSORBOARD'],
                                        os.environ['MLFLOW_EXPERIMENT_NAME'],
                                        os.environ['MLFLOW_RUN_NAME'])
@@ -284,15 +291,37 @@ class NERTrainer:
         """
         metrics = {'all_loss': _np_dict['loss']}
 
-        # batch
+        # batch / dataset
         label_ids = dict()
         label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_dict['label_ids'], _np_dict['logits'])
 
-        # batch metrics
-        metrics['all_acc'] = self.accuracy(label_ids['true'], label_ids['pred'])
-        metrics['all_f1_macro'], metrics['all_f1_micro'] = self.f1_score(label_ids['true'], label_ids['pred'])
-        metrics['fil_f1_macro'], metrics['fil_f1_micro'] = self.f1_score(label_ids['true'], label_ids['pred'],
-                                                                         filtered_label_ids=True)
+        # batch / dataset metrics
+        metric_types_simple = ['acc']
+        metric_types_micro_macro = ['precision', 'recall', 'f1']
+
+        # all #
+        metric_types_all = ['acc', 'precision', 'recall', 'f1']
+        ner_metrics_all = NerMetrics(label_ids['true'], label_ids['pred'], labels=None)
+        ner_metrics_all.compute(metric_types_all)
+        results_all = ner_metrics_all.results_as_dict()
+        for metric_type in metric_types_all:
+            if metric_type in metric_types_simple:
+                metrics[f'all_{metric_type}'] = results_all[metric_type]
+            if metric_type in metric_types_micro_macro:
+                metrics[f'all_{metric_type}_micro'] = results_all[f'{metric_type}_micro']
+                metrics[f'all_{metric_type}_macro'] = results_all[f'{metric_type}_macro']
+
+        # fil #
+        metric_types_fil = ['precision', 'recall', 'f1']
+        ner_metrics_fil = NerMetrics(label_ids['true'], label_ids['pred'], labels=self.label_ids_filtered)
+        ner_metrics_fil.compute(metric_types_fil)
+        results_fil = ner_metrics_fil.results_as_dict()
+        for metric_type in metric_types_fil:
+            if metric_type in metric_types_simple:
+                metrics[f'fil_{metric_type}'] = results_fil[metric_type]
+            if metric_type in metric_types_micro_macro:
+                metrics[f'fil_{metric_type}_micro'] = results_fil[f'{metric_type}_micro']
+                metrics[f'fil_{metric_type}_macro'] = results_fil[f'{metric_type}_macro']
 
         # append to self.metrics
         self.metrics[size][phase]['all']['loss'].append(metrics['all_loss'])
@@ -324,34 +353,6 @@ class NERTrainer:
         true_flat = _np_label_ids.flatten()
         pred_flat = np.argmax(_np_logits, axis=2).flatten()
         return true_flat, pred_flat
-
-    @staticmethod
-    def accuracy(_true_flat, _pred_flat):
-        """
-        computes accuracy of predictions (_np_logits) w.r.t. ground truth (_np_label_ids)
-        ---------------------------------------------------------------------------------
-        :param _true_flat:   [np array] of shape [batch_size * seq_length]
-        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
-        :return: acc [np float]
-        """
-        return np.sum(_pred_flat == _true_flat) / len(_true_flat)
-
-    def f1_score(self, _true_flat, _pred_flat, filtered_label_ids=False):
-        """
-        computes f1 score (macro/micro) of predictions (_pred_flat) w.r.t. ground truth (_true_flat)
-        -----------------------------------------------------------------------------------------------
-        :param _true_flat:   [np array] of shape [batch_size * seq_length]
-        :param _pred_flat:   [np array] of shape [batch_size * seq_length]
-        :param filtered_label_ids: [bool] if True, filter label_ids such that only relevant label_ids remain
-        :return: f1_score_macro [np array] f1 score for each class, then averaged
-                 f1_score_micro [np array] f1 score for all examples
-        """
-        # filter label_ids
-        labels = self.label_ids_filtered if filtered_label_ids else None
-
-        # compute f1 scores
-        return f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='macro'), \
-            f1_score_sklearn(_true_flat, _pred_flat, labels=labels, average='micro')
 
     ####################################################################################################################
     # 2b. METRICS LOGGING
