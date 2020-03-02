@@ -61,17 +61,7 @@ class NERTrainer:
             self.model.half()
 
         # tensorboard & mlflow
-        logged_metrics = [
-            ('loss', ['all'], ['simple']),
-            ('acc', ['all'], ['simple']),
-            ('precision', ['all', 'fil'], ['micro', 'macro']),
-            ('precision', ['ind'], ['micro']),
-            ('recall', ['all', 'fil'], ['micro', 'macro']),
-            ('recall', ['ind'], ['micro']),
-            ('f1', ['all', 'fil'], ['micro', 'macro']),
-            ('f1', ['ind'], ['micro']),
-        ]
-        self.logged_metrics = LoggedMetrics(logged_metrics)
+        self.logged_metrics = LoggedMetrics()
         tensorboard_dir = os.path.join(ENV_VARIABLE['DIR_TENSORBOARD'],
                                        os.environ['MLFLOW_EXPERIMENT_NAME'],
                                        os.environ['MLFLOW_RUN_NAME'])
@@ -181,7 +171,7 @@ class NERTrainer:
             }
 
             # batch train metrics
-            batch_train_metrics, _, progress_bar = self.compute_metrics(np_batch_train)
+            batch_train_metrics, _, progress_bar = self.compute_metrics('train', np_batch_train)
 
             # backpropagation
             if self.fp16:
@@ -252,7 +242,7 @@ class NERTrainer:
         np_epoch_valid['tag_ids'] = np.vstack(np_epoch_valid_list['tag_ids'])
         np_epoch_valid['logits'] = np.vstack(np_epoch_valid_list['logits'])
 
-        epoch_valid_metrics, epoch_valid_tag_ids, _ = self.compute_metrics(np_epoch_valid)
+        epoch_valid_metrics, epoch_valid_tag_ids, _ = self.compute_metrics('valid', np_epoch_valid)
 
         # output
         self.print_metrics(epoch, epoch_valid_metrics)
@@ -264,10 +254,11 @@ class NERTrainer:
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
-    def compute_metrics(self, _np_dict):
+    def compute_metrics(self, phase, _np_dict):
         """
         computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
         -------------------------------------------------------------------------
+        :param phase:          [str], 'train', 'valid'
         :param _np_dict:       [dict] w/ key-value pairs:
                                      'loss':     [np value]
                                      'tag_ids':  [np array] of shape [batch_size, seq_length]
@@ -282,62 +273,61 @@ class NERTrainer:
 
         # batch / dataset metrics
         metrics = {'all_loss': _np_dict['loss']}
-        metrics.update(self._compute_metrics_for_specific_tags(tag_ids, tags='all'))
-        metrics.update(self._compute_metrics_for_specific_tags(tag_ids, tags='fil'))
-        for tag in self.get_filtered_tags():
-            metrics.update(self._compute_metrics_for_specific_tags(tag_ids, tags=tag))
+        for evaluation_tag in ['all', 'fil'] + self.get_filtered_tags():
+            metrics.update(self._compute_metrics_for_specific_tags(tag_ids, phase, evaluation_tag=evaluation_tag))
 
         # progress bar
-        _progress_bar = 'all acc: {:.2f} | fil f1 (macro): {:.2f} | fil f1 (micro): {:.2f}'.format(
-            metrics['all_acc'],
-            metrics['fil_f1_macro'],
-            metrics['fil_f1_micro'],
-        )
+        _progress_bar = 'all loss: {:.2f} | all acc: {:.2f}'.format(metrics['all_loss'], metrics['all_acc'])
 
         return metrics, tag_ids, _progress_bar
 
-    def _compute_metrics_for_specific_tags(self, _tag_ids, tags: str):
+    def _compute_metrics_for_specific_tags(self, _tag_ids, _phase, evaluation_tag: str):
         """
         helper method
         compute metrics for specific tags (e.g. 'all', 'fil')
         -----------------------------------------------------
-        :param _tag_ids:  [dict] w/ keys 'true', 'pred'      & values = [np array]
-        :param tags:      [str], e.g. 'all', 'fil'
-        :return: _metrics [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
+        :param _tag_ids:       [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param _phase:         [str], 'train', 'valid'
+        :param evaluation_tag: [str], e.g. 'all', 'fil', 'PER'
+        :return: _metrics      [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
-        if tags == 'all':
+        if evaluation_tag == 'all':
             tag_list = None
-            logged_metrics_tags = ['all']
-        elif tags == 'fil':
+            tag_group = ['all']
+        elif evaluation_tag == 'fil':
             tag_list = self.get_filtered_tag_ids()
-            logged_metrics_tags = ['fil']
+            tag_group = ['fil']
         else:
-            tag_list = self.get_individual_tag_id(tags)
-            logged_metrics_tags = ['ind']
+            tag_list = self.get_individual_tag_id(evaluation_tag)
+            tag_group = ['ind']
 
-        _metrics = dict()
         ner_metrics = NerMetrics(_tag_ids['true'], _tag_ids['pred'], tag_list=tag_list)
-        ner_metrics.compute(self.logged_metrics.get_metrics(tags=logged_metrics_tags))
+        ner_metrics.compute(self.logged_metrics.get_metrics(tag_group=tag_group,
+                                                            phase_group=[_phase]))
         results = ner_metrics.results_as_dict()
 
-        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags,
-                                                           micro_macros=['simple'],
+        _metrics = dict()
+        for metric_type in self.logged_metrics.get_metrics(tag_group=tag_group,
+                                                           phase_group=[_phase],
+                                                           micro_macro_group=['simple'],
                                                            exclude=['loss']):
             if results[metric_type] is not None:
-                _metrics[f'{tags}_{metric_type}'] = results[metric_type]
+                _metrics[f'{evaluation_tag}_{metric_type}'] = results[metric_type]
 
-        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags,
-                                                           micro_macros=['micro']):
+        for metric_type in self.logged_metrics.get_metrics(tag_group=tag_group,
+                                                           phase_group=[_phase],
+                                                           micro_macro_group=['micro']):
             if results[f'{metric_type}_micro'] is not None:
-                if logged_metrics_tags == ['ind']:
-                    _metrics[f'{tags}_{metric_type}'] = results[f'{metric_type}_micro']
+                if tag_group == ['ind']:
+                    _metrics[f'{evaluation_tag}_{metric_type}'] = results[f'{metric_type}_micro']
                 else:
-                    _metrics[f'{tags}_{metric_type}_micro'] = results[f'{metric_type}_micro']
+                    _metrics[f'{evaluation_tag}_{metric_type}_micro'] = results[f'{metric_type}_micro']
 
-        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags,
-                                                           micro_macros=['macro']):
+        for metric_type in self.logged_metrics.get_metrics(tag_group=tag_group,
+                                                           phase_group=[_phase],
+                                                           micro_macro_group=['macro']):
             if results[f'{metric_type}_macro'] is not None:
-                _metrics[f'{tags}_{metric_type}_macro'] = results[f'{metric_type}_macro']
+                _metrics[f'{evaluation_tag}_{metric_type}_macro'] = results[f'{metric_type}_macro']
 
         return _metrics
 

@@ -1,40 +1,59 @@
 
 class LoggedMetrics:
 
-    def __init__(self, logged_metrics):
+    def __init__(self, logged_metrics=None):
         """
         :param logged_metrics: [list] of [tuples] w/ (metric, tags_list, micro_macro_list),
                                                   e.g. [('precision', ['all', 'fil'], ['micro', 'macro']), ..]
         """
-        for metric, tags_list, micro_macro_list in logged_metrics:
+        if logged_metrics is None:
+            self.logged_metrics = [
+                ('loss',      ['train', 'valid'], ['all'],        ['simple']),
+                ('acc',       ['train', 'valid'], ['all'],        ['simple']),
+                ('precision', ['valid'],          ['all', 'fil'], ['micro', 'macro']),
+                ('precision', ['valid'],          ['ind'],        ['micro']),
+                ('recall',    ['valid'],          ['all', 'fil'], ['micro', 'macro']),
+                ('recall',    ['valid'],          ['ind'],        ['micro']),
+                ('f1',        ['valid'],          ['all', 'fil'], ['micro', 'macro']),
+                ('f1',        ['valid'],          ['ind'],        ['micro']),
+            ]
+        else:
+            self.logged_metrics = logged_metrics
+        for metric, phase_list, tags_list, micro_macro_list in self.logged_metrics:
             assert isinstance(metric, str)
+            assert isinstance(phase_list, list)
             assert isinstance(tags_list, list)
             assert isinstance(micro_macro_list, list)
 
-        self.logged_metrics = logged_metrics
-
-    def get_metrics(self, tags: list = None, micro_macros: list = None, exclude: list = None):
+    def get_metrics(self,
+                    tag_group: list = None,
+                    phase_group: list = None,
+                    micro_macro_group: list = None,
+                    exclude: list = None):
         """
         get metrics, filtered
         ---------------------
-        :param tags:         [list] of tags that are required, e.g. ['all']
-        :param micro_macros: [list] simple/micro/macro that is required, e.g. ['micro', 'macro']
-        :param exclude:      [list] of metrics to exclude, e.g. ['loss']
-        :return:
+        :param tag_group:          [list] of tags that are required, e.g. ['all']
+        :param phase_group:        [list] of phases that are required, e.g. ['train']
+        :param micro_macro_group:  [list] simple/micro/macro that is required, e.g. ['micro', 'macro']
+        :param exclude:            [list] of metrics to exclude, e.g. ['loss']
+        :return: filtered_metrics: [list] of [str], e.g. ['precision', 'recall']
         """
         filtered_metrics = list()
-        for metric, tags_list, micro_macro_list in self.logged_metrics:
-            add_metric_1 = \
-                True if tags is None else all([tag in tags_list for tag in tags])
-            add_metric_2 = \
-                True if micro_macros is None else all([micro_macro in micro_macro_list for micro_macro in micro_macros])
-            add_metric_3 = \
-                True if exclude is None else metric not in exclude
+        for metric, phase_list, tags_list, micro_macro_list in self.logged_metrics:
+            add_metric_1 = True if tag_group is None \
+                else all([tag in tags_list for tag in tag_group])
+            add_metric_2 = True if phase_group is None \
+                else all([phase in phase_list for phase in phase_group])
+            add_metric_3 = True if micro_macro_group is None \
+                else all([micro_macro in micro_macro_list for micro_macro in micro_macro_group])
+            add_metric_4 = True if exclude is None \
+                else metric not in exclude
 
-            if add_metric_1 and add_metric_2 and add_metric_3:
+            if add_metric_1 and add_metric_2 and add_metric_3 and add_metric_4:
                 filtered_metrics.append(metric)
 
-        return filtered_metrics
+        return list(set(filtered_metrics))
 
     def as_flat_list(self):
         """
@@ -43,7 +62,7 @@ class LoggedMetrics:
         :return: [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', 'fil_precision_micro', ..]
         """
         flat_list = list()
-        for metric, tags_list, micro_macro_list in self.logged_metrics:
+        for metric, _, tags_list, micro_macro_list in self.logged_metrics:
             for tags in tags_list:
                 if micro_macro_list == ['simple']:
                     flat_list.append(f'{tags}_{metric}')
