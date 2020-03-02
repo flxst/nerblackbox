@@ -5,50 +5,50 @@ from abc import ABC, abstractmethod
 
 class BaseFormatter(ABC):
 
-    def __init__(self, ner_dataset, ner_label_list):
+    def __init__(self, ner_dataset, ner_tag_list):
         """
-        :param ner_dataset:    [str] 'swedish_ner_corpus' or 'SUC'
-        :param ner_label_list: [list] of [str], e.g. ['PER', 'LOC', ..]
+        :param ner_dataset:  [str] 'swedish_ner_corpus' or 'SUC'
+        :param ner_tag_list: [list] of [str], e.g. ['PER', 'LOC', ..]
         """
         self.ner_dataset = ner_dataset
-        self.ner_label_list = ner_label_list
+        self.ner_tag_list = ner_tag_list
 
-    def create_ner_label_mapping(self, with_tags: bool, modify: bool):
+    def create_ner_tag_mapping(self, with_tags: bool, modify: bool):
         """
-        create customized ner label mapping to map labels in original data to labels in formatted data
+        create customized ner tag mapping to map tags in original data to tags in formatted data
         ----------------------------------------------------------------------------------------------
-        :param with_tags: [bool], if True: create labels with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple labels, e.g. 'PER', 'LOC', ..
-        :param modify:    [bool], if True: modify labels as specified in method modify_ner_label_mapping()
-        :return: ner_label_mapping: [dict] w/ keys = labels in original data, values = labels in formatted data
+        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
+                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
+        :param modify:    [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
+        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        # full label list
+        # full tag list
         if with_tags:
-            _label_lists_extended = [[f'B-{label}', f'I-{label}'] for label in self.ner_label_list]
-            label_list_full = ['O'] + [l_i for l in _label_lists_extended for l_i in l]
+            _tag_lists_extended = [[f'B-{tag}', f'I-{tag}'] for tag in self.ner_tag_list]
+            tag_list_full = ['O'] + [l_i for l in _tag_lists_extended for l_i in l]
         else:
-            label_list_full = ['O'] + self.ner_label_list
+            tag_list_full = ['O'] + self.ner_tag_list
 
-        # map each label to itself
-        ner_label_mapping_original = {k: k for k in label_list_full}
+        # map each tag to itself
+        ner_tag_mapping_original = {k: k for k in tag_list_full}
 
         if modify:
-            return self.modify_ner_label_mapping(ner_label_mapping_original, with_tags=with_tags)
+            return self.modify_ner_tag_mapping(ner_tag_mapping_original, with_tags=with_tags)
         else:
-            return ner_label_mapping_original
+            return ner_tag_mapping_original
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
     @abstractmethod
-    def modify_ner_label_mapping(self, ner_label_mapping_original, with_tags: bool):
+    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
         """
-        customize ner label mapping if wanted
+        customize ner tag mapping if wanted
         -------------------------------------
-        :param ner_label_mapping_original: [dict] w/ keys = labels in original data, values = labels in original data
-        :param with_tags: [bool], if True: create labels with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple labels, e.g. 'PER', 'LOC', ..
-        :return: ner_label_mapping: [dict] w/ keys = labels in original data, values = labels in formatted data
+        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
+        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
+                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
+        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         pass
 
@@ -69,7 +69,7 @@ class BaseFormatter(ABC):
         ----------------------------------------------
         :param phase:         [str] 'train' or 'test'
         :return: num_sentences:    [int]
-                 stats_aggregated: [pandas Series] with indices = labels, values = number of occurrences
+                 stats_aggregated: [pandas Series] with indices = tags, values = number of occurrences
         """
         file_path = f'datasets/ner/{self.ner_dataset}/{phase}.csv'
 
@@ -77,13 +77,13 @@ class BaseFormatter(ABC):
         # print(len(df), len(df.columns))
         # print(df.head())
 
-        columns = ['O'] + self.ner_label_list
+        columns = ['O'] + self.ner_tag_list
         stats = pd.DataFrame([], columns=columns)
-        labels = df.iloc[:, 0].apply(lambda x: x.split())
-        # print(labels.head())
+        tags = df.iloc[:, 0].apply(lambda x: x.split())
+        # print(tags.head())
 
         for column in columns:
-            stats[column] = labels.apply(lambda x: len([elem for elem in x if elem == column]))
+            stats[column] = tags.apply(lambda x: len([elem for elem in x if elem == column]))
         # print(stats.head())
 
         assert len(df) == len(stats)
@@ -105,4 +105,3 @@ class BaseFormatter(ABC):
         df['relative'] = df['relative'].apply(lambda x: '{:.2f}'.format(x))
 
         return df
-

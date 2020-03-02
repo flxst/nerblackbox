@@ -18,7 +18,7 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
 
     # processor
     processor = NerProcessor(dataset_path, tokenizer, do_lower_case=True)  # needs to be True (applies .lower()) !!
-    label_list = processor.get_label_list()
+    tag_list = processor.get_tag_list()
 
     # train data
     input_examples_train_all = processor.get_input_examples('train')
@@ -31,7 +31,7 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
     # input_examples_to_tensors
     input_examples_to_tensors = InputExampleToTensors(tokenizer,
                                                       max_seq_length=max_seq_length,
-                                                      label_tuple=tuple(label_list))
+                                                      tag_tuple=tuple(tag_list))
 
     # dataloader
     data['train'] = BertDataset(input_examples['train'],
@@ -46,7 +46,7 @@ def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prun
                                      sampler=SequentialSampler(data['valid']),
                                      batch_size=batch_size)
 
-    return dataloader, label_list
+    return dataloader, tag_list
 
 
 def get_available_datasets():
@@ -99,47 +99,47 @@ def prune_examples(list_of_examples, ratio=None):
         return list_of_examples[:num_examples_new]
 
 
-def get_rid_of_special_tokens(label_list):
+def get_rid_of_special_tokens(tag_list):
     """
     replace special tokens ('[CLS]', '[SEP]', '[PAD]') by 'O'
     ---------------------------------------------------------
-    :param label_list:           [list] of [str], e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
-    :return: cleaned_label_list: [list] of [str], e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
+    :param tag_list:           [list] of [str], e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
+    :return: cleaned_tag_list: [list] of [str], e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
     """
-    return [label
-            if not label.startswith('[')
+    return [tag
+            if not tag.startswith('[')
             else 'O'
-            for label in label_list
+            for tag in tag_list
             ]
 
 
-def add_bio_to_label_list(label_list):
+def add_bio_to_tag_list(tag_list):
     """
-    adds bio prefixes to labels
+    adds bio prefixes to tags
     ---------------------------
-    :param label_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
-    :return: bio_label_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
+    :param tag_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
+    :return: bio_tag_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
     """
-    return [_add_bio_to_label(label_list[i], previous=label_list[i - 1] if i > 0 else None)
-            for i in range(len(label_list))]
+    return [_add_bio_to_tag(tag_list[i], previous=tag_list[i - 1] if i > 0 else None)
+            for i in range(len(tag_list))]
 
 
-def _add_bio_to_label(label, previous):
+def _add_bio_to_tag(tag, previous):
     """
-    add bio prefix to label, depending on previous label
-    ----------------------------------------------------
-    :param label:       [str], e.g. 'ORG'
-    :param previous:    [str], e.g. 'ORG'
-    :return: bio_label: [str], e.g. 'I-ORG'
+    add bio prefix to tag, depending on previous tag
+    ------------------------------------------------
+    :param tag:       [str], e.g. 'ORG'
+    :param previous:  [str], e.g. 'ORG'
+    :return: bio_tag: [str], e.g. 'I-ORG'
     """
-    if label == 'O' or label.startswith('['):
-        return label
+    if tag == 'O' or tag.startswith('['):
+        return tag
     elif previous is None:
-        return f'B-{label}'
-    elif label != previous:
-        return f'B-{label}'
+        return f'B-{tag}'
+    elif tag != previous:
+        return f'B-{tag}'
     else:
-        return f'I-{label}'
+        return f'I-{tag}'
 
 
 def display_available_metrics():

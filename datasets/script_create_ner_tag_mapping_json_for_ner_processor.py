@@ -13,12 +13,12 @@ from datasets.formatter.suc_formatter import SUCFormatter
 
 def main(args):
     """
-    writes ner_label_mapping.json file
+    writes ner_tag_mapping.json file
     ----------------------------------
     :param args: [argparse parsed arguments]
         ner_dataset: [str], e.g. 'swedish_ner_corpus'
         with_tags:   [bool]. If true, have tags like 'B-PER', 'I-PER'. If false, have tags like 'PER'.
-        modify:      [bool], if True: modify labels as specified in method modify_ner_label_mapping()
+        modify:      [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
     :return: -
     """
     # formatter
@@ -29,15 +29,15 @@ def main(args):
     else:
         raise Exception(f'ner_dataset = {args.ner_dataset} unknown.')
 
-    # ner label mapping
-    ner_label_mapping = formatter.create_ner_label_mapping(with_tags=args.with_tags, modify=args.modify)
+    # ner tag mapping
+    ner_tag_mapping = formatter.create_ner_tag_mapping(with_tags=args.with_tags, modify=args.modify)
 
-    json_path = f'datasets/ner/{args.ner_dataset}/ner_label_mapping.json'
+    json_path = f'datasets/ner/{args.ner_dataset}/ner_tag_mapping.json'
     with open(json_path, 'w') as f:
-        json.dump(ner_label_mapping, f)
+        json.dump(ner_tag_mapping, f)
 
     print(f'> dumped the following dict to {json_path}:')
-    print(ner_label_mapping)
+    print(ner_tag_mapping)
 
 
 if __name__ == '__main__':

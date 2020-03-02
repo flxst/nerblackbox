@@ -35,7 +35,7 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
     
 ## Scripts
 
-- `bert_ner.py`: train SweBERT on NER downstream task. 
+- `script_bert_ner.py`: train SweBERT on NER downstream task. 
 
   - flags:
     - ###### `--experiment_name * --run_name *` to structure runs 

@@ -24,15 +24,15 @@ class NerMetrics:
     def __init__(self,
                  true_flat,
                  pred_flat,
-                 labels=None):
+                 tag_list=None):
         """
         :param true_flat: [np array] of shape [batch_size * seq_length]
         :param pred_flat: [np array] of shape [batch_size * seq_length]
-        :param labels: [optional, list] of [str] labels to take into account for metrics
+        :param tag_list:  [optional, list] of [str] labels to take into account for metrics
         """
         self.true_flat = true_flat
         self.pred_flat = pred_flat
-        self.labels = labels
+        self.tag_list = tag_list
 
         self.results = Results()
 
@@ -64,8 +64,8 @@ class NerMetrics:
         :return: precision_macro [np array] for each class, then averaged
                  precision_micro [np array] for all examples
         """
-        self.results.precision_macro = precision_sklearn(self.true_flat, self.pred_flat, labels=self.labels, average='macro')
-        self.results.precision_micro = precision_sklearn(self.true_flat, self.pred_flat, labels=self.labels, average='micro')
+        self.results.precision_macro = precision_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='macro')
+        self.results.precision_micro = precision_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='micro')
 
     def recall(self):
         """
@@ -74,8 +74,8 @@ class NerMetrics:
         :return: recall_macro [np array] for each class, then averaged
                  recall_micro [np array] for all examples
         """
-        self.results.recall_macro = recall_sklearn(self.true_flat, self.pred_flat, labels=self.labels, average='macro')
-        self.results.recall_micro = recall_sklearn(self.true_flat, self.pred_flat, labels=self.labels, average='micro')
+        self.results.recall_macro = recall_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='macro')
+        self.results.recall_micro = recall_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='micro')
 
     def f1_score(self):
         """
@@ -84,5 +84,5 @@ class NerMetrics:
         :return: f1_score_macro [np array] for each class, then averaged
                  f1_score_micro [np array] for all examples
         """
-        self.results.f1_macro = f1_score_sklearn(self.true_flat, self.pred_flat, labels=self.labels, average='macro')
-        self.results.f1_micro = f1_score_sklearn(self.true_flat, self.pred_flat, labels=self.labels, average='micro')
+        self.results.f1_macro = f1_score_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='macro')
+        self.results.f1_micro = f1_score_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='micro')

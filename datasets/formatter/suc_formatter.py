@@ -13,23 +13,23 @@ class SUCFormatter(BaseFormatter):
 
     def __init__(self):
         ner_dataset = 'SUC'
-        ner_label_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
-        super().__init__(ner_dataset, ner_label_list)
+        ner_tag_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
+        super().__init__(ner_dataset, ner_tag_list)
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
-    def modify_ner_label_mapping(self, ner_label_mapping_original, with_tags: bool):
+    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
         """
-        customize ner label mapping if wanted
+        customize ner tag mapping if wanted
         -------------------------------------
-        :param ner_label_mapping_original: [dict] w/ keys = labels in original data, values = labels in original data
-        :param with_tags: [bool], if True: create labels with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple labels, e.g. 'PER', 'LOC', ..
-        :return: ner_label_mapping: [dict] w/ keys = labels in original data, values = labels in formatted data
+        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
+        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
+                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
+        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        ner_label_mapping = ner_label_mapping_original
-        return ner_label_mapping
+        ner_tag_mapping = ner_tag_mapping_original
+        return ner_tag_mapping
 
     def read_original_file(self, phase):
         file_path = f'datasets/ner/SUC/{phase}_original.csv'

@@ -37,8 +37,8 @@ class NerProcessor:
         self.token_count = None
 
         # processing
-        with open(os.path.join(self.path, 'ner_label_mapping.json'), 'r') as f:
-            self.ner_label_mapping = json.load(f)
+        with open(os.path.join(self.path, 'ner_tag_mapping.json'), 'r') as f:
+            self.ner_tag_mapping = json.load(f)
 
         self.data = dict()
         for phase in ['train', 'valid', 'test']:
@@ -56,13 +56,13 @@ class NerProcessor:
         """
         return self._create_list_of_input_examples(self.data[phase], phase)
 
-    def get_label_list(self):
+    def get_tag_list(self):
         """
-        get label list derived from ner_label_mapping
+        get tag list derived from ner_tag_mapping
         ---------------------------------------------
         :return: [list] of [str]
         """
-        return ['[PAD]', '[CLS]', '[SEP]'] + list(set(self.ner_label_mapping.values()))
+        return ['[PAD]', '[CLS]', '[SEP]'] + list(set(self.ner_tag_mapping.values()))
 
     ####################################################################################################################
     # PRIVATE METHODS
@@ -78,13 +78,13 @@ class NerProcessor:
         :param path: [str]
         :return: [pandas dataframe]
         """
-        return pd.read_csv(path, names=['labels', 'text'], header=None, sep=self.csv_file_separator)
+        return pd.read_csv(path, names=['tags', 'text'], header=None, sep=self.csv_file_separator)
 
     def _create_list_of_input_examples(self, df, set_type):
         """
         create list of input examples from pandas dataframe created from _read_csv() method
         -----------------------------------------------------------------------------------
-        :param df:                 [pandas dataframe] with columns 'labels', 'text'
+        :param df:                 [pandas dataframe] with columns 'tags', 'text'
         :param set_type:           [str], e.g. 'train', 'valid', 'test'
         :changed attr: token_count [int] total number of tokens in df
         :return: [list] of [InputExample]
@@ -96,11 +96,11 @@ class NerProcessor:
             # input_example
             guid = f'{set_type}-{i}'
             text_a = row.text.lower() if self.do_lower_case else row.text
-            labels_a = row.labels
+            tags_a = row.tags
 
             input_example = InputExample(guid=guid,
                                          text_a=text_a,
-                                         labels_a=labels_a)
+                                         tags_a=tags_a)
 
             # append
             examples.append(input_example)

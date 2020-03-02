@@ -33,7 +33,7 @@ class NERTrainer:
                  device,
                  train_dataloader,
                  valid_dataloader,
-                 label_list,
+                 tag_list,
                  hyperparams=None,
                  fp16=False,
                  verbose=False):
@@ -42,7 +42,7 @@ class NERTrainer:
         :param device:           [torch device] 'cuda' or 'cpu'
         :param train_dataloader: [pytorch DataLoader]
         :param valid_dataloader: [pytorch DataLoader]
-        :param label_list:       [list] of [str], e.g. ['[PAD]', '[CLS]', '[SEP]', 'O', 'PER', ..]
+        :param tag_list:         [list] of [str], e.g. ['[PAD]', '[CLS]', '[SEP]', 'O', 'PER', ..]
         :param hyperparams:      [dict] for mlflow tracking
         :param fp16:             [bool]
         :param verbose:          [bool] verbose print
@@ -51,7 +51,7 @@ class NERTrainer:
         self.model = model
         self.train_dataloader = train_dataloader
         self.valid_dataloader = valid_dataloader
-        self.label_list = label_list
+        self.tag_list = tag_list
         self.device = device
         self.fp16 = fp16
         self.verbose = verbose
@@ -90,18 +90,18 @@ class NERTrainer:
         # metrics
         self.metrics = self.instantiate_metrics_dict()
 
-    def get_filtered_labels(self):
-        return [label
-                for label in self.label_list
-                if not (label.startswith('[') or label == 'O')]
+    def get_filtered_tags(self):
+        return [tag
+                for tag in self.tag_list
+                if not (tag.startswith('[') or tag == 'O')]
 
-    def get_filtered_label_ids(self):
-        return [self.label_list.index(label)
-                for label in self.label_list
-                if not (label.startswith('[') or label == 'O')]
+    def get_filtered_tag_ids(self):
+        return [self.tag_list.index(tag)
+                for tag in self.tag_list
+                if not (tag.startswith('[') or tag == 'O')]
 
-    def get_individual_label_id(self, label):
-        return [self.label_list.index(label)]
+    def get_individual_tag_id(self, tag):
+        return [self.tag_list.index(tag)]
 
     ####################################################################################################################
     # 1. FIT & VALIDATION
@@ -167,21 +167,21 @@ class NERTrainer:
 
             # get batch data
             batch = tuple(t.to(self.device) for t in batch)
-            input_ids, input_mask, segment_ids, label_ids = batch
+            input_ids, input_mask, segment_ids, tag_ids = batch
 
             # forward pass
             outputs = self.model(input_ids,
                                  attention_mask=input_mask,
                                  token_type_ids=segment_ids,
-                                 labels=label_ids,
+                                 labels=tag_ids,
                                  )
             batch_train_loss, logits = outputs[:2]
 
             # to cpu/numpy
             np_batch_train = {
                 'loss': batch_train_loss.detach().cpu().numpy(),
-                'label_ids': label_ids.to('cpu').numpy(),    # shape: [batch_size, seq_legnth]
-                'logits': logits.detach().cpu().numpy(),     # shape: [batch_size, seq_length, num_labels]
+                'tag_ids': tag_ids.to('cpu').numpy(),      # shape: [batch_size, seq_legnth]
+                'logits': logits.detach().cpu().numpy(),   # shape: [batch_size, seq_length, num_tags]
             }
 
             # batch train metrics
@@ -226,25 +226,25 @@ class NERTrainer:
         print('\n> Validate')
         self.model.eval()
 
-        valid_fields = ['loss', 'label_ids', 'logits']
+        valid_fields = ['loss', 'tag_ids', 'logits']
         np_epoch_valid = {valid_field: None for valid_field in valid_fields}
         np_epoch_valid_list = {valid_field: list() for valid_field in valid_fields}
 
         for batch in self.valid_dataloader:
             batch = tuple(t.to(self.device) for t in batch)
-            input_ids, input_mask, segment_ids, label_ids = batch
+            input_ids, input_mask, segment_ids, tag_ids = batch
             
             with torch.no_grad():
                 outputs = self.model(input_ids,
                                      attention_mask=input_mask,
                                      token_type_ids=segment_ids,
-                                     labels=label_ids)
+                                     labels=tag_ids)
                 batch_valid_loss, logits = outputs[:2]
 
             # to cpu/numpy
             np_batch_valid = {
                 'loss': batch_valid_loss.detach().cpu().numpy(),
-                'label_ids': label_ids.to('cpu').numpy(),
+                'tag_ids': tag_ids.to('cpu').numpy(),
                 'logits': logits.detach().cpu().numpy(),
             }
 
@@ -254,17 +254,17 @@ class NERTrainer:
 
         # epoch metrics
         np_epoch_valid['loss'] = np.mean(np_epoch_valid_list['loss'])
-        np_epoch_valid['label_ids'] = np.vstack(np_epoch_valid_list['label_ids'])
+        np_epoch_valid['tag_ids'] = np.vstack(np_epoch_valid_list['tag_ids'])
         np_epoch_valid['logits'] = np.vstack(np_epoch_valid_list['logits'])
 
-        epoch_valid_metrics, epoch_valid_label_ids, _ = self.compute_metrics('epoch', 'valid', np_epoch_valid)
+        epoch_valid_metrics, epoch_valid_tag_ids, _ = self.compute_metrics('epoch', 'valid', np_epoch_valid)
 
         # output
         self.print_metrics(epoch, epoch_valid_metrics)
         global_step = self.get_global_step(epoch, len(self.train_dataloader)-1)
         self.write_metrics_for_tensorboard('valid', epoch_valid_metrics, global_step)
         self.mlflow_client.log_metrics(epoch, epoch_valid_metrics)
-        self.print_classification_reports(epoch, epoch_valid_label_ids)
+        self.print_classification_reports(epoch, epoch_valid_tag_ids)
 
     ####################################################################################################################
     # 2. METRICS
@@ -288,39 +288,45 @@ class NERTrainer:
 
         return metrics
 
-    def compute_metrics_for_specific_tags(self, _label_ids, tags: str):
+    def compute_metrics_for_specific_tags(self, _tag_ids, tags: str):
         """
         compute metrics for specific tags (e.g. 'all', 'fil')
         -----------------------------------------------------
-        :param _label_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
-        :param tags:       [str], e.g. 'all', 'fil'
-        :return: _metrics  [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
+        :param _tag_ids:  [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param tags:      [str], e.g. 'all', 'fil'
+        :return: _metrics [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         if tags == 'all':
-            labels = None
+            tag_list = None
             logged_metrics_tags = ['all']
         elif tags == 'fil':
-            labels = self.get_filtered_label_ids()
+            tag_list = self.get_filtered_tag_ids()
             logged_metrics_tags = ['fil']
         else:
-            labels = self.get_individual_label_id(tags)
+            tag_list = self.get_individual_tag_id(tags)
             logged_metrics_tags = ['ind']
 
         _metrics = dict()
-        ner_metrics = NerMetrics(_label_ids['true'], _label_ids['pred'], labels=labels)
+        ner_metrics = NerMetrics(_tag_ids['true'], _tag_ids['pred'], tag_list=tag_list)
         ner_metrics.compute(self.logged_metrics.get_metrics(tags=logged_metrics_tags))
         results = ner_metrics.results_as_dict()
 
-        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags, micro_macros=['simple'], exclude=['loss']):
+        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags,
+                                                           micro_macros=['simple'],
+                                                           exclude=['loss']):
             if results[metric_type] is not None:
                 _metrics[f'{tags}_{metric_type}'] = results[metric_type]
-        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags, micro_macros=['micro']):
+
+        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags,
+                                                           micro_macros=['micro']):
             if results[f'{metric_type}_micro'] is not None:
                 if logged_metrics_tags == ['ind']:
                     _metrics[f'{tags}_{metric_type}'] = results[f'{metric_type}_micro']
                 else:
                     _metrics[f'{tags}_{metric_type}_micro'] = results[f'{metric_type}_micro']
-        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags, micro_macros=['macro']):
+
+        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags,
+                                                           micro_macros=['macro']):
             if results[f'{metric_type}_macro'] is not None:
                 _metrics[f'{tags}_{metric_type}_macro'] = results[f'{metric_type}_macro']
 
@@ -334,22 +340,22 @@ class NERTrainer:
         :param phase:          [str] 'train' or 'valid'
         :param _np_dict:       [dict] w/ key-value pairs:
                                      'loss':       [np value]
-                                     'label_ids':  [np array] of shape [batch_size, seq_length]
-                                     'logits'      [np array] of shape [batch_size, seq_length, num_labels]
+                                     'tag_ids':  [np array] of shape [batch_size, seq_length]
+                                     'logits'      [np array] of shape [batch_size, seq_length, num_tags]
         :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
-                 labels_ids    [dict] w/ keys 'true', 'pred'      & values = [np array]
+                 tags_ids      [dict] w/ keys 'true', 'pred'      & values = [np array]
                  _progress_bar [str] to display during training
         """
         # batch / dataset
-        label_ids = dict()
-        label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_dict['label_ids'], _np_dict['logits'])
+        tag_ids = dict()
+        tag_ids['true'], tag_ids['pred'] = self.reduce_and_flatten(_np_dict['tag_ids'], _np_dict['logits'])
 
         # batch / dataset metrics
         metrics = {'all_loss': _np_dict['loss']}
-        metrics.update(self.compute_metrics_for_specific_tags(label_ids, tags='all'))
-        metrics.update(self.compute_metrics_for_specific_tags(label_ids, tags='fil'))
-        for label in self.get_filtered_labels():
-            metrics.update(self.compute_metrics_for_specific_tags(label_ids, tags=label))
+        metrics.update(self.compute_metrics_for_specific_tags(tag_ids, tags='all'))
+        metrics.update(self.compute_metrics_for_specific_tags(tag_ids, tags='fil'))
+        for tag in self.get_filtered_tags():
+            metrics.update(self.compute_metrics_for_specific_tags(tag_ids, tags=tag))
 
         """
         # append to self.metrics
@@ -368,19 +374,19 @@ class NERTrainer:
             metrics['fil_f1_micro'],
         )
 
-        return metrics, label_ids, _progress_bar
+        return metrics, tag_ids, _progress_bar
 
     @staticmethod
-    def reduce_and_flatten(_np_label_ids, _np_logits):
+    def reduce_and_flatten(_np_tag_ids, _np_logits):
         """
         reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
         ---------------------------------------------------------------
-        :param _np_label_ids: [np array] of shape [batch_size, seq_length]
-        :param _np_logits:    [np array] of shape [batch_size, seq_length, num_labels]
-        :return: true_flat:   [np array] of shape [batch_size * seq_length], _np_label_ids             flattened
-                 pred_flat:   [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
+        :param _np_tag_ids: [np array] of shape [batch_size, seq_length]
+        :param _np_logits:  [np array] of shape [batch_size, seq_length, num_tags]
+        :return: true_flat: [np array] of shape [batch_size * seq_length], _np_tag_ids               flattened
+                 pred_flat: [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
         """
-        true_flat = _np_label_ids.flatten()
+        true_flat = _np_tag_ids.flatten()
         pred_flat = np.argmax(_np_logits, axis=2).flatten()
         return true_flat, pred_flat
 
@@ -412,40 +418,40 @@ class NERTrainer:
         if phase == 'train' and _lr_this_step is not None:
             self.writer.add_scalar(f'{phase}/learning_rate', _lr_this_step, _global_step)
 
-    def print_classification_reports(self, epoch, epoch_valid_label_ids):
+    def print_classification_reports(self, epoch, epoch_valid_tag_ids):
         """
         print token-based (sklearn) & chunk-based (seqeval) classification reports
         --------------------------------------------------------------------------
-        :param: epoch:                 [int]
-        :param: epoch_valid_label_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param: epoch:               [int]
+        :param: epoch_valid_tag_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
         :return: -
         """
         self.mlflow_client.clear_artifact()
 
-        # use labels instead of label_ids
-        epoch_valid_labels = {
-            field: [self.label_list[label_id] for label_id in epoch_valid_label_ids[field]]
+        # use tags instead of tag_ids
+        epoch_valid_tags = {
+            field: [self.tag_list[tag_id] for tag_id in epoch_valid_tag_ids[field]]
             for field in ['true', 'pred']
         }
 
         # token-based classification report
         self.mlflow_client.log_artifact(f'\n>>> Epoch: {epoch}')
         self.mlflow_client.log_artifact('\n--- token-based (sklearn) classification report ---')
-        selected_labels = [label for label in self.label_list if label != 'O' and not label.startswith('[')]
-        self.mlflow_client.log_artifact(classification_report_sklearn(epoch_valid_labels['true'],
-                                                                      epoch_valid_labels['pred'],
-                                                                      labels=selected_labels))
+        selected_tags = [tag for tag in self.tag_list if tag != 'O' and not tag.startswith('[')]
+        self.mlflow_client.log_artifact(classification_report_sklearn(epoch_valid_tags['true'],
+                                                                      epoch_valid_tags['pred'],
+                                                                      labels=selected_tags))
 
         # enrich pred_tags & valid_tags with bio prefixes
-        epoch_valid_labels_bio = {
-            field: utils.add_bio_to_label_list(utils.get_rid_of_special_tokens(epoch_valid_labels[field]))
+        epoch_valid_tags_bio = {
+            field: utils.add_bio_to_tag_list(utils.get_rid_of_special_tokens(epoch_valid_tags[field]))
             for field in ['true', 'pred']
         }
 
         # chunk-based classification report
         self.mlflow_client.log_artifact('\n--- chunk-based (seqeval) classification report ---')
-        self.mlflow_client.log_artifact(classification_report_seqeval(epoch_valid_labels_bio['true'],
-                                                                      epoch_valid_labels_bio['pred'],
+        self.mlflow_client.log_artifact(classification_report_seqeval(epoch_valid_tags_bio['true'],
+                                                                      epoch_valid_tags_bio['pred'],
                                                                       suffix=False))
 
     ####################################################################################################################

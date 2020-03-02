@@ -69,23 +69,23 @@ def main(args):
 
     # data
     dataset_path = os.path.join(BASE_DIR, get_dataset_path(args.dataset_name))
-    dataloader, label_list = preprocess_data(dataset_path,
-                                             tokenizer,
-                                             hyperparams['batch_size'],
-                                             max_seq_length=hyperparams['max_seq_length'],
-                                             prune_ratio=hyperparams['prune_ratio']
-                                             )
+    dataloader, tag_list = preprocess_data(dataset_path,
+                                           tokenizer,
+                                           hyperparams['batch_size'],
+                                           max_seq_length=hyperparams['max_seq_length'],
+                                           prune_ratio=hyperparams['prune_ratio']
+                                           )
 
     # model
     model = BertForTokenClassification.from_pretrained(args.pretrained_model_name,
-                                                       num_labels=len(label_list))
+                                                       num_labels=len(tag_list))
 
     # trainer
     trainer = NERTrainer(model,
                          device,
                          train_dataloader=dataloader['train'],
                          valid_dataloader=dataloader['valid'],
-                         label_list=label_list,
+                         tag_list=tag_list,
                          hyperparams=hyperparams,
                          fp16=fp16,
                          verbose=False,

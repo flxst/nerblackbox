@@ -13,22 +13,22 @@ logger = logging.getLogger(__name__)
 class InputExampleToTensors:
     """
     Converts an InputExample to a tuple of feature tensors:
-    (input_ids, input_mask, segment_ids, label_ids)
+    (input_ids, input_mask, segment_ids, tag_ids)
     """
 
     def __init__(self,
                  tokenizer,
                  max_seq_length: int = 128,
-                 label_tuple: tuple = ('0', '1')):
+                 tag_tuple: tuple = ('0', '1')):
         """
         :param tokenizer:      [BertTokenizer] used to tokenize to Wordpieces and transform to indices
         :param max_seq_length: [int]
-        :param label_tuple:    [tuple] of [str]
+        :param tag_tuple:      [tuple] of [str]
         """
         self.tokenizer = tokenizer
         self.max_seq_length = max_seq_length
-        self.label_tuple = label_tuple
-        self.label2id = {label: i for i, label in enumerate(self.label_tuple)}
+        self.tag_tuple = tag_tuple
+        self.tag2id = {tag: i for i, tag in enumerate(self.tag_tuple)}
 
     def __call__(self, input_example):
         """
@@ -36,40 +36,40 @@ class InputExampleToTensors:
         ----------------------------------
         :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
                                                    text_b = None
-                                                   labels_a = '0 ORG'
-                                                   labels_b = None
+                                                   tags_a = '0 ORG'
+                                                   tags_b = None
         :return: input_ids:   [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
         :return: input_mask:  [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
         :return: segment_ids: [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
-        :return: label_ids:   [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]  cf Processor
+        :return: tag_ids:     [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]  cf Processor
         """
         ####################
-        # A0. tokens_*, labels_*
+        # A0. tokens_*, tags_*
         ####################
-        tokens_a, labels_a = self._tokenize_words_and_labels(input_example, segment='a')
-        tokens_b, labels_b = self._tokenize_words_and_labels(input_example, segment='b')
+        tokens_a, tags_a = self._tokenize_words_and_tags(input_example, segment='a')
+        tokens_b, tags_b = self._tokenize_words_and_tags(input_example, segment='b')
 
         # Modify `tokens_a` (and `tokens_b`) in place so that the total length is less than the specified length.
         if tokens_b is None:
             # Account for [CLS] and [SEP] with "- 2"
             self._truncate_seq_pair(self.max_seq_length - 2, tokens_a)
-            self._truncate_seq_pair(self.max_seq_length - 2, labels_a)
+            self._truncate_seq_pair(self.max_seq_length - 2, tags_a)
         else:
             # Account for [CLS], [SEP], [SEP] with "- 3"
             self._truncate_seq_pair(self.max_seq_length - 3, tokens_a, tokens_b)
-            self._truncate_seq_pair(self.max_seq_length - 3, labels_a, labels_b)
+            self._truncate_seq_pair(self.max_seq_length - 3, tags_a, tags_b)
 
         ####################
-        # A1. tokens, labels
+        # A1. tokens, tags
         ####################
         tokens = ['[CLS]'] + tokens_a + ['[SEP]']
-        labels = ['[CLS]'] + labels_a + ['[SEP]']
-        if tokens_b and labels_b:
+        tags = ['[CLS]'] + tags_a + ['[SEP]']
+        if tokens_b and tags_b:
             tokens += tokens_b + ['[SEP]']
-            labels += labels_b + ['[SEP]']
+            tags += tags_b + ['[SEP]']
 
         ####################
-        # B. input_ids, input_mask, segment_ids, label_ids
+        # B. input_ids, input_mask, segment_ids, tag_ids
         ####################
         # 1. input_ids
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
@@ -83,68 +83,68 @@ class InputExampleToTensors:
         else:
             segment_ids = [0] * len(tokens_a) + [1] * (len(tokens_b) + 1)
 
-        # 4. label_ids
-        label_ids = [self.label2id[label] for label in labels]
+        # 4. tag_ids
+        tag_ids = [self.tag2id[tag] for tag in tags]
 
         # 5. padding
         input_ids = self._pad_sequence(input_ids, 0)
         input_mask = self._pad_sequence(input_mask, 0)
         segment_ids = self._pad_sequence(segment_ids, 0)
-        label_ids = self._pad_sequence(label_ids, 0)
+        tag_ids = self._pad_sequence(tag_ids, 0)
         assert input_ids.shape[0] == self.max_seq_length
         assert input_mask.shape[0] == self.max_seq_length
         assert segment_ids.shape[0] == self.max_seq_length
-        assert label_ids.shape[0] == self.max_seq_length
+        assert tag_ids.shape[0] == self.max_seq_length
 
         ####################
         # return
         ####################
-        return input_ids, input_mask, segment_ids, label_ids
+        return input_ids, input_mask, segment_ids, tag_ids
 
     ####################################################################################################################
     # PRIVATE HELPER METHODS
     ####################################################################################################################
-    def _tokenize_words_and_labels(self, input_example, segment):
+    def _tokenize_words_and_tags(self, input_example, segment):
         """
-        gets NER labels for tokenized version of text
+        gets NER tags for tokenized version of text
         ---------------------------------------------
         :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
                                                    text_b = None
-                                                   labels_a = '0 ORG'
-                                                   labels_b = None
+                                                   tags_a = '0 ORG'
+                                                   tags_b = None
         :param segment:       [str], 'a' or 'b'
         :changed attr: token_count [int] total number of tokens in df
         :return: tokens: [list] of [str], e.g. ['at', 'arbetsförmedling', '##en]
-                 labels: [list] of [str], e.g. [   0,              'ORG', 'ORG']
+                 tags:   [list] of [str], e.g. [   0,              'ORG', 'ORG']
         """
-        # [list] of (word, label) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
+        # [list] of (word, tag) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
         if segment == 'a':
-            word_label_pairs = zip(input_example.text_a.split(' '), input_example.labels_a.split(' '))
+            word_tag_pairs = zip(input_example.text_a.split(' '), input_example.tags_a.split(' '))
         elif segment == 'b':
-            if input_example.text_b is None or input_example.labels_b is None:
+            if input_example.text_b is None or input_example.tags_b is None:
                 return None, None
             else:
-                word_label_pairs = zip(input_example.text_b.split(' '), input_example.labels_b.split(' '))
+                word_tag_pairs = zip(input_example.text_b.split(' '), input_example.tags_b.split(' '))
         else:
             raise Exception(f'> segment = {segment} unknown')
 
         tokens = []
-        tokens_labels = []
-        for word_label_pair in word_label_pairs:
-            word, label = word_label_pair[0], word_label_pair[1]
+        tokens_tags = []
+        for word_tag_pair in word_tag_pairs:
+            word, tag = word_tag_pair[0], word_tag_pair[1]
             word_tokens = self.tokenizer.tokenize(word)
             tokens.extend(word_tokens)
-            if label == 'O':
-                b_label = label
-                i_label = label
+            if tag == 'O':
+                b_tag = tag
+                i_tag = tag
             else:
-                b_label = label  # f'B-{label}'
-                i_label = label  # f'I-{label}'
-            tokens_labels.append(b_label)
+                b_tag = tag  # f'B-{tag}'
+                i_tag = tag  # f'I-{tag}'
+            tokens_tags.append(b_tag)
             for _ in word_tokens[1:]:
-                tokens_labels.append(i_label)
+                tokens_tags.append(i_tag)
 
-        return tokens, tokens_labels
+        return tokens, tokens_tags
 
     @staticmethod
     def _truncate_seq_pair(max_length, seq_a, seq_b=()):
