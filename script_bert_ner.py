@@ -105,13 +105,6 @@ def main(args):
                                       hyperparams['learning_rate']['lr_schedule'],
                                       )
 
-        trainer.save_metrics(args.dataset_name,
-                             args.pretrained_model_name,
-                             hyperparams['num_epochs'],
-                             hyperparams['prune_ratio'][0],
-                             hyperparams['learning_rate']['lr_schedule'],
-                             )
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

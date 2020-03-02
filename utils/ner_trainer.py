@@ -2,7 +2,6 @@
 import os
 import time
 import torch
-import pickle
 import numpy as np
 from tensorboardX import SummaryWriter
 from seqeval.metrics import classification_report as classification_report_seqeval
@@ -86,9 +85,6 @@ class NERTrainer:
         self.scheduler = None
         self.pbar = None
         self.max_grad_norm = None
-
-        # metrics
-        self.metrics = self.instantiate_metrics_dict()
 
     def get_filtered_tags(self):
         return [tag
@@ -185,7 +181,7 @@ class NERTrainer:
             }
 
             # batch train metrics
-            batch_train_metrics, _, progress_bar = self.compute_metrics('batch', 'train', np_batch_train)
+            batch_train_metrics, _, progress_bar = self.compute_metrics(np_batch_train)
 
             # backpropagation
             if self.fp16:
@@ -201,7 +197,6 @@ class NERTrainer:
 
             # update learning rate (after optimization step!)
             lr_this_step = self.scheduler.get_lr()[0]
-            self.metrics['batch']['train']['lr'].append(lr_this_step)
             self.scheduler.step()
 
             # output
@@ -257,7 +252,7 @@ class NERTrainer:
         np_epoch_valid['tag_ids'] = np.vstack(np_epoch_valid_list['tag_ids'])
         np_epoch_valid['logits'] = np.vstack(np_epoch_valid_list['logits'])
 
-        epoch_valid_metrics, epoch_valid_tag_ids, _ = self.compute_metrics('epoch', 'valid', np_epoch_valid)
+        epoch_valid_metrics, epoch_valid_tag_ids, _ = self.compute_metrics(np_epoch_valid)
 
         # output
         self.print_metrics(epoch, epoch_valid_metrics)
@@ -269,27 +264,41 @@ class NERTrainer:
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
-    @staticmethod
-    def instantiate_metrics_dict():
-        metrics = dict()
-        for elem1 in ['batch', 'epoch']:
-            metrics[elem1] = dict()
-            for elem2 in ['train', 'valid']:
-                metrics[elem1][elem2] = dict()
-                for elem3 in ['all', 'fil']:
-                    metrics[elem1][elem2][elem3] = dict()
-                    for elem4 in ['f1']:
-                        metrics[elem1][elem2][elem3][elem4] = dict()
-                        for elem5 in ['macro', 'micro']:
-                            metrics[elem1][elem2][elem3][elem4][elem5] = list()
-                for elem4 in ['loss', 'acc']:
-                    metrics[elem1][elem2]['all'][elem4] = list()
-        metrics['batch']['train']['lr'] = list()
-
-        return metrics
-
-    def compute_metrics_for_specific_tags(self, _tag_ids, tags: str):
+    def compute_metrics(self, _np_dict):
         """
+        computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
+        -------------------------------------------------------------------------
+        :param _np_dict:       [dict] w/ key-value pairs:
+                                     'loss':     [np value]
+                                     'tag_ids':  [np array] of shape [batch_size, seq_length]
+                                     'logits'    [np array] of shape [batch_size, seq_length, num_tags]
+        :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
+                 tags_ids      [dict] w/ keys 'true', 'pred'      & values = [np array]
+                 _progress_bar [str] to display during training
+        """
+        # batch / dataset
+        tag_ids = dict()
+        tag_ids['true'], tag_ids['pred'] = self._reduce_and_flatten(_np_dict['tag_ids'], _np_dict['logits'])
+
+        # batch / dataset metrics
+        metrics = {'all_loss': _np_dict['loss']}
+        metrics.update(self._compute_metrics_for_specific_tags(tag_ids, tags='all'))
+        metrics.update(self._compute_metrics_for_specific_tags(tag_ids, tags='fil'))
+        for tag in self.get_filtered_tags():
+            metrics.update(self._compute_metrics_for_specific_tags(tag_ids, tags=tag))
+
+        # progress bar
+        _progress_bar = 'all acc: {:.2f} | fil f1 (macro): {:.2f} | fil f1 (micro): {:.2f}'.format(
+            metrics['all_acc'],
+            metrics['fil_f1_macro'],
+            metrics['fil_f1_micro'],
+        )
+
+        return metrics, tag_ids, _progress_bar
+
+    def _compute_metrics_for_specific_tags(self, _tag_ids, tags: str):
+        """
+        helper method
         compute metrics for specific tags (e.g. 'all', 'fil')
         -----------------------------------------------------
         :param _tag_ids:  [dict] w/ keys 'true', 'pred'      & values = [np array]
@@ -332,53 +341,10 @@ class NERTrainer:
 
         return _metrics
 
-    def compute_metrics(self, size, phase, _np_dict):
-        """
-        computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
-        -------------------------------------------------------------------------
-        :param size:           [str] 'batch' or 'epoch'
-        :param phase:          [str] 'train' or 'valid'
-        :param _np_dict:       [dict] w/ key-value pairs:
-                                     'loss':       [np value]
-                                     'tag_ids':  [np array] of shape [batch_size, seq_length]
-                                     'logits'      [np array] of shape [batch_size, seq_length, num_tags]
-        :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
-                 tags_ids      [dict] w/ keys 'true', 'pred'      & values = [np array]
-                 _progress_bar [str] to display during training
-        """
-        # batch / dataset
-        tag_ids = dict()
-        tag_ids['true'], tag_ids['pred'] = self.reduce_and_flatten(_np_dict['tag_ids'], _np_dict['logits'])
-
-        # batch / dataset metrics
-        metrics = {'all_loss': _np_dict['loss']}
-        metrics.update(self.compute_metrics_for_specific_tags(tag_ids, tags='all'))
-        metrics.update(self.compute_metrics_for_specific_tags(tag_ids, tags='fil'))
-        for tag in self.get_filtered_tags():
-            metrics.update(self.compute_metrics_for_specific_tags(tag_ids, tags=tag))
-
-        """
-        # append to self.metrics
-        self.metrics[size][phase]['all']['loss'].append(metrics['all_loss'])
-        self.metrics[size][phase]['all']['acc'].append(metrics['all_acc'])
-        self.metrics[size][phase]['all']['f1']['macro'].append(metrics['all_f1_macro'])
-        self.metrics[size][phase]['all']['f1']['micro'].append(metrics['all_f1_micro'])
-        self.metrics[size][phase]['fil']['f1']['macro'].append(metrics['fil_f1_macro'])
-        self.metrics[size][phase]['fil']['f1']['micro'].append(metrics['fil_f1_micro'])
-        """
-
-        # progress bar
-        _progress_bar = 'all acc: {:.2f} | fil f1 (macro): {:.2f} | fil f1 (micro): {:.2f}'.format(
-            metrics['all_acc'],
-            metrics['fil_f1_macro'],
-            metrics['fil_f1_micro'],
-        )
-
-        return metrics, tag_ids, _progress_bar
-
     @staticmethod
-    def reduce_and_flatten(_np_tag_ids, _np_logits):
+    def _reduce_and_flatten(_np_tag_ids, _np_logits):
         """
+        helper method
         reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
         ---------------------------------------------------------------
         :param _np_tag_ids: [np array] of shape [batch_size, seq_length]
@@ -555,7 +521,7 @@ class NERTrainer:
                     raise Exception('create scheduler: logic is broken.')  # this should never happen
 
     ####################################################################################################################
-    # 5. SAVE MODEL & METRICS
+    # 5. SAVE MODEL CHECKPOINT
     ####################################################################################################################
     def save_model_checkpoint(self, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
         dir_checkpoints = ENV_VARIABLE['DIR_CHECKPOINTS']
@@ -565,13 +531,3 @@ class NERTrainer:
 
         torch.save(self.model.state_dict(), pkl_path)
         print(f'checkpoint saved at {pkl_path}')
-
-    def save_metrics(self, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
-        dir_checkpoints = ENV_VARIABLE['DIR_CHECKPOINTS']
-
-        model_name = pretrained_model_name.split('/')[-1]
-        pkl_path = f'{dir_checkpoints}/metrics__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
-
-        with open(pkl_path, 'wb') as f:
-            pickle.dump(self.metrics, f)
-        print(f'metrics saved at {pkl_path}')

@@ -53,7 +53,3 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
 
 - `bert_ner.ipynb` shows how to train SweBERT on the 
 NER downstream task using the publicly available Swedish NER corpus dataset.  
-
-- `bert_ner_plot_metrics.ipynb` displays training and evaluation metrics.
-
-
