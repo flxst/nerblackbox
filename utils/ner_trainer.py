@@ -8,7 +8,6 @@ from tensorboardX import SummaryWriter
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
 
-from sklearn.metrics import f1_score as f1_score_sklearn
 from apex import amp
 # from torch.optim import Adam
 from transformers import AdamW
@@ -22,6 +21,7 @@ from utils import utils
 from utils.env_variable import ENV_VARIABLE
 from utils.mlflow_client import MLflowClient
 from utils.ner_metrics import NerMetrics
+from utils.logged_metrics import LoggedMetrics
 
 
 class NERTrainer:
@@ -56,29 +56,29 @@ class NERTrainer:
         self.fp16 = fp16
         self.verbose = verbose
 
-        # derived attributes
-        self.label_ids_filtered = [self.label_list.index(label)
-                                   for label in self.label_list
-                                   if not (label.startswith('[') or label == 'O')]
-
         # device
         self.model.to(self.device)
         if fp16:
             self.model.half()
 
         # tensorboard & mlflow
-        self.logged_metrics = ['all_loss', 'all_acc',
-                               'all_precision_macro', 'all_precision_micro',
-                               'all_recall_macro', 'all_recall_micro',
-                               'all_f1_macro', 'all_f1_micro',
-                               'fil_precision_macro', 'fil_precision_micro',
-                               'fil_recall_macro', 'fil_recall_micro',
-                               'fil_f1_macro', 'fil_f1_micro']
+        logged_metrics = [
+            ('loss', ['all'], ['simple']),
+            ('acc', ['all'], ['simple']),
+            ('precision', ['all', 'fil'], ['micro', 'macro']),
+            ('precision', ['ind'], ['micro']),
+            ('recall', ['all', 'fil'], ['micro', 'macro']),
+            ('recall', ['ind'], ['micro']),
+            ('f1', ['all', 'fil'], ['micro', 'macro']),
+            ('f1', ['ind'], ['micro']),
+        ]
+        self.logged_metrics = LoggedMetrics(logged_metrics)
         tensorboard_dir = os.path.join(ENV_VARIABLE['DIR_TENSORBOARD'],
                                        os.environ['MLFLOW_EXPERIMENT_NAME'],
                                        os.environ['MLFLOW_RUN_NAME'])
         self.writer = SummaryWriter(log_dir=tensorboard_dir)
-        self.mlflow_client = MLflowClient(log_dir=ENV_VARIABLE['DIR_MLFLOW'], logged_metrics=self.logged_metrics)
+        self.mlflow_client = MLflowClient(log_dir=ENV_VARIABLE['DIR_MLFLOW'],
+                                          logged_metrics=self.logged_metrics.as_flat_list())
         self.mlflow_client.log_params(hyperparams)
 
         # no input arguments (set in methods)
@@ -89,6 +89,19 @@ class NERTrainer:
 
         # metrics
         self.metrics = self.instantiate_metrics_dict()
+
+    def get_filtered_labels(self):
+        return [label
+                for label in self.label_list
+                if not (label.startswith('[') or label == 'O')]
+
+    def get_filtered_label_ids(self):
+        return [self.label_list.index(label)
+                for label in self.label_list
+                if not (label.startswith('[') or label == 'O')]
+
+    def get_individual_label_id(self, label):
+        return [self.label_list.index(label)]
 
     ####################################################################################################################
     # 1. FIT & VALIDATION
@@ -275,6 +288,44 @@ class NERTrainer:
 
         return metrics
 
+    def compute_metrics_for_specific_tags(self, _label_ids, tags: str):
+        """
+        compute metrics for specific tags (e.g. 'all', 'fil')
+        -----------------------------------------------------
+        :param _label_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param tags:       [str], e.g. 'all', 'fil'
+        :return: _metrics  [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
+        """
+        if tags == 'all':
+            labels = None
+            logged_metrics_tags = ['all']
+        elif tags == 'fil':
+            labels = self.get_filtered_label_ids()
+            logged_metrics_tags = ['fil']
+        else:
+            labels = self.get_individual_label_id(tags)
+            logged_metrics_tags = ['ind']
+
+        _metrics = dict()
+        ner_metrics = NerMetrics(_label_ids['true'], _label_ids['pred'], labels=labels)
+        ner_metrics.compute(self.logged_metrics.get_metrics(tags=logged_metrics_tags))
+        results = ner_metrics.results_as_dict()
+
+        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags, micro_macros=['simple'], exclude=['loss']):
+            if results[metric_type] is not None:
+                _metrics[f'{tags}_{metric_type}'] = results[metric_type]
+        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags, micro_macros=['micro']):
+            if results[f'{metric_type}_micro'] is not None:
+                if logged_metrics_tags == ['ind']:
+                    _metrics[f'{tags}_{metric_type}'] = results[f'{metric_type}_micro']
+                else:
+                    _metrics[f'{tags}_{metric_type}_micro'] = results[f'{metric_type}_micro']
+        for metric_type in self.logged_metrics.get_metrics(tags=logged_metrics_tags, micro_macros=['macro']):
+            if results[f'{metric_type}_macro'] is not None:
+                _metrics[f'{tags}_{metric_type}_macro'] = results[f'{metric_type}_macro']
+
+        return _metrics
+
     def compute_metrics(self, size, phase, _np_dict):
         """
         computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
@@ -289,40 +340,18 @@ class NERTrainer:
                  labels_ids    [dict] w/ keys 'true', 'pred'      & values = [np array]
                  _progress_bar [str] to display during training
         """
-        metrics = {'all_loss': _np_dict['loss']}
-
         # batch / dataset
         label_ids = dict()
         label_ids['true'], label_ids['pred'] = self.reduce_and_flatten(_np_dict['label_ids'], _np_dict['logits'])
 
         # batch / dataset metrics
-        metric_types_simple = ['acc']
-        metric_types_micro_macro = ['precision', 'recall', 'f1']
+        metrics = {'all_loss': _np_dict['loss']}
+        metrics.update(self.compute_metrics_for_specific_tags(label_ids, tags='all'))
+        metrics.update(self.compute_metrics_for_specific_tags(label_ids, tags='fil'))
+        for label in self.get_filtered_labels():
+            metrics.update(self.compute_metrics_for_specific_tags(label_ids, tags=label))
 
-        # all #
-        metric_types_all = ['acc', 'precision', 'recall', 'f1']
-        ner_metrics_all = NerMetrics(label_ids['true'], label_ids['pred'], labels=None)
-        ner_metrics_all.compute(metric_types_all)
-        results_all = ner_metrics_all.results_as_dict()
-        for metric_type in metric_types_all:
-            if metric_type in metric_types_simple:
-                metrics[f'all_{metric_type}'] = results_all[metric_type]
-            if metric_type in metric_types_micro_macro:
-                metrics[f'all_{metric_type}_micro'] = results_all[f'{metric_type}_micro']
-                metrics[f'all_{metric_type}_macro'] = results_all[f'{metric_type}_macro']
-
-        # fil #
-        metric_types_fil = ['precision', 'recall', 'f1']
-        ner_metrics_fil = NerMetrics(label_ids['true'], label_ids['pred'], labels=self.label_ids_filtered)
-        ner_metrics_fil.compute(metric_types_fil)
-        results_fil = ner_metrics_fil.results_as_dict()
-        for metric_type in metric_types_fil:
-            if metric_type in metric_types_simple:
-                metrics[f'fil_{metric_type}'] = results_fil[metric_type]
-            if metric_type in metric_types_micro_macro:
-                metrics[f'fil_{metric_type}_micro'] = results_fil[f'{metric_type}_micro']
-                metrics[f'fil_{metric_type}_macro'] = results_fil[f'{metric_type}_macro']
-
+        """
         # append to self.metrics
         self.metrics[size][phase]['all']['loss'].append(metrics['all_loss'])
         self.metrics[size][phase]['all']['acc'].append(metrics['all_acc'])
@@ -330,6 +359,7 @@ class NERTrainer:
         self.metrics[size][phase]['all']['f1']['micro'].append(metrics['all_f1_micro'])
         self.metrics[size][phase]['fil']['f1']['macro'].append(metrics['fil_f1_macro'])
         self.metrics[size][phase]['fil']['f1']['micro'].append(metrics['fil_f1_micro'])
+        """
 
         # progress bar
         _progress_bar = 'all acc: {:.2f} | fil f1 (macro): {:.2f} | fil f1 (micro): {:.2f}'.format(
@@ -376,8 +406,8 @@ class NERTrainer:
         :param _lr_this_step: [float] only needed if phase == 'train'
         :return: -
         """
-        for field in self.logged_metrics:
-            self.writer.add_scalar(f'{phase}/{field}', metrics[field], _global_step)
+        for key in metrics.keys():
+            self.writer.add_scalar(f'{phase}/{key}', metrics[key], _global_step)
 
         if phase == 'train' and _lr_this_step is not None:
             self.writer.add_scalar(f'{phase}/learning_rate', _lr_this_step, _global_step)

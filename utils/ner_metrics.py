@@ -10,13 +10,13 @@ from sklearn.metrics import recall_score as recall_sklearn
 
 @dataclass
 class Results:
-    acc: float = -1
-    precision_micro: float = -1
-    precision_macro: float = -1
-    recall_micro: float = -1
-    recall_macro: float = -1
-    f1_micro: float = -1
-    f1_macro: float = -1
+    acc: float = None
+    precision_micro: float = None
+    precision_macro: float = None
+    recall_micro: float = None
+    recall_macro: float = None
+    f1_micro: float = None
+    f1_macro: float = None
 
 
 class NerMetrics:

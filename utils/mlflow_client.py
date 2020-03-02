@@ -67,7 +67,7 @@ class MLflowClient:
         :return: -
         """
         mlflow.log_metric('epoch', _epoch)
-        for metric in self.logged_metrics:
+        for metric in _epoch_valid_metrics.keys():
             mlflow.log_metric(metric, _epoch_valid_metrics[metric])
 
     @staticmethod
@@ -99,4 +99,3 @@ class MLflowClient:
         print(f'mlflow log artifact at {self.mlflow_artifact}')
 
         mlflow.end_run()
-
