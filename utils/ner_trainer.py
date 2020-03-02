@@ -76,19 +76,6 @@ class NERTrainer:
         self.pbar = None
         self.max_grad_norm = None
 
-    def get_filtered_tags(self):
-        return [tag
-                for tag in self.tag_list
-                if not (tag.startswith('[') or tag == 'O')]
-
-    def get_filtered_tag_ids(self):
-        return [self.tag_list.index(tag)
-                for tag in self.tag_list
-                if not (tag.startswith('[') or tag == 'O')]
-
-    def get_individual_tag_id(self, tag):
-        return [self.tag_list.index(tag)]
-
     ####################################################################################################################
     # 1. FIT & VALIDATION
     ####################################################################################################################
@@ -273,13 +260,26 @@ class NERTrainer:
 
         # batch / dataset metrics
         metrics = {'all_loss': _np_dict['loss']}
-        for evaluation_tag in ['all', 'fil'] + self.get_filtered_tags():
+        for evaluation_tag in ['all', 'fil'] + self._get_filtered_tags():
             metrics.update(self._compute_metrics_for_specific_tags(tag_ids, phase, evaluation_tag=evaluation_tag))
 
         # progress bar
         _progress_bar = 'all loss: {:.2f} | all acc: {:.2f}'.format(metrics['all_loss'], metrics['all_acc'])
 
         return metrics, tag_ids, _progress_bar
+
+    def _get_filtered_tags(self):
+        return [tag
+                for tag in self.tag_list
+                if not (tag.startswith('[') or tag == 'O')]
+
+    def _get_filtered_tag_ids(self):
+        return [self.tag_list.index(tag)
+                for tag in self.tag_list
+                if not (tag.startswith('[') or tag == 'O')]
+
+    def _get_individual_tag_id(self, tag):
+        return [self.tag_list.index(tag)]
 
     def _compute_metrics_for_specific_tags(self, _tag_ids, _phase, evaluation_tag: str):
         """
@@ -295,10 +295,10 @@ class NERTrainer:
             tag_list = None
             tag_group = ['all']
         elif evaluation_tag == 'fil':
-            tag_list = self.get_filtered_tag_ids()
+            tag_list = self._get_filtered_tag_ids()
             tag_group = ['fil']
         else:
-            tag_list = self.get_individual_tag_id(evaluation_tag)
+            tag_list = self._get_individual_tag_id(evaluation_tag)
             tag_group = ['ind']
 
         ner_metrics = NerMetrics(_tag_ids['true'], _tag_ids['pred'], tag_list=tag_list)
