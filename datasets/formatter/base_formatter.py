@@ -74,17 +74,13 @@ class BaseFormatter(ABC):
         file_path = f'datasets/ner/{self.ner_dataset}/{phase}.csv'
 
         df = pd.read_csv(file_path, sep='\t')
-        # print(len(df), len(df.columns))
-        # print(df.head())
 
         columns = ['O'] + self.ner_tag_list
         stats = pd.DataFrame([], columns=columns)
         tags = df.iloc[:, 0].apply(lambda x: x.split())
-        # print(tags.head())
 
         for column in columns:
             stats[column] = tags.apply(lambda x: len([elem for elem in x if elem == column]))
-        # print(stats.head())
 
         assert len(df) == len(stats)
 
@@ -99,9 +95,15 @@ class BaseFormatter(ABC):
         df['count/sentence'] = df['count']/float(number_of_sentences)
         df['count/sentence'] = df['count/sentence'].apply(lambda x: '{:.2f}'.format(x))
 
+        # relative count w/ 0
+        number_of_occurrences = df['count'].sum()
+        df['relative count w/ 0'] = df['count'] / number_of_occurrences
+        df['relative count w/ 0'] = df['relative count w/ 0'].apply(lambda x: '{:.2f}'.format(x))
+
+        # relative count w/o 0
         number_of_filtered_occurrences = df['count'].sum() - df.loc['O']['count']
-        df['relative'] = df['count'] / number_of_filtered_occurrences
-        df['relative']['O'] = 0
-        df['relative'] = df['relative'].apply(lambda x: '{:.2f}'.format(x))
+        df['relative count w/o 0'] = df['count'] / number_of_filtered_occurrences
+        df['relative count w/o 0']['O'] = 0
+        df['relative count w/o 0'] = df['relative count w/o 0'].apply(lambda x: '{:.2f}'.format(x))
 
         return df

@@ -1,10 +1,9 @@
 
-import os
-import json
 import argparse
 
+from os.path import abspath, dirname
 import sys
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
 
 from datasets.formatter.swedish_ner_corpus_formatter import SwedishNerCorpusFormatter
@@ -51,7 +50,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ner_dataset', type=str, help='e.g. swedish_ner_corpus')
+    parser.add_argument('--ner_dataset', required=True, type=str, help='e.g. swedish_ner_corpus')
     parser.add_argument('--verbose', action='store_true')
     _args = parser.parse_args()
 

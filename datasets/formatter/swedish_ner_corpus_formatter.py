@@ -1,9 +1,9 @@
 
 import json
 
-import os
+from os.path import abspath, dirname, join
 import sys
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
 
 from datasets.formatter.base_formatter import BaseFormatter
@@ -73,7 +73,7 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         file_path = f'datasets/ner/swedish_ner_corpus/{phase}.csv'
 
         # ner tag mapping
-        with open(os.path.join(dataset_path, 'ner_tag_mapping.json'), 'r') as f:
+        with open(join(dataset_path, 'ner_tag_mapping.json'), 'r') as f:
             ner_tag_mapping = json.load(f)
 
         # processing

@@ -1,9 +1,9 @@
 
 import pandas as pd
 
-import os
+from os.path import abspath, dirname
 import sys
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
 
 from datasets.formatter.base_formatter import BaseFormatter

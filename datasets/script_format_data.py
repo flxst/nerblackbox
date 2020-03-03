@@ -1,12 +1,10 @@
 
-import numpy as np
+import argparse
 import pandas as pd
 
-import argparse
-
-import os
+from os.path import abspath, dirname, join
 import sys
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
 
 from utils.utils import get_dataset_path
@@ -67,7 +65,7 @@ def main(args):
     --------------------------------------------------------------------------------
     :return: -
     """
-    dataset_path = os.path.join(BASE_DIR, get_dataset_path(args.ner_dataset))
+    dataset_path = join(BASE_DIR, get_dataset_path(args.ner_dataset))
 
     if args.ner_dataset == 'swedish_ner_corpus':
         # formatter
@@ -97,7 +95,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ner_dataset', type=str, help='e.g. swedish_ner_corpus')
+    parser.add_argument('--ner_dataset', required=True, type=str, help='e.g. swedish_ner_corpus')
     parser.add_argument('--valid_fraction', type=float, default=1.0)
     _args = parser.parse_args()
 
