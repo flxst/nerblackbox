@@ -40,10 +40,10 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
   - flags:
     - ###### `--experiment_name * --run_name *` to structure runs 
     - `--pretrained_model_name * --dataset_name *` to choose model & dataset
-    - `--num_epochs * --lr_max * [..]` to choose hyperparameters 
+    - `--max_epochs * --lr_max * [..]` to choose hyperparameters 
   - metrics & results are logged in directory `results` with 
     - mlflow, display with `mlflow ui`
-    - tensorboard, display with `tensorboard --logdir tensorboard`
+    - tensorboard, display with `tensorboard --logdir tensorboard --reload_multifile=true`
 
   
 - `mlflow run mlflow_experiments/test --no-conda`

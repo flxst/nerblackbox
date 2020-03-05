@@ -66,7 +66,9 @@ class NERTrainer:
                                        os.environ['MLFLOW_EXPERIMENT_NAME'],
                                        os.environ['MLFLOW_RUN_NAME'])
         self.writer = SummaryWriter(log_dir=tensorboard_dir)
-        self.mlflow_client = MLflowClient(log_dir=ENV_VARIABLE['DIR_MLFLOW'],
+        self.mlflow_client = MLflowClient(experiment_name=os.environ['MLFLOW_EXPERIMENT_NAME'],
+                                          run_name=os.environ['MLFLOW_RUN_NAME'],
+                                          log_dir=ENV_VARIABLE['DIR_MLFLOW'],
                                           logged_metrics=self.logged_metrics.as_flat_list())
         self.mlflow_client.log_params(hyperparams)
 
@@ -80,7 +82,7 @@ class NERTrainer:
     # 1. FIT & VALIDATION
     ####################################################################################################################
     def fit(self,
-            num_epochs=25,
+            max_epochs=25,
             max_grad_norm=None,  # 2.0
             lr_max=3e-5,
             lr_schedule='linear',
@@ -89,7 +91,7 @@ class NERTrainer:
         """
         train & validate
         ----------------
-        :param num_epochs:          [int]
+        :param max_epochs:          [int]
         :param max_grad_norm:       [float]
         :param lr_max:              [float] basic learning rate
         :param lr_schedule:         [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
@@ -105,20 +107,20 @@ class NERTrainer:
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level='O1')
 
         # learning rate
-        self.scheduler = self.create_scheduler(num_epochs, lr_schedule, lr_warmup_fraction, lr_num_cycles)
+        self.scheduler = self.create_scheduler(max_epochs, lr_schedule, lr_warmup_fraction, lr_num_cycles)
 
         ################################################################################################################
         # start training
         ################################################################################################################
-        self.pbar = tqdm(total=num_epochs*len(self.train_dataloader))
+        self.pbar = tqdm(total=max_epochs*len(self.train_dataloader))
 
         start = time.time()
-        for epoch in range(num_epochs):
+        for epoch in range(max_epochs):
             print('\n>>> Epoch: {}'.format(epoch))
             self.train(epoch)
             self.validate(epoch)
         end = time.time()
-        print(f'> train & validate time on device = {self.device} for {num_epochs} epochs: {end - start:.2f}s')
+        print(f'> train & validate time on device = {self.device} for {max_epochs} epochs: {end - start:.2f}s')
 
         # mlflow & tensorboard
         self.mlflow_client.log_time(end - start)
@@ -423,14 +425,14 @@ class NERTrainer:
         """
         return _epoch * len(self.train_dataloader) + _batch_train_step
     
-    def get_total_steps(self, _num_epochs):
+    def get_total_steps(self, _max_epochs):
         """
-        gets total_steps = num_epochs * (number of training data samples)
+        gets total_steps = max_epochs * (number of training data samples)
         -----------------------------------------------------------------
-        :param _num_epochs:    [int], e.g. 10
+        :param _max_epochs:    [int], e.g. 10
         :return: total_steps: [int], e.g. 2500 (in case of 250 training data samples)
         """
-        return _num_epochs * len(self.train_dataloader)
+        return _max_epochs * len(self.train_dataloader)
 
     ####################################################################################################################
     # 4. OPTIMIZER
@@ -470,11 +472,11 @@ class NERTrainer:
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
 
-    def create_scheduler(self, _num_epochs, _lr_schedule, _lr_warmup_fraction, _lr_num_cycles=None):
+    def create_scheduler(self, _max_epochs, _lr_schedule, _lr_warmup_fraction, _lr_num_cycles=None):
         """
         create scheduler with warmup
         ----------------------------
-        :param _num_epochs:         [int]
+        :param _max_epochs:         [int]
         :param _lr_schedule:        [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
         :param _lr_warmup_fraction: [float], e.g. 0.1, fraction of steps during which lr is warmed up
         :param _lr_num_cycles:      [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules
@@ -483,7 +485,7 @@ class NERTrainer:
         if _lr_schedule not in ['constant', 'linear', 'cosine', 'cosine_with_hard_restarts']:
             raise Exception(f'lr_schedule = {_lr_schedule} not implemented.')
 
-        total_steps = self.get_total_steps(_num_epochs)
+        total_steps = self.get_total_steps(_max_epochs)
 
         scheduler_params = {
             'num_warmup_steps': int(_lr_warmup_fraction * total_steps),
@@ -513,11 +515,11 @@ class NERTrainer:
     ####################################################################################################################
     # 5. SAVE MODEL CHECKPOINT
     ####################################################################################################################
-    def save_model_checkpoint(self, dataset, pretrained_model_name, num_epochs, prune_ratio, lr_schedule):
+    def save_model_checkpoint(self, dataset, pretrained_model_name, max_epochs, prune_ratio, lr_schedule):
         dir_checkpoints = ENV_VARIABLE['DIR_CHECKPOINTS']
 
         model_name = pretrained_model_name.split('/')[-1]
-        pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{num_epochs}__{prune_ratio}__{lr_schedule}.pkl'
+        pkl_path = f'{dir_checkpoints}/saved__{dataset}__{model_name}__{max_epochs}__{prune_ratio}__{lr_schedule}.pkl'
 
         torch.save(self.model.state_dict(), pkl_path)
         print(f'checkpoint saved at {pkl_path}')

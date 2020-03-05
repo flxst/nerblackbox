@@ -1,43 +1,19 @@
 
-import os
 import mlflow
 
 
 class MLflowClient:
 
-    def __init__(self, log_dir, logged_metrics):
-        mlflow.set_tracking_uri(log_dir)
+    def __init__(self, experiment_name, run_name, log_dir, logged_metrics):
+        self.experiment_name = experiment_name
+        self.run_name = run_name
         self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
-
         self.logged_metrics = logged_metrics
+        print(self.experiment_name, self.run_name)
 
-        self._set_experiment_and_run_name()
-
-    @staticmethod
-    def _set_experiment_and_run_name():
-        """
-        set mlflow experiment and run name from env variables if available
-        ------------------------------------------------------------------
-        :return: -
-        """
-        try:
-            experiment_name = os.environ['MLFLOW_EXPERIMENT_NAME']
-        except KeyError:
-            experiment_name = 'Default'
-
-        mlflow.set_experiment(experiment_name)
-
-        try:
-            run_name = os.environ['MLFLOW_RUN_NAME']
-        except KeyError:
-            run_name = None
-
-        print(experiment_name, run_name)
-        if run_name:
-            mlflow.start_run(run_name=run_name)
-
-        print(f'mlflow experiment name: {experiment_name}')
-        print(f'mlflow run        name: {run_name}')
+        mlflow.set_tracking_uri(log_dir)
+        mlflow.set_experiment(self.experiment_name)
+        mlflow.start_run(run_name=self.run_name)
 
     @staticmethod
     def log_params(_hyperparams):
@@ -51,12 +27,13 @@ class MLflowClient:
         mlflow.log_param('hyperparameters', _hyperparams)
 
         # most important hyperparameters
-        most_important_hyperparameters = ['device', 'num_epochs', 'prune_ratio', 'lr_max', 'lr_schedule']
+        most_important_hyperparameters = ['max_epochs',
+                                          'prune_ratio_train',
+                                          'prune_ratio_valid',
+                                          'lr_max',
+                                          'lr_schedule']
         for hyperparameter in most_important_hyperparameters:
-            if hyperparameter.startswith('lr'):
-                mlflow.log_param(hyperparameter, _hyperparams['learning_rate'][hyperparameter])
-            else:
-                mlflow.log_param(hyperparameter, _hyperparams[hyperparameter])
+            mlflow.log_param(hyperparameter, _hyperparams[hyperparameter])
 
     def log_metrics(self, _epoch, _epoch_valid_metrics):
         """
@@ -94,8 +71,10 @@ class MLflowClient:
         with open(self.mlflow_artifact, "a") as f:
             f.write(content + '\n')
 
-    def finish(self):
+    def finish_artifact(self):
         mlflow.log_artifact(self.mlflow_artifact)
         print(f'mlflow log artifact at {self.mlflow_artifact}')
 
+    def finish(self):
+        self.finish_artifact()
         mlflow.end_run()
