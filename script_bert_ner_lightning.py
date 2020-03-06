@@ -36,7 +36,12 @@ def main(params, hparams, log_dirs):
     model = LightningNerModel(params, hparams, log_dirs)
 
     tb_logger = TensorBoardLogger(save_dir=log_dirs.tensorboard, name=params.experiment_run_name)
-    trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs)
+
+    if params.device.type == 'cpu':
+        trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs)
+    else:  # params.device.type == 'cuda'
+        trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs, gpus=1)
+
     trainer.fit(model)
 
 
