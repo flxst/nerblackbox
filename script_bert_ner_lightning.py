@@ -40,7 +40,7 @@ def main(params, hparams, log_dirs):
     if params.device.type == 'cpu':
         trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs)
     else:  # params.device.type == 'cuda'
-        trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs, gpus=1)
+        trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs, gpus=torch.cuda.device_count())
 
     trainer.fit(model)
 
