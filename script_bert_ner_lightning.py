@@ -3,6 +3,7 @@ import argparse
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.logging import TensorBoardLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -32,15 +33,21 @@ def main(params, hparams, log_dirs):
     """
     _print_device_information(params)
 
-    # START
+    # model
     model = LightningNerModel(params, hparams, log_dirs)
 
+    # logging & checkpoints
     tb_logger = TensorBoardLogger(save_dir=log_dirs.tensorboard, name=params.experiment_run_name)
+    checkpoint_callback = ModelCheckpoint(filepath=log_dirs.checkpoints)
 
-    if params.device.type == 'cpu':
-        trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs)
-    else:  # params.device.type == 'cuda'
-        trainer = Trainer(logger=tb_logger, max_epochs=hparams.max_epochs, gpus=torch.cuda.device_count())
+    # trainer
+    trainer = Trainer(
+        max_epochs=hparams.max_epochs,
+        gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
+        use_amp=params.device.type == 'cuda',
+        logger=tb_logger,
+        checkpoint_callback=checkpoint_callback,
+    )
 
     trainer.fit(model)
 
@@ -87,6 +94,7 @@ if __name__ == '__main__':
     _log_dirs_dict = {
         'mlflow': ENV_VARIABLE['DIR_MLFLOW'],
         'tensorboard': ENV_VARIABLE['DIR_TENSORBOARD'],
+        'checkpoints': ENV_VARIABLE['DIR_CHECKPOINTS'],
     }
     _log_dirs = argparse.Namespace(**_log_dirs_dict)
 

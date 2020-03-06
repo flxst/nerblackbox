@@ -68,10 +68,6 @@ class LightningNerModel(pl.LightningModule):
         # optimizer
         self.optimizer = self._create_optimizer(self.hparams.lr_max,
                                                 fp16=self.params.fp16)
-        if self.params.device == 'cpu':
-            self.model, self.optimizer = amp.initialize(self.model,
-                                                        self.optimizer,
-                                                        opt_level='O1')
 
         # learning rate
         self.scheduler = self._create_scheduler(self.hparams.lr_warmup_epochs,
@@ -79,7 +75,7 @@ class LightningNerModel(pl.LightningModule):
                                                 self.hparams.lr_num_cycles)
 
     ####################################################################################################################
-    # FORWARD
+    # FORWARD & BACKWARD PROPAGATION
     ####################################################################################################################
     def forward(self, _input_ids, _input_mask, _segment_ids, _tag_ids):
         return self.model(_input_ids,
@@ -87,6 +83,13 @@ class LightningNerModel(pl.LightningModule):
                           token_type_ids=_segment_ids,
                           labels=_tag_ids,
                           )
+
+    def backward(self, use_amp, loss, optimizer):
+        if use_amp:
+            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
 
     ####################################################################################################################
     # TRAIN
