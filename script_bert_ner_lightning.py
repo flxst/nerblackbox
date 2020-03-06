@@ -38,7 +38,7 @@ def main(params, hparams, log_dirs):
 
     # logging & checkpoints
     tb_logger = TensorBoardLogger(save_dir=log_dirs.tensorboard, name=params.experiment_run_name)
-    checkpoint_callback = ModelCheckpoint(filepath=log_dirs.checkpoints)
+    checkpoint_callback = ModelCheckpoint(filepath=log_dirs.checkpoints) if params.checkpoints else None
 
     # trainer
     trainer = Trainer(
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     args_general.add_argument('--dataset_name', type=str, default='swedish_ner_corpus')          # .. model & dataset
     args_general.add_argument('--device', type=str, default='gpu')                               # .. device
     args_general.add_argument('--fp16', type=bool, default=False)                                # .. device
-    args_general.add_argument('--checkpoints', action='store_true')                              # .. additional
+    args_general.add_argument('--checkpoints', action='store_true')                              # .. checkpoints
 
     # hparams
     args_hparams = parser.add_argument_group('args_hparams')
