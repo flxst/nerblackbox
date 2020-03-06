@@ -240,8 +240,8 @@ class LightningNerModel(pl.LightningModule):
         if _lr_schedule not in ['constant', 'linear', 'cosine', 'cosine_with_hard_restarts']:
             raise Exception(f'lr_schedule = {_lr_schedule} not implemented.')
 
-        num_training_steps = self._get_total_steps(self.hparams.max_epochs)
-        num_warmup_steps = self._get_total_steps(_lr_warmup_epochs)
+        num_training_steps = self._get_steps(self.hparams.max_epochs)
+        num_warmup_steps = self._get_steps(_lr_warmup_epochs)
 
         scheduler_params = {
             'num_warmup_steps': num_warmup_steps,

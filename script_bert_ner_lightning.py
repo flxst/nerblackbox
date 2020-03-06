@@ -47,13 +47,11 @@ if __name__ == '__main__':
     args_general = parser.add_argument_group('args_general')
     args_general.add_argument('--experiment_name', type=str, default='Default')  # .. logging w/ mlflow & tensorboard
     args_general.add_argument('--run_name', type=str, default='Default')         # .. logging w/ mlflow & tensorboard
-    args_general.add_argument('--pretrained_model_name', type=str,
-                              default='af-ai-center/bert-base-swedish-uncased')  # .. model & dataset
-    args_general.add_argument('--dataset_name', type=str,
-                              default='swedish_ner_corpus')                      # .. model & dataset
-    args_general.add_argument('--device', type=str, default='gpu')               # .. device
-    args_general.add_argument('--fp16', type=bool, default=False)                # .. device
-    args_general.add_argument('--checkpoints', action='store_true')              # .. additional
+    args_general.add_argument('--pretrained_model_name', type=str, default='af-ai-center/bert-base-swedish-uncased')
+    args_general.add_argument('--dataset_name', type=str, default='swedish_ner_corpus')          # .. model & dataset
+    args_general.add_argument('--device', type=str, default='gpu')                               # .. device
+    args_general.add_argument('--fp16', type=bool, default=False)                                # .. device
+    args_general.add_argument('--checkpoints', action='store_true')                              # .. additional
 
     # hparams
     args_hparams = parser.add_argument_group('args_hparams')
