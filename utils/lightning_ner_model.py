@@ -46,6 +46,8 @@ class LightningNerModel(pl.LightningModule):
                                           logged_metrics=self.logged_metrics.as_flat_list())
         self.mlflow_client.log_params(vars(self.hparams))
 
+        self.classification_reports = dict()
+
         self._preparations()
 
     def _preparations(self):
@@ -110,7 +112,7 @@ class LightningNerModel(pl.LightningModule):
         }
 
         # batch train metrics
-        batch_train_metrics, _, progress_bar = self.compute_metrics('train', np_batch_train)
+        batch_train_metrics, _ = self.compute_metrics('train', np_batch_train)
 
         # logging
         self.write_metrics_for_tensorboard('train', batch_train_metrics)
@@ -164,15 +166,29 @@ class LightningNerModel(pl.LightningModule):
         }
 
         # epoch metrics
-        epoch_valid_metrics, epoch_valid_tag_ids, _ = self.compute_metrics('valid', np_epoch_valid)
+        epoch_valid_metrics, epoch_valid_tag_ids = self.compute_metrics('valid', np_epoch_valid)
+
+        # classification reports
+        self.get_classification_report(self.current_epoch, epoch_valid_tag_ids)
 
         # logging
-        self.write_metrics_for_tensorboard('valid', epoch_valid_metrics)            # tb
-        self.mlflow_client.log_metrics(self.current_epoch, epoch_valid_metrics)     # mlflow
-        self.print_classification_reports(self.current_epoch, epoch_valid_tag_ids)  # mlflow
-        self.mlflow_client.finish_artifact()                                        # mlflow
+        self.write_metrics_for_tensorboard('valid', epoch_valid_metrics)                               # tb
+        self.mlflow_client.log_metrics(self.current_epoch, epoch_valid_metrics)                        # mlflow
+        self.mlflow_client.log_classification_report(self.classification_reports[self.current_epoch],
+                                                     overwrite=self.current_epoch == 0)                # mlflow
+        self.mlflow_client.finish_artifact()                                                           # mlflow
+
+        # print
+        self._print_metrics(epoch_valid_metrics, self.classification_reports[self.current_epoch])
 
         return {'val_loss': np_epoch_valid['loss']}
+
+    @staticmethod
+    def _print_metrics(_metrics, _classification_reports=None):
+        print()
+        print(f'validation loss:', _metrics['all_loss'])
+        if _classification_reports is not None:
+            print(_classification_reports)
 
     ####################################################################################################################
     # DATALOADER
@@ -285,7 +301,6 @@ class LightningNerModel(pl.LightningModule):
                                      'logits'    [np array] of shape [batch_size, seq_length, num_tags]
         :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
                  tags_ids      [dict] w/ keys 'true', 'pred'      & values = [np array]
-                 _progress_bar [str] to display during training
         """
         # batch / dataset
         tag_ids = dict()
@@ -296,10 +311,7 @@ class LightningNerModel(pl.LightningModule):
         for evaluation_tag in ['all', 'fil'] + self._get_filtered_tags():
             metrics.update(self._compute_metrics_for_specific_tags(tag_ids, phase, evaluation_tag=evaluation_tag))
 
-        # progress bar
-        _progress_bar = 'all loss: {:.2f} | all acc: {:.2f}'.format(metrics['all_loss'], metrics['all_acc'])
-
-        return metrics, tag_ids, _progress_bar
+        return metrics, tag_ids
 
     def _get_filtered_tags(self):
         return [tag
@@ -379,6 +391,43 @@ class LightningNerModel(pl.LightningModule):
         pred_flat = np.argmax(_np_logits, axis=2).flatten()
         return true_flat, pred_flat
 
+    def get_classification_report(self, epoch, epoch_valid_tag_ids):
+        """
+        get token-based (sklearn) & chunk-based (seqeval) classification report
+        -----------------------------------------------------------------------
+        :param: epoch:                   [int]
+        :param: epoch_valid_tag_ids:     [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :changed attr: classification reports: [dict] w/ keys = epoch [int], values = classification report [str]
+        :return: -
+        """
+        self.classification_reports[epoch] = ''
+
+        # use tags instead of tag_ids
+        epoch_valid_tags = {
+            field: [self.tag_list[tag_id] for tag_id in epoch_valid_tag_ids[field]]
+            for field in ['true', 'pred']
+        }
+
+        # token-based classification report
+        selected_tags = [tag for tag in self.tag_list if tag != 'O' and not tag.startswith('[')]
+        self.classification_reports[epoch] += f'\n>>> Epoch: {epoch}'
+        self.classification_reports[epoch] += '\n--- token-based (sklearn) classification report ---\n'
+        self.classification_reports[epoch] += classification_report_sklearn(epoch_valid_tags['true'],
+                                                                            epoch_valid_tags['pred'],
+                                                                            labels=selected_tags)
+
+        # enrich pred_tags & valid_tags with bio prefixes
+        epoch_valid_tags_bio = {
+            field: utils.add_bio_to_tag_list(utils.get_rid_of_special_tokens(epoch_valid_tags[field]))
+            for field in ['true', 'pred']
+        }
+
+        # chunk-based classification report
+        self.classification_reports[epoch] += '\n--- chunk-based (seqeval) classification report ---\n'
+        self.classification_reports[epoch] += classification_report_seqeval(epoch_valid_tags_bio['true'],
+                                                                            epoch_valid_tags_bio['pred'],
+                                                                            suffix=False)
+
     ####################################################################################################################
     # 2b. METRICS LOGGING
     ####################################################################################################################
@@ -415,39 +464,3 @@ class LightningNerModel(pl.LightningModule):
                                                {f'hparam/valid/{metric}': metrics[metric]
                                                 for metric in ['fil_f1_micro', 'fil_f1_macro']}
                                                )
-
-    def print_classification_reports(self, epoch, epoch_valid_tag_ids):
-        """
-        print token-based (sklearn) & chunk-based (seqeval) classification reports
-        --------------------------------------------------------------------------
-        :param: epoch:               [int]
-        :param: epoch_valid_tag_ids: [dict] w/ keys 'true', 'pred'      & values = [np array]
-        :return: -
-        """
-        self.mlflow_client.clear_artifact()
-
-        # use tags instead of tag_ids
-        epoch_valid_tags = {
-            field: [self.tag_list[tag_id] for tag_id in epoch_valid_tag_ids[field]]
-            for field in ['true', 'pred']
-        }
-
-        # token-based classification report
-        self.mlflow_client.log_artifact(f'\n>>> Epoch: {epoch}')
-        self.mlflow_client.log_artifact('\n--- token-based (sklearn) classification report ---')
-        selected_tags = [tag for tag in self.tag_list if tag != 'O' and not tag.startswith('[')]
-        self.mlflow_client.log_artifact(classification_report_sklearn(epoch_valid_tags['true'],
-                                                                      epoch_valid_tags['pred'],
-                                                                      labels=selected_tags))
-
-        # enrich pred_tags & valid_tags with bio prefixes
-        epoch_valid_tags_bio = {
-            field: utils.add_bio_to_tag_list(utils.get_rid_of_special_tokens(epoch_valid_tags[field]))
-            for field in ['true', 'pred']
-        }
-
-        # chunk-based classification report
-        self.mlflow_client.log_artifact('\n--- chunk-based (seqeval) classification report ---')
-        self.mlflow_client.log_artifact(classification_report_seqeval(epoch_valid_tags_bio['true'],
-                                                                      epoch_valid_tags_bio['pred'],
-                                                                      suffix=False))

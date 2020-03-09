@@ -4,6 +4,7 @@ import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.logging import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -36,9 +37,10 @@ def main(params, hparams, log_dirs):
     # model
     model = LightningNerModel(params, hparams, log_dirs)
 
-    # logging & checkpoints
+    # logging & callbacks
     tb_logger = TensorBoardLogger(save_dir=log_dirs.tensorboard, name=params.experiment_run_name)
     checkpoint_callback = ModelCheckpoint(filepath=log_dirs.checkpoints) if params.checkpoints else None
+    early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.00, patience=2, mode='min')
 
     # trainer
     trainer = Trainer(
@@ -47,9 +49,14 @@ def main(params, hparams, log_dirs):
         use_amp=params.device.type == 'cuda',
         logger=tb_logger,
         checkpoint_callback=checkpoint_callback,
+        early_stop_callback=early_stop_callback,
     )
 
     trainer.fit(model)
+
+    # logging
+    stopped_epoch = early_stop_callback.stopped_epoch if early_stop_callback.stopped_epoch else hparams.max_epochs
+    tb_logger.log_metrics({f'train/stopped_epoch': stopped_epoch}, 0)
 
 
 if __name__ == '__main__':

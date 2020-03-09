@@ -47,11 +47,23 @@ class MLflowClient:
         for metric in _epoch_valid_metrics.keys():
             mlflow.log_metric(metric, _epoch_valid_metrics[metric])
 
+    def log_classification_report(self, _classification_report, overwrite=False):
+        """
+        log classification report
+        ------------------------------------------------------------------------------------
+        :param: _classification_report: [str]
+        :param: overwrite: [bool] if True, overwrite existing artifact, else append
+        :return: -
+        """
+        if overwrite:
+            self._clear_artifact()
+        self._log_artifact(_classification_report)
+
     @staticmethod
     def log_time(_time):
         mlflow.log_metric('time', _time)
 
-    def clear_artifact(self):
+    def _clear_artifact(self):
         """
         mlflow artifact logging
         -----------------------
@@ -60,14 +72,13 @@ class MLflowClient:
         with open(self.mlflow_artifact, "w") as f:
             f.write(' ')
 
-    def log_artifact(self, content):
+    def _log_artifact(self, content):
         """
         mlflow artifact logging
         -----------------------
         :param content: [str]
         :return: -
         """
-        print(content)
         with open(self.mlflow_artifact, "a") as f:
             f.write(content + '\n')
 
