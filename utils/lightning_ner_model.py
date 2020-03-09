@@ -35,7 +35,7 @@ class LightningNerModel(pl.LightningModule):
         """
         super().__init__()
         self.params = params
-        self.hparams = hparams
+        self._hparams = hparams
         self.log_dirs = log_dirs
 
         # logging
@@ -44,8 +44,9 @@ class LightningNerModel(pl.LightningModule):
                                           run_name=self.params.run_name,
                                           log_dir=self.log_dirs.mlflow,
                                           logged_metrics=self.logged_metrics.as_flat_list())
-        self.mlflow_client.log_params(vars(self.hparams))
+        self.mlflow_client.log_params(vars(self._hparams))
 
+        self.epoch_valid_metrics = dict()
         self.classification_reports = dict()
 
         self._preparations()
@@ -59,22 +60,22 @@ class LightningNerModel(pl.LightningModule):
         dataset_path = os.path.join(BASE_DIR, utils.get_dataset_path(self.params.dataset_name))
         self.dataloader, self.tag_list = utils.preprocess_data(dataset_path,
                                                                tokenizer,
-                                                               self.hparams.batch_size,
-                                                               max_seq_length=self.hparams.max_seq_length,
-                                                               prune_ratio=(self.hparams.prune_ratio_train,
-                                                                            self.hparams.prune_ratio_valid),
+                                                               self._hparams.batch_size,
+                                                               max_seq_length=self._hparams.max_seq_length,
+                                                               prune_ratio=(self._hparams.prune_ratio_train,
+                                                                            self._hparams.prune_ratio_valid),
                                                                )
         # model
         self.model = BertForTokenClassification.from_pretrained(self.params.pretrained_model_name,
                                                                 num_labels=len(self.tag_list))
         # optimizer
-        self.optimizer = self._create_optimizer(self.hparams.lr_max,
+        self.optimizer = self._create_optimizer(self._hparams.lr_max,
                                                 fp16=self.params.fp16)
 
         # learning rate
-        self.scheduler = self._create_scheduler(self.hparams.lr_warmup_epochs,
-                                                self.hparams.lr_schedule,
-                                                self.hparams.lr_num_cycles)
+        self.scheduler = self._create_scheduler(self._hparams.lr_warmup_epochs,
+                                                self._hparams.lr_schedule,
+                                                self._hparams.lr_num_cycles)
 
     ####################################################################################################################
     # FORWARD & BACKWARD PROPAGATION
@@ -168,8 +169,9 @@ class LightningNerModel(pl.LightningModule):
         # epoch metrics
         epoch_valid_metrics, epoch_valid_tag_ids = self.compute_metrics('valid', np_epoch_valid)
 
-        # classification reports
-        self.get_classification_report(self.current_epoch, epoch_valid_tag_ids)
+        # tracked metrics & classification reports
+        self.add_epoch_valid_metrics(self.current_epoch, epoch_valid_metrics)    # attr: epoch_valid_metrics
+        self.get_classification_report(self.current_epoch, epoch_valid_tag_ids)  # attr: classification_reports
 
         # logging
         self.write_metrics_for_tensorboard('valid', epoch_valid_metrics)                               # tb
@@ -259,7 +261,7 @@ class LightningNerModel(pl.LightningModule):
         if _lr_schedule not in ['constant', 'linear', 'cosine', 'cosine_with_hard_restarts']:
             raise Exception(f'lr_schedule = {_lr_schedule} not implemented.')
 
-        num_training_steps = self._get_steps(self.hparams.max_epochs)
+        num_training_steps = self._get_steps(self._hparams.max_epochs)
         num_warmup_steps = self._get_steps(_lr_warmup_epochs)
 
         scheduler_params = {
@@ -391,12 +393,23 @@ class LightningNerModel(pl.LightningModule):
         pred_flat = np.argmax(_np_logits, axis=2).flatten()
         return true_flat, pred_flat
 
-    def get_classification_report(self, epoch, epoch_valid_tag_ids):
+    def add_epoch_valid_metrics(self, epoch, _epoch_valid_metrics):
+        """
+        add _epoch_valid_metrics to attribute/dict epoch_valid_metrics
+        --------------------------------------------------------------
+        :param: epoch:                      [int]
+        :param: _epoch_valid_metrics:       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
+        :changed attr: epoch_valid_metrics: [dict] w/ keys = epoch [int], values = _epoch_valid_metrics [dict]
+        :return: -
+        """
+        self.epoch_valid_metrics[epoch] = _epoch_valid_metrics
+
+    def get_classification_report(self, epoch, _epoch_valid_tag_ids):
         """
         get token-based (sklearn) & chunk-based (seqeval) classification report
         -----------------------------------------------------------------------
         :param: epoch:                   [int]
-        :param: epoch_valid_tag_ids:     [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param: _epoch_valid_tag_ids:    [dict] w/ keys 'true', 'pred'      & values = [np array]
         :changed attr: classification reports: [dict] w/ keys = epoch [int], values = classification report [str]
         :return: -
         """
@@ -404,7 +417,7 @@ class LightningNerModel(pl.LightningModule):
 
         # use tags instead of tag_ids
         epoch_valid_tags = {
-            field: [self.tag_list[tag_id] for tag_id in epoch_valid_tag_ids[field]]
+            field: [self.tag_list[tag_id] for tag_id in _epoch_valid_tag_ids[field]]
             for field in ['true', 'pred']
         }
 
@@ -457,10 +470,3 @@ class LightningNerModel(pl.LightningModule):
 
         # tb_logs
         self.logger.log_metrics(tb_logs, self.global_step)
-
-        # hparams
-        if phase == 'valid':
-            self.logger.experiment.add_hparams(vars(self.hparams),
-                                               {f'hparam/valid/{metric}': metrics[metric]
-                                                for metric in ['fil_f1_micro', 'fil_f1_macro']}
-                                               )
