@@ -1,0 +1,13 @@
+# mlflow run mlflow_experiments/test --no-conda
+
+name: test project
+
+entry_points:
+  main:
+    parameters:
+      experiment_name: {type: string, default: Default}
+      run_name: {type: string, default: Default}
+    command: |
+        python script_bert_ner_lightning.py \
+        --experiment_name {experiment_name} \
+        --run_name {run_name}

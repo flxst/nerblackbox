@@ -75,7 +75,7 @@ def _stopped_epoch_logging(_tb_logger,
     :return:
     """
     # stopped_epoch
-    stopped_epoch = _early_stop_callback.stopped_epoch if _early_stop_callback.stopped_epoch else -1
+    stopped_epoch = _early_stop_callback.stopped_epoch if _early_stop_callback.stopped_epoch else _hparams.max_epochs-1
 
     # hparams
     hparams_dict = {f'hparam/valid/{metric}': _model.epoch_valid_metrics[stopped_epoch][metric] for metric in metrics}

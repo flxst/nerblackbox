@@ -9,5 +9,3 @@ ENV_VARIABLE = {
     'DIR_TENSORBOARD': f'{BASE_DIR}/results/tensorboard',
     'DIR_MLFLOW': f'{BASE_DIR}/results/mlruns',
 }
-
-

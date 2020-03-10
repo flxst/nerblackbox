@@ -35,7 +35,11 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
     
 ## Scripts
 
-- `script_bert_ner.py`: train SweBERT on NER downstream task. 
+Train SweBERT on NER downstream task.
+
+- Single Run: 
+
+    `python script_bert_ner_lightning.py` 
 
   - flags:
     - ###### `--experiment_name * --run_name *` to structure runs 
@@ -46,7 +50,9 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
     - tensorboard, display with `tensorboard --logdir tensorboard --reload_multifile=true`
 
   
-- `mlflow run mlflow_experiments/test --no-conda`
+- Hyperparameter Runs: 
+    
+    `bash run_experiment.sh <experiment_name> <run_name>`
 
 
 ## Notebooks (prototypes)

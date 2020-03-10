@@ -5,13 +5,18 @@ import mlflow
 class MLflowClient:
 
     def __init__(self, experiment_name, run_name, log_dir, logged_metrics):
+        """
+        :param experiment_name: [str], e.g. 'Default'
+        :param run_name:        [str], e.g. 'Default'
+        :param log_dir:         [str], e.g. '{BASE_DIR}/results/mlflow'
+        :param logged_metrics:  [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', ..]
+        """
         self.experiment_name = experiment_name
         self.run_name = run_name
         self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
         self.logged_metrics = logged_metrics
-        print(self.experiment_name, self.run_name)
 
-        mlflow.set_tracking_uri(log_dir)
+        mlflow.tracking.set_tracking_uri(log_dir)
         mlflow.set_experiment(self.experiment_name)
         mlflow.start_run(run_name=self.run_name)
 
