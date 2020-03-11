@@ -27,11 +27,13 @@ class LightningNerModel(pl.LightningModule):
     def __init__(self,
                  params,
                  hparams,
-                 log_dirs):
+                 log_dirs,
+                 experiment=False):
         """
-        :param params:   [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-        :param hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
-        :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
+        :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+        :param log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
+        :param experiment: [bool] whether run is part of an experiment w/ multiple runs
         """
         super().__init__()
         self.params = params
@@ -44,7 +46,7 @@ class LightningNerModel(pl.LightningModule):
                                           run_name=self.params.run_name,
                                           log_dir=self.log_dirs.mlflow,
                                           logged_metrics=self.logged_metrics.as_flat_list())
-        self.mlflow_client.log_params(vars(self._hparams))
+        self.mlflow_client.log_params(params, hparams, experiment=experiment)
 
         self.epoch_valid_metrics = dict()
         self.classification_reports = dict()

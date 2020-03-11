@@ -8,6 +8,27 @@ class ExperimentConfig:
     class that parses <experiment_name>.ini files
     """
 
+    params = [
+        'pretrained_model_name',
+        'dataset_name',
+        'checkpoints',
+        'monitor',
+        'min_delta',
+        'patience',
+        'mode',
+    ]
+    hparams = [
+        'batch_size',
+        'max_seq_length',
+        'prune_ratio_train',
+        'prune_ratio_valid',
+        'max_epochs',
+        'lr_max',
+        'lr_schedule',
+        'lr_warmup_epochs',
+        'lr_num_cycles',
+    ]
+
     def __init__(self,
                  experiment_name: str,
                  run_name: str):
@@ -21,6 +42,24 @@ class ExperimentConfig:
         if not os.path.isfile(self.config_path):
             raise Exception(f'config file at {self.config_path} does not exist')
 
+    def get_params_and_hparams(self, run_name: str = None):
+        """
+        get dictionary of all parameters & their values that belong to
+        either generally to experiment or specifically to runs
+        --------------------------------------------------------------
+        :param run_name:             [str]  e.g. 'run1'
+        :return: params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
+        """
+        config, config_dict = self._get_config()
+
+        if run_name is None:
+            params_and_hparams = config_dict['params']
+            params_and_hparams.update(config_dict['hparams'])
+        else:
+            params_and_hparams = config_dict[run_name]
+
+        return params_and_hparams
+
     def parse(self):
         """
         parse <experiment_name>.ini files
@@ -32,11 +71,7 @@ class ExperimentConfig:
                  _hparams_configs [dict] w/ keys = run_name [str], values = hparams [dict],
                                             e.g. {'run1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
-        config = ConfigParser()
-        config.read(self.config_path)
-
-        config_dict = {s: dict(config.items(s)) for s in config.sections()}
-        config_dict = {s: {k: self._convert(v) for k, v in subdict.items()} for s, subdict in config_dict.items()}
+        config, config_dict = self._get_config()
 
         # _params_config & _hparams_config
         _params_configs = dict()
@@ -54,11 +89,32 @@ class ExperimentConfig:
             _params_configs[run]['experiment_run_name'] = f'{self.experiment_name}/{run}'
 
             _hparams_configs[run] = config_dict['hparams'].copy()
-            _hparams_configs[run].update(config_dict[run])
+
+            for k, v in config_dict[run].items():
+                if k in self.params:
+                    _params_configs[run][k] = v
+                elif k in self.hparams:
+                    _hparams_configs[run][k] = v
+                else:
+                    raise Exception(f'parameter = {k} is unknown.')
 
         assert set(_params_configs.keys()) == set(_hparams_configs.keys())
 
         return runs, _params_configs, _hparams_configs
+
+    def _get_config(self):
+        """
+        get ConfigParser instance and derive config dictionary from it
+        --------------------------------------------------------------
+        :return: _config:      [ConfigParser instance]
+        :return: _config_dict: [dict] w/ keys = sections [str], values = [dict] w/ params: values
+        """
+        _config = ConfigParser()
+        _config.read(self.config_path)
+        _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}
+        _config_dict = {s: {k: self._convert(v) for k, v in subdict.items()} for s, subdict in _config_dict.items()}
+
+        return _config, _config_dict
 
     @staticmethod
     def _convert(_input: str):
@@ -79,4 +135,3 @@ class ExperimentConfig:
             return element not in ['False', 'false']
         else:
             raise Exception(f'convert_to = {convert_to} not known.')
-

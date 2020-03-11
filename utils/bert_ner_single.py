@@ -1,18 +1,20 @@
 
 import torch
+import mlflow
 from pytorch_lightning import Trainer
 from pytorch_lightning.logging import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import EarlyStopping
-import mlflow
+
 from utils.lightning_ner_model import LightningNerModel
 
 
-def main(params, hparams, log_dirs):
+def main(params, hparams, log_dirs, experiment):
     """
-    :param params:   [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-    :param hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
-    :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
+    :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+    :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
+    :param experiment: [bool] whether run is part of an experiment w/ multiple runs
     :return: -
     """
     _print_run_information(params, hparams)
@@ -20,34 +22,31 @@ def main(params, hparams, log_dirs):
     # mlflow start
     mlflow.tracking.set_tracking_uri(log_dirs.mlflow)
     mlflow.set_experiment(params.experiment_name)
-    mlflow.start_run(run_name=params.run_name)
+    with mlflow.start_run(run_name=params.run_name, nested=experiment):
 
-    # model
-    model = LightningNerModel(params, hparams, log_dirs)
+        # model
+        model = LightningNerModel(params, hparams, log_dirs, experiment=experiment)
 
-    # logging & callbacks
-    tb_logger = TensorBoardLogger(save_dir=log_dirs.tensorboard, name=params.experiment_run_name)
-    checkpoint_callback = ModelCheckpoint(filepath=log_dirs.checkpoints) if params.checkpoints else None
-    early_stopping_params = {k: vars(params)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
-    early_stop_callback = EarlyStopping(**early_stopping_params)
+        # logging & callbacks
+        tb_logger = TensorBoardLogger(save_dir=log_dirs.tensorboard, name=params.experiment_run_name)
+        checkpoint_callback = ModelCheckpoint(filepath=log_dirs.checkpoints) if params.checkpoints else None
+        early_stopping_params = {k: vars(params)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
+        early_stop_callback = EarlyStopping(**early_stopping_params, verbose=True)
 
-    # trainer
-    trainer = Trainer(
-        max_epochs=hparams.max_epochs,
-        gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
-        use_amp=params.device.type == 'cuda',
-        logger=tb_logger,
-        checkpoint_callback=checkpoint_callback,
-        early_stop_callback=early_stop_callback,
-    )
+        # trainer
+        trainer = Trainer(
+            max_epochs=hparams.max_epochs,
+            gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
+            use_amp=params.device.type == 'cuda',
+            logger=tb_logger,
+            checkpoint_callback=checkpoint_callback,
+            early_stop_callback=early_stop_callback,
+        )
 
-    trainer.fit(model)
+        trainer.fit(model)
 
-    # logging
-    _stopped_epoch_logging(tb_logger, hparams, early_stop_callback, model)
-
-    # mlflow
-    mlflow.end_run()
+        # logging
+        _tb_logger_stopped_epoch(tb_logger, hparams, early_stop_callback, model)
 
 
 def _print_run_information(_params, _hparams):
@@ -88,11 +87,11 @@ def _print_run_information(_params, _hparams):
     print()
 
 
-def _stopped_epoch_logging(_tb_logger,
-                           _hparams,
-                           _early_stop_callback,
-                           _model,
-                           metrics=('all_loss', 'fil_f1_micro', 'fil_f1_macro')):
+def _tb_logger_stopped_epoch(_tb_logger,
+                             _hparams,
+                             _early_stop_callback,
+                             _model,
+                             metrics=('all_loss', 'fil_f1_micro', 'fil_f1_macro')):
     """
     log hparams and metrics for stopped epoch
     -----------------------------------------
@@ -113,5 +112,3 @@ def _stopped_epoch_logging(_tb_logger,
         vars(_hparams),
         hparams_dict,
     )
-
-

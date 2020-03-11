@@ -1,5 +1,6 @@
 
 import mlflow
+from experiment_configs.experiment_config import ExperimentConfig
 
 
 class MLflowClient:
@@ -16,31 +17,41 @@ class MLflowClient:
         self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
         self.logged_metrics = logged_metrics
 
-        # mlflow start
-        # mlflow.tracking.set_tracking_uri(log_dir)
-        # mlflow.set_experiment(self.experiment_name)
-        # mlflow.start_run(run_name=self.run_name)
-
-
     @staticmethod
-    def log_params(_hyperparams):
+    def log_params(params, hparams, experiment=False):
         """
         mlflow hyperparameter logging
         -----------------------------
-        :param _hyperparams:      [dict] for mlflow tracking
+        :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+        :param experiment: [bool] whether run is part of an experiment w/ multiple runs
         :return:
         """
-        # all hyperparameters
-        mlflow.log_param('hyperparameters', _hyperparams)
+        if experiment:
+            # log only run (hyper)parameters
+            experiment_config = ExperimentConfig(experiment_name=params.experiment_name, run_name=params.run_name)
+            for k, v in experiment_config.get_params_and_hparams(run_name=params.run_name).items():
+                mlflow.log_param(k, v)
+        else:
+            # log hardcoded set of (hyper)parameters
+            if params is not None:
+                # all parameters
+                mlflow.log_param('parameters', vars(params))
 
-        # most important hyperparameters
-        most_important_hyperparameters = ['max_epochs',
-                                          'prune_ratio_train',
-                                          'prune_ratio_valid',
-                                          'lr_max',
-                                          'lr_schedule']
-        for hyperparameter in most_important_hyperparameters:
-            mlflow.log_param(hyperparameter, _hyperparams[hyperparameter])
+            if hparams is not None:
+                # all hyperparameters
+                mlflow.log_param('hyperparameters', vars(hparams))
+
+                # most important hyperparameters
+                most_important_hyperparameters = [
+                    'prune_ratio_train',
+                    'prune_ratio_valid',
+                    'max_epochs',
+                    'lr_max',
+                    'lr_schedule',
+                ]
+                for hyperparameter in most_important_hyperparameters:
+                    mlflow.log_param(hyperparameter, vars(hparams)[hyperparameter])
 
     def log_metrics(self, _epoch, _epoch_valid_metrics):
         """

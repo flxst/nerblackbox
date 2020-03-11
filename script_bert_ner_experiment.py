@@ -1,6 +1,7 @@
 
 import argparse
 import torch
+import mlflow
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -19,21 +20,26 @@ def main(params, log_dirs):
     experiment_config = ExperimentConfig(experiment_name=params.experiment_name, run_name=params.run_name)
     runs, _params_configs, _hparams_configs = experiment_config.parse()
 
-    for run in runs:
-        # params
-        params_dict = {
-            'experiment_name': params.experiment_name,
-            'device': params.device,
-            'fp16': params.fp16,
-        }
-        params_dict.update(_params_configs[run])
-        params = argparse.Namespace(**params_dict)
+    with mlflow.start_run(run_name=params.experiment_name):
 
-        # hparams
-        hparams = argparse.Namespace(**_hparams_configs[run])
+        for k, v in experiment_config.get_params_and_hparams(run_name=None).items():
+            mlflow.log_param(k, v)
 
-        # bert_ner: single run
-        bert_ner_single.main(params, hparams, log_dirs)
+        for run in runs:
+            # params
+            params_dict = {
+                'experiment_name': params.experiment_name,
+                'device': params.device,
+                'fp16': params.fp16,
+            }
+            params_dict.update(_params_configs[run])
+            params = argparse.Namespace(**params_dict)
+
+            # hparams
+            hparams = argparse.Namespace(**_hparams_configs[run])
+
+            # bert_ner: single run
+            bert_ner_single.main(params, hparams, log_dirs, experiment=True)
 
 
 if __name__ == '__main__':

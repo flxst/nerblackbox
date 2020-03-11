@@ -39,7 +39,7 @@ Train SweBERT on NER downstream task.
 
 - Single Run: 
 
-    `python script_bert_ner_lightning.py` 
+    `python script_bert_ner_single.py` 
 
   - flags:
     - `--experiment_name * --run_name *` to structure runs 
