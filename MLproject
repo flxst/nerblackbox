@@ -1,13 +1,16 @@
-# mlflow run mlflow_experiments/test --no-conda
 
 name: test project
 
 entry_points:
   main:
     parameters:
-      experiment_name: {type: string, default: Default}
-      run_name: {type: string, default: Default}
+      experiment_name: {type: string}
+      run_name: {type: string}
+      device: {type: string, default: gpu}
+      fp16: {type: int, default: 0}
     command: |
-        python script_bert_ner_lightning.py \
+        python script_bert_ner_experiment.py \
         --experiment_name {experiment_name} \
-        --run_name {run_name}
+        --run_name {run_name} \
+        --device {device} \
+        --fp16 {fp16}

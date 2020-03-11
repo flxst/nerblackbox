@@ -16,9 +16,11 @@ class MLflowClient:
         self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
         self.logged_metrics = logged_metrics
 
-        mlflow.tracking.set_tracking_uri(log_dir)
-        mlflow.set_experiment(self.experiment_name)
-        mlflow.start_run(run_name=self.run_name)
+        # mlflow start
+        # mlflow.tracking.set_tracking_uri(log_dir)
+        # mlflow.set_experiment(self.experiment_name)
+        # mlflow.start_run(run_name=self.run_name)
+
 
     @staticmethod
     def log_params(_hyperparams):

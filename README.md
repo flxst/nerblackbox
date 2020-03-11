@@ -42,17 +42,23 @@ Train SweBERT on NER downstream task.
     `python script_bert_ner_lightning.py` 
 
   - flags:
-    - ###### `--experiment_name * --run_name *` to structure runs 
+    - `--experiment_name * --run_name *` to structure runs 
     - `--pretrained_model_name * --dataset_name *` to choose model & dataset
     - `--max_epochs * --lr_max * [..]` to choose hyperparameters 
-  - metrics & results are logged in directory `results` with 
-    - mlflow, display with `mlflow ui`
-    - tensorboard, display with `tensorboard --logdir tensorboard --reload_multifile=true`
 
   
-- Hyperparameter Runs: 
+- Experiment (= hyperparameter runs): 
     
-    `bash run_experiment.sh <experiment_name> <run_name>`
+    - specify all parameters & hyperparameters for all runs in `experiment_configs/<experiment_name>.ini`
+    - call
+        
+        `. run_experiment.sh <experiment_name>` to execute all runs
+        
+        `. run_experiment.sh <experiment_name> <run_name>` to execute single run
+        
+- metrics & results are logged in directory `results` with 
+    - mlflow, display with `mlflow ui`
+    - tensorboard, display with `tensorboard --logdir tensorboard --reload_multifile=true`
 
 
 ## Notebooks (prototypes)
