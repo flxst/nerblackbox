@@ -1,5 +1,6 @@
 
 import json
+import subprocess
 
 from os.path import abspath, dirname, join
 import sys
@@ -19,9 +20,30 @@ class SwedishNerCorpusFormatter(BaseFormatter):
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
+    def get_data(self, verbose: bool):
+        """
+        I: get data
+        -----------
+        :param verbose: [bool]
+        :return: -
+        """
+        bash_cmds = [
+            'git clone https://github.com/klintan/swedish-ner-corpus.git datasets/ner/swedish_ner_corpus',
+            'echo \"*\" > datasets/ner/swedish_ner_corpus/.gitignore',
+        ]
+
+        for bash_cmd in bash_cmds:
+            if verbose:
+                print(bash_cmd)
+
+            try:
+                subprocess.run(bash_cmd, shell=True, check=True)
+            except subprocess.CalledProcessError as e:
+                print(e)
+
     def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
         """
-        customize ner tag mapping if wanted
+        II: customize ner tag mapping if wanted
         -------------------------------------
         :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
         :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
@@ -42,7 +64,45 @@ class SwedishNerCorpusFormatter(BaseFormatter):
 
         return ner_tag_mapping
 
-    def read_original_file(self, phase):
+    def format_data(self, valid_fraction: float):
+        """
+        III: format data
+        ----------------
+        :param valid_fraction: [float]
+        :return: -
+        """
+        # train -> train
+        rows = self._read_rows(['train'])
+        self._write_rows_train(self.dataset_path, rows)
+
+        # test  -> valid (& test)
+        rows = self._read_rows(['test'])
+        self._write_rows_valid_test(self.dataset_path, rows, valid_fraction)
+
+    ####################################################################################################################
+    # HELPER: ROWS
+    ####################################################################################################################
+    def _read_rows(self, phases):
+        rows = list()
+        for phase in phases:
+            rows.extend(self._read_original_file(phase))
+        return rows
+
+    def _write_rows_train(self, _dataset_path, _rows):
+        self._write_formatted_csv('train', _rows)
+
+    def _write_rows_valid_test(self, _dataset_path, _rows, _valid_fraction):
+        split_index = int(len(_rows) * _valid_fraction)
+        rows_valid = _rows[:split_index]
+        rows_test = _rows[split_index:]
+        self._write_formatted_csv('valid', rows_valid)
+        self._write_formatted_csv('test', rows_test)
+
+    ####################################################################################################################
+    # HELPER: READ / WRITE
+    ####################################################################################################################
+    @staticmethod
+    def _read_original_file(phase):
         """
         - read original text files
         ---------------------------------------------
@@ -61,19 +121,18 @@ class SwedishNerCorpusFormatter(BaseFormatter):
 
         return _rows
 
-    def write_formatted_csv(self, phase, rows, dataset_path):
+    def _write_formatted_csv(self, phase, rows):
         """
         - write formatted csv files
         ----------------------------------------------
         :param phase:         [str] 'train' or 'test'
         :param rows:          [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
-        :param dataset_path:  [str] relative path from BASE_DIR to swedish_ner_corpus directory
         :return: -
         """
         file_path = f'datasets/ner/swedish_ner_corpus/{phase}.csv'
 
         # ner tag mapping
-        with open(join(dataset_path, 'ner_tag_mapping.json'), 'r') as f:
+        with open(join(self.dataset_path, 'ner_tag_mapping.json'), 'r') as f:
             ner_tag_mapping = json.load(f)
 
         # processing

@@ -6,6 +6,11 @@ import mlflow
 import warnings
 warnings.filterwarnings('ignore')
 
+from os.path import abspath, dirname
+import sys
+BASE_DIR = abspath(dirname(dirname(__file__)))
+sys.path.append(BASE_DIR)
+
 from utils.env_variable import ENV_VARIABLE
 import utils.bert_ner_single as bert_ner_single
 from experiment_hyperparameter_configs.experiment_hyperparameter_config import ExperimentHyperparameterConfig

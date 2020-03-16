@@ -1,6 +1,14 @@
 
+import json
 import pandas as pd
 from abc import ABC, abstractmethod
+
+from os.path import abspath, dirname, join
+import sys
+BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
+sys.path.append(BASE_DIR)
+
+from utils.utils import get_dataset_path
 
 
 class BaseFormatter(ABC):
@@ -12,14 +20,53 @@ class BaseFormatter(ABC):
         """
         self.ner_dataset = ner_dataset
         self.ner_tag_list = ner_tag_list
+        self.dataset_path = join(BASE_DIR, get_dataset_path(ner_dataset))
 
-    def create_ner_tag_mapping(self, with_tags: bool, modify: bool):
+    ####################################################################################################################
+    # ABSTRACT BASE METHODS
+    ####################################################################################################################
+    @abstractmethod
+    def get_data(self, verbose: bool):
         """
-        create customized ner tag mapping to map tags in original data to tags in formatted data
-        ----------------------------------------------------------------------------------------------
+        I: get data
+        -----------
+        :param verbose: [bool]
+        :return: -
+        """
+        pass
+
+    @abstractmethod
+    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
+        """
+        II: customize ner tag mapping if wanted
+        -------------------------------------
+        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
         :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
                                   if False: create simple tags, e.g. 'PER', 'LOC', ..
-        :param modify:    [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
+        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
+        """
+        pass
+
+    @abstractmethod
+    def format_data(self, valid_fraction: float):
+        """
+        III: format data
+        ----------------
+        :param valid_fraction: [float]
+        :return: -
+        """
+        pass
+
+    ####################################################################################################################
+    # BASE METHODS
+    ####################################################################################################################
+    def create_ner_tag_mapping(self, with_tags: bool, modify: bool):
+        """
+        II: create customized ner tag mapping to map tags in original data to tags in formatted data
+        ----------------------------------------------------------------------------------------------
+        :param with_tags:   [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
+                                    if False: create simple tags, e.g. 'PER', 'LOC', ..
+        :param modify:      [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         # full tag list
@@ -33,39 +80,20 @@ class BaseFormatter(ABC):
         ner_tag_mapping_original = {k: k for k in tag_list_full}
 
         if modify:
-            return self.modify_ner_tag_mapping(ner_tag_mapping_original, with_tags=with_tags)
+            ner_tag_mapping = self.modify_ner_tag_mapping(ner_tag_mapping_original, with_tags=with_tags)
         else:
-            return ner_tag_mapping_original
+            ner_tag_mapping = ner_tag_mapping_original
 
-    ####################################################################################################################
-    # ABSTRACT BASE METHODS
-    ####################################################################################################################
-    @abstractmethod
-    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
-        """
-        customize ner tag mapping if wanted
-        -------------------------------------
-        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
-        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
-        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
-        """
-        pass
+        json_path = f'datasets/ner/{self.ner_dataset}/ner_tag_mapping.json'
+        with open(json_path, 'w') as f:
+            json.dump(ner_tag_mapping, f)
 
-    @abstractmethod
-    def read_original_file(self, phase):
-        pass
+        print(f'> dumped the following dict to {json_path}:')
+        print(ner_tag_mapping)
 
-    @abstractmethod
-    def write_formatted_csv(self, phase, rows, dataset_path):
-        pass
-
-    ####################################################################################################################
-    # BASE METHODS
-    ####################################################################################################################
     def read_formatted_csv(self, phase):
         """
-        - read formatted csv files
+        III & IV: read formatted csv files
         ----------------------------------------------
         :param phase:         [str] 'train' or 'test'
         :return: num_sentences:    [int]
@@ -90,8 +118,45 @@ class BaseFormatter(ABC):
 
         return num_sentences, stats_aggregated
 
+    def analyze_data(self, verbose):
+        """
+        IV: analyze data
+        ----------------
+        :param verbose: [bool]
+        :return: -
+        """
+        num_sentences = 0
+        stats_aggregated = None
+        for phase in ['train', 'valid']:
+            _num_sentences, _stats_aggregated = self.read_formatted_csv(phase)
+            num_sentences += _num_sentences
+            if stats_aggregated is None:
+                stats_aggregated = _stats_aggregated
+            else:
+                stats_aggregated = stats_aggregated + _stats_aggregated
+
+            if verbose:
+                print()
+                print(f'>>> {phase} <<<<')
+                print(f'num_sentences = {_num_sentences} (of total = {num_sentences})')
+                print('stats_aggregated:')
+                print(self._stats_aggregated_add_columns(_stats_aggregated, _num_sentences))
+
+        print()
+        print(f'>>> total <<<<')
+        print(f'num_sentences = {num_sentences}')
+        print('stats_aggregated:')
+        print(self._stats_aggregated_add_columns(stats_aggregated, num_sentences))
+
     @staticmethod
-    def stats_aggregated_add_columns(df, number_of_sentences):
+    def _stats_aggregated_add_columns(df, number_of_sentences):
+        """
+        IV: analyze data
+        ----------------
+        :param df: ..
+        :param number_of_sentences: ..
+        :return: ..
+        """
         df['count/sentence'] = df['count']/float(number_of_sentences)
         df['count/sentence'] = df['count/sentence'].apply(lambda x: '{:.2f}'.format(x))
 

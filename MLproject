@@ -9,7 +9,7 @@ entry_points:
       device: {type: string, default: gpu}
       fp16: {type: int, default: 0}
     command: |
-        python script_bert_ner_experiment.py \
+        python scripts/script_bert_ner_experiment.py \
         --experiment_name {experiment_name} \
         --run_name {run_name} \
         --device {device} \

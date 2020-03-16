@@ -31,7 +31,7 @@ It is recommended to run all commands, scripts and notebooks in a virtual enviro
 
 
     # <ner_dataset> = swedish_ner_corpus, SUC
-    bash setup_datasets.sh <ner_dataset>   
+    python script_setup_dataset.py <ner_dataset>   
     
 ## Scripts
 
@@ -53,7 +53,7 @@ Train SweBERT on NER downstream task.
     - call
         
         `. run_experiment.sh <experiment_name>` to execute all runs
-        
+
         `. run_experiment.sh <experiment_name> <run_name>` to execute single run
         
 - metrics & results are logged in directory `results` with 
