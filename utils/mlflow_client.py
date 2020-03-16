@@ -1,6 +1,6 @@
 
 import mlflow
-from experiment_configs.experiment_config import ExperimentConfig
+from experiment_hyperparameter_configs.experiment_hyperparameter_config import ExperimentHyperparameterConfig
 
 
 class MLflowClient:
@@ -29,8 +29,9 @@ class MLflowClient:
         """
         if experiment:
             # log only run (hyper)parameters
-            experiment_config = ExperimentConfig(experiment_name=params.experiment_name, run_name=params.run_name)
-            for k, v in experiment_config.get_params_and_hparams(run_name=params.run_name).items():
+            experiment_hyperparameter_config = ExperimentHyperparameterConfig(experiment_name=params.experiment_name,
+                                                                              run_name=params.run_name)
+            for k, v in experiment_hyperparameter_config.get_params_and_hparams(run_name=params.run_name).items():
                 mlflow.log_param(k, v)
         else:
             # log hardcoded set of (hyper)parameters

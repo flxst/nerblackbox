@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 
 from utils.env_variable import ENV_VARIABLE
 import utils.bert_ner_single as bert_ner_single
-from experiment_configs.experiment_config import ExperimentConfig
+from experiment_hyperparameter_configs.experiment_hyperparameter_config import ExperimentHyperparameterConfig
 
 
 def main(params, log_dirs):
@@ -17,12 +17,13 @@ def main(params, log_dirs):
     :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     :return: -
     """
-    experiment_config = ExperimentConfig(experiment_name=params.experiment_name, run_name=params.run_name)
-    runs, _params_configs, _hparams_configs = experiment_config.parse()
+    experiment_hyperparameter_config = ExperimentHyperparameterConfig(experiment_name=params.experiment_name,
+                                                                      run_name=params.run_name)
+    runs, _params_configs, _hparams_configs = experiment_hyperparameter_config.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
 
-        for k, v in experiment_config.get_params_and_hparams(run_name=None).items():
+        for k, v in experiment_hyperparameter_config.get_params_and_hparams(run_name=None).items():
             mlflow.log_param(k, v)
 
         for run in runs:

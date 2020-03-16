@@ -45,7 +45,7 @@ if __name__ == '__main__':
     args_hparams.add_argument('--max_epochs', type=int, default=1)
     args_hparams.add_argument('--lr_max', type=float, default=2e-5)
     args_hparams.add_argument('--lr_warmup_epochs', type=int, default=1)
-    args_hparams.add_argument('--lr_schedule', type=str, default='constant')
+    args_hparams.add_argument('--lr_schedule', type=str, default='constant', help='constant/linear/cosine/cosine_w[..]')
     args_hparams.add_argument('--lr_num_cycles', type=float, default=4)
 
     # parsing

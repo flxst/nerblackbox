@@ -1,33 +1,34 @@
 
 import os
+from os.path import abspath, dirname
 from configparser import ConfigParser
 
 
-class ExperimentConfig:
+class ExperimentHyperparameterConfig:
     """
     class that parses <experiment_name>.ini files
     """
 
-    params = [
-        'pretrained_model_name',
-        'dataset_name',
-        'checkpoints',
-        'monitor',
-        'min_delta',
-        'patience',
-        'mode',
-    ]
-    hparams = [
-        'batch_size',
-        'max_seq_length',
-        'prune_ratio_train',
-        'prune_ratio_valid',
-        'max_epochs',
-        'lr_max',
-        'lr_schedule',
-        'lr_warmup_epochs',
-        'lr_num_cycles',
-    ]
+    params = {
+        'pretrained_model_name': 'str',
+        'dataset_name': 'str',
+        'checkpoints': 'bool',
+        'monitor': 'str',
+        'min_delta': 'float',
+        'patience': 'int',
+        'mode': 'str',
+    }
+    hparams = {
+        'batch_size': 'int',
+        'max_seq_length': 'int',
+        'prune_ratio_train': 'float',
+        'prune_ratio_valid': 'float',
+        'max_epochs': 'int',
+        'lr_max': 'float',
+        'lr_schedule': 'str',
+        'lr_warmup_epochs': 'int',
+        'lr_num_cycles': 'int',
+    }
 
     def __init__(self,
                  experiment_name: str,
@@ -38,7 +39,7 @@ class ExperimentConfig:
         """
         self.experiment_name = experiment_name
         self.run_name = run_name
-        self.config_path = f'./experiment_configs/{self.experiment_name}.ini'
+        self.config_path = f'{abspath(dirname(__file__))}/{self.experiment_name}.ini'
         if not os.path.isfile(self.config_path):
             raise Exception(f'config file at {self.config_path} does not exist')
 
@@ -111,27 +112,33 @@ class ExperimentConfig:
         """
         _config = ConfigParser()
         _config.read(self.config_path)
-        _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}
-        _config_dict = {s: {k: self._convert(v) for k, v in subdict.items()} for s, subdict in _config_dict.items()}
+        _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}  # {'params': {'monitor': 'val_loss'}}
+        _config_dict = {s: {k: self._convert(k, v) for k, v in subdict.items()} for s, subdict in _config_dict.items()}
 
         return _config, _config_dict
 
-    @staticmethod
-    def _convert(_input: str):
+    def _convert(self, _input_key: str, _input_value):
         """
         convert _input string to str/int/float/bool
         -------------------------------------------
-        :param _input:            [str],                e.g. 'str|constant' or 'float|0.01' or 'bool|False'
+        :param _input_key:        [str],                e.g. 'lr_schedule' or 'prune_ratio_train' or 'checkpoints'
+        :param _input_value:      [str],                e.g. 'constant'    or '0.01'              or 'False'
         :return: converted_input: [str/int/float/bool], e.g. 'constant'     or 0.01         or False
         """
-        convert_to, element = _input.split('|')
+        if _input_key in self.params.keys():
+            convert_to = self.params[_input_key]
+        elif _input_key in self.hparams.keys():
+            convert_to = self.hparams[_input_key]
+        else:
+            raise Exception(f'_input_key = {_input_key} unknown.')
+
         if convert_to == 'str':
-            return element
+            return _input_value
         elif convert_to == 'int':
-            return int(element)
+            return int(_input_value)
         elif convert_to == 'float':
-            return float(element)
+            return float(_input_value)
         elif convert_to == 'bool':
-            return element not in ['False', 'false']
+            return _input_value not in ['False', 'false']
         else:
             raise Exception(f'convert_to = {convert_to} not known.')
