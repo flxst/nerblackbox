@@ -65,8 +65,8 @@ class LightningNerModel(pl.LightningModule):
                                                                batch_size=self._hparams.batch_size,
                                                                do_lower_case=self.params.uncased,  # can be True !!
                                                                max_seq_length=self._hparams.max_seq_length,
-                                                               prune_ratio=(self._hparams.prune_ratio_train,
-                                                                            self._hparams.prune_ratio_valid),
+                                                               prune_ratio=(self.params.prune_ratio_train,
+                                                                            self.params.prune_ratio_valid),
                                                                )
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
