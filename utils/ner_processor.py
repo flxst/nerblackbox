@@ -2,13 +2,7 @@
 import os
 import pandas as pd
 import json
-import logging
 from utils.input_example import InputExample
-
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-                    datefmt='%m/%d/%Y %H:%M:%S',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class NerProcessor:
@@ -19,7 +13,7 @@ class NerProcessor:
     def __init__(self,
                  path,
                  tokenizer,
-                 do_lower_case=True,
+                 do_lower_case,
                  csv_file_separator='\t'):
         """
         :param path:               [str] to folder that contains dataset csv files (train, valid, test)

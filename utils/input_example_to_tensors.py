@@ -1,13 +1,6 @@
 
-import logging
 import torch
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-                    datefmt='%m/%d/%Y %H:%M:%S',
-                    level=logging.INFO)
-
-logger = logging.getLogger(__name__)
 
 
 class InputExampleToTensors:

@@ -11,7 +11,7 @@ from transformers import get_linear_schedule_with_warmup
 from transformers import get_constant_schedule_with_warmup
 from transformers import get_cosine_schedule_with_warmup
 from transformers import get_cosine_with_hard_restarts_schedule_with_warmup
-from transformers import BertTokenizer, BertForTokenClassification
+from transformers import AutoTokenizer, AutoModelForTokenClassification
 
 from os.path import abspath, dirname
 BASE_DIR = abspath(dirname(dirname(__file__)))
@@ -55,21 +55,22 @@ class LightningNerModel(pl.LightningModule):
 
     def _preparations(self):
         # tokenizer
-        tokenizer = BertTokenizer.from_pretrained(self.params.pretrained_model_name,
+        tokenizer = AutoTokenizer.from_pretrained(self.params.pretrained_model_name,
                                                   do_lower_case=False)  # needs to be False !!
 
         # data
         dataset_path = os.path.join(BASE_DIR, utils.get_dataset_path(self.params.dataset_name))
         self.dataloader, self.tag_list = utils.preprocess_data(dataset_path,
                                                                tokenizer,
-                                                               self._hparams.batch_size,
+                                                               batch_size=self._hparams.batch_size,
+                                                               do_lower_case=self.params.uncased,  # can be True !!
                                                                max_seq_length=self._hparams.max_seq_length,
                                                                prune_ratio=(self._hparams.prune_ratio_train,
                                                                             self._hparams.prune_ratio_valid),
                                                                )
         # model
-        self.model = BertForTokenClassification.from_pretrained(self.params.pretrained_model_name,
-                                                                num_labels=len(self.tag_list))
+        self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
+                                                                     num_labels=len(self.tag_list))
         # optimizer
         self.optimizer = self._create_optimizer(self._hparams.lr_max,
                                                 fp16=self.params.fp16)

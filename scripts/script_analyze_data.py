@@ -18,7 +18,8 @@ def main(args):
     :return: -
     """
     formatter = CustomFormatter.for_dataset(args.ner_dataset)
-    formatter.analyze_data(verbose=args.verbose)                                    # IV: analyze data
+    formatter.analyze_data()                   # IV: analyze data
+    formatter.plot_data()                      # IV: analyze data
 
 
 if __name__ == '__main__':

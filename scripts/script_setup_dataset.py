@@ -26,10 +26,12 @@ def main(args):
     # formatter
     formatter = CustomFormatter.for_dataset(args.ner_dataset)
 
+    formatter.create_directory()
     formatter.get_data(verbose=args.verbose)                                        # I: get_data
     formatter.create_ner_tag_mapping(with_tags=args.with_tags, modify=args.modify)  # II: create ner tag mapping
     formatter.format_data(valid_fraction=args.valid_fraction)                       # III: format data
-    formatter.analyze_data(verbose=args.verbose)                                    # IV: analyze data
+    formatter.analyze_data()                                                        # IV: analyze data
+    formatter.plot_data()                                                           # IV: analyze data
 
 
 if __name__ == '__main__':

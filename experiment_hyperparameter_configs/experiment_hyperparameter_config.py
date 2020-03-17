@@ -11,6 +11,7 @@ class ExperimentHyperparameterConfig:
 
     params = {
         'pretrained_model_name': 'str',
+        'uncased': 'bool',
         'dataset_name': 'str',
         'checkpoints': 'bool',
         'monitor': 'str',

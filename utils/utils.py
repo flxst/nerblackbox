@@ -8,13 +8,13 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from utils.env_variable import ENV_VARIABLE
 
 
-def preprocess_data(dataset_path, tokenizer, batch_size, max_seq_length=64, prune_ratio=(1.0, 1.0)):
+def preprocess_data(dataset_path, tokenizer, batch_size, do_lower_case, max_seq_length=64, prune_ratio=(1.0, 1.0)):
     input_examples = dict()
     data = dict()
     dataloader = dict()
 
     # processor
-    processor = NerProcessor(dataset_path, tokenizer, do_lower_case=True)  # needs to be True (applies .lower()) !!
+    processor = NerProcessor(dataset_path, tokenizer, do_lower_case=do_lower_case)  # can be True (applies .lower()) !!
     tag_list = processor.get_tag_list()
 
     # train data

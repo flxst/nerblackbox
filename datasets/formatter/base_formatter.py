@@ -1,4 +1,5 @@
 
+import os
 import json
 import pandas as pd
 from abc import ABC, abstractmethod
@@ -9,6 +10,9 @@ BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
 sys.path.append(BASE_DIR)
 
 from utils.utils import get_dataset_path
+from datasets.plots import Plots
+
+from utils.logger import get_file_logger
 
 
 class BaseFormatter(ABC):
@@ -21,6 +25,7 @@ class BaseFormatter(ABC):
         self.ner_dataset = ner_dataset
         self.ner_tag_list = ner_tag_list
         self.dataset_path = join(BASE_DIR, get_dataset_path(ner_dataset))
+        self.stats_aggregated = None
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
@@ -60,6 +65,15 @@ class BaseFormatter(ABC):
     ####################################################################################################################
     # BASE METHODS
     ####################################################################################################################
+    def create_directory(self):
+        """
+        0: create directory for dataset
+        -------------------------------
+        :return: -
+        """
+        directory_path = f'{BASE_DIR}/datasets/ner/{self.ner_dataset}/analyze_data'
+        os.makedirs(directory_path, exist_ok=True)
+
     def create_ner_tag_mapping(self, with_tags: bool, modify: bool):
         """
         II: create customized ner tag mapping to map tags in original data to tags in formatted data
@@ -84,7 +98,7 @@ class BaseFormatter(ABC):
         else:
             ner_tag_mapping = ner_tag_mapping_original
 
-        json_path = f'datasets/ner/{self.ner_dataset}/ner_tag_mapping.json'
+        json_path = f'{BASE_DIR}/datasets/ner/{self.ner_dataset}/ner_tag_mapping.json'
         with open(json_path, 'w') as f:
             json.dump(ner_tag_mapping, f)
 
@@ -99,54 +113,77 @@ class BaseFormatter(ABC):
         :return: num_sentences:    [int]
                  stats_aggregated: [pandas Series] with indices = tags, values = number of occurrences
         """
-        file_path = f'datasets/ner/{self.ner_dataset}/{phase}.csv'
-
-        df = pd.read_csv(file_path, sep='\t')
+        file_path = f'{BASE_DIR}/datasets/ner/{self.ner_dataset}/{phase}.csv'
 
         columns = ['O'] + self.ner_tag_list
+
+        try:
+            df = pd.read_csv(file_path, sep='\t')
+        except pd.io.common.EmptyDataError:
+            df = None
+
         stats = pd.DataFrame([], columns=columns)
-        tags = df.iloc[:, 0].apply(lambda x: x.split())
 
-        for column in columns:
-            stats[column] = tags.apply(lambda x: len([elem for elem in x if elem == column]))
+        if df is not None:
+            tags = df.iloc[:, 0].apply(lambda x: x.split())
 
-        assert len(df) == len(stats)
+            for column in columns:
+                stats[column] = tags.apply(lambda x: len([elem for elem in x if elem == column]))
+
+            assert len(df) == len(stats)
 
         num_sentences = len(stats)
-        stats_aggregated = stats.sum().to_frame()
-        stats_aggregated.columns = ['count']
+        stats_aggregated = stats.sum().to_frame().astype(int)
+        stats_aggregated.columns = ['tags']
 
         return num_sentences, stats_aggregated
 
-    def analyze_data(self, verbose):
+    def analyze_data(self):
         """
         IV: analyze data
         ----------------
-        :param verbose: [bool]
+        :created attr: stats_aggregated: [dict] w/ keys = 'total', 'train', 'valid', 'test' & values = [df]
         :return: -
         """
-        num_sentences = 0
-        stats_aggregated = None
-        for phase in ['train', 'valid']:
-            _num_sentences, _stats_aggregated = self.read_formatted_csv(phase)
-            num_sentences += _num_sentences
-            if stats_aggregated is None:
-                stats_aggregated = _stats_aggregated
+        log_path = f'datasets/ner/{self.ner_dataset}/analyze_data/{self.ner_dataset}.log'
+        logger = get_file_logger(log_path)
+
+        num_sentences = {'total': 0}
+        self.stats_aggregated = {'total': None}
+        phases = ['train', 'valid', 'test']
+
+        for phase in phases:
+            num_sentences[phase], _stats_aggregated_phase = self.read_formatted_csv(phase)
+            num_sentences['total'] += num_sentences[phase]
+            if self.stats_aggregated['total'] is None:
+                self.stats_aggregated['total'] = _stats_aggregated_phase
             else:
-                stats_aggregated = stats_aggregated + _stats_aggregated
+                self.stats_aggregated['total'] = self.stats_aggregated['total'] + _stats_aggregated_phase
 
-            if verbose:
-                print()
-                print(f'>>> {phase} <<<<')
-                print(f'num_sentences = {_num_sentences} (of total = {num_sentences})')
-                print('stats_aggregated:')
-                print(self._stats_aggregated_add_columns(_stats_aggregated, _num_sentences))
+            self.stats_aggregated[phase] = \
+                self._stats_aggregated_add_columns(_stats_aggregated_phase, num_sentences[phase])
 
-        print()
-        print(f'>>> total <<<<')
-        print(f'num_sentences = {num_sentences}')
-        print('stats_aggregated:')
-        print(self._stats_aggregated_add_columns(stats_aggregated, num_sentences))
+        num_sentences_total = num_sentences['total']
+        for phase in phases:
+            logger.info('')
+            logger.info(f'>>> {phase} <<<<')
+            logger.info(f'num_sentences = {num_sentences[phase]} '
+                        f'({100*num_sentences[phase]/num_sentences_total:.2f}% of total = {num_sentences_total}')
+            logger.info('stats_aggregated:')
+            logger.info(self.stats_aggregated[phase])
+
+        self.stats_aggregated['total'] = self._stats_aggregated_add_columns(self.stats_aggregated['total'],
+                                                                            num_sentences['total'])
+
+        logger.info('')
+        logger.info(f'>>> total <<<<')
+        logger.info(f'num_sentences = {num_sentences}')
+        logger.info('stats_aggregated:')
+        logger.info(self.stats_aggregated['total'])
+
+    def plot_data(self):
+        fig_path = f'{self.dataset_path}/analyze_data/{self.ner_dataset}.png'
+        Plots(self.stats_aggregated).plot(fig_path=fig_path)
 
     @staticmethod
     def _stats_aggregated_add_columns(df, number_of_sentences):
@@ -157,18 +194,19 @@ class BaseFormatter(ABC):
         :param number_of_sentences: ..
         :return: ..
         """
-        df['count/sentence'] = df['count']/float(number_of_sentences)
-        df['count/sentence'] = df['count/sentence'].apply(lambda x: '{:.2f}'.format(x))
+        df['sentences'] = int(number_of_sentences)
+        df['tags/sentence'] = df['tags']/float(number_of_sentences)
+        df['tags/sentence'] = df['tags/sentence'].apply(lambda x: '{:.2f}'.format(x))
 
-        # relative count w/ 0
-        number_of_occurrences = df['count'].sum()
-        df['relative count w/ 0'] = df['count'] / number_of_occurrences
-        df['relative count w/ 0'] = df['relative count w/ 0'].apply(lambda x: '{:.2f}'.format(x))
+        # relative tags w/ 0
+        number_of_occurrences = df['tags'].sum()
+        df['tags relative w/ 0'] = df['tags'] / number_of_occurrences
+        df['tags relative w/ 0'] = df['tags relative w/ 0'].apply(lambda x: '{:.2f}'.format(x))
 
-        # relative count w/o 0
-        number_of_filtered_occurrences = df['count'].sum() - df.loc['O']['count']
-        df['relative count w/o 0'] = df['count'] / number_of_filtered_occurrences
-        df['relative count w/o 0']['O'] = 0
-        df['relative count w/o 0'] = df['relative count w/o 0'].apply(lambda x: '{:.2f}'.format(x))
+        # relative tags w/o 0
+        number_of_filtered_occurrences = df['tags'].sum() - df.loc['O']['tags']
+        df['tags relative w/o 0'] = df['tags'] / number_of_filtered_occurrences
+        df['tags relative w/o 0']['O'] = 0
+        df['tags relative w/o 0'] = df['tags relative w/o 0'].apply(lambda x: '{:.2f}'.format(x))
 
         return df

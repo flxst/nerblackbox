@@ -60,6 +60,7 @@ def _print_run_information(_params, _hparams):
     print(f'> run_name:        {_params.run_name}')
     print('..')
     print(f'> pretrained_model_name: {_params.pretrained_model_name}')
+    print(f'> uncased:               {_params.uncased}')
     print(f'> dataset_name:          {_params.dataset_name}')
     print('..')
     print(f'> available GPUs: {torch.cuda.device_count()}')
