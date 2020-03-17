@@ -1,5 +1,4 @@
 
-import numpy as np
 import matplotlib.pylab as plt
 
 
@@ -10,8 +9,10 @@ class Plots:
     width = 0.1
     column_names = ['tags/sentence', 'tags relative w/ 0', 'tags relative w/o 0']
 
-    def __init__(self, _stats_aggregated):
+    def __init__(self, _stats_aggregated, _num_sentences):
         self.stats_aggregated = _stats_aggregated
+        self.num_sentences = _num_sentences
+        self.num_tokens = None
         self.tags = list(self.stats_aggregated['total'].index)
 
     def plot(self, fig_path=None):
@@ -21,15 +22,14 @@ class Plots:
         phases = ['train', 'valid', 'test']
         phases_all = ['total'] + phases
 
-        sentences = {phase: self.get_sentences(self.stats_aggregated[phase]) for phase in phases_all}
-        tokens = {phase: self.get_tokens(self.stats_aggregated[phase]) for phase in phases_all}
+        self.num_tokens = {phase: self.get_tokens(self.stats_aggregated[phase]) for phase in phases_all}
         columns = {column_name: {phase: self.get_columns(self.stats_aggregated[phase], column_name)
                                  for phase in phases_all}
                    for column_name in self.column_names}
 
         fig, ax = plt.subplots(2, 2, figsize=(12, 8))
         ax0, ax1, ax2, ax3 = ax.flatten()
-        self.plot_sentences_and_tokens(ax0, sentences, tokens)
+        self.plot_sentences_and_tokens(ax0, self.num_sentences, self.num_tokens)
         self.plot_column(ax1, columns, 'tags/sentence', legend={'loc': 'upper right', 'bbox_to_anchor': (1.24, 1.0)})
         self.plot_column(ax2, columns, 'tags relative w/ 0', y_normalize=True)
         self.plot_column(ax3, columns, 'tags relative w/o 0', y_normalize=True)
@@ -42,13 +42,6 @@ class Plots:
     # GET DATA FROM DF
     ####################################################################################################################
     @staticmethod
-    def get_sentences(df):
-        if float(df.loc['O', 'tags/sentence']) > 0:
-            return int(np.round(float(df.loc['O', 'tags']) / float(df.loc['O', 'tags/sentence'])))
-        else:
-            return 0
-
-    @staticmethod
     def get_tokens(df):
         return df.loc[:, 'tags'].sum()
 
@@ -60,8 +53,6 @@ class Plots:
     # PLOT SENTENCES AND TOKENS
     ####################################################################################################################
     def plot_sentences_and_tokens(self, _ax, _sentences, _tokens, legend=False):
-        _ax2 = _ax.twinx()
-
         tags = ['sentences', 'tokens']
         xs = list(range(len(tags)))
         labels = list(_sentences.keys())
@@ -89,8 +80,12 @@ class Plots:
                 _ax.legend()
             _ax.set_xticks(xs)
             _ax.set_xticklabels(tags)
+            _ax.set_ylim([0, 1])
             _ax.set_yticks([1])
             _ax.set_yticklabels([total_sentences])
+
+            _ax2 = _ax.twinx()
+            _ax2.set_ylim([0, 1])
             _ax2.set_yticks([1])
             _ax2.set_yticklabels([total_tokens])
 

@@ -26,6 +26,8 @@ class BaseFormatter(ABC):
         self.ner_tag_list = ner_tag_list
         self.dataset_path = join(BASE_DIR, get_dataset_path(ner_dataset))
         self.stats_aggregated = None
+        self.num_tokens = None
+        self.num_sentences = None
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
@@ -138,6 +140,10 @@ class BaseFormatter(ABC):
 
         return num_sentences, stats_aggregated
 
+    @staticmethod
+    def get_tokens(df):
+        return df.loc[:, 'tags'].sum()
+
     def analyze_data(self):
         """
         IV: analyze data
@@ -148,42 +154,49 @@ class BaseFormatter(ABC):
         log_path = f'datasets/ner/{self.ner_dataset}/analyze_data/{self.ner_dataset}.log'
         logger = get_file_logger(log_path)
 
-        num_sentences = {'total': 0}
+        self.num_tokens = {'total': 0}
+        self.num_sentences = {'total': 0}
         self.stats_aggregated = {'total': None}
+
         phases = ['train', 'valid', 'test']
+        phases_all = ['total'] + phases
 
         for phase in phases:
-            num_sentences[phase], _stats_aggregated_phase = self.read_formatted_csv(phase)
-            num_sentences['total'] += num_sentences[phase]
+            self.num_sentences[phase], _stats_aggregated_phase = self.read_formatted_csv(phase)
+            self.num_sentences['total'] += self.num_sentences[phase]
             if self.stats_aggregated['total'] is None:
                 self.stats_aggregated['total'] = _stats_aggregated_phase
             else:
                 self.stats_aggregated['total'] = self.stats_aggregated['total'] + _stats_aggregated_phase
 
             self.stats_aggregated[phase] = \
-                self._stats_aggregated_add_columns(_stats_aggregated_phase, num_sentences[phase])
+                self._stats_aggregated_add_columns(_stats_aggregated_phase, self.num_sentences[phase])
 
-        num_sentences_total = num_sentences['total']
+        num_sentences_total = self.num_sentences['total']
+        self.stats_aggregated['total'] = self._stats_aggregated_add_columns(self.stats_aggregated['total'],
+                                                                            self.num_sentences['total'])
+        self.num_tokens = {phase: self.get_tokens(self.stats_aggregated[phase]) for phase in phases_all}
+        num_tokens_total = self.num_tokens['total']
+
+        # print/log
         for phase in phases:
             logger.info('')
             logger.info(f'>>> {phase} <<<<')
-            logger.info(f'num_sentences = {num_sentences[phase]} '
-                        f'({100*num_sentences[phase]/num_sentences_total:.2f}% of total = {num_sentences_total}')
-            logger.info('stats_aggregated:')
+            logger.info(f'num_sentences = {self.num_sentences[phase]} '
+                        f'({100*self.num_sentences[phase]/num_sentences_total:.2f}% of total = {num_sentences_total})')
+            logger.info(f'num_tokens = {self.num_tokens[phase]} '
+                        f'({100*self.num_tokens[phase]/num_tokens_total:.2f}% of total = {num_tokens_total})')
             logger.info(self.stats_aggregated[phase])
 
-        self.stats_aggregated['total'] = self._stats_aggregated_add_columns(self.stats_aggregated['total'],
-                                                                            num_sentences['total'])
-
         logger.info('')
+        logger.info(f'num_sentences = {self.num_sentences}')
+        logger.info(f'num_tokens = {self.num_tokens}')
         logger.info(f'>>> total <<<<')
-        logger.info(f'num_sentences = {num_sentences}')
-        logger.info('stats_aggregated:')
         logger.info(self.stats_aggregated['total'])
 
     def plot_data(self):
         fig_path = f'{self.dataset_path}/analyze_data/{self.ner_dataset}.png'
-        Plots(self.stats_aggregated).plot(fig_path=fig_path)
+        Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
 
     @staticmethod
     def _stats_aggregated_add_columns(df, number_of_sentences):
@@ -194,7 +207,6 @@ class BaseFormatter(ABC):
         :param number_of_sentences: ..
         :return: ..
         """
-        df['sentences'] = int(number_of_sentences)
         df['tags/sentence'] = df['tags']/float(number_of_sentences)
         df['tags/sentence'] = df['tags/sentence'].apply(lambda x: '{:.2f}'.format(x))
 
