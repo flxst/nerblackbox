@@ -11,20 +11,12 @@ class DefaultLogger:
 
     custom_datefmt = '%Y/%m/%d %H:%M:%S'
     custom_format = '%(asctime)s - %(name)s - %(levelname)s -  %(message)s'
-    log_path = join(BASE_DIR, 'logs.log')
+    default_log_file = join(BASE_DIR, 'logs.log')
 
-    @classmethod
-    def clear(cls):
-        """
-        clear file at log_path
-        """
-        with open(cls.log_path, 'w') as f:
-            f.write('')
-
-    def __init__(self, path, log_path=None, level=None, mode='a'):
+    def __init__(self, path, log_file=None, level=None, mode='a'):
         """
         :param path:     [str] of python module that uses DefaultLogger, e.g. [..]/module.py
-        :param log_path: [str] of log file, e.g. [..]/logs.log
+        :param log_file: [str] of log file, e.g. [..]/logs.log
         :param level:    [str] 'debug', 'info' or 'warning (minimum logging level)
         :param mode:     [str] 'w' (write) or 'a' (append)
         :created attr: logger [python logging logger]
@@ -34,10 +26,7 @@ class DefaultLogger:
         self.logger = logging.getLogger(name)
 
         # log path
-        if log_path is None:
-            filename = self.log_path
-        else:
-            filename = join(BASE_DIR, 'logs.log')
+        self.filename = log_file if log_file else self.default_log_file
 
         # level
         _level = level.upper() if level else None
@@ -45,16 +34,23 @@ class DefaultLogger:
             self.logger.setLevel(_level)
 
         # add file handler
-        f_handler = logging.FileHandler(filename=filename, mode=mode)
+        f_handler = logging.FileHandler(filename=self.filename, mode=mode)
         f_handler.setFormatter(logging.Formatter(self.custom_format, datefmt=self.custom_datefmt))
         if _level:
             f_handler.setLevel(_level)
         self.logger.addHandler(f_handler)
 
         if mode == 'w':
-            self.log_info(f'ACTIVATE FILE LOGGER w/ PATH = {filename}')
+            self.log_debug(f'ACTIVATE FILE LOGGER w/ PATH = {self.filename}')
         elif mode == 'a':
-            self.log_info(f'APPEND TO FILE LOGGER w/ PATH = {filename}')
+            self.log_debug(f'APPEND TO FILE LOGGER w/ PATH = {self.filename}')
+
+    def clear(self):
+        """
+        clear file at log_file
+        """
+        with open(self.filename, 'w') as f:
+            f.write('')
 
     def log_debug(self, *args):
         """

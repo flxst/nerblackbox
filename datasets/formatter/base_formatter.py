@@ -151,8 +151,8 @@ class BaseFormatter(ABC):
         :created attr: stats_aggregated: [dict] w/ keys = 'total', 'train', 'valid', 'test' & values = [df]
         :return: -
         """
-        log_path = f'datasets/ner/{self.ner_dataset}/analyze_data/{self.ner_dataset}.log'
-        default_logger = DefaultLogger(__file__, log_path=log_path, level='info', mode='w')
+        log_file = f'datasets/ner/{self.ner_dataset}/analyze_data/{self.ner_dataset}.log'
+        default_logger = DefaultLogger(__file__, log_file=log_file, level='info', mode='w')
 
         self.num_tokens = {'total': 0}
         self.num_sentences = {'total': 0}

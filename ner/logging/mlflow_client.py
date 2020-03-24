@@ -5,16 +5,16 @@ from experiment_configs.experiment_config import ExperimentHyperparameterConfig
 
 class MLflowClient:
 
-    def __init__(self, experiment_name, run_name, log_dir, logged_metrics, default_logger):
+    def __init__(self, experiment_name, run_name, log_dirs, logged_metrics, default_logger):
         """
         :param experiment_name: [str], e.g. 'Default'
         :param run_name:        [str], e.g. 'Default'
-        :param log_dir:         [str], e.g. '{BASE_DIR}/results/mlflow'
+        :param log_dirs:        [Namespace], including 'mlflow_artifact' & 'default_logger_artifact'
         :param logged_metrics:  [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', ..]
         """
         self.experiment_name = experiment_name
         self.run_name = run_name
-        self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
+        self.log_dirs = log_dirs
         self.logged_metrics = logged_metrics
         self.default_logger = default_logger
 
@@ -89,7 +89,7 @@ class MLflowClient:
         -----------------------
         :return: -
         """
-        with open(self.mlflow_artifact, "w") as f:
+        with open(self.log_dirs.mlflow_file, "w") as f:
             f.write(' ')
 
     def _log_artifact(self, content):
@@ -99,12 +99,17 @@ class MLflowClient:
         :param content: [str]
         :return: -
         """
-        with open(self.mlflow_artifact, "a") as f:
+        with open(self.log_dirs.mlflow_file, "a") as f:
             f.write(content + '\n')
 
     def finish_artifact(self):
-        mlflow.log_artifact(self.mlflow_artifact)
-        self.default_logger.log_debug(f'mlflow log artifact at {self.mlflow_artifact}')
+        # mlflow
+        mlflow.log_artifact(self.log_dirs.mlflow_file)
+        self.default_logger.log_debug(f'mlflow file at {self.log_dirs.mlflow_file}')
+
+        # default logger
+        mlflow.log_artifact(self.log_dirs.log_file)
+        self.default_logger.log_debug(f'log file at {self.log_dirs.log_file}')
 
     def finish(self):
         self.finish_artifact()

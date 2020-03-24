@@ -3,7 +3,6 @@ from ner.data_preprocessing.tools.bert_dataset import BertDataset
 from ner.data_preprocessing.tools.ner_processor import NerProcessor
 from ner.data_preprocessing.tools.input_example_to_tensors import InputExampleToTensors
 from ner.utils.util_functions import get_dataset_path
-from ner.logging.default_logger import DefaultLogger
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 
@@ -14,7 +13,7 @@ class DataPreprocessor:
                  tokenizer,
                  batch_size,
                  do_lower_case,
-                 logging_level,
+                 default_logger,
                  max_seq_length=64,
                  prune_ratio=(1.0, 1.0)):
         """
@@ -22,7 +21,7 @@ class DataPreprocessor:
         :param tokenizer:      [transformers Tokenizer]
         :param batch_size:     [int], e.g. 16
         :param do_lower_case:  [bool] if True, make text data lowercase
-        :param logging_level:  [str] 'debug', 'info' or 'warning (minimum logging level)
+        :param default_logger: [DefaultLogger]
         :param max_seq_length: [int], e.g. 64
         :param prune_ratio:    [tuple], e.g. (1.0, 1.0) -- pruning ratio for train & valid data
         """
@@ -30,10 +29,9 @@ class DataPreprocessor:
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.do_lower_case = do_lower_case
+        self.default_logger = default_logger
         self.max_seq_length = max_seq_length
         self.prune_ratio = prune_ratio
-
-        self.default_logger = DefaultLogger(__file__, level=logging_level)  # python logging
 
     def preprocess(self):
         """
@@ -95,5 +93,3 @@ class DataPreprocessor:
             num_examples_new = int(ratio*float(num_examples_old))
             self.default_logger.log_info(f'> {phase} data: use {num_examples_new} of {num_examples_old} examples')
             return list_of_examples[:num_examples_new]
-
-

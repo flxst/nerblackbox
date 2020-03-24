@@ -18,8 +18,10 @@ def main(params, hparams, log_dirs, experiment):
     :param experiment: [bool] whether run is part of an experiment w/ multiple runs
     :return: -
     """
-    DefaultLogger.clear()
-    _print_run_information(params, hparams)
+    default_logger = DefaultLogger(__file__, log_file=log_dirs.log_file, level=params.logging_level)  # python logging
+    default_logger.clear()
+
+    _print_run_information(params, hparams, default_logger)
 
     # mlflow start
     mlflow.tracking.set_tracking_uri(log_dirs.mlflow)
@@ -51,43 +53,42 @@ def main(params, hparams, log_dirs, experiment):
         _tb_logger_stopped_epoch(tb_logger, hparams, early_stop_callback, model)
 
 
-def _print_run_information(_params, _hparams):
+def _print_run_information(_params, _hparams, _logger):
     """
     :param _params:   [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param _logger:   [DefaultLogger]
     :return: -
     """
-    default_logger = DefaultLogger(__file__, level=_params.logging_level)  # python logging
-
-    default_logger.log_info('- PARAMS -----------------------------------------')
-    default_logger.log_info(f'> experiment_name: {_params.experiment_name}')
-    default_logger.log_info(f'> run_name:        {_params.run_name}')
-    default_logger.log_info('..')
-    default_logger.log_info(f'> available GPUs: {torch.cuda.device_count()}')
-    default_logger.log_info(f'> device:         {_params.device}')
-    default_logger.log_info(f'> fp16:           {_params.fp16}')
-    default_logger.log_info('..')
-    default_logger.log_info(f'> pretrained_model_name: {_params.pretrained_model_name}')
-    default_logger.log_info(f'> uncased:               {_params.uncased}')
-    default_logger.log_info(f'> dataset_name:          {_params.dataset_name}')
-    default_logger.log_info(f'> prune_ratio_train:     {_params.prune_ratio_train}')
-    default_logger.log_info(f'> prune_ratio_valid:     {_params.prune_ratio_valid}')
-    default_logger.log_info(f'> checkpoints:           {_params.checkpoints}')
-    default_logger.log_info(f'> logging_level:         {_params.logging_level}')
-    default_logger.log_info('')
-    default_logger.log_info('- HPARAMS ----------------------------------------')
-    default_logger.log_info(f'> batch_size:       {_hparams.batch_size}')
-    default_logger.log_info(f'> max_seq_length:   {_hparams.max_seq_length}')
-    default_logger.log_info(f'> max_epochs:       {_hparams.max_epochs}')
-    default_logger.log_info(f'> monitor:          {_hparams.monitor}')
-    default_logger.log_info(f'> min_delta:        {_hparams.min_delta}')
-    default_logger.log_info(f'> patience:         {_hparams.patience}')
-    default_logger.log_info(f'> mode:             {_hparams.mode}')
-    default_logger.log_info(f'> lr_max:           {_hparams.lr_max}')
-    default_logger.log_info(f'> lr_warmup_epochs: {_hparams.lr_warmup_epochs}')
-    default_logger.log_info(f'> lr_schedule:      {_hparams.lr_schedule}')
-    default_logger.log_info(f'> lr_num_cycles:    {_hparams.lr_num_cycles}')
-    default_logger.log_info('')
+    _logger.log_info('- PARAMS -----------------------------------------')
+    _logger.log_info(f'> experiment_name: {_params.experiment_name}')
+    _logger.log_info(f'> run_name:        {_params.run_name}')
+    _logger.log_info('..')
+    _logger.log_info(f'> available GPUs: {torch.cuda.device_count()}')
+    _logger.log_info(f'> device:         {_params.device}')
+    _logger.log_info(f'> fp16:           {_params.fp16}')
+    _logger.log_info('..')
+    _logger.log_info(f'> pretrained_model_name: {_params.pretrained_model_name}')
+    _logger.log_info(f'> uncased:               {_params.uncased}')
+    _logger.log_info(f'> dataset_name:          {_params.dataset_name}')
+    _logger.log_info(f'> prune_ratio_train:     {_params.prune_ratio_train}')
+    _logger.log_info(f'> prune_ratio_valid:     {_params.prune_ratio_valid}')
+    _logger.log_info(f'> checkpoints:           {_params.checkpoints}')
+    _logger.log_info(f'> logging_level:         {_params.logging_level}')
+    _logger.log_info('')
+    _logger.log_info('- HPARAMS ----------------------------------------')
+    _logger.log_info(f'> batch_size:       {_hparams.batch_size}')
+    _logger.log_info(f'> max_seq_length:   {_hparams.max_seq_length}')
+    _logger.log_info(f'> max_epochs:       {_hparams.max_epochs}')
+    _logger.log_info(f'> monitor:          {_hparams.monitor}')
+    _logger.log_info(f'> min_delta:        {_hparams.min_delta}')
+    _logger.log_info(f'> patience:         {_hparams.patience}')
+    _logger.log_info(f'> mode:             {_hparams.mode}')
+    _logger.log_info(f'> lr_max:           {_hparams.lr_max}')
+    _logger.log_info(f'> lr_warmup_epochs: {_hparams.lr_warmup_epochs}')
+    _logger.log_info(f'> lr_schedule:      {_hparams.lr_schedule}')
+    _logger.log_info(f'> lr_num_cycles:    {_hparams.lr_num_cycles}')
+    _logger.log_info('')
 
 
 def _tb_logger_stopped_epoch(_tb_logger,

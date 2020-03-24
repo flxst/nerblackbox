@@ -78,6 +78,8 @@ if __name__ == '__main__':
         'mlflow': ENV_VARIABLE['DIR_MLFLOW'],
         'tensorboard': ENV_VARIABLE['DIR_TENSORBOARD'],
         'checkpoints': ENV_VARIABLE['DIR_CHECKPOINTS'],
+        'log_file': ENV_VARIABLE['LOG_FILE'],
+        'mlflow_file': ENV_VARIABLE['MLFLOW_FILE'],
     }
     _log_dirs = argparse.Namespace(**_log_dirs_dict)
 

@@ -43,12 +43,12 @@ class LightningNerModel(pl.LightningModule):
         self.log_dirs = log_dirs
 
         # logging
-        self.default_logger = DefaultLogger(__file__, level=self.params.logging_level)  # python logging
+        self.default_logger = DefaultLogger(__file__, log_file=log_dirs.log_file, level=params.logging_level)
         self.logged_metrics = LoggedMetrics()
 
         self.mlflow_client = MLflowClient(experiment_name=self.params.experiment_name,
                                           run_name=self.params.run_name,
-                                          log_dir=self.log_dirs.mlflow,
+                                          log_dirs=self.log_dirs,
                                           logged_metrics=self.logged_metrics.as_flat_list(),
                                           default_logger=self.default_logger)
         self.mlflow_client.log_params(params, hparams, experiment=experiment)
@@ -72,7 +72,7 @@ class LightningNerModel(pl.LightningModule):
             tokenizer=tokenizer,
             batch_size=self._hparams.batch_size,
             do_lower_case=self.params.uncased,  # can be True !!
-            logging_level=self.params.logging_level,
+            default_logger=self.default_logger,
             max_seq_length=self._hparams.max_seq_length,
             prune_ratio=(self.params.prune_ratio_train,
                          self.params.prune_ratio_valid),

@@ -8,4 +8,6 @@ ENV_VARIABLE = {
     'DIR_CHECKPOINTS': f'{BASE_DIR}/results/checkpoints',
     'DIR_TENSORBOARD': f'{BASE_DIR}/results/tensorboard',
     'DIR_MLFLOW': f'{BASE_DIR}/results/mlruns',
+    'LOG_FILE': f'{BASE_DIR}/results/logs.log',
+    'MLFLOW_FILE': f'{BASE_DIR}/results/mlruns/mlflow_artifact.txt',
 }
