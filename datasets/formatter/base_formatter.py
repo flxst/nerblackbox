@@ -12,7 +12,7 @@ sys.path.append(BASE_DIR)
 from utils.utils import get_dataset_path
 from datasets.plots import Plots
 
-from utils.logger import get_file_logger
+from utils.default_logger import DefaultLogger
 
 
 class BaseFormatter(ABC):
@@ -152,7 +152,7 @@ class BaseFormatter(ABC):
         :return: -
         """
         log_path = f'datasets/ner/{self.ner_dataset}/analyze_data/{self.ner_dataset}.log'
-        logger = get_file_logger(log_path)
+        default_logger = DefaultLogger(__file__, log_path=log_path, level='info', mode='w')
 
         self.num_tokens = {'total': 0}
         self.num_sentences = {'total': 0}
@@ -180,19 +180,19 @@ class BaseFormatter(ABC):
 
         # print/log
         for phase in phases:
-            logger.info('')
-            logger.info(f'>>> {phase} <<<<')
-            logger.info(f'num_sentences = {self.num_sentences[phase]} '
-                        f'({100*self.num_sentences[phase]/num_sentences_total:.2f}% of total = {num_sentences_total})')
-            logger.info(f'num_tokens = {self.num_tokens[phase]} '
-                        f'({100*self.num_tokens[phase]/num_tokens_total:.2f}% of total = {num_tokens_total})')
-            logger.info(self.stats_aggregated[phase])
+            default_logger.log_info('')
+            default_logger.log_info(f'>>> {phase} <<<<')
+            default_logger.log_info(f'num_sentences = {self.num_sentences[phase]} '
+                                    f'({100*self.num_sentences[phase]/num_sentences_total:.2f}% of total = {num_sentences_total})')
+            default_logger.log_info(f'num_tokens = {self.num_tokens[phase]} '
+                                    f'({100*self.num_tokens[phase]/num_tokens_total:.2f}% of total = {num_tokens_total})')
+            default_logger.log_info(self.stats_aggregated[phase])
 
-        logger.info('')
-        logger.info(f'num_sentences = {self.num_sentences}')
-        logger.info(f'num_tokens = {self.num_tokens}')
-        logger.info(f'>>> total <<<<')
-        logger.info(self.stats_aggregated['total'])
+        default_logger.log_info('')
+        default_logger.log_info(f'num_sentences = {self.num_sentences}')
+        default_logger.log_info(f'num_tokens = {self.num_tokens}')
+        default_logger.log_info(f'>>> total <<<<')
+        default_logger.log_info(self.stats_aggregated['total'])
 
     def plot_data(self):
         fig_path = f'{self.dataset_path}/analyze_data/{self.ner_dataset}.png'

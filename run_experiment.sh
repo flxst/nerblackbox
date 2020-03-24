@@ -23,5 +23,8 @@ echo 'RUN_NAME:       ' $RUN_NAME
 ########################
 # RUN EXPERIMENT
 ########################
-MLFLOW_TRACKING_URI=$DIR_MLFLOW mlflow experiments create -n $EXPERIMENT_NAME
-MLFLOW_TRACKING_URI=$DIR_MLFLOW mlflow run . --experiment-name $EXPERIMENT_NAME --no-conda -P experiment_name=$EXPERIMENT_NAME -P run_name=$RUN_NAME
+echo '--> CREATE EXPERIMENT'
+MLFLOW_TRACKING_URI=$DIR_MLFLOW mlflow experiments create -n $EXPERIMENT_NAME 2>/dev/null
+
+echo '--> RUN EXPERIMENT'
+MLFLOW_TRACKING_URI=$DIR_MLFLOW mlflow run . --experiment-name $EXPERIMENT_NAME --no-conda -P experiment_name=$EXPERIMENT_NAME -P run_name=$RUN_NAME 2>/dev/null

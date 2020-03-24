@@ -7,6 +7,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import EarlyStopping
 
 from utils.lightning_ner_model import LightningNerModel
+from utils.default_logger import DefaultLogger
 
 
 def main(params, hparams, log_dirs, experiment):
@@ -17,6 +18,7 @@ def main(params, hparams, log_dirs, experiment):
     :param experiment: [bool] whether run is part of an experiment w/ multiple runs
     :return: -
     """
+    DefaultLogger.clear()
     _print_run_information(params, hparams)
 
     # mlflow start
@@ -55,34 +57,37 @@ def _print_run_information(_params, _hparams):
     :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
     :return: -
     """
-    print('- PARAMS -----------------------------------------')
-    print(f'> experiment_name: {_params.experiment_name}')
-    print(f'> run_name:        {_params.run_name}')
-    print('..')
-    print(f'> available GPUs: {torch.cuda.device_count()}')
-    print(f'> device:         {_params.device}')
-    print(f'> fp16:           {_params.fp16}')
-    print('..')
-    print(f'> pretrained_model_name: {_params.pretrained_model_name}')
-    print(f'> uncased:               {_params.uncased}')
-    print(f'> dataset_name:          {_params.dataset_name}')
-    print(f'> prune_ratio_train:     {_params.prune_ratio_train}')
-    print(f'> prune_ratio_valid:     {_params.prune_ratio_valid}')
-    print(f'> checkpoints:           {_params.checkpoints}')
-    print()
-    print('- HPARAMS ----------------------------------------')
-    print(f'> batch_size:       {_hparams.batch_size}')
-    print(f'> max_seq_length:   {_hparams.max_seq_length}')
-    print(f'> max_epochs:       {_hparams.max_epochs}')
-    print(f'> monitor:          {_hparams.monitor}')
-    print(f'> min_delta:        {_hparams.min_delta}')
-    print(f'> patience:         {_hparams.patience}')
-    print(f'> mode:             {_hparams.mode}')
-    print(f'> lr_max:           {_hparams.lr_max}')
-    print(f'> lr_warmup_epochs: {_hparams.lr_warmup_epochs}')
-    print(f'> lr_schedule:      {_hparams.lr_schedule}')
-    print(f'> lr_num_cycles:    {_hparams.lr_num_cycles}')
-    print()
+    default_logger = DefaultLogger(__file__, level=_params.logging_level)  # python logging
+
+    default_logger.log_info('- PARAMS -----------------------------------------')
+    default_logger.log_info(f'> experiment_name: {_params.experiment_name}')
+    default_logger.log_info(f'> run_name:        {_params.run_name}')
+    default_logger.log_info('..')
+    default_logger.log_info(f'> available GPUs: {torch.cuda.device_count()}')
+    default_logger.log_info(f'> device:         {_params.device}')
+    default_logger.log_info(f'> fp16:           {_params.fp16}')
+    default_logger.log_info('..')
+    default_logger.log_info(f'> pretrained_model_name: {_params.pretrained_model_name}')
+    default_logger.log_info(f'> uncased:               {_params.uncased}')
+    default_logger.log_info(f'> dataset_name:          {_params.dataset_name}')
+    default_logger.log_info(f'> prune_ratio_train:     {_params.prune_ratio_train}')
+    default_logger.log_info(f'> prune_ratio_valid:     {_params.prune_ratio_valid}')
+    default_logger.log_info(f'> checkpoints:           {_params.checkpoints}')
+    default_logger.log_info(f'> logging_level:         {_params.logging_level}')
+    default_logger.log_info('')
+    default_logger.log_info('- HPARAMS ----------------------------------------')
+    default_logger.log_info(f'> batch_size:       {_hparams.batch_size}')
+    default_logger.log_info(f'> max_seq_length:   {_hparams.max_seq_length}')
+    default_logger.log_info(f'> max_epochs:       {_hparams.max_epochs}')
+    default_logger.log_info(f'> monitor:          {_hparams.monitor}')
+    default_logger.log_info(f'> min_delta:        {_hparams.min_delta}')
+    default_logger.log_info(f'> patience:         {_hparams.patience}')
+    default_logger.log_info(f'> mode:             {_hparams.mode}')
+    default_logger.log_info(f'> lr_max:           {_hparams.lr_max}')
+    default_logger.log_info(f'> lr_warmup_epochs: {_hparams.lr_warmup_epochs}')
+    default_logger.log_info(f'> lr_schedule:      {_hparams.lr_schedule}')
+    default_logger.log_info(f'> lr_num_cycles:    {_hparams.lr_num_cycles}')
+    default_logger.log_info('')
 
 
 def _tb_logger_stopped_epoch(_tb_logger,

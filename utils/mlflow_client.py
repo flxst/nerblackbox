@@ -5,7 +5,7 @@ from experiment_hyperparameter_configs.experiment_hyperparameter_config import E
 
 class MLflowClient:
 
-    def __init__(self, experiment_name, run_name, log_dir, logged_metrics):
+    def __init__(self, experiment_name, run_name, log_dir, logged_metrics, default_logger):
         """
         :param experiment_name: [str], e.g. 'Default'
         :param run_name:        [str], e.g. 'Default'
@@ -16,6 +16,7 @@ class MLflowClient:
         self.run_name = run_name
         self.mlflow_artifact = f'{log_dir}/mlflow_artifact.txt'
         self.logged_metrics = logged_metrics
+        self.default_logger = default_logger
 
     @staticmethod
     def log_params(params, hparams, experiment=False):
@@ -103,7 +104,7 @@ class MLflowClient:
 
     def finish_artifact(self):
         mlflow.log_artifact(self.mlflow_artifact)
-        print(f'mlflow log artifact at {self.mlflow_artifact}')
+        self.default_logger.log_debug(f'mlflow log artifact at {self.mlflow_artifact}')
 
     def finish(self):
         self.finish_artifact()

@@ -16,6 +16,7 @@ class ExperimentHyperparameterConfig:
         'prune_ratio_train': 'float',
         'prune_ratio_valid': 'float',
         'checkpoints': 'bool',
+        'logging_level': 'str',
     }
     hparams = {
         'batch_size': 'int',

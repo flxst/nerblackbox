@@ -3,6 +3,9 @@ import argparse
 import torch
 import mlflow
 
+import logging
+logging.basicConfig(level=logging.WARNING)  # basic setting that is mainly applied to mlflow's default logging
+
 import warnings
 warnings.filterwarnings('ignore')
 
