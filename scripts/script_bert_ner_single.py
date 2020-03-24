@@ -10,8 +10,8 @@ import sys
 BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
 
-from utils.env_variable import ENV_VARIABLE
-import utils.bert_ner_single as bert_ner_single
+from ner.utils.env_variable import ENV_VARIABLE
+import ner.bert_ner_single as bert_ner_single
 
 
 def main(params, hparams, log_dirs):

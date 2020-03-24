@@ -8,7 +8,7 @@ sys.path.append(BASE_DIR)
 import numpy as np
 import pandas as pd
 import pytest
-from utils.ner_metrics import NerMetrics
+from ner.metrics.ner_metrics import NerMetrics
 
 
 class TestNerMetrics:

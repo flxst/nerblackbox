@@ -9,10 +9,10 @@ import sys
 BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
 sys.path.append(BASE_DIR)
 
-from utils.utils import get_dataset_path
+from ner.utils import get_dataset_path
 from datasets.plots import Plots
 
-from utils.default_logger import DefaultLogger
+from ner.logging.default_logger import DefaultLogger
 
 
 class BaseFormatter(ABC):

@@ -1,5 +1,5 @@
 from os.path import abspath, dirname
-BASE_DIR = abspath(dirname(dirname(__file__)))
+BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
 
 DOWNSTREAM_TASK = 'ner'
 

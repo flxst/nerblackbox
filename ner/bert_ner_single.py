@@ -6,8 +6,8 @@ from pytorch_lightning.logging import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import EarlyStopping
 
-from utils.lightning_ner_model import LightningNerModel
-from utils.default_logger import DefaultLogger
+from ner.lightning_ner_model import LightningNerModel
+from ner.logging.default_logger import DefaultLogger
 
 
 def main(params, hparams, log_dirs, experiment):

@@ -1,11 +1,11 @@
 
 import os
 
-from utils.bert_dataset import BertDataset
-from utils.ner_processor import NerProcessor
-from utils.input_example_to_tensors import InputExampleToTensors
+from ner.data_preprocessing.bert_dataset import BertDataset
+from ner.data_preprocessing.ner_processor import NerProcessor
+from ner.data_preprocessing.input_example_to_tensors import InputExampleToTensors
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from utils.env_variable import ENV_VARIABLE
+from ner.utils.env_variable import ENV_VARIABLE
 
 
 def preprocess_data(dataset_path, tokenizer, batch_size, do_lower_case, max_seq_length=64, prune_ratio=(1.0, 1.0)):

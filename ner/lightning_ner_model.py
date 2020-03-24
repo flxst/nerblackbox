@@ -17,11 +17,11 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 from os.path import abspath, dirname
 BASE_DIR = abspath(dirname(dirname(__file__)))
 
-from utils import utils
-from utils.ner_metrics import NerMetrics
-from utils.logged_metrics import LoggedMetrics
-from utils.mlflow_client import MLflowClient
-from utils.default_logger import DefaultLogger
+from ner.utils import util_functions
+from ner.metrics.ner_metrics import NerMetrics
+from ner.metrics.logged_metrics import LoggedMetrics
+from ner.logging.mlflow_client import MLflowClient
+from ner.logging.default_logger import DefaultLogger
 
 
 class LightningNerModel(pl.LightningModule):
@@ -67,15 +67,15 @@ class LightningNerModel(pl.LightningModule):
                                                   do_lower_case=False)  # needs to be False !!
 
         # data
-        dataset_path = os.path.join(BASE_DIR, utils.get_dataset_path(self.params.dataset_name))
-        self.dataloader, self.tag_list = utils.preprocess_data(dataset_path,
-                                                               tokenizer,
-                                                               batch_size=self._hparams.batch_size,
-                                                               do_lower_case=self.params.uncased,  # can be True !!
-                                                               max_seq_length=self._hparams.max_seq_length,
-                                                               prune_ratio=(self.params.prune_ratio_train,
-                                                                            self.params.prune_ratio_valid),
-                                                               )
+        dataset_path = os.path.join(BASE_DIR, util_functions.get_dataset_path(self.params.dataset_name))
+        self.dataloader, self.tag_list = util_functions.preprocess_data(dataset_path,
+                                                                        tokenizer,
+                                                                        batch_size=self._hparams.batch_size,
+                                                                        do_lower_case=self.params.uncased,  # can be True !!
+                                                                        max_seq_length=self._hparams.max_seq_length,
+                                                                        prune_ratio=(self.params.prune_ratio_train,
+                                                                                self.params.prune_ratio_valid),
+                                                                        )
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
                                                                      num_labels=len(self.tag_list))
@@ -462,7 +462,7 @@ class LightningNerModel(pl.LightningModule):
 
         # enrich pred_tags & valid_tags with bio prefixes
         epoch_valid_tags_bio = {
-            field: utils.add_bio_to_tag_list(utils.get_rid_of_special_tokens(epoch_valid_tags[field]))
+            field: util_functions.add_bio_to_tag_list(util_functions.get_rid_of_special_tokens(epoch_valid_tags[field]))
             for field in ['true', 'pred']
         }
 

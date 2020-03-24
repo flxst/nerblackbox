@@ -1,6 +1,6 @@
 
 import mlflow
-from experiment_hyperparameter_configs.experiment_hyperparameter_config import ExperimentHyperparameterConfig
+from experiment_configs.experiment_config import ExperimentHyperparameterConfig
 
 
 class MLflowClient:

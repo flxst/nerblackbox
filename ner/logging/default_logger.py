@@ -3,7 +3,7 @@ import logging
 
 from os.path import abspath, dirname, join
 import sys
-BASE_DIR = abspath(dirname(dirname(__file__)))
+BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
 sys.path.append(BASE_DIR)
 
 
