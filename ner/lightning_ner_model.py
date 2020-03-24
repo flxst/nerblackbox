@@ -1,5 +1,4 @@
 
-import os
 import numpy as np
 import pandas as pd
 from seqeval.metrics import classification_report as classification_report_seqeval
@@ -17,6 +16,7 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 from os.path import abspath, dirname
 BASE_DIR = abspath(dirname(dirname(__file__)))
 
+from ner.data_preprocessing.data_preprocessor import DataPreprocessor
 from ner.utils import util_functions
 from ner.metrics.ner_metrics import NerMetrics
 from ner.metrics.logged_metrics import LoggedMetrics
@@ -67,15 +67,17 @@ class LightningNerModel(pl.LightningModule):
                                                   do_lower_case=False)  # needs to be False !!
 
         # data
-        dataset_path = os.path.join(BASE_DIR, util_functions.get_dataset_path(self.params.dataset_name))
-        self.dataloader, self.tag_list = util_functions.preprocess_data(dataset_path,
-                                                                        tokenizer,
-                                                                        batch_size=self._hparams.batch_size,
-                                                                        do_lower_case=self.params.uncased,  # can be True !!
-                                                                        max_seq_length=self._hparams.max_seq_length,
-                                                                        prune_ratio=(self.params.prune_ratio_train,
-                                                                                self.params.prune_ratio_valid),
-                                                                        )
+        self.dataloader, self.tag_list = DataPreprocessor(
+            dataset_name=self.params.dataset_name,
+            tokenizer=tokenizer,
+            batch_size=self._hparams.batch_size,
+            do_lower_case=self.params.uncased,  # can be True !!
+            logging_level=self.params.logging_level,
+            max_seq_length=self._hparams.max_seq_length,
+            prune_ratio=(self.params.prune_ratio_train,
+                         self.params.prune_ratio_valid),
+        ).preprocess()
+
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
                                                                      num_labels=len(self.tag_list))
@@ -241,8 +243,10 @@ class LightningNerModel(pl.LightningModule):
         ]
         # print('> param_optimizer')
         # print([n for n, p in param_optimizer])
-        print('> {} parameters w/  weight decay'.format(len(optimizer_grouped_parameters[0]['params'])))
-        print('> {} parameters w/o weight decay'.format(len(optimizer_grouped_parameters[1]['params'])))
+        self.default_logger.log_debug('> parameters w/  weight decay:',
+                                      len(optimizer_grouped_parameters[0]['params']))
+        self.default_logger.log_debug('> parameters w/o weight decay:',
+                                      len(optimizer_grouped_parameters[1]['params']))
         if fp16:
             optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
             # optimizer = FusedAdam(optimizer_grouped_parameters, lr=self.learning_rate, bias_correction=False)

@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 import json
-from ner.data_preprocessing.input_example import InputExample
+from ner.data_preprocessing.tools.input_example import InputExample
 
 
 class NerProcessor:
