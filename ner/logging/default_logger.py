@@ -29,21 +29,21 @@ class DefaultLogger:
         self.filename = log_file if log_file else self.default_log_file
 
         # level
-        _level = level.upper() if level else None
-        if _level:
-            self.logger.setLevel(_level)
+        self.level = level.upper() if level else None
+        if self.level:
+            self.logger.setLevel(self.level)
 
         # add file handler
         f_handler = logging.FileHandler(filename=self.filename, mode=mode)
         f_handler.setFormatter(logging.Formatter(self.custom_format, datefmt=self.custom_datefmt))
-        if _level:
-            f_handler.setLevel(_level)
+        if self.level:
+            f_handler.setLevel(self.level)
         self.logger.addHandler(f_handler)
 
         if mode == 'w':
-            self.log_debug(f'ACTIVATE FILE LOGGER w/ PATH = {self.filename}')
+            self.log_debug(f'ACTIVATE FILE LOGGER {name} w/ PATH = {self.filename}')
         elif mode == 'a':
-            self.log_debug(f'APPEND TO FILE LOGGER w/ PATH = {self.filename}')
+            self.log_debug(f'APPEND TO FILE LOGGER {name} w/ PATH = {self.filename}')
 
     def clear(self):
         """
@@ -58,7 +58,8 @@ class DefaultLogger:
         """
         msg = ' '.join([str(elem) for elem in args])
         self.logger.debug(msg)     # log
-        print('DEBUG -----', msg)  # print
+        if self.level in ['DEBUG']:
+            print('DEBUG -----', msg)  # print
 
     def log_info(self, *args):
         """
@@ -66,7 +67,8 @@ class DefaultLogger:
         """
         msg = ' '.join([str(elem) for elem in args])
         self.logger.info(msg)      # log
-        print('INFO ------', msg)  # print
+        if self.level in ['DEBUG', 'INFO']:
+            print('INFO ------', msg)  # print
 
     def log_warning(self, *args):
         """
@@ -74,4 +76,5 @@ class DefaultLogger:
         """
         msg = ' '.join([str(elem) for elem in args])
         self.logger.warning(msg)   # log
-        print('WARNING ---', msg)  # print
+        if self.level in ['DEBUG', 'INFO', 'WARNING']:
+            print('WARNING ---', msg)  # print
