@@ -112,12 +112,19 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     def training_step(self, batch, batch_idx):
         # REQUIRED
-        batch = tuple(t.to(self.params.device) for t in batch)
         input_ids, input_mask, segment_ids, tag_ids = batch
         outputs = self.forward(input_ids, input_mask, segment_ids, tag_ids)
-
         batch_train_loss, logits = outputs[:2]
 
+        # logging
+        self.write_metrics_for_tensorboard('train', {'all_loss': batch_train_loss})
+
+        # debug
+        self.default_logger.log_debug('TRAINING STEP GPU CHECK')
+        self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
+        self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
+
+        """
         # to cpu/numpy
         np_batch_train = {
             'loss': batch_train_loss.detach().cpu().numpy(),
@@ -133,11 +140,8 @@ class LightningNerModel(pl.LightningModule):
 
         # logging
         self.write_metrics_for_tensorboard('train', batch_train_metrics)
-
+        """
         return {'loss': batch_train_loss}
-
-    def training_step_end(self):
-        self.default_logger.log_debug('--> epoch training done')
 
     ####################################################################################################################
     # OPTIMIZER
@@ -160,30 +164,34 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     def validation_step(self, batch, batch_idx):
         # OPTIONAL
-        batch = tuple(t.to(self.params.device) for t in batch)
         input_ids, input_mask, segment_ids, tag_ids = batch
         outputs = self.forward(input_ids, input_mask, segment_ids, tag_ids)
-
         batch_valid_loss, logits = outputs[:2]
 
-        # to cpu/numpy
-        np_batch_valid = {
-            'loss': batch_valid_loss.detach().cpu().numpy(),
-            'tag_ids': tag_ids.to('cpu').numpy(),              # shape: [batch_size, seq_length]
-            'logits': logits.detach().cpu().numpy(),           # shape: [batch_size, seq_length, num_tags]
-        }
+        # debug
+        self.default_logger.log_debug('VALIDATION STEP GPU CHECK')
+        self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
+        self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
 
-        return np_batch_valid
+        return batch_valid_loss, tag_ids, logits
 
     def validation_end(self, outputs):
         # OPTIONAL
 
+        # to cpu/numpy
+        np_batch_valid = {
+            'loss': [output[0].detach().cpu().numpy() for output in outputs],
+            'tag_ids': [output[1].detach().cpu().numpy() for output in outputs],  # [batch_size, seq_length]
+            'logits': [output[2].detach().cpu().numpy() for output in outputs],   # [batch_size, seq_length, num_tags]
+        }
+
         # combine np_batch_valid metrics to np_epoch_valid metrics
         np_epoch_valid = {
-            'loss': np.stack([np_batch_valid['loss'] for np_batch_valid in outputs]).mean(),
-            'tag_ids': np.concatenate([np_batch_valid['tag_ids'] for np_batch_valid in outputs]),  # shape: [epoch_size, seq_length]
-            'logits': np.concatenate([np_batch_valid['logits'] for np_batch_valid in outputs]),    # shape: [epoch_size, seq_length, num_tags]
+            'loss': np.stack(np_batch_valid['loss']).mean(),
+            'tag_ids': np.concatenate(np_batch_valid['tag_ids']),          # shape: [epoch_size, seq_length]
+            'logits': np.concatenate(np_batch_valid['logits']),            # shape: [epoch_size, seq_length, num_tags]
         }
+
         # epoch metrics
         epoch_valid_metrics, epoch_valid_tag_ids, epoch_valid_failures = self.compute_metrics('valid', np_epoch_valid)
 
