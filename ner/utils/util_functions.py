@@ -30,9 +30,11 @@ def get_dataset_path(dataset):
     dir_datasets = ENV_VARIABLE['DIR_DATASETS']
 
     if dataset == 'SUC':
-        dataset_path = join(BASE_DIR, f'{dir_datasets}/SUC/')
+        dataset_path = join(BASE_DIR, f'{dir_datasets}/SUC')
     elif dataset == 'swedish_ner_corpus':
-        dataset_path = join(BASE_DIR, f'{dir_datasets}/swedish_ner_corpus/')
+        dataset_path = join(BASE_DIR, f'{dir_datasets}/swedish_ner_corpus')
+    elif dataset == 'conll2003':
+        dataset_path = join(BASE_DIR, f'{dir_datasets}/conll2003')
     else:
         raise Exception(f'dataset = {dataset} unknown.')
 

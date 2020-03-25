@@ -14,10 +14,10 @@ def main(args):
     - I: get data for ner_dataset
     - II: write ner_tag_mapping.json file
     - III: format data
-      . read original text files
-      . split valid/test
-      . reshape text files to standard format
-    - IV: analyze data
+      . reshape original files to standard format
+    - IV: resplit data
+      . split train/valid/test
+    - V: analyze data
       . read reshaped text files
       . analyze data and output class distribution
     --------------------------------------------------------------------------------
@@ -29,9 +29,10 @@ def main(args):
     formatter.create_directory()
     formatter.get_data(verbose=args.verbose)                                        # I: get_data
     formatter.create_ner_tag_mapping(with_tags=args.with_tags, modify=args.modify)  # II: create ner tag mapping
-    formatter.format_data(valid_fraction=args.valid_fraction)                       # III: format data
-    formatter.analyze_data()                                                        # IV: analyze data
-    formatter.plot_data()                                                           # IV: analyze data
+    formatter.format_data()                                                         # III: format data
+    formatter.resplit_data(valid_fraction=args.valid_fraction)                      # IV: resplit data
+    formatter.analyze_data()                                                        # V: analyze data
+    formatter.plot_data()                                                           # V: analyze data
 
 
 if __name__ == '__main__':

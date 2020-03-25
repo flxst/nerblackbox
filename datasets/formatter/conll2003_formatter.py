@@ -1,8 +1,8 @@
 
 import os
-import subprocess
+import requests
 
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname, join, isfile
 import sys
 BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
@@ -10,11 +10,11 @@ sys.path.append(BASE_DIR)
 from datasets.formatter.base_formatter import BaseFormatter
 
 
-class SwedishNerCorpusFormatter(BaseFormatter):
+class CoNLL2003Formatter(BaseFormatter):
 
     def __init__(self):
-        ner_dataset = 'swedish_ner_corpus'
-        ner_tag_list = ['PER', 'ORG', 'LOC', 'MISC', 'PRG', 'ORG*']
+        ner_dataset = 'conll2003'
+        ner_tag_list = ['PER', 'ORG', 'LOC', 'MISC']
         super().__init__(ner_dataset, ner_tag_list)
 
     ####################################################################################################################
@@ -27,19 +27,22 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         :param verbose: [bool]
         :return: -
         """
-        bash_cmds = [
-            'git clone https://github.com/klintan/swedish-ner-corpus.git datasets/ner/swedish_ner_corpus',
-            'echo \"*\" > datasets/ner/swedish_ner_corpus/.gitignore',
-        ]
+        url_base = 'https://raw.githubusercontent.com/patverga/torch-ner-nlp-from-scratch/master/data/conll2003/'
+        targets = ['eng.train', 'eng.testa', 'eng.testb']
 
-        for bash_cmd in bash_cmds:
-            if verbose:
-                print(bash_cmd)
+        for target in targets:
+            target_file = join(self.dataset_path, target)
 
-            try:
-                subprocess.run(bash_cmd, shell=True, check=True)
-            except subprocess.CalledProcessError as e:
-                print(e)
+            # fetch tgz from url
+            if isfile(target_file):
+                if verbose:
+                    print(f'.. file at {target_file} already exists')
+            else:
+                url = url_base + target
+                myfile = requests.get(url, allow_redirects=True)
+                open(target_file, 'wb').write(myfile.content)
+                if verbose:
+                    print(f'.. file fetched from {url} and saved at {target_file}')
 
     def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
         """
@@ -51,17 +54,6 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         ner_tag_mapping = ner_tag_mapping_original
-
-        # take care of extra case: ORG*
-        if with_tags:
-            ner_tag_mapping['B-ORG*'] = 'B-ORG'
-            ner_tag_mapping['I-ORG*'] = 'I-ORG'
-            ner_tag_mapping['B-PRG'] = 'O'
-            ner_tag_mapping['I-PRG'] = 'O'
-        else:
-            ner_tag_mapping['ORG*'] = 'ORG'
-            ner_tag_mapping['PRG'] = 'O'
-
         return ner_tag_mapping
 
     def format_data(self):
@@ -96,12 +88,17 @@ class SwedishNerCorpusFormatter(BaseFormatter):
     ####################################################################################################################
     def _read_original_file(self, phase):
         """
-        - read original text files
+        III: format data
         ---------------------------------------------
         :param phase:   [str] 'train' or 'test'
         :return: _rows: [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
         """
-        file_path_original = join(self.dataset_path, f'{phase}_corpus.txt')
+        file_name = {
+            'train': 'eng.train',
+            'valid': 'eng.testa',
+            'test': 'eng.testb',
+        }
+        file_path_original = join(self.dataset_path, file_name[phase])
 
         _rows = list()
         if os.path.isfile(file_path_original):
@@ -109,5 +106,9 @@ class SwedishNerCorpusFormatter(BaseFormatter):
                 for row in f.readlines():
                     _rows.append(row.strip().split())
             print(f'\n> read {file_path_original}')
+
+        _rows = [[elem[0], elem[-1].split('-')[-1]]
+                 if len(elem) == 4 else elem
+                 for elem in _rows[2:]]
 
         return _rows

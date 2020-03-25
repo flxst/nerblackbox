@@ -1,7 +1,7 @@
 
-import pandas as pd
+import shutil
 
-from os.path import abspath, dirname
+from os.path import abspath, dirname, join
 import sys
 BASE_DIR = abspath(dirname(dirname(__file__)))
 sys.path.append(BASE_DIR)
@@ -40,47 +40,30 @@ class SUCFormatter(BaseFormatter):
         ner_tag_mapping = ner_tag_mapping_original
         return ner_tag_mapping
 
-    def format_data(self, valid_fraction: float):
+    def format_data(self):
         """
         III: format data
+        ----------------
+        :return: -
+        """
+        for phase in ['train', 'valid', 'test']:
+            original_file_path = join(self.dataset_path, f'{phase}_original.csv')
+            formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
+            shutil.copy2(original_file_path, formatted_file_path)
+
+    def resplit_data(self, valid_fraction: float):
+        """
+        IV: resplit data
         ----------------
         :param valid_fraction: [float]
         :return: -
         """
         # valid, test -> train
-        csvs = self._read_csvs(['valid', 'test'])
-        self._write_csvs_train(csvs)
+        df_train = self._read_formatted_files(['valid', 'test'])
+        self._write_final_csv('train', df_train)
 
-        # train       -> valid (& test)
-        csvs = self._read_csvs(['train'])
-        self._write_csvs_valid_test(csvs, valid_fraction)
-
-    ####################################################################################################################
-    # HELPER: CSVS
-    ####################################################################################################################
-    def _read_csvs(self, phases):
-        csv_phases = [self._read_original_file(phase) for phase in phases]
-        return pd.concat(csv_phases, ignore_index=True)
-
-    def _write_csvs_train(self, _csvs):
-        self._write_formatted_csv('train', _csvs)
-
-    def _write_csvs_valid_test(self, _csvs, _valid_fraction):
-        split_index = int(len(_csvs) * _valid_fraction)
-        csvs_valid = _csvs.iloc[:split_index]
-        csvs_test = _csvs.iloc[split_index:]
-        self._write_formatted_csv('valid', csvs_valid)
-        self._write_formatted_csv('test', csvs_test)
-
-    ####################################################################################################################
-    # HELPER: READ / WRITE
-    ####################################################################################################################
-    @staticmethod
-    def _read_original_file(phase):
-        file_path = f'datasets/ner/SUC/{phase}_original.csv'
-        return pd.read_csv(file_path, sep='\t', header=None)
-
-    @staticmethod
-    def _write_formatted_csv(phase, csvs):
-        file_path = f'datasets/ner/SUC/{phase}.csv'
-        csvs.to_csv(file_path, sep='\t', index=False, header=None)
+        # train       -> valid & test
+        df_valid_test = self._read_formatted_files(['train'])
+        df_valid, df_test = self._split_valid_test(df_valid_test, valid_fraction)
+        self._write_final_csv('valid', df_valid)
+        self._write_final_csv('test', df_test)

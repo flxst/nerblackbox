@@ -9,7 +9,7 @@ import sys
 BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
 sys.path.append(BASE_DIR)
 
-from ner.utils import get_dataset_path
+from ner.utils.util_functions import get_dataset_path
 from datasets.plots import Plots
 
 from ner.logging.default_logger import DefaultLogger
@@ -24,7 +24,7 @@ class BaseFormatter(ABC):
         """
         self.ner_dataset = ner_dataset
         self.ner_tag_list = ner_tag_list
-        self.dataset_path = join(BASE_DIR, get_dataset_path(ner_dataset))
+        self.dataset_path = get_dataset_path(ner_dataset)
         self.stats_aggregated = None
         self.num_tokens = None
         self.num_sentences = None
@@ -55,9 +55,18 @@ class BaseFormatter(ABC):
         pass
 
     @abstractmethod
-    def format_data(self, valid_fraction: float):
+    def format_data(self):
         """
         III: format data
+        ----------------
+        :return: -
+        """
+        pass
+
+    @abstractmethod
+    def resplit_data(self, valid_fraction: float):
+        """
+        IV: resplit data
         ----------------
         :param valid_fraction: [float]
         :return: -
@@ -107,15 +116,107 @@ class BaseFormatter(ABC):
         print(f'> dumped the following dict to {json_path}:')
         print(ner_tag_mapping)
 
+    ####################################################################################################################
+    # HELPER: WRITE FORMATTED
+    ####################################################################################################################
+    def _write_formatted_csv(self, phase, rows):
+        """
+        III: format data
+        ----------------------------------------------
+        :param phase:         [str] 'train' or 'test'
+        :param rows:          [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
+        :return: -
+        """
+        file_path = join(self.dataset_path, f'{phase}_formatted.csv')
+
+        # ner tag mapping
+        with open(join(self.dataset_path, 'ner_tag_mapping.json'), 'r') as f:
+            ner_tag_mapping = json.load(f)
+
+        # processing
+        with open(file_path, mode='w') as f:
+
+            num_sentences = 0
+            tags = list()
+            sentence = list()
+            for row in rows:
+                if len(row) == 2:
+                    sentence.append(row[0])
+                    tags.append(ner_tag_mapping[row[1]] if row[1] != '0' else 'O')  # replace zeros by capital O (!)
+                    if row[0] == '.':
+                        f.write(' '.join(tags) + '\t' + ' '.join(sentence) + '\n')
+                        num_sentences += 1
+                        tags = list()
+                        sentence = list()
+
+        print(f'> phase = {phase}: wrote {len(rows)} words in {num_sentences} sentences to {file_path}')
+
+    ####################################################################################################################
+    # HELPER: READ FORMATTED
+    ####################################################################################################################
+    def _read_formatted_files(self, phases):
+        """
+        IV: resplit data
+        ----------------
+        :param phases: [list] of [str] to read formatted csvs from, e.g. ['valid', 'test']
+        :return: [pd DataFrame]
+        """
+        df_phases = [self._read_formatted_file(phase) for phase in phases]
+        return pd.concat(df_phases, ignore_index=True)
+
+    def _read_formatted_file(self, phase):
+        """
+        IV: resplit data
+        ----------------
+        :param phase: [str] csvs to read formatted df from, e.g. 'valid'
+        :return: df: [pd DataFrame]
+        """
+        formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
+        try:
+            df = pd.read_csv(formatted_file_path, sep='\t', header=None)
+        except pd.errors.EmptyDataError:
+            df = pd.DataFrame()
+        return df
+
+    ####################################################################################################################
+    # HELPER: WRITE FINAL
+    ####################################################################################################################
+    @staticmethod
+    def _split_valid_test(_df_valid_test, _valid_fraction):
+        """
+        IV: resplit data
+        ----------------
+        :param _df_valid_test: [pd DataFrame]
+        :param _valid_fraction: [float] between 0 and 1
+        :return: _df_valid: [pd DataFrame]
+        :return: _df_test:  [pd DataFrame]
+        """
+        split_index = int(len(_df_valid_test) * _valid_fraction)
+        _df_valid = _df_valid_test.iloc[:split_index]
+        _df_test = _df_valid_test.iloc[split_index:]
+        return _df_valid, _df_test
+
+    def _write_final_csv(self, phase, df):
+        """
+        IV: resplit data
+        ----------------
+        :param phase: [str], 'train', 'valid' or 'test'
+        :param df: [pd DataFrame]
+        :return:
+        """
+        file_path = join(self.dataset_path, f'{phase}.csv')
+        df.to_csv(file_path, sep='\t', index=False, header=None)
+
+    ####################################################################################################################
     def read_formatted_csv(self, phase):
         """
-        III & IV: read formatted csv files
+        V: read formatted csv files
         ----------------------------------------------
         :param phase:         [str] 'train' or 'test'
         :return: num_sentences:    [int]
                  stats_aggregated: [pandas Series] with indices = tags, values = number of occurrences
         """
-        file_path = f'{BASE_DIR}/datasets/ner/{self.ner_dataset}/{phase}.csv'
+        file_path = join(self.dataset_path, f'{phase}.csv')
 
         columns = ['O'] + self.ner_tag_list
 
@@ -146,12 +247,12 @@ class BaseFormatter(ABC):
 
     def analyze_data(self):
         """
-        IV: analyze data
+        V: analyze data
         ----------------
         :created attr: stats_aggregated: [dict] w/ keys = 'total', 'train', 'valid', 'test' & values = [df]
         :return: -
         """
-        log_file = f'datasets/ner/{self.ner_dataset}/analyze_data/{self.ner_dataset}.log'
+        log_file = join(self.dataset_path, 'analyze_data', f'{self.ner_dataset}.log')
         default_logger = DefaultLogger(__file__, log_file=log_file, level='info', mode='w')
 
         self.num_tokens = {'total': 0}
@@ -195,13 +296,13 @@ class BaseFormatter(ABC):
         default_logger.log_info(self.stats_aggregated['total'])
 
     def plot_data(self):
-        fig_path = f'{self.dataset_path}/analyze_data/{self.ner_dataset}.png'
+        fig_path = join(self.dataset_path, 'analyze_data', f'{self.ner_dataset}.png')
         Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
 
     @staticmethod
     def _stats_aggregated_add_columns(df, number_of_sentences):
         """
-        IV: analyze data
+        V: analyze data
         ----------------
         :param df: ..
         :param number_of_sentences: ..

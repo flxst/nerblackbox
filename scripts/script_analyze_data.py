@@ -11,7 +11,7 @@ from datasets.formatter.custom_formatter import CustomFormatter
 
 def main(args):
     """
-    - IV: analyze data
+    - V: analyze data
       . read reshaped text files
       . analyze data and output class distribution
     --------------------------------------------------------------------------------
