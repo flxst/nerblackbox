@@ -50,6 +50,7 @@ def main(params, hparams, log_dirs, experiment):
         trainer.fit(model)
 
         # logging
+        model.mlflow_client.finish_artifact_logger()
         _tb_logger_stopped_epoch(tb_logger, hparams, early_stop_callback, model)
 
 
@@ -95,7 +96,7 @@ def _tb_logger_stopped_epoch(_tb_logger,
                              _hparams,
                              _early_stop_callback,
                              _model,
-                             metrics=('all_loss', 'fil_f1_micro', 'fil_f1_macro')):
+                             metrics=('all+_loss', 'all_f1_micro', 'all_f1_macro', 'fil_f1_micro', 'fil_f1_macro')):
     """
     log hparams and metrics for stopped epoch
     -----------------------------------------
@@ -110,7 +111,8 @@ def _tb_logger_stopped_epoch(_tb_logger,
     stopped_epoch = _early_stop_callback.stopped_epoch if _early_stop_callback.stopped_epoch else _hparams.max_epochs-1
 
     # hparams
-    hparams_dict = {f'hparam/valid/{metric}': _model.epoch_valid_metrics[stopped_epoch][metric] for metric in metrics}
+    hparams_dict = {f'hparam/valid/{metric.replace("+", "P")}': _model.epoch_valid_metrics[stopped_epoch][metric]
+                    for metric in metrics}
     hparams_dict['hparam/train/stopped_epoch'] = stopped_epoch
     _tb_logger.experiment.add_hparams(
         vars(_hparams),

@@ -8,14 +8,14 @@ class LoggedMetrics:
         """
         if logged_metrics is None:
             self.logged_metrics = [
-                ('loss',      ['train', 'valid'], ['all'],        ['simple']),
-                ('acc',       ['train', 'valid'], ['all'],        ['simple']),
-                ('precision', ['valid'],          ['all', 'fil'], ['micro', 'macro']),
-                ('precision', ['valid'],          ['ind'],        ['micro']),
-                ('recall',    ['valid'],          ['all', 'fil'], ['micro', 'macro']),
-                ('recall',    ['valid'],          ['ind'],        ['micro']),
-                ('f1',        ['valid'],          ['all', 'fil'], ['micro', 'macro']),
-                ('f1',        ['valid'],          ['ind'],        ['micro']),
+                ('loss',      ['train', 'valid'], ['all+'],               ['simple']),
+                ('acc',       ['train', 'valid'], ['all+'],               ['simple']),
+                ('precision', ['valid'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
+                ('precision', ['valid'],          ['ind'],                ['micro']),
+                ('recall',    ['valid'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
+                ('recall',    ['valid'],          ['ind'],                ['micro']),
+                ('f1',        ['valid'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
+                ('f1',        ['valid'],          ['ind'],                ['micro']),
             ]
         else:
             self.logged_metrics = logged_metrics

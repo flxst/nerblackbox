@@ -117,7 +117,7 @@ class LightningNerModel(pl.LightningModule):
         batch_train_loss, logits = outputs[:2]
 
         # logging
-        self.write_metrics_for_tensorboard('train', {'all_loss': batch_train_loss})
+        self.write_metrics_for_tensorboard('train', {'all+_loss': batch_train_loss})
 
         # debug
         self.default_logger.log_debug('TRAINING STEP GPU CHECK')
@@ -208,7 +208,7 @@ class LightningNerModel(pl.LightningModule):
         self.mlflow_client.log_metrics(self.current_epoch, epoch_valid_metrics)                        # mlflow
         self.mlflow_client.log_classification_report(self.classification_reports[self.current_epoch],
                                                      overwrite=self.current_epoch == 0)                # mlflow
-        self.mlflow_client.finish_artifact()                                                           # mlflow
+        self.mlflow_client.finish_artifact_mlflow()                                                    # mlflow
 
         # print
         self._print_metrics(epoch_valid_metrics, self.classification_reports[self.current_epoch])
@@ -319,6 +319,18 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
+    def _get_rid_of_pad_tag_occurrences(self, _tag_ids):
+        """
+        get rid of all elements where '[PAD]' occurs in true array
+        ----------------------------------------------------------
+        :param _tag_ids:      [dict] w/ keys = 'true', 'pred' and
+                                        values = [np array] of shape [batch_size * seq_length]
+        :return: _tag_ids_new [dict] w/ keys = 'true', 'pred' and
+                                        values = [np array] of shape [batch_size * seq_length - # of pad occurrences]
+        """
+        pad_indices = np.where(_tag_ids['true'] == self._get_individual_tag_id('[PAD]'))[0]
+        return {key: np.delete(_tag_ids[key], pad_indices) for key in ['true', 'pred']}
+
     def compute_metrics(self, phase, _np_dict):
         """
         computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
@@ -328,26 +340,29 @@ class LightningNerModel(pl.LightningModule):
                                      'loss':     [np value]
                                      'tag_ids':  [np array] of shape [batch_size, seq_length]
                                      'logits'    [np array] of shape [batch_size, seq_length, num_tags]
-        :return: metrics       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
+        :return: metrics       [dict] w/ keys 'all+_loss', 'all+_acc', 'fil_f1_micro', .. & values = [np array]
                  tags_ids      [dict] w/ keys 'true', 'pred'      & values = [np array]
         """
         # batch / dataset
         tag_ids = dict()
         tag_ids['true'], tag_ids['pred'] = self._reduce_and_flatten(_np_dict['tag_ids'], _np_dict['logits'])
+        tag_ids = self._get_rid_of_pad_tag_occurrences(tag_ids)
+
         self.default_logger.log_debug('phase:', phase)
         self.default_logger.log_debug('true:', np.shape(tag_ids['true']),
                                       [self.tag_list[i] for i in set(tag_ids['true'])])
         self.default_logger.log_debug('pred:', np.shape(tag_ids['pred']),
                                       [self.tag_list[i] for i in set(tag_ids['pred'])])
+
         if phase == 'valid':
             for array in ['true', 'pred']:
                 id2tag = [self.tag_list[elem] for elem in tag_ids[array]]
                 np.save(f'results/{array}.npy', id2tag)
 
         # batch / dataset metrics
-        metrics = {'all_loss': _np_dict['loss']}
+        metrics = {'all+_loss': _np_dict['loss']}
         failures = dict()
-        for tag_subset in ['all', 'fil'] + self.tag_list:  # self._get_filtered_tags():
+        for tag_subset in ['all+', 'all', 'fil'] + self.tag_list:  # self._get_filtered_tags():
             _metrics, _failures = self._compute_metrics_for_tags_subset(tag_ids, phase, tag_subset=tag_subset)
             metrics.update(_metrics)
 
@@ -355,18 +370,24 @@ class LightningNerModel(pl.LightningModule):
 
         return metrics, tag_ids, failures
 
-    def _get_filtered_tags(self):
-        return [tag
-                for tag in self.tag_list
-                if not (tag.startswith('[') or tag == 'O')]
-
-    def _get_filtered_tag_ids(self):
-        return [self.tag_list.index(tag)
-                for tag in self.tag_list
-                if not (tag.startswith('[') or tag == 'O')]
+    def _get_filtered_tag_ids(self, _tag_subset):
+        if _tag_subset == 'all++':
+            return None
+        elif _tag_subset == 'all+':
+            return [self.tag_list.index(tag)
+                    for tag in self.tag_list
+                    if not tag == '[PAD]']
+        elif _tag_subset == 'all':
+            return [self.tag_list.index(tag)
+                    for tag in self.tag_list
+                    if not tag.startswith('[')]
+        elif _tag_subset == 'fil':
+            return [self.tag_list.index(tag)
+                    for tag in self.tag_list
+                    if not (tag.startswith('[') or tag == 'O')]
 
     def _get_individual_tag_id(self, tag):
-        return [self.tag_list.index(tag)]
+        return self.tag_list.index(tag)
 
     def _compute_metrics_for_tags_subset(self, _tag_ids, _phase, tag_subset: str):
         """
@@ -375,17 +396,14 @@ class LightningNerModel(pl.LightningModule):
         ---------------------------------------------------
         :param _tag_ids:   [dict] w/ keys 'true', 'pred'      & values = [np array]
         :param _phase:     [str], 'train', 'valid'
-        :param tag_subset: [str], e.g. 'all', 'fil', 'PER'
+        :param tag_subset: [str], e.g. 'all+', 'all', 'fil', 'PER'
         :return: _metrics  [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
-        if tag_subset == 'all':
-            tag_list = None
-            tag_group = ['all']
-        elif tag_subset == 'fil':
-            tag_list = self._get_filtered_tag_ids()
-            tag_group = ['fil']
+        if tag_subset in ['all+', 'all', 'fil']:
+            tag_list = self._get_filtered_tag_ids(tag_subset)
+            tag_group = [tag_subset]
         else:
-            tag_list = self._get_individual_tag_id(tag_subset)
+            tag_list = [self._get_individual_tag_id(tag_subset)]
             tag_group = ['ind']
 
         ner_metrics = NerMetrics(_tag_ids['true'], _tag_ids['pred'], tag_list=tag_list)
@@ -471,7 +489,7 @@ class LightningNerModel(pl.LightningModule):
         # token-based classification report
         selected_tags = [tag for tag in self.tag_list if tag != 'O' and not tag.startswith('[')]
         self.classification_reports[epoch] += f'\n>>> Epoch: {epoch}'
-        self.classification_reports[epoch] += '\n--- token-based (sklearn) classification report ---\n'
+        self.classification_reports[epoch] += '\n--- token-based (sklearn) classification report on fil ---\n'
         self.classification_reports[epoch] += classification_report_sklearn(epoch_valid_tags['true'],
                                                                             epoch_valid_tags['pred'],
                                                                             labels=selected_tags)
@@ -483,7 +501,7 @@ class LightningNerModel(pl.LightningModule):
         }
 
         # chunk-based classification report
-        self.classification_reports[epoch] += '\n--- chunk-based (seqeval) classification report ---\n'
+        self.classification_reports[epoch] += '\n--- chunk-based (seqeval) classification report on fil ---\n'
         self.classification_reports[epoch] += classification_report_seqeval(epoch_valid_tags_bio['true'],
                                                                             epoch_valid_tags_bio['pred'],
                                                                             suffix=False)
@@ -495,12 +513,14 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     def _print_metrics(self, _metrics, _classification_reports=None):
         epoch_str = f'Epoch #{self.current_epoch} valid '
-        self.default_logger.log_info('{} all loss:         {:.2f}'.format(epoch_str, _metrics['all_loss']))
-        self.default_logger.log_debug('{} all acc:          {:.2f}'.format(epoch_str, _metrics['all_acc']))
-        self.default_logger.log_debug('{} all f1 (macro):   {:.2f}'.format(epoch_str, _metrics['all_f1_macro']))
-        self.default_logger.log_debug('{} all f1 (micro):   {:.2f}'.format(epoch_str, _metrics['all_f1_micro']))
-        self.default_logger.log_debug('{} fil f1 (macro):   {:.2f}'.format(epoch_str, _metrics['fil_f1_macro']))
-        self.default_logger.log_debug('{} fil f1 (micro):   {:.2f}'.format(epoch_str, _metrics['fil_f1_micro']))
+        self.default_logger.log_info('{} all+ loss:         {:.2f}'.format(epoch_str, _metrics['all+_loss']))
+        self.default_logger.log_debug('{} all+ acc:         {:.2f}'.format(epoch_str, _metrics['all+_acc']))
+        self.default_logger.log_debug('{} all+ f1 (macro):   {:.2f}'.format(epoch_str, _metrics['all+_f1_macro']))
+        self.default_logger.log_debug('{} all+ f1 (micro):   {:.2f}'.format(epoch_str, _metrics['all+_f1_micro']))
+        self.default_logger.log_debug('{} all  f1 (macro):   {:.2f}'.format(epoch_str, _metrics['all_f1_macro']))
+        self.default_logger.log_debug('{} all  f1 (micro):   {:.2f}'.format(epoch_str, _metrics['all_f1_micro']))
+        self.default_logger.log_debug('{} fil  f1 (macro):   {:.2f}'.format(epoch_str, _metrics['fil_f1_macro']))
+        self.default_logger.log_debug('{} fil  f1 (micro):   {:.2f}'.format(epoch_str, _metrics['fil_f1_micro']))
         if _classification_reports is not None:
             self.default_logger.log_debug(_classification_reports)
 
@@ -513,7 +533,8 @@ class LightningNerModel(pl.LightningModule):
         :return: -
         """
         # tb_logs: all
-        tb_logs = {f'{phase}/{k}': v for k, v in metrics.items()}
+        tb_logs = {f'{phase}/{k.split("_", 1)[0].replace("+", "P")}/{k.split("_", 1)[1]}': v
+                   for k, v in metrics.items()}
 
         # tb_logs: learning rate
         if phase == 'train':

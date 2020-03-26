@@ -65,7 +65,7 @@ class MLflowClient:
         """
         mlflow.log_metric('epoch', _epoch)
         for metric in _epoch_valid_metrics.keys():
-            _metric = metric.replace('[', '_').replace(']', '_')
+            _metric = metric.replace('[', '_').replace(']', '_').replace('+', 'P')
             mlflow.log_metric(_metric, _epoch_valid_metrics[metric])
 
     def log_classification_report(self, _classification_report, overwrite=False):
@@ -103,15 +103,12 @@ class MLflowClient:
         with open(self.log_dirs.mlflow_file, "a") as f:
             f.write(content + '\n')
 
-    def finish_artifact(self):
+    def finish_artifact_mlflow(self):
         # mlflow
         mlflow.log_artifact(self.log_dirs.mlflow_file)
         self.default_logger.log_debug(f'mlflow file at {self.log_dirs.mlflow_file}')
 
+    def finish_artifact_logger(self):
         # default logger
         mlflow.log_artifact(self.log_dirs.log_file)
         self.default_logger.log_debug(f'log file at {self.log_dirs.log_file}')
-
-    def finish(self):
-        self.finish_artifact()
-        mlflow.end_run()
