@@ -1,3 +1,4 @@
 mlruns
 tensorboard
 *.log
+*.npy

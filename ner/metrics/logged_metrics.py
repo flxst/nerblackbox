@@ -3,8 +3,8 @@ class LoggedMetrics:
 
     def __init__(self, logged_metrics=None):
         """
-        :param logged_metrics: [list] of [tuples] w/ (metric, tags_list, micro_macro_list),
-                                                  e.g. [('precision', ['all', 'fil'], ['micro', 'macro']), ..]
+        :param logged_metrics: [list] of [tuples] w/ (metric, phase_list, tags_list, micro_macro_list),
+                                                  e.g. [('precision', ['valid'], ['all', 'fil'], ['micro', 'macro']),..]
         """
         if logged_metrics is None:
             self.logged_metrics = [

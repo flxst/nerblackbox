@@ -15,7 +15,7 @@ class MLflowClient:
         self.experiment_name = experiment_name
         self.run_name = run_name
         self.log_dirs = log_dirs
-        self.logged_metrics = logged_metrics
+        self.logged_metrics = logged_metrics  # TODO: not used !!
         self.default_logger = default_logger
 
     @staticmethod
@@ -65,7 +65,8 @@ class MLflowClient:
         """
         mlflow.log_metric('epoch', _epoch)
         for metric in _epoch_valid_metrics.keys():
-            mlflow.log_metric(metric, _epoch_valid_metrics[metric])
+            _metric = metric.replace('[', '_').replace(']', '_')
+            mlflow.log_metric(_metric, _epoch_valid_metrics[metric])
 
     def log_classification_report(self, _classification_report, overwrite=False):
         """

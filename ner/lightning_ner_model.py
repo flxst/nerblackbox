@@ -339,11 +339,15 @@ class LightningNerModel(pl.LightningModule):
                                       [self.tag_list[i] for i in set(tag_ids['true'])])
         self.default_logger.log_debug('pred:', np.shape(tag_ids['pred']),
                                       [self.tag_list[i] for i in set(tag_ids['pred'])])
+        if phase == 'valid':
+            for array in ['true', 'pred']:
+                id2tag = [self.tag_list[elem] for elem in tag_ids[array]]
+                np.save(f'results/{array}.npy', id2tag)
 
         # batch / dataset metrics
         metrics = {'all_loss': _np_dict['loss']}
         failures = dict()
-        for tag_subset in ['all', 'fil'] + self._get_filtered_tags():
+        for tag_subset in ['all', 'fil'] + self.tag_list:  # self._get_filtered_tags():
             _metrics, _failures = self._compute_metrics_for_tags_subset(tag_ids, phase, tag_subset=tag_subset)
             metrics.update(_metrics)
 
