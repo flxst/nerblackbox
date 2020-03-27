@@ -114,8 +114,14 @@ class ExperimentHyperparameterConfig:
         """
         _config = ConfigParser()
         _config.read(self.config_path)
-        _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}  # {'params': {'monitor': 'val_loss'}}
+        _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}  # {'hparams': {'monitor': 'val_loss'}}
         _config_dict = {s: {k: self._convert(k, v) for k, v in subdict.items()} for s, subdict in _config_dict.items()}
+
+        # combine sections 'dataset', 'model' & 'settings' to single section 'params'
+        _config_dict['params'] = dict()
+        for s in ['dataset', 'model', 'settings']:
+            _config_dict['params'].update(_config_dict[s])
+            _config_dict.pop(s)
 
         return _config, _config_dict
 
