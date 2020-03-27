@@ -75,13 +75,14 @@ class ExperimentHyperparameterConfig:
                                             e.g. {'run1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         config, config_dict = self._get_config()
+        print(config_dict)
 
         # _params_config & _hparams_config
         _params_configs = dict()
         _hparams_configs = dict()
 
         if self.run_name is None:  # multiple runs
-            runs = [run for run in config.sections() if run not in ['params', 'hparams']]
+            runs = [run for run in config.sections() if run.startswith('run')]
         else:
             runs = [run for run in config.sections() if run == self.run_name]
             assert len(runs) == 1
