@@ -60,7 +60,7 @@ class TestNerMetrics:
             else:
                 return _labels
 
-        ner_metrics = NerMetrics(true, pred, tag_list=get_tag_list(labels))
+        ner_metrics = NerMetrics(true, pred, tag_list=get_tag_list(labels), level='token')
         ner_metrics.compute(self.metrics)
         ner_metrics_results = ner_metrics.results_as_dict()
 

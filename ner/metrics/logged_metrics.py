@@ -11,11 +11,11 @@ class LoggedMetrics:
                 ('loss',      ['train', 'val', 'test'], ['all+'],               ['simple']),
                 ('acc',       ['train', 'val', 'test'], ['all+'],               ['simple']),
                 ('precision', ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('precision', ['val', 'test'],          ['ind'],                ['micro']),
+                ('precision', ['val', 'test'],          ['chk', 'ind'],         ['micro']),
                 ('recall',    ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('recall',    ['val', 'test'],          ['ind'],                ['micro']),
+                ('recall',    ['val', 'test'],          ['chk', 'ind'],         ['micro']),
                 ('f1',        ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('f1',        ['val', 'test'],          ['ind'],                ['micro']),
+                ('f1',        ['val', 'test'],          ['chk', 'ind'],         ['micro']),
             ]
         else:
             self.logged_metrics = logged_metrics

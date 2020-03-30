@@ -98,7 +98,7 @@ def _tb_logger_stopped_epoch(_tb_logger,
                              _hparams,
                              _early_stop_callback,
                              _model,
-                             metrics=('all_f1_micro', 'all_f1_macro')):
+                             metrics=('all_f1_micro', 'fil_f1_micro', 'chk_f1_micro')):
     """
     log hparams and metrics for stopped epoch
     -----------------------------------------

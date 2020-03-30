@@ -10,27 +10,9 @@ from sklearn.exceptions import UndefinedMetricWarning
 
 import warnings
 
-
-@dataclass
-class Results:
-    acc: float = -1
-    precision_micro: float = -1
-    precision_macro: float = -1
-    recall_micro: float = -1
-    recall_macro: float = -1
-    f1_micro: float = -1
-    f1_macro: float = -1
-
-
-@dataclass
-class Failures:
-    acc: int = 0
-    precision_micro: int = 0
-    precision_macro: int = 0
-    recall_micro: int = 0
-    recall_macro: int = 0
-    f1_micro: int = 0
-    f1_macro: int = 0
+from seqeval.metrics import precision_score as precision_seqeval
+from seqeval.metrics import recall_score as recall_seqeval
+from seqeval.metrics import f1_score as f1_seqeval
 
 
 class NerMetrics:
@@ -39,27 +21,30 @@ class NerMetrics:
                  true_flat,
                  pred_flat,
                  tag_list=None,
+                 level='token',
                  verbose=False):
         """
         :param true_flat: [np array] of shape [batch_size * seq_length]
         :param pred_flat: [np array] of shape [batch_size * seq_length]
         :param tag_list:  [optional, list] of [str] labels to take into account for metrics
+        :param level:     [optional, str] 'token' or 'chunk'
         :param verbose:   [optional, bool] if True, show verbose output
         """
         self.true_flat = true_flat
         self.pred_flat = pred_flat
         self.tag_list = tag_list
+        self.level = level
         self.verbose = verbose
 
         self.results = Results()
-        self.failures = Failures()
         self.failure_value = -1
+
+        if self.level == 'chunk':
+            self.true_flat_bio = convert_to_bio(self.true_flat)
+            self.pred_flat_bio = convert_to_bio(self.pred_flat)
 
     def results_as_dict(self):
         return asdict(self.results)
-
-    def failures_as_dict(self):
-        return asdict(self.failures)
 
     def compute(self, _metrics):
         """
@@ -87,7 +72,9 @@ class NerMetrics:
         ---------------------------------------------------------------------------------
         :return: acc [np float]
         """
-        self.results.acc = accuracy_sklearn(self.true_flat, self.pred_flat, normalize=True)
+        self.results.acc = accuracy_sklearn(self.true_flat,
+                                            self.pred_flat,
+                                            normalize=True)
 
     def precision(self):
         """
@@ -96,21 +83,30 @@ class NerMetrics:
         :return: precision_macro [np array] for each class, then averaged
                  precision_micro [np array] for all examples
         """
-        try:
-            self.results.precision_macro = precision_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='macro')
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            self.results.precision_macro = self.failure_value
-            self.failures.precision_macro += 1
+        if self.level == 'token':
+            try:
+                self.results.precision_macro = precision_sklearn(self.true_flat,
+                                                                 self.pred_flat,
+                                                                 labels=self.tag_list,
+                                                                 average='macro')
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
 
-        try:
-            self.results.precision_micro = precision_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='micro')
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            self.results.precision_macro = self.failure_value
-            self.failures.precision_micro += 1
+            try:
+                self.results.precision_micro = precision_sklearn(self.true_flat,
+                                                                 self.pred_flat,
+                                                                 labels=self.tag_list,
+                                                                 average='micro')
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
+        else:
+            self.results.precision_micro = precision_seqeval(self.true_flat_bio,
+                                                             self.pred_flat_bio,
+                                                             average='micro')
 
     def recall(self):
         """
@@ -119,21 +115,30 @@ class NerMetrics:
         :return: recall_macro [np array] for each class, then averaged
                  recall_micro [np array] for all examples
         """
-        try:
-            self.results.recall_macro = recall_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='macro')
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            self.results.precision_macro = self.failure_value
-            self.failures.recall_macro += 1
+        if self.level == 'token':
+            try:
+                self.results.recall_macro = recall_sklearn(self.true_flat,
+                                                           self.pred_flat,
+                                                           labels=self.tag_list,
+                                                           average='macro')
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
 
-        try:
-            self.results.recall_micro = recall_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='micro')
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            self.results.precision_macro = self.failure_value
-            self.failures.recall_micro += 1
+            try:
+                self.results.recall_micro = recall_sklearn(self.true_flat,
+                                                           self.pred_flat,
+                                                           labels=self.tag_list,
+                                                           average='micro')
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
+        else:
+            self.results.recall_micro = recall_seqeval(self.true_flat_bio,
+                                                       self.pred_flat_bio,
+                                                       average='micro')
 
     def f1_score(self):
         """
@@ -142,18 +147,95 @@ class NerMetrics:
         :return: f1_score_macro [np array] for each class, then averaged
                  f1_score_micro [np array] for all examples
         """
-        try:
-            _, _, self.results.f1_macro, _ = prf_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='macro', warn_for=('precision', 'recall', 'f-score'))
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            self.results.precision_macro = self.failure_value
-            self.failures.f1_macro += 1
+        if self.level == 'token':
+            try:
+                _, _, self.results.f1_macro, _ = prf_sklearn(self.true_flat,
+                                                             self.pred_flat,
+                                                             labels=self.tag_list,
+                                                             average='macro',
+                                                             warn_for=('precision', 'recall', 'f-score'))
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
 
-        try:
-            _, _, self.results.f1_micro, _ = prf_sklearn(self.true_flat, self.pred_flat, labels=self.tag_list, average='micro', warn_for=('precision', 'recall', 'f-score'))
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            self.results.precision_macro = self.failure_value
-            self.failures.f1_micro += 1
+            try:
+                _, _, self.results.f1_micro, _ = prf_sklearn(self.true_flat,
+                                                             self.pred_flat,
+                                                             labels=self.tag_list,
+                                                             average='micro',
+                                                             warn_for=('precision', 'recall', 'f-score'))
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
+        else:
+            self.results.f1_micro = f1_seqeval(self.true_flat_bio,
+                                               self.pred_flat_bio,
+                                               average='micro')
+
+
+@dataclass
+class Results:
+    acc: float = -1
+    precision_micro: float = -1
+    precision_macro: float = -1
+    recall_micro: float = -1
+    recall_macro: float = -1
+    f1_micro: float = -1
+    f1_macro: float = -1
+
+
+def convert_to_bio(tag_list):
+    """
+    - get rid of special tokens
+    - add bio prefixed to tags
+    ---------------------------
+    :param tag_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
+    :return: bio_tag_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
+    """
+    return add_bio_to_tag_list(get_rid_of_special_tokens(tag_list))
+
+
+def add_bio_to_tag_list(tag_list):
+    """
+    adds bio prefixes to tags
+    ---------------------------
+    :param tag_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
+    :return: bio_tag_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
+    """
+    return [_add_bio_to_tag(tag_list[i], previous=tag_list[i - 1] if i > 0 else None)
+            for i in range(len(tag_list))]
+
+
+def _add_bio_to_tag(tag, previous):
+    """
+    add bio prefix to tag, depending on previous tag
+    ------------------------------------------------
+    :param tag:       [str], e.g. 'ORG'
+    :param previous:  [str], e.g. 'ORG'
+    :return: bio_tag: [str], e.g. 'I-ORG'
+    """
+    if tag == 'O' or tag.startswith('['):
+        return tag
+    elif previous is None:
+        return f'B-{tag}'
+    elif tag != previous:
+        return f'B-{tag}'
+    else:
+        return f'I-{tag}'
+
+
+def get_rid_of_special_tokens(tag_list):
+    """
+    replace special tokens ('[CLS]', '[SEP]', '[PAD]') by 'O'
+    ---------------------------------------------------------
+    :param tag_list:           [list] of [str], e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
+    :return: cleaned_tag_list: [list] of [str], e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
+    """
+
+    return [tag
+            if not tag.startswith('[')
+            else 'O'
+            for tag in tag_list
+            ]
