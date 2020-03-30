@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('--ner_dataset', required=True, type=str, help='e.g. swedish_ner_corpus')
     parser.add_argument('--with_tags', type=bool, default=False)
     parser.add_argument('--modify', type=bool, default=True)
-    parser.add_argument('--valid_fraction', type=float, default=1.0)
+    parser.add_argument('--valid_fraction', type=float, default=0.3)
     parser.add_argument('--verbose', action='store_true')
     _args = parser.parse_args()
 

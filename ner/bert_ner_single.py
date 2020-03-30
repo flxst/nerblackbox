@@ -48,9 +48,13 @@ def main(params, hparams, log_dirs, experiment):
         )
 
         trainer.fit(model)
+        trainer.test()
 
         # logging
         model.mlflow_client.finish_artifact_logger()
+        default_logger.log_debug('----------------')
+        default_logger.log_debug(model.epoch_metrics)
+        default_logger.log_debug('----------------')
         _tb_logger_stopped_epoch(tb_logger, hparams, early_stop_callback, model)
 
 
@@ -74,6 +78,7 @@ def _print_run_information(_params, _hparams, _logger):
     _logger.log_info(f'> dataset_name:          {_params.dataset_name}')
     _logger.log_info(f'> prune_ratio_train:     {_params.prune_ratio_train}')
     _logger.log_info(f'> prune_ratio_valid:     {_params.prune_ratio_valid}')
+    _logger.log_info(f'> prune_ratio_test:      {_params.prune_ratio_test}')
     _logger.log_info(f'> checkpoints:           {_params.checkpoints}')
     _logger.log_info(f'> logging_level:         {_params.logging_level}')
     _logger.log_info('')
@@ -96,7 +101,7 @@ def _tb_logger_stopped_epoch(_tb_logger,
                              _hparams,
                              _early_stop_callback,
                              _model,
-                             metrics=('all+_loss', 'all_f1_micro', 'all_f1_macro', 'fil_f1_micro', 'fil_f1_macro')):
+                             metrics=('all_f1_micro', 'all_f1_macro')):
     """
     log hparams and metrics for stopped epoch
     -----------------------------------------
@@ -107,13 +112,21 @@ def _tb_logger_stopped_epoch(_tb_logger,
     :param metrics:              [tuple] of metrics to be logged in hparams section
     :return:
     """
+    hparams_dict = dict()
+
     # stopped_epoch
     stopped_epoch = _early_stop_callback.stopped_epoch if _early_stop_callback.stopped_epoch else _hparams.max_epochs-1
-
-    # hparams
-    hparams_dict = {f'hparam/valid/{metric.replace("+", "P")}': _model.epoch_valid_metrics[stopped_epoch][metric]
-                    for metric in metrics}
     hparams_dict['hparam/train/stopped_epoch'] = stopped_epoch
+
+    # valid/test
+    hparams_valid = {f'hparam/valid/{metric.replace("+", "P")}': _model.epoch_metrics['valid'][stopped_epoch][metric]
+                     for metric in metrics}
+    hparams_test = {f'hparam/test/{metric.replace("+", "P")}': _model.epoch_metrics['test'][stopped_epoch][metric]
+                    for metric in metrics}
+    hparams_dict.update(hparams_valid)
+    hparams_dict.update(hparams_test)
+
+    # log
     _tb_logger.experiment.add_hparams(
         vars(_hparams),
         hparams_dict,

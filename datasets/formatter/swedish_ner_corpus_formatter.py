@@ -81,14 +81,14 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         :param valid_fraction: [float]
         :return: -
         """
-        # train -> train
-        df_train = self._read_formatted_files(['train'])
+        # train -> train, valid
+        df_train_valid = self._read_formatted_files(['train'])
+        df_train, df_valid = self._split_off_validation_set(df_train_valid, valid_fraction)
         self._write_final_csv('train', df_train)
-
-        # test  -> valid & test
-        df_valid_test = self._read_formatted_files(['test'])
-        df_valid, df_test = self._split_valid_test(df_valid_test, valid_fraction)
         self._write_final_csv('valid', df_valid)
+
+        # test  -> test
+        df_test = self._read_formatted_files(['test'])
         self._write_final_csv('test', df_test)
 
     ####################################################################################################################

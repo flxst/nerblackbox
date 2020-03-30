@@ -58,6 +58,19 @@ class SUCFormatter(BaseFormatter):
         :param valid_fraction: [float]
         :return: -
         """
+        # train -> train
+        df_train = self._read_formatted_files(['train'])
+        self._write_final_csv('train', df_train)
+
+        # valid  -> valid
+        df_valid = self._read_formatted_files(['valid'])
+        self._write_final_csv('valid', df_valid)
+
+        # test  -> test
+        df_test = self._read_formatted_files(['test'])
+        self._write_final_csv('test', df_test)
+
+        """
         # valid, test -> train
         df_train = self._read_formatted_files(['valid', 'test'])
         self._write_final_csv('train', df_train)
@@ -67,3 +80,4 @@ class SUCFormatter(BaseFormatter):
         df_valid, df_test = self._split_valid_test(df_valid_test, valid_fraction)
         self._write_final_csv('valid', df_valid)
         self._write_final_csv('test', df_test)
+        """

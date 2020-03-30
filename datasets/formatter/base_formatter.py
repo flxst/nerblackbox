@@ -1,4 +1,6 @@
 
+import csv
+
 import os
 import json
 import pandas as pd
@@ -173,7 +175,7 @@ class BaseFormatter(ABC):
         """
         formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
         try:
-            df = pd.read_csv(formatted_file_path, sep='\t', header=None)
+            df = pd.read_csv(formatted_file_path, sep='\t', header=None, quoting=csv.QUOTE_NONE)
         except pd.errors.EmptyDataError:
             df = pd.DataFrame()
         return df
@@ -182,19 +184,19 @@ class BaseFormatter(ABC):
     # HELPER: WRITE FINAL
     ####################################################################################################################
     @staticmethod
-    def _split_valid_test(_df_valid_test, _valid_fraction):
+    def _split_off_validation_set(_df_original, _valid_fraction):
         """
         IV: resplit data
         ----------------
-        :param _df_valid_test: [pd DataFrame]
+        :param _df_original:    [pd DataFrame]
         :param _valid_fraction: [float] between 0 and 1
-        :return: _df_valid: [pd DataFrame]
-        :return: _df_test:  [pd DataFrame]
+        :return: _df_new:       [pd DataFrame]
+        :return: _df_valid:     [pd DataFrame]
         """
-        split_index = int(len(_df_valid_test) * _valid_fraction)
-        _df_valid = _df_valid_test.iloc[:split_index]
-        _df_test = _df_valid_test.iloc[split_index:]
-        return _df_valid, _df_test
+        split_index = int(len(_df_original) * (1-_valid_fraction))
+        _df_new = _df_original.iloc[:split_index]
+        _df_valid = _df_original.iloc[split_index:]
+        return _df_new, _df_valid
 
     def _write_final_csv(self, phase, df):
         """

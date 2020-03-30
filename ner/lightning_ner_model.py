@@ -53,8 +53,8 @@ class LightningNerModel(pl.LightningModule):
                                           default_logger=self.default_logger)
         self.mlflow_client.log_params(params, hparams, experiment=experiment)
 
-        self.epoch_valid_metrics = dict()
-        self.classification_reports = dict()
+        self.epoch_metrics = {'valid': dict(), 'test': dict()}
+        self.classification_reports = {'valid': dict(), 'test': dict()}
 
         self._preparations()
 
@@ -74,8 +74,9 @@ class LightningNerModel(pl.LightningModule):
             do_lower_case=self.params.uncased,  # can be True !!
             default_logger=self.default_logger,
             max_seq_length=self._hparams.max_seq_length,
-            prune_ratio=(self.params.prune_ratio_train,
-                         self.params.prune_ratio_valid),
+            prune_ratio={'train': self.params.prune_ratio_train,
+                         'valid': self.params.prune_ratio_valid,
+                         'test': self.params.prune_ratio_test},
         ).preprocess()
 
         # model
@@ -177,45 +178,68 @@ class LightningNerModel(pl.LightningModule):
 
     def validation_end(self, outputs):
         # OPTIONAL
+        return self._validate('valid', outputs=outputs)
 
+    ####################################################################################################################
+    # TEST
+    ####################################################################################################################
+    def test_step(self, batch, batch_idx):
+        # OPTIONAL
+        input_ids, input_mask, segment_ids, tag_ids = batch
+        outputs = self.forward(input_ids, input_mask, segment_ids, tag_ids)
+        batch_valid_loss, logits = outputs[:2]
+
+        # debug
+        self.default_logger.log_debug('TEST STEP GPU CHECK')
+        self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
+        self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
+
+        return batch_valid_loss, tag_ids, logits
+
+    def test_end(self, outputs):
+
+        return self._validate('test', outputs=outputs)
+
+        """
         # to cpu/numpy
-        np_batch_valid = {
+        np_batch_test = {
             'loss': [output[0].detach().cpu().numpy() for output in outputs],
             'tag_ids': [output[1].detach().cpu().numpy() for output in outputs],  # [batch_size, seq_length]
-            'logits': [output[2].detach().cpu().numpy() for output in outputs],   # [batch_size, seq_length, num_tags]
+            'logits': [output[2].detach().cpu().numpy() for output in outputs],  # [batch_size, seq_length, num_tags]
         }
 
-        # combine np_batch_valid metrics to np_epoch_valid metrics
-        np_epoch_valid = {
-            'loss': np.stack(np_batch_valid['loss']).mean(),
-            'tag_ids': np.concatenate(np_batch_valid['tag_ids']),          # shape: [epoch_size, seq_length]
-            'logits': np.concatenate(np_batch_valid['logits']),            # shape: [epoch_size, seq_length, num_tags]
+        # combine np_batch_test metrics to np_epoch_test metrics
+        np_epoch_test = {
+            'loss': np.stack(np_batch_test['loss']).mean(),
+            'tag_ids': np.concatenate(np_batch_test['tag_ids']),  # shape: [epoch_size, seq_length]
+            'logits': np.concatenate(np_batch_test['logits']),  # shape: [epoch_size, seq_length, num_tags]
         }
 
         # epoch metrics
-        epoch_valid_metrics, epoch_valid_tag_ids, epoch_valid_failures = self.compute_metrics('valid', np_epoch_valid)
+        epoch_test_metrics, epoch_test_tag_ids, epoch_test_failures = self.compute_metrics('test', np_epoch_test)
 
-        self.add_failures('epoch', epoch_valid_failures)
-        self.print_failures('epoch')
+        self.add_failures('test', epoch_test_failures)
+        self.print_failures('test')
         self.reset_failures()
 
         # tracked metrics & classification reports
-        self.add_epoch_valid_metrics(self.current_epoch, epoch_valid_metrics)    # attr: epoch_valid_metrics
-        self.get_classification_report(self.current_epoch, epoch_valid_tag_ids)  # attr: classification_reports
+        self.add_epoch_test_metrics(epoch_test_metrics)                         # attr: epoch_test_metrics
+        self.get_classification_report(self.current_epoch, epoch_test_tag_ids)  # attr: classification_reports
 
         # logging
-        self.write_metrics_for_tensorboard('valid', epoch_valid_metrics)                               # tb
-        self.mlflow_client.log_metrics(self.current_epoch, epoch_valid_metrics)                        # mlflow
+        self.write_metrics_for_tensorboard('test', epoch_test_metrics)                               # tb
+        self.mlflow_client.log_metrics(self.current_epoch, epoch_test_metrics)                        # mlflow
         self.mlflow_client.log_classification_report(self.classification_reports[self.current_epoch],
                                                      overwrite=self.current_epoch == 0)                # mlflow
         self.mlflow_client.finish_artifact_mlflow()                                                    # mlflow
 
         # print
-        self._print_metrics(epoch_valid_metrics, self.classification_reports[self.current_epoch])
+        self._print_metrics('test', epoch_test_metrics, self.classification_reports[self.current_epoch])
 
-        self.default_logger.log_debug('--> epoch validation done')
+        self.default_logger.log_debug('--> test done')
 
-        return {'val_loss': np_epoch_valid['loss']}
+        return dict()
+        """
 
     ####################################################################################################################
     # DATALOADER
@@ -230,9 +254,57 @@ class LightningNerModel(pl.LightningModule):
         # OPTIONAL
         return self.dataloader['valid']
 
+    @pl.data_loader
+    def test_dataloader(self):
+        # OPTIONAL
+        return self.dataloader['test']
+
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
+    def _validate(self, phase, outputs):
+        # to cpu/numpy
+        np_batch = {
+            'loss': [output[0].detach().cpu().numpy() for output in outputs],
+            'tag_ids': [output[1].detach().cpu().numpy() for output in outputs],  # [batch_size, seq_length]
+            'logits': [output[2].detach().cpu().numpy() for output in outputs],   # [batch_size, seq_length, num_tags]
+        }
+
+        # combine np_batch_valid metrics to np_epoch_valid metrics
+        np_epoch = {
+            'loss': np.stack(np_batch['loss']).mean(),
+            'tag_ids': np.concatenate(np_batch['tag_ids']),          # shape: [epoch_size, seq_length]
+            'logits': np.concatenate(np_batch['logits']),            # shape: [epoch_size, seq_length, num_tags]
+        }
+
+        # epoch metrics
+        epoch_metrics, epoch_tag_ids, epoch_failures = self.compute_metrics(phase, np_epoch)
+
+        self.add_failures(phase, epoch_failures)
+        self.print_failures(phase)
+        self.reset_failures()
+
+        # tracked metrics & classification reports
+        self.add_epoch_metrics(phase, self.current_epoch, epoch_metrics)          # attr: epoch_valid_metrics
+        self.get_classification_report(phase, self.current_epoch, epoch_tag_ids)  # attr: classification_reports
+
+        # logging: tb
+        self.write_metrics_for_tensorboard(phase, epoch_metrics)
+
+        # logging: mlflow
+        if phase == 'valid':
+            self.mlflow_client.log_metrics(self.current_epoch, epoch_metrics)
+        self.mlflow_client.log_classification_report(self.classification_reports[phase][self.current_epoch],
+                                                     overwrite=(phase == 'valid' and self.current_epoch == 0))
+        self.mlflow_client.finish_artifact_mlflow()
+
+        # print
+        self._print_metrics(phase, epoch_metrics, self.classification_reports[phase][self.current_epoch])
+
+        self.default_logger.log_debug(f'--> {phase}: epoch validation done')
+
+        return {f'{phase}_loss': np_epoch['loss']}
+
     def _create_optimizer(self, learning_rate, fp16=True, no_decay=('bias', 'gamma', 'beta')):
         """
         create optimizer with basic learning rate and L2 normalization for some parameters
@@ -455,72 +527,80 @@ class LightningNerModel(pl.LightningModule):
         pred_flat = np.argmax(_np_logits, axis=2).flatten()
         return true_flat, pred_flat
 
-    def add_epoch_valid_metrics(self, epoch, _epoch_valid_metrics):
+    def add_epoch_metrics(self, phase, epoch, _epoch_metrics):
         """
-        add _epoch_valid_metrics to attribute/dict epoch_valid_metrics
+        add _epoch_metrics to attribute/dict epoch_<phase>_metrics
         --------------------------------------------------------------
-        :param: epoch:                      [int]
-        :param: _epoch_valid_metrics:       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
-        :changed attr: epoch_valid_metrics: [dict] w/ keys = epoch [int], values = _epoch_valid_metrics [dict]
+        :param: epoch:                [int]
+        :param: _epoch_metrics:       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
+        :changed attr: epoch_metrics: [dict] w/ keys = 'valid'/'test and
+                                                values = dict w/ keys = epoch [int], values = _epoch_metrics [dict]
         :return: -
         """
-        self.epoch_valid_metrics[epoch] = _epoch_valid_metrics
+        self.epoch_metrics[phase][epoch] = _epoch_metrics
 
-    def get_classification_report(self, epoch, _epoch_valid_tag_ids):
+    def get_classification_report(self, phase, epoch, _epoch_tag_ids):
         """
         get token-based (sklearn) & chunk-based (seqeval) classification report
         -----------------------------------------------------------------------
-        :param: epoch:                   [int]
-        :param: _epoch_valid_tag_ids:    [dict] w/ keys 'true', 'pred'      & values = [np array]
+        :param: epoch:                         [int]
+        :param: _epoch_tag_ids:                [dict] w/ keys 'true', 'pred'      & values = [np array]
         :changed attr: classification reports: [dict] w/ keys = epoch [int], values = classification report [str]
         :return: -
         """
         import warnings
         warnings.filterwarnings("ignore")
 
-        self.classification_reports[epoch] = ''
+        self.classification_reports[phase][epoch] = ''
 
         # use tags instead of tag_ids
-        epoch_valid_tags = {
-            field: [self.tag_list[tag_id] for tag_id in _epoch_valid_tag_ids[field]]
+        epoch_tags = {
+            field: [self.tag_list[tag_id] for tag_id in _epoch_tag_ids[field]]
             for field in ['true', 'pred']
         }
 
         # token-based classification report
         selected_tags = [tag for tag in self.tag_list if tag != 'O' and not tag.startswith('[')]
-        self.classification_reports[epoch] += f'\n>>> Epoch: {epoch}'
-        self.classification_reports[epoch] += '\n--- token-based (sklearn) classification report on fil ---\n'
-        self.classification_reports[epoch] += classification_report_sklearn(epoch_valid_tags['true'],
-                                                                            epoch_valid_tags['pred'],
-                                                                            labels=selected_tags)
+        self.classification_reports[phase][epoch] += f'\n>>> Phase: {phase} | Epoch: {epoch}'
+        self.classification_reports[phase][epoch] += '\n--- token-based (sklearn) classification report on fil ---\n'
+        self.classification_reports[phase][epoch] += classification_report_sklearn(epoch_tags['true'],
+                                                                                   epoch_tags['pred'],
+                                                                                   labels=selected_tags)
 
         # enrich pred_tags & valid_tags with bio prefixes
-        epoch_valid_tags_bio = {
-            field: util_functions.add_bio_to_tag_list(util_functions.get_rid_of_special_tokens(epoch_valid_tags[field]))
+        epoch_tags_bio = {
+            field: util_functions.add_bio_to_tag_list(util_functions.get_rid_of_special_tokens(epoch_tags[field]))
             for field in ['true', 'pred']
         }
 
         # chunk-based classification report
-        self.classification_reports[epoch] += '\n--- chunk-based (seqeval) classification report on fil ---\n'
-        self.classification_reports[epoch] += classification_report_seqeval(epoch_valid_tags_bio['true'],
-                                                                            epoch_valid_tags_bio['pred'],
-                                                                            suffix=False)
+        self.classification_reports[phase][epoch] += '\n--- chunk-based (seqeval) classification report on fil ---\n'
+        self.classification_reports[phase][epoch] += classification_report_seqeval(epoch_tags_bio['true'],
+                                                                                   epoch_tags_bio['pred'],
+                                                                                   suffix=False)
 
         warnings.resetwarnings()
 
     ####################################################################################################################
     # 2b. METRICS LOGGING
     ####################################################################################################################
-    def _print_metrics(self, _metrics, _classification_reports=None):
-        epoch_str = f'Epoch #{self.current_epoch} valid '
-        self.default_logger.log_info('{} all+ loss:         {:.2f}'.format(epoch_str, _metrics['all+_loss']))
-        self.default_logger.log_debug('{} all+ acc:         {:.2f}'.format(epoch_str, _metrics['all+_acc']))
-        self.default_logger.log_debug('{} all+ f1 (macro):   {:.2f}'.format(epoch_str, _metrics['all+_f1_macro']))
-        self.default_logger.log_debug('{} all+ f1 (micro):   {:.2f}'.format(epoch_str, _metrics['all+_f1_micro']))
-        self.default_logger.log_debug('{} all  f1 (macro):   {:.2f}'.format(epoch_str, _metrics['all_f1_macro']))
-        self.default_logger.log_debug('{} all  f1 (micro):   {:.2f}'.format(epoch_str, _metrics['all_f1_micro']))
-        self.default_logger.log_debug('{} fil  f1 (macro):   {:.2f}'.format(epoch_str, _metrics['fil_f1_macro']))
-        self.default_logger.log_debug('{} fil  f1 (micro):   {:.2f}'.format(epoch_str, _metrics['fil_f1_micro']))
+    def _print_metrics(self, phase, _metrics, _classification_reports=None):
+        """
+        :param phase:         [str] 'train' or 'valid'
+        :param _metrics:
+        :param _classification_reports:
+        :return:
+        """
+        self.default_logger.log_info(f'--- Epoch #{self.current_epoch} {phase.upper()} ---')
+        self.default_logger.log_info('all+ loss:         {:.2f}'.format(_metrics['all+_loss']))
+        self.default_logger.log_info('all+ acc:          {:.2f}'.format(_metrics['all+_acc']))
+        self.default_logger.log_debug('all+ f1 (micro):   {:.2f}'.format(_metrics['all+_f1_micro']))
+        self.default_logger.log_debug('all+ f1 (macro):   {:.2f}'.format(_metrics['all+_f1_macro']))
+        self.default_logger.log_info('all  f1 (micro):   {:.2f}'.format(_metrics['all_f1_micro']))
+        self.default_logger.log_debug('all  f1 (macro):   {:.2f}'.format(_metrics['all_f1_macro']))
+        self.default_logger.log_debug('fil  f1 (micro):   {:.2f}'.format(_metrics['fil_f1_micro']))
+        self.default_logger.log_debug('fil  f1 (macro):   {:.2f}'.format(_metrics['fil_f1_macro']))
+        self.default_logger.log_info(f'----------------------')
         if _classification_reports is not None:
             self.default_logger.log_debug(_classification_reports)
 
@@ -558,8 +638,7 @@ class LightningNerModel(pl.LightningModule):
 
         df = pd.DataFrame(columns=columns)
         self.default_logger.log_debug('-------------------------------')
-        phase_keywork = 'TRAINING' if phase == 'batch' else 'VALIDATION'
-        self.default_logger.log_debug(f'FAILURES FOR {phase_keywork}:')
+        self.default_logger.log_debug(f'FAILURES FOR {phase.upper()}:')
         self.default_logger.log_debug('count =', self.failures['count'][phase])
         for tag_subset, _metric_failure_dict in self.failures[phase].items():
             # print(f'--> tag_subset = {tag_subset}')
@@ -571,6 +650,7 @@ class LightningNerModel(pl.LightningModule):
         self.default_logger.log_debug(df)
 
     def reset_failures(self):
-        self.failures = {'batch': dict(),
-                         'epoch': dict(),
-                         'count': {'batch': 0, 'epoch': 0}}
+        self.failures = {'train': dict(),
+                         'valid': dict(),
+                         'test': dict(),
+                         'count': {'train': 0, 'valid': 0, 'test': 0}}

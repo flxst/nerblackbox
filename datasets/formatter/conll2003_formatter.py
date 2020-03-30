@@ -77,10 +77,12 @@ class CoNLL2003Formatter(BaseFormatter):
         df_train = self._read_formatted_files(['train'])
         self._write_final_csv('train', df_train)
 
-        # test  -> valid & test
-        df_valid_test = self._read_formatted_files(['test'])
-        df_valid, df_test = self._split_valid_test(df_valid_test, valid_fraction)
+        # valid  -> valid
+        df_valid = self._read_formatted_files(['valid'])
         self._write_final_csv('valid', df_valid)
+
+        # test  -> test
+        df_test = self._read_formatted_files(['test'])
         self._write_final_csv('test', df_test)
 
     ####################################################################################################################
