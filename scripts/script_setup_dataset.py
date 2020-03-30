@@ -16,7 +16,7 @@ def main(args):
     - III: format data
       . reshape original files to standard format
     - IV: resplit data
-      . split train/valid/test
+      . split train/val/test
     - V: analyze data
       . read reshaped text files
       . analyze data and output class distribution
@@ -30,7 +30,7 @@ def main(args):
     formatter.get_data(verbose=args.verbose)                                        # I: get_data
     formatter.create_ner_tag_mapping(with_tags=args.with_tags, modify=args.modify)  # II: create ner tag mapping
     formatter.format_data()                                                         # III: format data
-    formatter.resplit_data(valid_fraction=args.valid_fraction)                      # IV: resplit data
+    formatter.resplit_data(val_fraction=args.val_fraction)                          # IV: resplit data
     formatter.analyze_data()                                                        # V: analyze data
     formatter.plot_data()                                                           # V: analyze data
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('--ner_dataset', required=True, type=str, help='e.g. swedish_ner_corpus')
     parser.add_argument('--with_tags', type=bool, default=False)
     parser.add_argument('--modify', type=bool, default=True)
-    parser.add_argument('--valid_fraction', type=float, default=0.3)
+    parser.add_argument('--val_fraction', type=float, default=0.3)
     parser.add_argument('--verbose', action='store_true')
     _args = parser.parse_args()
 

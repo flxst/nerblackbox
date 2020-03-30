@@ -53,8 +53,8 @@ class LightningNerModel(pl.LightningModule):
                                           default_logger=self.default_logger)
         self.mlflow_client.log_params(params, hparams, experiment=experiment)
 
-        self.epoch_metrics = {'valid': dict(), 'test': dict()}
-        self.classification_reports = {'valid': dict(), 'test': dict()}
+        self.epoch_metrics = {'val': dict(), 'test': dict()}
+        self.classification_reports = {'val': dict(), 'test': dict()}
 
         self._preparations()
 
@@ -75,7 +75,7 @@ class LightningNerModel(pl.LightningModule):
             default_logger=self.default_logger,
             max_seq_length=self._hparams.max_seq_length,
             prune_ratio={'train': self.params.prune_ratio_train,
-                         'valid': self.params.prune_ratio_valid,
+                         'val': self.params.prune_ratio_val,
                          'test': self.params.prune_ratio_test},
         ).preprocess()
 
@@ -167,18 +167,18 @@ class LightningNerModel(pl.LightningModule):
         # OPTIONAL
         input_ids, input_mask, segment_ids, tag_ids = batch
         outputs = self.forward(input_ids, input_mask, segment_ids, tag_ids)
-        batch_valid_loss, logits = outputs[:2]
+        batch_loss, logits = outputs[:2]
 
         # debug
         self.default_logger.log_debug('VALIDATION STEP GPU CHECK')
         self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
         self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
 
-        return batch_valid_loss, tag_ids, logits
+        return batch_loss, tag_ids, logits
 
     def validation_end(self, outputs):
         # OPTIONAL
-        return self._validate('valid', outputs=outputs)
+        return self._validate('val', outputs=outputs)
 
     ####################################################################################################################
     # TEST
@@ -187,14 +187,14 @@ class LightningNerModel(pl.LightningModule):
         # OPTIONAL
         input_ids, input_mask, segment_ids, tag_ids = batch
         outputs = self.forward(input_ids, input_mask, segment_ids, tag_ids)
-        batch_valid_loss, logits = outputs[:2]
+        batch_loss, logits = outputs[:2]
 
         # debug
         self.default_logger.log_debug('TEST STEP GPU CHECK')
         self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
         self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
 
-        return batch_valid_loss, tag_ids, logits
+        return batch_loss, tag_ids, logits
 
     def test_end(self, outputs):
 
@@ -252,7 +252,7 @@ class LightningNerModel(pl.LightningModule):
     @pl.data_loader
     def val_dataloader(self):
         # OPTIONAL
-        return self.dataloader['valid']
+        return self.dataloader['val']
 
     @pl.data_loader
     def test_dataloader(self):
@@ -270,7 +270,7 @@ class LightningNerModel(pl.LightningModule):
             'logits': [output[2].detach().cpu().numpy() for output in outputs],   # [batch_size, seq_length, num_tags]
         }
 
-        # combine np_batch_valid metrics to np_epoch_valid metrics
+        # combine np_batch metrics to np_epoch metrics
         np_epoch = {
             'loss': np.stack(np_batch['loss']).mean(),
             'tag_ids': np.concatenate(np_batch['tag_ids']),          # shape: [epoch_size, seq_length]
@@ -285,23 +285,23 @@ class LightningNerModel(pl.LightningModule):
         self.reset_failures()
 
         # tracked metrics & classification reports
-        self.add_epoch_metrics(phase, self.current_epoch, epoch_metrics)          # attr: epoch_valid_metrics
+        self.add_epoch_metrics(phase, self.current_epoch, epoch_metrics)          # attr: epoch_metrics
         self.get_classification_report(phase, self.current_epoch, epoch_tag_ids)  # attr: classification_reports
 
         # logging: tb
         self.write_metrics_for_tensorboard(phase, epoch_metrics)
 
         # logging: mlflow
-        if phase == 'valid':
+        if phase == 'val':
             self.mlflow_client.log_metrics(self.current_epoch, epoch_metrics)
         self.mlflow_client.log_classification_report(self.classification_reports[phase][self.current_epoch],
-                                                     overwrite=(phase == 'valid' and self.current_epoch == 0))
+                                                     overwrite=(phase == 'val' and self.current_epoch == 0))
         self.mlflow_client.finish_artifact_mlflow()
 
         # print
         self._print_metrics(phase, epoch_metrics, self.classification_reports[phase][self.current_epoch])
 
-        self.default_logger.log_debug(f'--> {phase}: epoch validation done')
+        self.default_logger.log_debug(f'--> {phase}: epoch done')
 
         return {f'{phase}_loss': np_epoch['loss']}
 
@@ -405,9 +405,9 @@ class LightningNerModel(pl.LightningModule):
 
     def compute_metrics(self, phase, _np_dict):
         """
-        computes loss, acc, f1 scores for size/phase = batch/train or epoch/valid
-        -------------------------------------------------------------------------
-        :param phase:          [str], 'train', 'valid'
+        computes loss, acc, f1 scores for size/phase = batch/train or epoch/val-test
+        ----------------------------------------------------------------------------
+        :param phase:          [str], 'train', 'val', 'test'
         :param _np_dict:       [dict] w/ key-value pairs:
                                      'loss':     [np value]
                                      'tag_ids':  [np array] of shape [batch_size, seq_length]
@@ -426,7 +426,7 @@ class LightningNerModel(pl.LightningModule):
         self.default_logger.log_debug('pred:', np.shape(tag_ids['pred']),
                                       [self.tag_list[i] for i in set(tag_ids['pred'])])
 
-        if phase == 'valid':
+        if phase == 'val':
             for array in ['true', 'pred']:
                 id2tag = [self.tag_list[elem] for elem in tag_ids[array]]
                 np.save(f'results/{array}.npy', id2tag)
@@ -467,7 +467,7 @@ class LightningNerModel(pl.LightningModule):
         compute metrics for tags subset (e.g. 'all', 'fil')
         ---------------------------------------------------
         :param _tag_ids:   [dict] w/ keys 'true', 'pred'      & values = [np array]
-        :param _phase:     [str], 'train', 'valid'
+        :param _phase:     [str], 'train', 'val'
         :param tag_subset: [str], e.g. 'all+', 'all', 'fil', 'PER'
         :return: _metrics  [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
@@ -533,7 +533,7 @@ class LightningNerModel(pl.LightningModule):
         --------------------------------------------------------------
         :param: epoch:                [int]
         :param: _epoch_metrics:       [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
-        :changed attr: epoch_metrics: [dict] w/ keys = 'valid'/'test and
+        :changed attr: epoch_metrics: [dict] w/ keys = 'val'/'test and
                                                 values = dict w/ keys = epoch [int], values = _epoch_metrics [dict]
         :return: -
         """
@@ -567,7 +567,7 @@ class LightningNerModel(pl.LightningModule):
                                                                                    epoch_tags['pred'],
                                                                                    labels=selected_tags)
 
-        # enrich pred_tags & valid_tags with bio prefixes
+        # enrich pred_tags & true_tags with bio prefixes
         epoch_tags_bio = {
             field: util_functions.add_bio_to_tag_list(util_functions.get_rid_of_special_tokens(epoch_tags[field]))
             for field in ['true', 'pred']
@@ -586,7 +586,7 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     def _print_metrics(self, phase, _metrics, _classification_reports=None):
         """
-        :param phase:         [str] 'train' or 'valid'
+        :param phase:         [str] 'train' or 'val'
         :param _metrics:
         :param _classification_reports:
         :return:
@@ -608,7 +608,7 @@ class LightningNerModel(pl.LightningModule):
         """
         write metrics for tensorboard
         -----------------------------
-        :param phase:         [str] 'train' or 'valid'
+        :param phase:         [str] 'train' or 'val'
         :param metrics:       [dict] w/ keys 'loss', 'acc', 'f1_macro_all', 'f1_micro_all'
         :return: -
         """
@@ -651,6 +651,6 @@ class LightningNerModel(pl.LightningModule):
 
     def reset_failures(self):
         self.failures = {'train': dict(),
-                         'valid': dict(),
+                         'val': dict(),
                          'test': dict(),
-                         'count': {'train': 0, 'valid': 0, 'test': 0}}
+                         'count': {'train': 0, 'val': 0, 'test': 0}}

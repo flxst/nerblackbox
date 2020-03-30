@@ -19,7 +19,7 @@ class Plots:
         ################################################################################################################
         # 3. START
         ################################################################################################################
-        phases = ['train', 'valid', 'test']
+        phases = ['train', 'val', 'test']
         phases_all = ['total'] + phases
 
         self.num_tokens = {phase: self.get_tokens(self.stats_aggregated[phase]) for phase in phases_all}

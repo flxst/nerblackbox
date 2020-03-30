@@ -52,9 +52,6 @@ def main(params, hparams, log_dirs, experiment):
 
         # logging
         model.mlflow_client.finish_artifact_logger()
-        default_logger.log_debug('----------------')
-        default_logger.log_debug(model.epoch_metrics)
-        default_logger.log_debug('----------------')
         _tb_logger_stopped_epoch(tb_logger, hparams, early_stop_callback, model)
 
 
@@ -77,7 +74,7 @@ def _print_run_information(_params, _hparams, _logger):
     _logger.log_info(f'> uncased:               {_params.uncased}')
     _logger.log_info(f'> dataset_name:          {_params.dataset_name}')
     _logger.log_info(f'> prune_ratio_train:     {_params.prune_ratio_train}')
-    _logger.log_info(f'> prune_ratio_valid:     {_params.prune_ratio_valid}')
+    _logger.log_info(f'> prune_ratio_val:       {_params.prune_ratio_val}')
     _logger.log_info(f'> prune_ratio_test:      {_params.prune_ratio_test}')
     _logger.log_info(f'> checkpoints:           {_params.checkpoints}')
     _logger.log_info(f'> logging_level:         {_params.logging_level}')
@@ -118,12 +115,12 @@ def _tb_logger_stopped_epoch(_tb_logger,
     stopped_epoch = _early_stop_callback.stopped_epoch if _early_stop_callback.stopped_epoch else _hparams.max_epochs-1
     hparams_dict['hparam/train/stopped_epoch'] = stopped_epoch
 
-    # valid/test
-    hparams_valid = {f'hparam/valid/{metric.replace("+", "P")}': _model.epoch_metrics['valid'][stopped_epoch][metric]
+    # val/test
+    hparams_val = {f'hparam/val/{metric.replace("+", "P")}': _model.epoch_metrics['val'][stopped_epoch][metric]
                      for metric in metrics}
     hparams_test = {f'hparam/test/{metric.replace("+", "P")}': _model.epoch_metrics['test'][stopped_epoch][metric]
                     for metric in metrics}
-    hparams_dict.update(hparams_valid)
+    hparams_dict.update(hparams_val)
     hparams_dict.update(hparams_test)
 
     # log

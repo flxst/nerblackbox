@@ -16,7 +16,7 @@ class NerProcessor:
                  do_lower_case,
                  csv_file_separator='\t'):
         """
-        :param path:               [str] to folder that contains dataset csv files (train, valid, test)
+        :param path:               [str] to folder that contains dataset csv files (train, val, test)
         :param tokenizer:          [transformers Tokenizer]
         :param do_lower_case:      [bool]
         :param csv_file_separator: [str], for datasets' csv files, e.g. '\t'
@@ -35,7 +35,7 @@ class NerProcessor:
             self.ner_tag_mapping = json.load(f)
 
         self.data = dict()
-        for phase in ['train', 'valid', 'test']:
+        for phase in ['train', 'val', 'test']:
             self.data[phase] = self._read_csv(os.path.join(self.path, f'{phase}.csv'))
 
     ####################################################################################################################
@@ -45,7 +45,7 @@ class NerProcessor:
         """
         gets list of input examples for specified phase
         -----------------------------------------------
-        :param phase: [str], e.g. 'train', 'valid', 'test'
+        :param phase: [str], e.g. 'train', 'val', 'test'
         :return: [list] of [InputExample]
         """
         return self._create_list_of_input_examples(self.data[phase], phase)
@@ -79,7 +79,7 @@ class NerProcessor:
         create list of input examples from pandas dataframe created from _read_csv() method
         -----------------------------------------------------------------------------------
         :param df:                 [pandas dataframe] with columns 'tags', 'text'
-        :param set_type:           [str], e.g. 'train', 'valid', 'test'
+        :param set_type:           [str], e.g. 'train', 'val', 'test'
         :changed attr: token_count [int] total number of tokens in df
         :return: [list] of [InputExample]
         """

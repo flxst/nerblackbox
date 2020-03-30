@@ -14,7 +14,7 @@ class ExperimentHyperparameterConfig:
         'uncased': 'bool',
         'dataset_name': 'str',
         'prune_ratio_train': 'float',
-        'prune_ratio_valid': 'float',
+        'prune_ratio_val': 'float',
         'prune_ratio_test': 'float',
         'checkpoints': 'bool',
         'logging_level': 'str',

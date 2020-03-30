@@ -15,7 +15,7 @@ class DataPreprocessor:
                  do_lower_case,
                  default_logger,
                  max_seq_length=64,
-                 prune_ratio={'train': 1.0, 'valid': 1.0, 'test': 1.0}):
+                 prune_ratio={'train': 1.0, 'val': 1.0, 'test': 1.0}):
         """
         :param dataset_name:   [str], e.g. 'SUC'
         :param tokenizer:      [transformers Tokenizer]
@@ -23,7 +23,7 @@ class DataPreprocessor:
         :param do_lower_case:  [bool] if True, make text data lowercase
         :param default_logger: [DefaultLogger]
         :param max_seq_length: [int], e.g. 64
-        :param prune_ratio:    [dict], e.g. {'train': 1.0, 'valid': 1.0, 'test': 1.0} -- pruning ratio for data
+        :param prune_ratio:    [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
         """
         self.dataset_path = get_dataset_path(dataset_name)
         self.tokenizer = tokenizer
@@ -51,7 +51,7 @@ class DataPreprocessor:
                                                           tag_tuple=tuple(tag_list))
 
         dataloader = dict()
-        for phase in ['train', 'valid', 'test']:
+        for phase in ['train', 'val', 'test']:
             # train data
             input_examples_all = processor.get_input_examples(phase)
             input_examples = self.prune_examples(input_examples_all, phase, ratio=self.prune_ratio[phase])

@@ -62,24 +62,24 @@ class CoNLL2003Formatter(BaseFormatter):
         ----------------
         :return: -
         """
-        for phase in ['train', 'valid', 'test']:
+        for phase in ['train', 'val', 'test']:
             rows = self._read_original_file(phase)
             self._write_formatted_csv(phase, rows)
 
-    def resplit_data(self, valid_fraction: float):
+    def resplit_data(self, val_fraction: float):
         """
         IV: resplit data
         ----------------
-        :param valid_fraction: [float]
+        :param val_fraction: [float]
         :return: -
         """
         # train -> train
         df_train = self._read_formatted_files(['train'])
         self._write_final_csv('train', df_train)
 
-        # valid  -> valid
-        df_valid = self._read_formatted_files(['valid'])
-        self._write_final_csv('valid', df_valid)
+        # val  -> val
+        df_val = self._read_formatted_files(['val'])
+        self._write_final_csv('val', df_val)
 
         # test  -> test
         df_test = self._read_formatted_files(['test'])
@@ -97,7 +97,7 @@ class CoNLL2003Formatter(BaseFormatter):
         """
         file_name = {
             'train': 'eng.train',
-            'valid': 'eng.testa',
+            'val': 'eng.testa',
             'test': 'eng.testb',
         }
         file_path_original = join(self.dataset_path, file_name[phase])

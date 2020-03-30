@@ -70,22 +70,22 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         ----------------
         :return: -
         """
-        for phase in ['train', 'valid', 'test']:
+        for phase in ['train', 'test']:
             rows = self._read_original_file(phase)
             self._write_formatted_csv(phase, rows)
 
-    def resplit_data(self, valid_fraction: float):
+    def resplit_data(self, val_fraction: float):
         """
         IV: resplit data
         ----------------
-        :param valid_fraction: [float]
+        :param val_fraction: [float]
         :return: -
         """
-        # train -> train, valid
-        df_train_valid = self._read_formatted_files(['train'])
-        df_train, df_valid = self._split_off_validation_set(df_train_valid, valid_fraction)
+        # train -> train, val
+        df_train_val = self._read_formatted_files(['train'])
+        df_train, df_val = self._split_off_validation_set(df_train_val, val_fraction)
         self._write_final_csv('train', df_train)
-        self._write_final_csv('valid', df_valid)
+        self._write_final_csv('val', df_val)
 
         # test  -> test
         df_test = self._read_formatted_files(['test'])

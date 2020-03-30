@@ -66,11 +66,11 @@ class BaseFormatter(ABC):
         pass
 
     @abstractmethod
-    def resplit_data(self, valid_fraction: float):
+    def resplit_data(self, val_fraction: float):
         """
         IV: resplit data
         ----------------
-        :param valid_fraction: [float]
+        :param val_fraction: [float]
         :return: -
         """
         pass
@@ -160,7 +160,7 @@ class BaseFormatter(ABC):
         """
         IV: resplit data
         ----------------
-        :param phases: [list] of [str] to read formatted csvs from, e.g. ['valid', 'test']
+        :param phases: [list] of [str] to read formatted csvs from, e.g. ['val', 'test']
         :return: [pd DataFrame]
         """
         df_phases = [self._read_formatted_file(phase) for phase in phases]
@@ -170,7 +170,7 @@ class BaseFormatter(ABC):
         """
         IV: resplit data
         ----------------
-        :param phase: [str] csvs to read formatted df from, e.g. 'valid'
+        :param phase: [str] csvs to read formatted df from, e.g. 'val'
         :return: df: [pd DataFrame]
         """
         formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
@@ -184,25 +184,25 @@ class BaseFormatter(ABC):
     # HELPER: WRITE FINAL
     ####################################################################################################################
     @staticmethod
-    def _split_off_validation_set(_df_original, _valid_fraction):
+    def _split_off_validation_set(_df_original, _val_fraction):
         """
         IV: resplit data
         ----------------
         :param _df_original:    [pd DataFrame]
-        :param _valid_fraction: [float] between 0 and 1
+        :param _val_fraction:   [float] between 0 and 1
         :return: _df_new:       [pd DataFrame]
-        :return: _df_valid:     [pd DataFrame]
+        :return: _df_val:       [pd DataFrame]
         """
-        split_index = int(len(_df_original) * (1-_valid_fraction))
+        split_index = int(len(_df_original) * (1-_val_fraction))
         _df_new = _df_original.iloc[:split_index]
-        _df_valid = _df_original.iloc[split_index:]
-        return _df_new, _df_valid
+        _df_val = _df_original.iloc[split_index:]
+        return _df_new, _df_val
 
     def _write_final_csv(self, phase, df):
         """
         IV: resplit data
         ----------------
-        :param phase: [str], 'train', 'valid' or 'test'
+        :param phase: [str], 'train', 'val' or 'test'
         :param df: [pd DataFrame]
         :return:
         """
@@ -251,7 +251,7 @@ class BaseFormatter(ABC):
         """
         V: analyze data
         ----------------
-        :created attr: stats_aggregated: [dict] w/ keys = 'total', 'train', 'valid', 'test' & values = [df]
+        :created attr: stats_aggregated: [dict] w/ keys = 'total', 'train', 'val', 'test' & values = [df]
         :return: -
         """
         log_file = join(self.dataset_path, 'analyze_data', f'{self.ner_dataset}.log')
@@ -261,7 +261,7 @@ class BaseFormatter(ABC):
         self.num_sentences = {'total': 0}
         self.stats_aggregated = {'total': None}
 
-        phases = ['train', 'valid', 'test']
+        phases = ['train', 'val', 'test']
         phases_all = ['total'] + phases
 
         for phase in phases:

@@ -4,18 +4,18 @@ class LoggedMetrics:
     def __init__(self, logged_metrics=None):
         """
         :param logged_metrics: [list] of [tuples] w/ (metric, phase_list, tags_list, micro_macro_list),
-                                                  e.g. [('precision', ['valid'], ['all', 'fil'], ['micro', 'macro']),..]
+                                                  e.g. [('precision', ['val'], ['all', 'fil'], ['micro', 'macro']),..]
         """
         if logged_metrics is None:
             self.logged_metrics = [
-                ('loss',      ['train', 'valid', 'test'], ['all+'],               ['simple']),
-                ('acc',       ['train', 'valid', 'test'], ['all+'],               ['simple']),
-                ('precision', ['valid', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('precision', ['valid', 'test'],          ['ind'],                ['micro']),
-                ('recall',    ['valid', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('recall',    ['valid', 'test'],          ['ind'],                ['micro']),
-                ('f1',        ['valid', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('f1',        ['valid', 'test'],          ['ind'],                ['micro']),
+                ('loss',      ['train', 'val', 'test'], ['all+'],               ['simple']),
+                ('acc',       ['train', 'val', 'test'], ['all+'],               ['simple']),
+                ('precision', ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
+                ('precision', ['val', 'test'],          ['ind'],                ['micro']),
+                ('recall',    ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
+                ('recall',    ['val', 'test'],          ['ind'],                ['micro']),
+                ('f1',        ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
+                ('f1',        ['val', 'test'],          ['ind'],                ['micro']),
             ]
         else:
             self.logged_metrics = logged_metrics

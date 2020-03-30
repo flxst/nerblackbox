@@ -47,7 +47,8 @@ class MLflowClient:
                 # most important hyperparameters
                 most_important_hyperparameters = [
                     'prune_ratio_train',
-                    'prune_ratio_valid',
+                    'prune_ratio_val',
+                    'prune_ratio_test',
                     'max_epochs',
                     'lr_max',
                     'lr_schedule',
@@ -55,18 +56,18 @@ class MLflowClient:
                 for hyperparameter in most_important_hyperparameters:
                     mlflow.log_param(hyperparameter, vars(hparams)[hyperparameter])
 
-    def log_metrics(self, _epoch, _epoch_valid_metrics):
+    def log_metrics(self, _epoch, _epoch_val_metrics):
         """
         mlflow metrics logging
         -----------------------------
-        :param: _epoch:               [int]
-        :param: _epoch_valid_metrics  [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
+        :param: _epoch:             [int]
+        :param: _epoch_val_metrics  [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
         :return: -
         """
         mlflow.log_metric('epoch', _epoch)
-        for metric in _epoch_valid_metrics.keys():
+        for metric in _epoch_val_metrics.keys():
             _metric = metric.replace('[', '_').replace(']', '_').replace('+', 'P')
-            mlflow.log_metric(_metric, _epoch_valid_metrics[metric])
+            mlflow.log_metric(_metric, _epoch_val_metrics[metric])
 
     def log_classification_report(self, _classification_report, overwrite=False):
         """

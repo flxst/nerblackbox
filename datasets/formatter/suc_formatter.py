@@ -46,38 +46,38 @@ class SUCFormatter(BaseFormatter):
         ----------------
         :return: -
         """
-        for phase in ['train', 'valid', 'test']:
+        for phase in ['train', 'val', 'test']:
             original_file_path = join(self.dataset_path, f'{phase}_original.csv')
             formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
             shutil.copy2(original_file_path, formatted_file_path)
 
-    def resplit_data(self, valid_fraction: float):
+    def resplit_data(self, val_fraction: float):
         """
         IV: resplit data
         ----------------
-        :param valid_fraction: [float]
+        :param val_fraction: [float]
         :return: -
         """
         # train -> train
         df_train = self._read_formatted_files(['train'])
         self._write_final_csv('train', df_train)
 
-        # valid  -> valid
-        df_valid = self._read_formatted_files(['valid'])
-        self._write_final_csv('valid', df_valid)
+        # val  -> val
+        df_val = self._read_formatted_files(['val'])
+        self._write_final_csv('val', df_val)
 
         # test  -> test
         df_test = self._read_formatted_files(['test'])
         self._write_final_csv('test', df_test)
 
         """
-        # valid, test -> train
-        df_train = self._read_formatted_files(['valid', 'test'])
+        # val, test -> train
+        df_train = self._read_formatted_files(['val', 'test'])
         self._write_final_csv('train', df_train)
 
-        # train       -> valid & test
-        df_valid_test = self._read_formatted_files(['train'])
-        df_valid, df_test = self._split_valid_test(df_valid_test, valid_fraction)
-        self._write_final_csv('valid', df_valid)
+        # train       -> val & test
+        df_val_test = self._read_formatted_files(['train'])
+        df_val, df_test = self._split_val_test(df_val_test, val_fraction)
+        self._write_final_csv('val', df_val)
         self._write_final_csv('test', df_test)
         """
