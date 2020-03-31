@@ -21,7 +21,7 @@ from experiment_configs.experiment_config import ExperimentConfig
 
 def main(params, log_dirs):
     """
-    :param params:   [argparse.Namespace] attr: experiment_name, run_name, experiment_run_name, device, fp16
+    :param params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16, experiment_run_name
     :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     :return: -
     """

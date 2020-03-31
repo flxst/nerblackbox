@@ -6,7 +6,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 class InputExampleToTensors:
     """
     Converts an InputExample to a tuple of feature tensors:
-    (input_ids, input_mask, segment_ids, tag_ids)
+    (input_ids, attention_mask, segment_ids, tag_ids)
     """
 
     def __init__(self,
@@ -31,10 +31,10 @@ class InputExampleToTensors:
                                                    text_b = None
                                                    tags_a = '0 ORG'
                                                    tags_b = None
-        :return: input_ids:   [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
-        :return: input_mask:  [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
-        :return: segment_ids: [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
-        :return: tag_ids:     [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]  cf Processor
+        :return: input_ids:      [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
+        :return: attention_mask: [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
+        :return: segment_ids:    [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
+        :return: tag_ids:        [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]
         """
         ####################
         # A0. tokens_*, tags_*
@@ -62,13 +62,13 @@ class InputExampleToTensors:
             tags += tags_b + ['[SEP]']
 
         ####################
-        # B. input_ids, input_mask, segment_ids, tag_ids
+        # B. input_ids, attention_mask, segment_ids, tag_ids
         ####################
         # 1. input_ids
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
 
-        # 2. input_mask
-        input_mask = [1] * len(input_ids)  # 1 = real tokens, 0 = padding tokens. Only real tokens are attended to.
+        # 2. attention_mask
+        attention_mask = [1] * len(input_ids)  # 1 = real tokens, 0 = padding tokens. Only real tokens are attended to.
 
         # 3. segment_ids
         if tokens_b is None:
@@ -81,18 +81,18 @@ class InputExampleToTensors:
 
         # 5. padding
         input_ids = self._pad_sequence(input_ids, 0)
-        input_mask = self._pad_sequence(input_mask, 0)
+        attention_mask = self._pad_sequence(attention_mask, 0)
         segment_ids = self._pad_sequence(segment_ids, 0)
         tag_ids = self._pad_sequence(tag_ids, 0)
         assert input_ids.shape[0] == self.max_seq_length
-        assert input_mask.shape[0] == self.max_seq_length
+        assert attention_mask.shape[0] == self.max_seq_length
         assert segment_ids.shape[0] == self.max_seq_length
         assert tag_ids.shape[0] == self.max_seq_length
 
         ####################
         # return
         ####################
-        return input_ids, input_mask, segment_ids, tag_ids
+        return input_ids, attention_mask, segment_ids, tag_ids
 
     ####################################################################################################################
     # PRIVATE HELPER METHODS

@@ -93,7 +93,7 @@ class CoNLL2003Formatter(BaseFormatter):
         III: format data
         ---------------------------------------------
         :param phase:   [str] 'train' or 'test'
-        :return: _rows: [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
+        :return: _rows: [list] of [list] of [str], e.g. [[], ['Inger', 'PER'], ['säger', '0'], ..]
         """
         file_name = {
             'train': 'eng.train',
