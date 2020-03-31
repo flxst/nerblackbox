@@ -32,7 +32,7 @@ def main(params, hparams, log_dirs, experiment: bool):
         trainer = Trainer(
             max_epochs=hparams.max_epochs,
             gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
-            use_amp=params.device.type == 'cuda',
+            use_amp=params.device.type == 'cuda',  # amp_level='O1',
             logger=tb_logger,
             checkpoint_callback=callbacks['checkpoint'],
             early_stop_callback=callbacks['early_stop'],
