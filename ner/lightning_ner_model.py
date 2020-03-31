@@ -32,7 +32,7 @@ class LightningNerModel(pl.LightningModule):
                  experiment=False):
         """
         :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
         :param log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
         :param experiment: [bool] whether run is part of an experiment w/ multiple runs
         """
@@ -58,6 +58,14 @@ class LightningNerModel(pl.LightningModule):
         self._preparations()
 
     def _preparations(self):
+        """
+        :created attr: dataloader [dict] w/ keys 'train', 'val', 'test' & values = [torch Dataloader]
+        :created attr: tag_list   [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: model      [transformers AutoModelForTokenClassification]
+        :created attr: optimizer  [torch optimizer]
+        :created attr: scheduler  [torch LambdaLR]
+        :return: -
+        """
         # tokenizer
         tokenizer = AutoTokenizer.from_pretrained(self.params.pretrained_model_name,
                                                   do_lower_case=False)  # needs to be False !!
@@ -117,24 +125,9 @@ class LightningNerModel(pl.LightningModule):
         self.write_metrics_for_tensorboard('train', {'all+_loss': batch_train_loss})
 
         # debug
-        self.default_logger.log_debug('TRAINING STEP GPU CHECK')
-        self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
-        self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
+        if batch_idx == 0:
+            self._debug_step_check('train', batch, outputs, input_ids, input_mask, segment_ids, tag_ids)
 
-        """
-        # to cpu/numpy
-        np_batch_train = {
-            'loss': batch_train_loss.detach().cpu().numpy(),
-            'tag_ids': tag_ids.to('cpu').numpy(),     # shape: [batch_size, seq_length]
-            'logits': logits.detach().cpu().numpy(),  # shape: [batch_size, seq_length, num_tags]
-        }
-
-        # batch train metrics
-        batch_train_metrics, _ = self.compute_metrics('train', np_batch_train)
-
-        # logging
-        self.write_metrics_for_tensorboard('train', batch_train_metrics)
-        """
         return {'loss': batch_train_loss}
 
     ####################################################################################################################
@@ -163,9 +156,8 @@ class LightningNerModel(pl.LightningModule):
         batch_loss, logits = outputs[:2]
 
         # debug
-        self.default_logger.log_debug('VALIDATION STEP GPU CHECK')
-        self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
-        self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
+        if batch_idx == 0:
+            self._debug_step_check('val', batch, outputs, input_ids, input_mask, segment_ids, tag_ids)
 
         return batch_loss, tag_ids, logits
 
@@ -183,9 +175,8 @@ class LightningNerModel(pl.LightningModule):
         batch_loss, logits = outputs[:2]
 
         # debug
-        self.default_logger.log_debug('TEST STEP GPU CHECK')
-        self.default_logger.log_debug(f'batch on gpu:   {batch[0].is_cuda}')
-        self.default_logger.log_debug(f'outputs on gpu: {outputs[0].is_cuda}')
+        if batch_idx == 0:
+            self._debug_step_check('test', batch, outputs, input_ids, input_mask, segment_ids, tag_ids)
 
         return batch_loss, tag_ids, logits
 
@@ -214,6 +205,15 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
+    def _debug_step_check(self, phase, _batch, _outputs, _input_ids, _input_mask, _segment_ids, _tag_ids):
+        self.default_logger.log_debug(f'{phase.upper()} STEP CHECK')
+        self.default_logger.log_debug(f'batch on gpu:   {_batch[0].is_cuda}')
+        self.default_logger.log_debug(f'outputs on gpu: {_outputs[0].is_cuda}')
+        self.default_logger.log_debug(f'input_ids   shape|1st row: {_input_ids.shape} | {_input_ids[0]}')
+        self.default_logger.log_debug(f'input_mask  shape|1st row: {_input_mask.shape} | {_input_mask[0]}')
+        self.default_logger.log_debug(f'segment_ids shape|1st row: {_segment_ids.shape} | {_segment_ids[0]}')
+        self.default_logger.log_debug(f'tag_ids     shape|1st row: {_tag_ids.shape} | {_tag_ids[0]}')
+
     def _validate(self, phase, outputs):
         # to cpu/numpy
         np_batch = {
@@ -260,7 +260,7 @@ class LightningNerModel(pl.LightningModule):
         :param learning_rate: [float] basic learning rate
         :param fp16:          [bool]
         :param no_decay:      [tuple of str] parameters that contain one of those are not subject to L2 normalization
-        :return: optimizer:   [pytorch optimizer]
+        :return: optimizer:   [torch optimizer]
         """
         # Remove unused pooler that otherwise break Apex
         param_optimizer = list(self.model.named_parameters())
@@ -339,7 +339,8 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     # 2. METRICS
     ####################################################################################################################
-    def _get_rid_of_pad_tag_occurrences(self, _tags):
+    @staticmethod
+    def _get_rid_of_pad_tag_occurrences(_tags):
         """
         get rid of all elements where '[PAD]' occurs in true array
         ----------------------------------------------------------
@@ -526,7 +527,8 @@ class LightningNerModel(pl.LightningModule):
         :param _classification_reports:
         :return:
         """
-        self.default_logger.log_info(f'--- Epoch #{self.current_epoch} {phase.upper()} ---')
+        self.default_logger.log_info('')
+        self.default_logger.log_info(f'--- Epoch #{self.current_epoch} {phase.ljust(5).upper()} ----')
         self.default_logger.log_info('all+ loss:         {:.2f}'.format(_metrics['all+_loss']))
         self.default_logger.log_info('all+ acc:          {:.2f}'.format(_metrics['all+_acc']))
         self.default_logger.log_debug('all+ f1 (micro):   {:.2f}'.format(_metrics['all+_f1_micro']))
@@ -536,7 +538,7 @@ class LightningNerModel(pl.LightningModule):
         self.default_logger.log_info('fil  f1 (micro):   {:.2f}'.format(_metrics['fil_f1_micro']))
         self.default_logger.log_debug('fil  f1 (macro):   {:.2f}'.format(_metrics['fil_f1_macro']))
         self.default_logger.log_info('chk  f1 (micro):   {:.2f}'.format(_metrics['chk_f1_micro']))
-        self.default_logger.log_info(f'----------------------')
+        self.default_logger.log_info(f'-----------------------')
         if _classification_reports is not None:
             self.default_logger.log_debug(_classification_reports)
 

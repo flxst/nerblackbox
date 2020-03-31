@@ -105,12 +105,12 @@ class CoNLL2003Formatter(BaseFormatter):
         _rows = list()
         if os.path.isfile(file_path_original):
             with open(file_path_original) as f:
-                for row in f.readlines():
+                for i, row in enumerate(f.readlines()):
                     _rows.append(row.strip().split())
             print(f'\n> read {file_path_original}')
 
-        _rows = [[elem[0], elem[-1].split('-')[-1]]
-                 if len(elem) == 4 else elem
-                 for elem in _rows[2:]]
+        _rows = [[row[0], row[-1].split('-')[-1]]
+                 if (len(row) == 4 and row[0] != '-DOCSTART-') else list()
+                 for row in _rows]
 
         return _rows

@@ -46,8 +46,13 @@ class SUCFormatter(BaseFormatter):
         ----------------
         :return: -
         """
+        file_name = {
+            'train': 'train_original.csv',
+            'val': 'valid_original.csv',
+            'test': 'test_original.csv',
+        }
         for phase in ['train', 'val', 'test']:
-            original_file_path = join(self.dataset_path, f'{phase}_original.csv')
+            original_file_path = join(self.dataset_path, file_name[phase])
             formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
             shutil.copy2(original_file_path, formatted_file_path)
 

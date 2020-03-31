@@ -4,11 +4,12 @@ from os.path import abspath, dirname
 from configparser import ConfigParser
 
 
-class ExperimentHyperparameterConfig:
+class ExperimentConfig:
     """
     class that parses <experiment_name>.ini files
     """
 
+    # hardcoded types
     params = {
         'pretrained_model_name': 'str',
         'uncased': 'bool',
@@ -35,13 +36,20 @@ class ExperimentHyperparameterConfig:
 
     def __init__(self,
                  experiment_name: str,
-                 run_name: str):
+                 run_name: str,
+                 device,
+                 fp16: bool):
         """
-        :param experiment_name: [str]
-        :param run_name:        [str] or None
+        :param experiment_name: [str],         e.g. exp1
+        :param run_name:        [str] or None, e.g. run1
+        :param device:          [torch device]
+        :param fp16:            [bool]
         """
         self.experiment_name = experiment_name
         self.run_name = run_name
+        self.device = device
+        self.fp16 = fp16
+
         self.config_path = f'{abspath(dirname(__file__))}/{self.experiment_name}.ini'
         if not os.path.isfile(self.config_path):
             raise Exception(f'config file at {self.config_path} does not exist')
@@ -49,7 +57,8 @@ class ExperimentHyperparameterConfig:
     def get_params_and_hparams(self, run_name: str = None):
         """
         get dictionary of all parameters & their values that belong to
-        either generally to experiment or specifically to runs
+        either generally    to experiment (run_name == None)
+        or     specifically to run        (run_name != None)
         --------------------------------------------------------------
         :param run_name:             [str]  e.g. 'run1'
         :return: params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
@@ -70,17 +79,16 @@ class ExperimentHyperparameterConfig:
         if self.run_name is specified, parse only that run. else parse all runs.
         ------------------------------------------------------------------------
         :return: runs             [list] of [str], e.g. ['run1', 'run2']
-                 _params_configs  [dict] w/ keys = run_name [str], values = params [dict],
-                                            e.g. {'run1': {'patience': 2, 'mode': 'min', ..}, ..}
-                 _hparams_configs [dict] w/ keys = run_name [str], values = hparams [dict],
-                                            e.g. {'run1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
+                 _run_params  [dict] w/ keys = run_name [str], values = params [dict],
+                                     e.g. {'run1': {'patience': 2, 'mode': 'min', ..}, ..}
+                 _run_hparams [dict] w/ keys = run_name [str], values = hparams [dict],
+                                     e.g. {'run1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         config, config_dict = self._get_config()
-        print(config_dict)
 
         # _params_config & _hparams_config
-        _params_configs = dict()
-        _hparams_configs = dict()
+        _run_params = dict()
+        _run_hparams = dict()
 
         if self.run_name is None:  # multiple runs
             runs = [run for run in config.sections() if run.startswith('run')]
@@ -89,24 +97,34 @@ class ExperimentHyperparameterConfig:
             assert len(runs) == 1
 
         for run in runs:
-            _params_configs[run] = config_dict['params'].copy()
-            _params_configs[run]['run_name'] = run
-            _params_configs[run]['experiment_run_name'] = f'{self.experiment_name}/{run}'
+            # _run_params
+            _run_params[run] = {
+                'experiment_name': self.experiment_name,
+                'run_name': run,
+                'device': self.device,
+                'fp16': self.fp16,
+                'experiment_run_name': f'{self.experiment_name}/{run}',
+            }
+            _run_params[run].update(config_dict['params'])
 
-            _hparams_configs[run] = config_dict['hparams'].copy()
+            # _run_hparams
+            _run_hparams[run] = config_dict['hparams']
 
             for k, v in config_dict[run].items():
                 if k in self.params:
-                    _params_configs[run][k] = v
+                    _run_params[run][k] = v
                 elif k in self.hparams:
-                    _hparams_configs[run][k] = v
+                    _run_hparams[run][k] = v
                 else:
                     raise Exception(f'parameter = {k} is unknown.')
 
-        assert set(_params_configs.keys()) == set(_hparams_configs.keys())
+        assert set(_run_params.keys()) == set(_run_hparams.keys())
 
-        return runs, _params_configs, _hparams_configs
+        return runs, _run_params, _run_hparams
 
+    ####################################################################################################################
+    # HELPER METHODS
+    ####################################################################################################################
     def _get_config(self):
         """
         get ConfigParser instance and derive config dictionary from it

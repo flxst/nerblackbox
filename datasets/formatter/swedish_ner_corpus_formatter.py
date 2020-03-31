@@ -110,4 +110,8 @@ class SwedishNerCorpusFormatter(BaseFormatter):
                     _rows.append(row.strip().split())
             print(f'\n> read {file_path_original}')
 
+        _rows = [row
+                 if len(row) == 2 else list()
+                 for row in _rows]
+
         return _rows

@@ -16,7 +16,7 @@ sys.path.append(BASE_DIR)
 
 from ner.utils.env_variable import ENV_VARIABLE
 import ner.bert_ner_single as bert_ner_single
-from experiment_configs.experiment_config import ExperimentHyperparameterConfig
+from experiment_configs.experiment_config import ExperimentConfig
 
 
 def main(params, log_dirs):
@@ -25,27 +25,21 @@ def main(params, log_dirs):
     :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     :return: -
     """
-    experiment_hyperparameter_config = ExperimentHyperparameterConfig(experiment_name=params.experiment_name,
-                                                                      run_name=params.run_name)
-    runs, _params_configs, _hparams_configs = experiment_hyperparameter_config.parse()
+    experiment_config = ExperimentConfig(experiment_name=params.experiment_name,
+                                         run_name=params.run_name,
+                                         device=params.device,
+                                         fp16=params.fp16)
+    runs, run_params, run_hparams = experiment_config.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
 
-        for k, v in experiment_hyperparameter_config.get_params_and_hparams(run_name=None).items():
+        for k, v in experiment_config.get_params_and_hparams(run_name=None).items():
             mlflow.log_param(k, v)
 
         for run in runs:
-            # params
-            params_dict = {
-                'experiment_name': params.experiment_name,
-                'device': params.device,
-                'fp16': params.fp16,
-            }
-            params_dict.update(_params_configs[run])
-            params = argparse.Namespace(**params_dict)
-
-            # hparams
-            hparams = argparse.Namespace(**_hparams_configs[run])
+            # params & hparams: dict -> namespace
+            params = argparse.Namespace(**run_params[run])
+            hparams = argparse.Namespace(**run_hparams[run])
 
             # bert_ner: single run
             bert_ner_single.main(params, hparams, log_dirs, experiment=True)

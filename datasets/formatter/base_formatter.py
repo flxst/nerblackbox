@@ -145,11 +145,14 @@ class BaseFormatter(ABC):
                 if len(row) == 2:
                     sentence.append(row[0])
                     tags.append(ner_tag_mapping[row[1]] if row[1] != '0' else 'O')  # replace zeros by capital O (!)
-                    if row[0] == '.':
+                elif len(row) == 0:
+                    if len(tags) and len(sentence):
                         f.write(' '.join(tags) + '\t' + ' '.join(sentence) + '\n')
                         num_sentences += 1
                         tags = list()
                         sentence = list()
+                else:
+                    print(f'ATTENTION!! row with length = {len(row)} found (should be 0 or 2): {row}')
 
         print(f'> phase = {phase}: wrote {len(rows)} words in {num_sentences} sentences to {file_path}')
 

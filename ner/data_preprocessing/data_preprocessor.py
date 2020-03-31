@@ -85,5 +85,6 @@ class DataPreprocessor:
         else:
             num_examples_old = len(list_of_examples)
             num_examples_new = int(ratio*float(num_examples_old))
-            self.default_logger.log_info(f'> {phase} data: use {num_examples_new} of {num_examples_old} examples')
+            info = f'> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples'
+            self.default_logger.log_info(info)
             return list_of_examples[:num_examples_new]
