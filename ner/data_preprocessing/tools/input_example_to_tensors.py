@@ -131,15 +131,9 @@ class InputExampleToTensors:
             word, tag = word_tag_pair[0], word_tag_pair[1]
             word_tokens = self.tokenizer.tokenize(word)
             tokens.extend(word_tokens)
-            if tag == 'O':
-                b_tag = tag
-                i_tag = tag
-            else:
-                b_tag = tag  # f'B-{tag}'
-                i_tag = tag  # f'I-{tag}'
-            tokens_tags.append(b_tag)
+            tokens_tags.append(tag)
             for _ in word_tokens[1:]:
-                tokens_tags.append(i_tag)
+                tokens_tags.append(tag.replace('B-', 'I-'))  # replace only applies to IOB tags
 
         return tokens, tokens_tags
 
