@@ -41,28 +41,16 @@ class SwedishNerCorpusFormatter(BaseFormatter):
             except subprocess.CalledProcessError as e:
                 print(e)
 
-    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
+    def create_ner_tag_mapping(self):
         """
         II: customize ner tag mapping if wanted
         -------------------------------------
-        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
-        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        ner_tag_mapping = ner_tag_mapping_original
-
-        # take care of extra case: ORG*
-        if with_tags:
-            ner_tag_mapping['B-ORG*'] = 'B-ORG'
-            ner_tag_mapping['I-ORG*'] = 'I-ORG'
-            ner_tag_mapping['B-PRG'] = 'O'
-            ner_tag_mapping['I-PRG'] = 'O'
-        else:
-            ner_tag_mapping['ORG*'] = 'ORG'
-            ner_tag_mapping['PRG'] = 'O'
-
-        return ner_tag_mapping
+        return {
+            'ORG*': 'ORG',
+            'PRG': 'O',
+        }
 
     def format_data(self):
         """

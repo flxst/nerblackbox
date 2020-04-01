@@ -10,7 +10,7 @@ class CustomFormatter:
     def for_dataset(ner_dataset: str):
         if ner_dataset == 'swedish_ner_corpus':
             _formatter = SwedishNerCorpusFormatter()
-        elif ner_dataset == 'SUC':
+        elif ner_dataset == 'suc':
             _formatter = SUCFormatter()
         elif ner_dataset == 'conll2003':
             _formatter = CoNLL2003Formatter()

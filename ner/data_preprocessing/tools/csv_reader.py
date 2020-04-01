@@ -1,20 +1,22 @@
 
 import os
 import pandas as pd
-import json
 from ner.data_preprocessing.tools.input_example import InputExample
 
 
-class NerProcessor:
+class CsvReader:
     """
-    reads text data from csv and creates list of InputExamples
+    reads data (tags & text) from csv and
+    - creates list of InputExamples
+    - gets list of tags
     """
 
     def __init__(self,
                  path,
                  tokenizer,
                  do_lower_case,
-                 csv_file_separator='\t'):
+                 csv_file_separator='\t',
+                 default_logger=None):
         """
         :param path:               [str] to folder that contains dataset csv files (train, val, test)
         :param tokenizer:          [transformers Tokenizer]
@@ -26,17 +28,27 @@ class NerProcessor:
         self.tokenizer = tokenizer
         self.do_lower_case = do_lower_case
         self.csv_file_separator = csv_file_separator
+        self.default_logger = default_logger
 
         # additional attributes
         self.token_count = None
 
-        # processing
-        with open(os.path.join(self.path, 'ner_tag_mapping.json'), 'r') as f:
-            self.ner_tag_mapping = json.load(f)
-
+        # data & tag_list
         self.data = dict()
+        self.tag_list_found = list()
         for phase in ['train', 'val', 'test']:
+            # data
             self.data[phase] = self._read_csv(os.path.join(self.path, f'{phase}.csv'))
+
+            # tag list
+            tag_list_phase = list(set(' '.join(self.data[phase]['tags'].values).split()))
+            self.tag_list_found = sorted(list(set(self.tag_list_found + tag_list_phase)))
+
+        self.tag_list = ['[PAD]', '[CLS]', '[SEP]', 'O'] + [elem for elem in self.tag_list_found if elem != 'O']
+
+        if self.default_logger:
+            self.default_logger.log_debug(f'> tag list found in data: {self.tag_list_found}')
+            self.default_logger.log_debug(f'> tag list complete:      {self.tag_list}')
 
     ####################################################################################################################
     # PUBLIC METHODS
@@ -49,14 +61,6 @@ class NerProcessor:
         :return: [list] of [InputExample]
         """
         return self._create_list_of_input_examples(self.data[phase], phase)
-
-    def get_tag_list(self):
-        """
-        get tag list derived from ner_tag_mapping
-        ---------------------------------------------
-        :return: [list] of [str]
-        """
-        return ['[PAD]', '[CLS]', '[SEP]'] + list(set(self.ner_tag_mapping.values()))
 
     ####################################################################################################################
     # PRIVATE METHODS

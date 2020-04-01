@@ -41,7 +41,7 @@ To include a new dataset, do the following:
 Setup a dataset (i.e. create *.csv files in directory `./datasets/ner`):
 
 
-    # e.g. <ner_dataset> = swedish_ner_corpus, SUC, conll2003
+    # e.g. <ner_dataset> = swedish_ner_corpus, suc, conll2003
     python scripts/script_setup_dataset.py --ner_dataset <ner_dataset>   
     
 

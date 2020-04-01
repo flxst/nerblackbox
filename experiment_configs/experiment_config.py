@@ -11,12 +11,15 @@ class ExperimentConfig:
 
     # hardcoded types
     params = {
-        'pretrained_model_name': 'str',
-        'uncased': 'bool',
         'dataset_name': 'str',
+        'dataset_tags': 'str',
         'prune_ratio_train': 'float',
         'prune_ratio_val': 'float',
         'prune_ratio_test': 'float',
+
+        'pretrained_model_name': 'str',
+        'uncased': 'bool',
+
         'checkpoints': 'bool',
         'logging_level': 'str',
     }

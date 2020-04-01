@@ -22,6 +22,7 @@ class NerMetrics:
                  pred_flat,
                  tag_list=None,
                  level='token',
+                 plain_tags=False,
                  verbose=False):
         """
         :param true_flat: [np array] of shape [batch_size * seq_length]
@@ -40,8 +41,8 @@ class NerMetrics:
         self.failure_value = -1
 
         if self.level == 'chunk':
-            self.true_flat_bio = convert_to_bio(self.true_flat)
-            self.pred_flat_bio = convert_to_bio(self.pred_flat)
+            self.true_flat_bio = convert_to_chunk(self.true_flat, to_bio=plain_tags)
+            self.pred_flat_bio = convert_to_chunk(self.pred_flat, to_bio=plain_tags)
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -186,15 +187,19 @@ class Results:
     f1_macro: float = -1
 
 
-def convert_to_bio(tag_list):
+def convert_to_chunk(tag_list, to_bio=True):
     """
     - get rid of special tokens
     - add bio prefixed to tags
     ---------------------------
     :param tag_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
+    :param to_bio:        [bool] whether to cast to bio labels
     :return: bio_tag_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
     """
-    return add_bio_to_tag_list(get_rid_of_special_tokens(tag_list))
+    if to_bio:
+        return add_bio_to_tag_list(get_rid_of_special_tokens(tag_list))
+    else:
+        return get_rid_of_special_tokens(tag_list)
 
 
 def add_bio_to_tag_list(tag_list):

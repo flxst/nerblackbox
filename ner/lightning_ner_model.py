@@ -1,4 +1,5 @@
 
+import warnings
 import numpy as np
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
@@ -20,7 +21,7 @@ from ner.metrics.ner_metrics import NerMetrics
 from ner.metrics.logged_metrics import LoggedMetrics
 from ner.logging.mlflow_client import MLflowClient
 from ner.logging.default_logger import DefaultLogger
-from ner.metrics.ner_metrics import convert_to_bio
+from ner.metrics.ner_metrics import convert_to_chunk
 
 
 class LightningNerModel(pl.LightningModule):
@@ -82,6 +83,7 @@ class LightningNerModel(pl.LightningModule):
                          'val': self.params.prune_ratio_val,
                          'test': self.params.prune_ratio_test},
         ).preprocess()
+        self.default_logger.log_info('> self.tag_list:', self.tag_list)
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
@@ -387,8 +389,8 @@ class LightningNerModel(pl.LightningModule):
         tags = self._get_rid_of_pad_tag_occurrences(tags)
 
         self.default_logger.log_debug('phase:', phase)
-        self.default_logger.log_debug('true:', np.shape(tags['true']), list(set(self.tag_list)))
-        self.default_logger.log_debug('pred:', np.shape(tags['pred']), list(set(self.tag_list)))
+        self.default_logger.log_debug('true:', np.shape(tags['true']), list(set(tags['true'])))
+        self.default_logger.log_debug('pred:', np.shape(tags['pred']), list(set(tags['pred'])))
 
         if phase == 'val':
             for field in ['true', 'pred']:
@@ -459,7 +461,11 @@ class LightningNerModel(pl.LightningModule):
         else:
             level = 'token'
 
-        ner_metrics = NerMetrics(_tags['true'], _tags['pred'], tag_list=tag_list, level=level)
+        ner_metrics = NerMetrics(_tags['true'],
+                                 _tags['pred'],
+                                 tag_list=tag_list,
+                                 level=level,
+                                 plain_tags=self.params.dataset_tags == 'plain')
         ner_metrics.compute(self.logged_metrics.get_metrics(tag_group=tag_group,
                                                             phase_group=[_phase]))
         results = ner_metrics.results_as_dict()
@@ -538,23 +544,29 @@ class LightningNerModel(pl.LightningModule):
         :changed attr: classification reports: [dict] w/ keys = epoch [int], values = classification report [str]
         :return: -
         """
-        import warnings
         warnings.filterwarnings("ignore")
 
         self.classification_reports[phase][epoch] = ''
 
         # token-based classification report
-        selected_tags = [tag for tag in self.tag_list if tag != 'O' and not tag.startswith('[')]
+        tag_list_filtered = self._get_filtered_tags('fil')
         self.classification_reports[phase][epoch] += f'\n>>> Phase: {phase} | Epoch: {epoch}'
         self.classification_reports[phase][epoch] += '\n--- token-based (sklearn) classification report on fil ---\n'
         self.classification_reports[phase][epoch] += classification_report_sklearn(epoch_tags['true'],
                                                                                    epoch_tags['pred'],
-                                                                                   labels=selected_tags)
+                                                                                   labels=tag_list_filtered)
 
         # chunk-based classification report
+        epoch_tags_chunk = dict()
+        for field in ['true', 'pred']:
+            epoch_tags_chunk[field] = convert_to_chunk(epoch_tags[field], to_bio=self.params.dataset_tags == 'plain')
+        self.default_logger.log_debug('> dataset_tags:', self.params.dataset_tags)
+        self.default_logger.log_debug('> epoch_tags_chunk[true]:', list(set(epoch_tags_chunk['true'])))
+        self.default_logger.log_debug('> epoch_tags_chunk[pred]:', list(set(epoch_tags_chunk['pred'])))
+
         self.classification_reports[phase][epoch] += '\n--- chunk-based (seqeval) classification report on fil ---\n'
-        self.classification_reports[phase][epoch] += classification_report_seqeval(convert_to_bio(epoch_tags['true']),
-                                                                                   convert_to_bio(epoch_tags['pred']),
+        self.classification_reports[phase][epoch] += classification_report_seqeval(epoch_tags_chunk['true'],
+                                                                                   epoch_tags_chunk['pred'],
                                                                                    suffix=False)
 
         warnings.resetwarnings()

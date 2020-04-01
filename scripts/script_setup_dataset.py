@@ -27,12 +27,12 @@ def main(args):
     formatter = CustomFormatter.for_dataset(args.ner_dataset)
 
     formatter.create_directory()
-    formatter.get_data(verbose=args.verbose)                                        # I: get_data
-    formatter.create_ner_tag_mapping(with_tags=args.with_tags, modify=args.modify)  # II: create ner tag mapping
-    formatter.format_data()                                                         # III: format data
-    formatter.resplit_data(val_fraction=args.val_fraction)                          # IV: resplit data
-    formatter.analyze_data()                                                        # V: analyze data
-    formatter.plot_data()                                                           # V: analyze data
+    formatter.get_data(verbose=args.verbose)                     # I: get_data
+    formatter.create_ner_tag_mapping_json(modify=args.modify)    # II: create ner tag mapping
+    formatter.format_data()                                      # III: format data
+    formatter.resplit_data(val_fraction=args.val_fraction)       # IV: resplit data
+    formatter.analyze_data()                                     # V: analyze data
+    formatter.plot_data()                                        # V: analyze data
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ from datasets.formatter.base_formatter import BaseFormatter
 class SUCFormatter(BaseFormatter):
 
     def __init__(self):
-        ner_dataset = 'SUC'
+        ner_dataset = 'suc'
         ner_tag_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
         super().__init__(ner_dataset, ner_tag_list)
 
@@ -26,19 +26,15 @@ class SUCFormatter(BaseFormatter):
         :param verbose: [bool]
         :return: -
         """
-        print('(SUC: nothing to do)')
+        print('(suc: nothing to do)')
 
-    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
+    def create_ner_tag_mapping(self):
         """
         II: customize ner tag mapping if wanted
         -------------------------------------
-        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
-        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        ner_tag_mapping = ner_tag_mapping_original
-        return ner_tag_mapping
+        return dict()
 
     def format_data(self):
         """

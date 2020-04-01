@@ -15,13 +15,14 @@ from ner.utils.util_functions import get_dataset_path
 from datasets.plots import Plots
 
 from ner.logging.default_logger import DefaultLogger
+from datasets.formatter.util_functions import get_ner_tag_mapping
 
 
 class BaseFormatter(ABC):
 
     def __init__(self, ner_dataset, ner_tag_list):
         """
-        :param ner_dataset:  [str] 'swedish_ner_corpus' or 'SUC'
+        :param ner_dataset:  [str] 'swedish_ner_corpus' or 'suc'
         :param ner_tag_list: [list] of [str], e.g. ['PER', 'LOC', ..]
         """
         self.ner_dataset = ner_dataset
@@ -45,13 +46,10 @@ class BaseFormatter(ABC):
         pass
 
     @abstractmethod
-    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
+    def create_ner_tag_mapping(self):
         """
         II: customize ner tag mapping if wanted
         -------------------------------------
-        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
-        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         pass
@@ -87,29 +85,17 @@ class BaseFormatter(ABC):
         directory_path = f'{BASE_DIR}/datasets/ner/{self.ner_dataset}/analyze_data'
         os.makedirs(directory_path, exist_ok=True)
 
-    def create_ner_tag_mapping(self, with_tags: bool, modify: bool):
+    def create_ner_tag_mapping_json(self, modify: bool):
         """
         II: create customized ner tag mapping to map tags in original data to tags in formatted data
         ----------------------------------------------------------------------------------------------
-        :param with_tags:   [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                    if False: create simple tags, e.g. 'PER', 'LOC', ..
         :param modify:      [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        # full tag list
-        if with_tags:
-            _tag_lists_extended = [[f'B-{tag}', f'I-{tag}'] for tag in self.ner_tag_list]
-            tag_list_full = ['O'] + [l_i for l in _tag_lists_extended for l_i in l]
-        else:
-            tag_list_full = ['O'] + self.ner_tag_list
-
-        # map each tag to itself
-        ner_tag_mapping_original = {k: k for k in tag_list_full}
-
         if modify:
-            ner_tag_mapping = self.modify_ner_tag_mapping(ner_tag_mapping_original, with_tags=with_tags)
+            ner_tag_mapping = self.create_ner_tag_mapping()
         else:
-            ner_tag_mapping = ner_tag_mapping_original
+            ner_tag_mapping = dict()
 
         json_path = f'{BASE_DIR}/datasets/ner/{self.ner_dataset}/ner_tag_mapping.json'
         with open(json_path, 'w') as f:
@@ -132,8 +118,7 @@ class BaseFormatter(ABC):
         file_path = join(self.dataset_path, f'{phase}_formatted.csv')
 
         # ner tag mapping
-        with open(join(self.dataset_path, 'ner_tag_mapping.json'), 'r') as f:
-            ner_tag_mapping = json.load(f)
+        ner_tag_mapping = get_ner_tag_mapping(path=join(self.dataset_path, 'ner_tag_mapping.json'))
 
         # processing
         with open(file_path, mode='w') as f:
@@ -144,7 +129,7 @@ class BaseFormatter(ABC):
             for row in rows:
                 if len(row) == 2:
                     sentence.append(row[0])
-                    tags.append(ner_tag_mapping[row[1]] if row[1] != '0' else 'O')  # replace zeros by capital O (!)
+                    tags.append(ner_tag_mapping(row[1]) if row[1] != '0' else 'O')  # replace zeros by capital O (!)
                 elif len(row) == 0:
                     if len(tags) and len(sentence):
                         f.write(' '.join(tags) + '\t' + ' '.join(sentence) + '\n')
@@ -233,7 +218,7 @@ class BaseFormatter(ABC):
         stats = pd.DataFrame([], columns=columns)
 
         if df is not None:
-            tags = df.iloc[:, 0].apply(lambda x: x.split())
+            tags = df.iloc[:, 0].apply(lambda x: x.split()).apply(lambda x: [elem.split('-')[-1] for elem in x])
 
             for column in columns:
                 stats[column] = tags.apply(lambda x: len([elem for elem in x if elem == column]))

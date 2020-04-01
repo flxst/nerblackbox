@@ -12,7 +12,8 @@ class InputExampleToTensors:
     def __init__(self,
                  tokenizer,
                  max_seq_length: int = 128,
-                 tag_tuple: tuple = ('0', '1')):
+                 tag_tuple: tuple = ('O', 'PER', 'ORG'),
+                 default_logger=None):
         """
         :param tokenizer:      [BertTokenizer] used to tokenize to Wordpieces and transform to indices
         :param max_seq_length: [int]
@@ -20,13 +21,16 @@ class InputExampleToTensors:
         """
         self.tokenizer = tokenizer
         self.max_seq_length = max_seq_length
-        self.tag_tuple = tag_tuple
-        self.tag2id = {tag: i for i, tag in enumerate(self.tag_tuple)}
+        self.default_logger = default_logger
+
+        self.tag2id = {tag: i for i, tag in enumerate(tag_tuple)}
+        if self.default_logger:
+            self.default_logger.log_debug('> tag2id:', self.tag2id)
 
     def __call__(self, input_example):
         """
         transform input_example to tensors of length self.max_seq_length
-        ----------------------------------
+        ----------------------------------------------------------------
         :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
                                                    text_b = None
                                                    tags_a = '0 ORG'

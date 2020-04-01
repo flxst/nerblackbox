@@ -44,17 +44,13 @@ class CoNLL2003Formatter(BaseFormatter):
                 if verbose:
                     print(f'.. file fetched from {url} and saved at {target_file}')
 
-    def modify_ner_tag_mapping(self, ner_tag_mapping_original, with_tags: bool):
+    def create_ner_tag_mapping(self):
         """
         II: customize ner tag mapping if wanted
         -------------------------------------
-        :param ner_tag_mapping_original: [dict] w/ keys = tags in original data, values = tags in original data
-        :param with_tags: [bool], if True: create tags with BIO tags, e.g. 'B-PER', 'I-PER', 'B-LOC', ..
-                                  if False: create simple tags, e.g. 'PER', 'LOC', ..
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        ner_tag_mapping = ner_tag_mapping_original
-        return ner_tag_mapping
+        return dict()
 
     def format_data(self):
         """
@@ -109,7 +105,7 @@ class CoNLL2003Formatter(BaseFormatter):
                     _rows.append(row.strip().split())
             print(f'\n> read {file_path_original}')
 
-        _rows = [[row[0], row[-1].split('-')[-1]]
+        _rows = [[row[0], row[-1]]
                  if (len(row) == 4 and row[0] != '-DOCSTART-') else list()
                  for row in _rows]
 
