@@ -121,40 +121,39 @@ class BaseFormatter(ABC):
         ner_tag_mapping = get_ner_tag_mapping(path=join(self.dataset_path, 'ner_tag_mapping.json'))
 
         # processing
-        with open(file_path, mode='w') as f:
-
-            num_sentences = 0
-            tags = list()
-            sentence = list()
-            for row in rows:
-                if len(row) == 2:
-                    sentence.append(row[0])
-                    tags.append(ner_tag_mapping(row[1]) if row[1] != '0' else 'O')  # replace zeros by capital O (!)
-                elif len(row) == 0:
-                    if len(tags) and len(sentence):
-                        f.write(' '.join(tags) + '\t' + ' '.join(sentence) + '\n')
-                        num_sentences += 1
-                        tags = list()
-                        sentence = list()
-                else:
+        data = list()
+        tags = list()
+        sentence = list()
+        for row in rows:
+            if len(row) == 2:
+                sentence.append(row[0])
+                tags.append(ner_tag_mapping(row[1]) if row[1] != '0' else 'O')  # replace zeros by capital O (!)
+            else:
+                if len(row) != 0:
                     print(f'ATTENTION!! row with length = {len(row)} found (should be 0 or 2): {row}')
+                if len(tags) and len(sentence):
+                    data.append([' '.join(tags), ' '.join(sentence)])
+                    tags = list()
+                    sentence = list()
 
-        print(f'> phase = {phase}: wrote {len(rows)} words in {num_sentences} sentences to {file_path}')
+        df = pd.DataFrame(data)
+        df.to_csv(file_path, sep='\t', header=None, index=None)
+        print(f'> phase = {phase}: wrote {len(rows)} words in {len(df)} sentences to {file_path}')
 
     ####################################################################################################################
     # HELPER: READ FORMATTED
     ####################################################################################################################
-    def _read_formatted_files(self, phases):
+    def _read_formatted_csvs(self, phases):
         """
         IV: resplit data
         ----------------
         :param phases: [list] of [str] to read formatted csvs from, e.g. ['val', 'test']
         :return: [pd DataFrame]
         """
-        df_phases = [self._read_formatted_file(phase) for phase in phases]
+        df_phases = [self._read_formatted_csv(phase) for phase in phases]
         return pd.concat(df_phases, ignore_index=True)
 
-    def _read_formatted_file(self, phase):
+    def _read_formatted_csv(self, phase):
         """
         IV: resplit data
         ----------------
@@ -163,7 +162,7 @@ class BaseFormatter(ABC):
         """
         formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
         try:
-            df = pd.read_csv(formatted_file_path, sep='\t', header=None, quoting=csv.QUOTE_NONE)
+            df = pd.read_csv(formatted_file_path, sep='\t', header=None)
         except pd.errors.EmptyDataError:
             df = pd.DataFrame()
         return df

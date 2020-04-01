@@ -70,13 +70,13 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         :return: -
         """
         # train -> train, val
-        df_train_val = self._read_formatted_files(['train'])
+        df_train_val = self._read_formatted_csvs(['train'])
         df_train, df_val = self._split_off_validation_set(df_train_val, val_fraction)
         self._write_final_csv('train', df_train)
         self._write_final_csv('val', df_val)
 
         # test  -> test
-        df_test = self._read_formatted_files(['test'])
+        df_test = self._read_formatted_csvs(['test'])
         self._write_final_csv('test', df_test)
 
     ####################################################################################################################

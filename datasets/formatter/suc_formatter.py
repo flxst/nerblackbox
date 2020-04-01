@@ -22,7 +22,7 @@ class SUCFormatter(BaseFormatter):
     def get_data(self, verbose: bool):
         """
         I: get data
-        -----------
+        ----------
         :param verbose: [bool]
         :return: -
         """
@@ -60,24 +60,24 @@ class SUCFormatter(BaseFormatter):
         :return: -
         """
         # train -> train
-        df_train = self._read_formatted_files(['train'])
+        df_train = self._read_formatted_csvs(['train'])
         self._write_final_csv('train', df_train)
 
         # val  -> val
-        df_val = self._read_formatted_files(['val'])
+        df_val = self._read_formatted_csvs(['val'])
         self._write_final_csv('val', df_val)
 
         # test  -> test
-        df_test = self._read_formatted_files(['test'])
+        df_test = self._read_formatted_csvs(['test'])
         self._write_final_csv('test', df_test)
 
         """
         # val, test -> train
-        df_train = self._read_formatted_files(['val', 'test'])
+        df_train = self._read_formatted_csvs(['val', 'test'])
         self._write_final_csv('train', df_train)
 
         # train       -> val & test
-        df_val_test = self._read_formatted_files(['train'])
+        df_val_test = self._read_formatted_csvs(['train'])
         df_val, df_test = self._split_val_test(df_val_test, val_fraction)
         self._write_final_csv('val', df_val)
         self._write_final_csv('test', df_test)
