@@ -1,6 +1,7 @@
 
 import torch
 import mlflow
+from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.logging import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -96,8 +97,10 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
     """
     early_stopping_params = {k: vars(_hparams)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
+    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name)
+
     _callbacks = {
-        'checkpoint': ModelCheckpoint(filepath=_log_dirs.checkpoints) if _params.checkpoints else None,
+        'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath) if _params.checkpoints else None,
         'early_stop': EarlyStopping(**early_stopping_params, verbose=True)
     }
     return _callbacks
