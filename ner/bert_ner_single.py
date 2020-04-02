@@ -41,7 +41,7 @@ def main(params, hparams, log_dirs, experiment: bool):
         trainer.fit(model)
         trainer.test()
 
-        logging_end(tb_logger, hparams, callbacks['early_stop'], model)
+        logging_end(tb_logger, hparams, callbacks, model, default_logger)
 
 
 ########################################################################################################################
@@ -119,43 +119,57 @@ def logging_start(_params, _log_dirs):
     return _tb_logger
 
 
-def logging_end(_tb_logger, _hparams, _callback_early_stop, _model):
+def logging_end(_tb_logger, _hparams, _callbacks, _model, _logger):
     """
-    :param _tb_logger:           [pytorch lightning TensorBoardLogger]
-    :param _hparams:             [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
-    :param _callback_early_stop: [pytorch lightning EarlyStopping callback]
-    :param _model:               [LightningNerModel]
+    :param _tb_logger:    [pytorch lightning TensorBoardLogger]
+    :param _hparams:      [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
+    :param _callbacks:    [dict] w/ keys = 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
+    :param _model:        [LightningNerModel]
+    :param _logger:       [DefaultLogger]
     :return: -
     """
-    _model.mlflow_client.finish_artifact_logger()                                  # mlflow
-    _tb_logger_stopped_epoch(_tb_logger, _hparams, _callback_early_stop, _model)   # tensorboard
+    epoch_best = \
+        int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('_ckpt_epoch_')[-1].replace('.ckpt', ''))
+    epoch_stopped = \
+        _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs-1
+
+    _logger.log_info(f'epoch_best: {epoch_best}')
+    _logger.log_info(f'epoch_stopped: {epoch_stopped}')
+
+    _model.mlflow_client.log_metric('epoch_best', epoch_best)
+    _model.mlflow_client.log_metric('epoch_stopped', epoch_stopped)
+
+    _model.mlflow_client.finish_artifact_logger()                                       # mlflow
+    _tb_logger_stopped_epoch(_tb_logger, _hparams, epoch_best, epoch_stopped, _model)   # tensorboard
 
 
 def _tb_logger_stopped_epoch(_tb_logger,
                              _hparams,
-                             _early_stop_callback,
+                             _epoch_best,
+                             _epoch_stopped,
                              _model,
                              metrics=('all_f1_micro', 'fil_f1_micro', 'chk_f1_micro')):
     """
     log hparams and metrics for stopped epoch
     -----------------------------------------
-    :param _tb_logger:           [pytorch lightning TensorboardLogger]
-    :param _hparams:             [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
-    :param _early_stop_callback: [pytorch lightning callback]
-    :param _model:               [LightningNerModel]
-    :param metrics:              [tuple] of metrics to be logged in hparams section
+    :param _tb_logger:      [pytorch lightning TensorboardLogger]
+    :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param _epoch_best:     [int]
+    :param _epoch_stopped:  [int]
+    :param _model:          [LightningNerModel]
+    :param metrics:         [tuple] of metrics to be logged in hparams section
     :return:
     """
     hparams_dict = dict()
 
-    # stopped_epoch
-    stopped_epoch = _early_stop_callback.stopped_epoch if _early_stop_callback.stopped_epoch else _hparams.max_epochs-1
-    hparams_dict['hparam/train/stopped_epoch'] = stopped_epoch
+    # epoch_best & epoch_stopped
+    hparams_dict['hparam/train/epoch_best'] = _epoch_best
+    hparams_dict['hparam/train/epoch_stopped'] = _epoch_stopped
 
     # val/test
-    hparams_val = {f'hparam/val/{metric.replace("+", "P")}': _model.epoch_metrics['val'][stopped_epoch][metric]
+    hparams_val = {f'hparam/val/{metric.replace("+", "P")}': _model.epoch_metrics['val'][_epoch_stopped][metric]
                      for metric in metrics}
-    hparams_test = {f'hparam/test/{metric.replace("+", "P")}': _model.epoch_metrics['test'][stopped_epoch][metric]
+    hparams_test = {f'hparam/test/{metric.replace("+", "P")}': _model.epoch_metrics['test'][_epoch_stopped][metric]
                     for metric in metrics}
     hparams_dict.update(hparams_val)
     hparams_dict.update(hparams_test)

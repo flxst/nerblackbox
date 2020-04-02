@@ -58,6 +58,9 @@ class MLflowClient:
                 for hyperparameter in most_important_hyperparameters:
                     mlflow.log_param(hyperparameter, vars(hparams)[hyperparameter])
 
+    def log_metric(self, _metric, _stopped_epoch):
+        mlflow.log_metric(_metric, _stopped_epoch)
+
     def log_metrics(self, _epoch, _epoch_val_metrics):
         """
         mlflow metrics logging
