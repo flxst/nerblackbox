@@ -33,7 +33,7 @@ def main(params, hparams, log_dirs, experiment: bool):
         trainer = Trainer(
             max_epochs=hparams.max_epochs,
             gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
-            precision=16 if params.device.type == 'cuda' else 32,
+            precision=16 if (params.fp16 and params.device.type == 'cuda') else 32,
             amp_level='O1',
             logger=tb_logger,
             checkpoint_callback=callbacks['checkpoint'],
@@ -129,7 +129,7 @@ def logging_end(_tb_logger, _hparams, _callbacks, _model, _logger):
     :param _logger:       [DefaultLogger]
     :return: -
     """
-    epoch_best = int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch=')[-1].replace('.ckpt', ''))
+    epoch_best = int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch_')[-1].replace('.ckpt', ''))
     epoch_stopped = \
         _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs-1
 

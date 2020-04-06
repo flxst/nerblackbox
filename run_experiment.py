@@ -47,7 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--experiment_name', required=True, type=str, help='e.g. exp1')
     parser.add_argument('--run_name', default=None, type=str, help='e.g. run1')
     parser.add_argument('--device', default='gpu', type=str, help='gpu or cpu')
-    parser.add_argument('--fp16', default=False, type=bool, help='')
+    parser.add_argument('--fp16', default=True, type=bool, help='floating-point half-precision')
     _args = parser.parse_args()
 
     main(

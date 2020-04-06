@@ -7,7 +7,7 @@ entry_points:
       experiment_name: {type: string}
       run_name: {type: string}
       device: {type: string, default: gpu}
-      fp16: {type: int, default: 0}
+      fp16: {type: int, default: 1}
     command: |
         python scripts/script_bert_ner_experiment.py \
         --experiment_name {experiment_name} \
