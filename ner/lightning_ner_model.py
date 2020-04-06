@@ -121,12 +121,14 @@ class LightningNerModel(pl.LightningModule):
                           labels=_tag_ids,
                           )
 
+    """
     def backward(self, use_amp, loss, optimizer):
         if use_amp:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
             loss.backward()
+    """
 
     ####################################################################################################################
     # TRAIN
@@ -177,7 +179,7 @@ class LightningNerModel(pl.LightningModule):
 
         return batch_loss, tag_ids, logits
 
-    def validation_end(self, outputs):
+    def validation_epoch_end(self, outputs):
         """
         :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_tag_ids, batch_logits] for each batch
         :return:        [dict] w/ key 'val_loss' & value = mean batch loss of val dataset [float]
@@ -200,7 +202,7 @@ class LightningNerModel(pl.LightningModule):
 
         return batch_loss, tag_ids, logits
 
-    def test_end(self, outputs):
+    def test_epoch_end(self, outputs):
         """
         :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_tag_ids, batch_logits] for each batch
         :return:        [dict] w/ key 'test_loss' & value = mean batch loss of test dataset [float]

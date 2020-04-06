@@ -97,7 +97,7 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
     """
     early_stopping_params = {k: vars(_hparams)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
-    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name)
+    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name, '{epoch}-{val_loss:.2f}')
 
     _callbacks = {
         'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath) if _params.checkpoints else None,
@@ -128,8 +128,7 @@ def logging_end(_tb_logger, _hparams, _callbacks, _model, _logger):
     :param _logger:       [DefaultLogger]
     :return: -
     """
-    epoch_best = \
-        int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('_ckpt_epoch_')[-1].replace('.ckpt', ''))
+    epoch_best = int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch=')[-1].split('-val_loss=')[0])
     epoch_stopped = \
         _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs-1
 
