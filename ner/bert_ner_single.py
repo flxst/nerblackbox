@@ -33,7 +33,8 @@ def main(params, hparams, log_dirs, experiment: bool):
         trainer = Trainer(
             max_epochs=hparams.max_epochs,
             gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
-            use_amp=params.device.type == 'cuda',  # amp_level='O1',
+            precision=16 if params.device.type == 'cuda' else 32,
+            amp_level='O1',
             logger=tb_logger,
             checkpoint_callback=callbacks['checkpoint'],
             early_stop_callback=callbacks['early_stop'],
@@ -97,7 +98,7 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
     """
     early_stopping_params = {k: vars(_hparams)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
-    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name, '{epoch}-{val_loss:.2f}')
+    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name)
 
     _callbacks = {
         'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath) if _params.checkpoints else None,
@@ -128,7 +129,7 @@ def logging_end(_tb_logger, _hparams, _callbacks, _model, _logger):
     :param _logger:       [DefaultLogger]
     :return: -
     """
-    epoch_best = int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch=')[-1].split('-val_loss=')[0])
+    epoch_best = int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch=')[-1].replace('.ckpt', ''))
     epoch_stopped = \
         _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs-1
 

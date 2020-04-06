@@ -5,7 +5,6 @@ from seqeval.metrics import classification_report as classification_report_seqev
 from sklearn.metrics import classification_report as classification_report_sklearn
 import pytorch_lightning as pl
 
-from apex import amp
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
 from transformers import get_constant_schedule_with_warmup
@@ -120,15 +119,6 @@ class LightningNerModel(pl.LightningModule):
                           token_type_ids=_segment_ids,
                           labels=_tag_ids,
                           )
-
-    """
-    def backward(self, use_amp, loss, optimizer):
-        if use_amp:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward()
-        else:
-            loss.backward()
-    """
 
     ####################################################################################################################
     # TRAIN
