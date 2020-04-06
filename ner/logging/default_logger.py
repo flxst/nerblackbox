@@ -24,6 +24,7 @@ class DefaultLogger:
 
         name = path.split('/')[-1]
         self.logger = logging.getLogger(name)
+        self.logger.propagate = level == 'debug'  # only shows console output if level is 'debug'
 
         # log path
         self.filename = log_file if log_file else self.default_log_file

@@ -32,7 +32,6 @@ def main(params, log_dirs):
     runs, run_params, run_hparams = experiment_config.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
-
         for k, v in experiment_config.get_params_and_hparams(run_name=None).items():
             mlflow.log_param(k, v)
 

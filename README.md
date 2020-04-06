@@ -65,16 +65,16 @@ To include a new model, do the following:
     - specify dataset, model & hyperparameters in `experiment_configs/<experiment_name>.ini`
     - call
         
-        `. run_experiment.sh <experiment_name>` to execute all runs
+        `python run_experiment.py --experiment_name <experiment_name>` to execute all runs
 
-        `. run_experiment.sh <experiment_name> <run_name>` to execute single run
+        `python run_experiment.py --experiment_name <experiment_name> --run_name <run_name>` to execute single run
         
 
 - Single Run: 
 
     alternative
 
-    `python script_bert_ner_single.py` 
+    `python scripts/script_bert_ner_single.py` 
 
   - flags:
     - `--experiment_name * --run_name *` to structure runs 

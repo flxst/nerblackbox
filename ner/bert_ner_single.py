@@ -112,8 +112,8 @@ def logging_start(_params, _log_dirs):
     :param _log_dirs:    [argparse.Namespace] attr: mlflow, tensorboard
     :return: _tb_logger: [pytorch lightning TensorBoardLogger]
     """
-    mlflow.tracking.set_tracking_uri(_log_dirs.mlflow)                # mlflow
-    mlflow.set_experiment(_params.experiment_name)                    # mlflow
+    # mlflow.tracking.set_tracking_uri(_log_dirs.mlflow)                # mlflow
+    # mlflow.set_experiment(_params.experiment_name)                    # mlflow
     _tb_logger = TensorBoardLogger(save_dir=_log_dirs.tensorboard,    # tensorboard
                                    name=_params.experiment_run_name)
     return _tb_logger
