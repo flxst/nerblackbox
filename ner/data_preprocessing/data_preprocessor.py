@@ -27,7 +27,7 @@ class DataPreprocessor:
 
     def get_input_examples_train(self,
                                  dataset_name,
-                                 prune_ratio={'train': 1.0, 'val': 1.0, 'test': 1.0}):
+                                 prune_ratio):
         """
         get input examples for TRAIN from csv files
         -------------------------------------------
@@ -36,6 +36,9 @@ class DataPreprocessor:
         :return: input_examples: [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
         :return: tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         """
+        if prune_ratio is None:
+            prune_ratio = {'train': 1.0, 'val': 1.0, 'test': 1.0}
+
         dataset_path = get_dataset_path(dataset_name)
 
         # csv_reader
@@ -81,8 +84,8 @@ class DataPreprocessor:
         turn input_examples into dataloader
         -----------------------------------
         :param input_examples:
-        :return: input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
-                                           values = [list] of [InputExample]
+        :param input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                         values = [list] of [InputExample]
         :param tag_list:         [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         :param batch_size:       [int]
         :return: _dataloader:    [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
@@ -133,4 +136,3 @@ class DataPreprocessor:
             info = f'> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples'
             self.default_logger.log_info(info)
             return list_of_examples[:num_examples_new]
-

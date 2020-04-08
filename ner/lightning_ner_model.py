@@ -37,46 +37,31 @@ class LightningNerModel(pl.LightningModule):
         # split up hparams
         self.params, self._hparams, self.log_dirs, self.experiment = split_parameters(hparams)
 
-        self._preparations_general()
         if 'tag_list' not in self.hparams:
             # train/val/test
-            self._preparations_train()
-            self._preparations_train_data()
+            self._preparations_train()         # attr: default_logger, logged_metrics, mlflow_client, ..
+            self._preparations_data_general()  # attr: tokenizer, data_preprocessor
+            self._preparations_data_train()    # attr: tag_list, model, dataloader, optimizer, scheduler
         else:
             # predict
-            self._preparations_predict_data()
+            self._preparations_predict()       # attr: default_logger
+            self._preparations_data_general()  # attr: tokenizer, data_preprocessor
+            self._preparations_data_predict()  # attr: tag_list, model
 
     ####################################################################################################################
     # PREPARATIONS
     ####################################################################################################################
-    def _preparations_general(self):
-        """
-        :created attr: default_logger    [DefaultLogger]
-        :created attr: tokenizer         [transformers AutoTokenizer]
-        :created attr: data_preprocessor [DataPreprocessor]
-        :return: -
-        """
-        self.default_logger = DefaultLogger(__file__, log_file=self.log_dirs.log_file, level=self.params.logging_level)
-
-        # tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(self.params.pretrained_model_name,
-                                                       do_lower_case=False)  # needs to be False !!
-
-        self.data_preprocessor = DataPreprocessor(
-            tokenizer=self.tokenizer,
-            do_lower_case=self.params.uncased,  # can be True !!
-            default_logger=self.default_logger,
-            max_seq_length=self._hparams.max_seq_length,
-        )
-
     def _preparations_train(self):
         """
+        :created attr: default_logger         [DefaultLogger]
         :created attr: logged_metrics         [LoggedMetrics]
         :created attr: mlflow_client          [MLflowClient]
         :created attr: epoch_metrics          [dict] w/ keys = 'val', 'test' & values = [dict]
         :created attr: classification_reports [dict] w/ keys = 'val', 'test' & values = [dict]
         :return: -
         """
+        self.default_logger = DefaultLogger(__file__, log_file=self.log_dirs.log_file, level=self.params.logging_level)
+
         self.logged_metrics = LoggedMetrics()
 
         self.mlflow_client = MLflowClient(experiment_name=self.params.experiment_name,
@@ -89,7 +74,31 @@ class LightningNerModel(pl.LightningModule):
         self.epoch_metrics = {'val': dict(), 'test': dict()}
         self.classification_reports = {'val': dict(), 'test': dict()}
 
-    def _preparations_train_data(self):
+    def _preparations_predict(self):
+        """
+        :created attr: default_logger    [None]
+        :return: -
+        """
+        self.default_logger = None
+
+    def _preparations_data_general(self):
+        """
+        :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: data_preprocessor [DataPreprocessor]
+        :return: -
+        """
+        # tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(self.params.pretrained_model_name,
+                                                       do_lower_case=False)  # needs to be False !!
+
+        self.data_preprocessor = DataPreprocessor(
+            tokenizer=self.tokenizer,
+            do_lower_case=self.params.uncased,  # can be True !!
+            max_seq_length=self._hparams.max_seq_length,
+            default_logger=self.default_logger,
+        )
+
+    def _preparations_data_train(self):
         """
         :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
         :created attr: model             [transformers AutoModelForTokenClassification]
@@ -126,7 +135,7 @@ class LightningNerModel(pl.LightningModule):
                                                 self._hparams.lr_schedule,
                                                 self._hparams.lr_num_cycles)
 
-    def _preparations_predict_data(self):
+    def _preparations_data_predict(self):
         """
         :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
         :created attr: model             [transformers AutoModelForTokenClassification]
