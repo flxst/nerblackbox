@@ -1,6 +1,7 @@
 
 from ner.data_preprocessing.tools.bert_dataset import BertDataset
 from ner.data_preprocessing.tools.csv_reader import CsvReader
+from ner.data_preprocessing.tools.input_example import InputExample
 from ner.data_preprocessing.tools.input_example_to_tensors import InputExampleToTensors
 from ner.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -9,70 +10,113 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 class DataPreprocessor:
 
     def __init__(self,
-                 dataset_name,
                  tokenizer,
-                 batch_size,
                  do_lower_case,
                  default_logger,
-                 max_seq_length=64,
-                 prune_ratio={'train': 1.0, 'val': 1.0, 'test': 1.0}):
+                 max_seq_length=64):
         """
-        :param dataset_name:   [str], e.g. 'suc'
         :param tokenizer:      [transformers Tokenizer]
-        :param batch_size:     [int], e.g. 16
         :param do_lower_case:  [bool] if True, make text data lowercase
         :param default_logger: [DefaultLogger]
         :param max_seq_length: [int], e.g. 64
-        :param prune_ratio:    [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
         """
-        self.dataset_path = get_dataset_path(dataset_name)
         self.tokenizer = tokenizer
-        self.batch_size = batch_size
         self.do_lower_case = do_lower_case
         self.default_logger = default_logger
         self.max_seq_length = max_seq_length
-        self.prune_ratio = prune_ratio
 
-    def preprocess(self):
+    def get_input_examples_train(self,
+                                 dataset_name,
+                                 prune_ratio={'train': 1.0, 'val': 1.0, 'test': 1.0}):
         """
-        preprocess dataset
-        :return: dataloader [dict] w/ keys = 'train', 'valid' & values = [pytorch DataLoader]
-        :return: tag_list   [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+        get input examples for TRAIN from csv files
+        -------------------------------------------
+        :param dataset_name:     [str], e.g. 'suc'
+        :param prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
+        :return: input_examples: [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
+        :return: tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         """
+        dataset_path = get_dataset_path(dataset_name)
+
         # csv_reader
-        csv_reader = CsvReader(self.dataset_path,
+        csv_reader = CsvReader(dataset_path,
                                self.tokenizer,
                                do_lower_case=self.do_lower_case,   # can be True (applies .lower()) !!
                                default_logger=self.default_logger)
 
-        # input_example_to_tensors
-        input_example_to_tensors = InputExampleToTensors(self.tokenizer,
-                                                         max_seq_length=self.max_seq_length,
-                                                         tag_tuple=tuple(csv_reader.tag_list),
-                                                         default_logger=self.default_logger)
-
-        dataloader = dict()
+        input_examples = dict()
         for phase in ['train', 'val', 'test']:
             # train data
             input_examples_all = csv_reader.get_input_examples(phase)
-            input_examples = self.prune_examples(input_examples_all, phase, ratio=self.prune_ratio[phase])
+            input_examples[phase] = self._prune_examples(input_examples_all, phase, ratio=prune_ratio[phase])
 
+        return input_examples, csv_reader.tag_list
+
+    def get_input_examples_predict(self, examples):
+        """
+        get input examples for PREDICT from input argument examples
+        -----------------------------------------------------------
+        :param examples:         [list] of [str]
+        :return: input_examples: [dict] w/ key = 'predict' & value = [list] of [InputExample]
+        """
+        # create input_examples
+        if self.do_lower_case:
+            examples = [example.lower() for example in examples]
+
+        input_examples = {
+            'predict': [
+                InputExample(guid='',
+                             text_a=example,
+                             tags_a=' '.join(['O' for _ in range(len(example.split()))]),  # pseudo tags
+                             )
+                for example in examples
+            ]
+        }
+        # print('TEMP: input_examples:', input_examples)
+
+        return input_examples
+
+    def to_dataloader(self, input_examples, tag_list, batch_size):
+        """
+        turn input_examples into dataloader
+        -----------------------------------
+        :param input_examples:
+        :return: input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                           values = [list] of [InputExample]
+        :param tag_list:         [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+        :param batch_size:       [int]
+        :return: _dataloader:    [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                           values = [torch Dataloader]
+        """
+        # input_example_to_tensors
+        input_example_to_tensors = InputExampleToTensors(self.tokenizer,
+                                                         max_seq_length=self.max_seq_length,
+                                                         tag_tuple=tuple(tag_list),
+                                                         default_logger=self.default_logger)
+
+        _dataloader = dict()
+        for phase in input_examples.keys():
             # dataloader
-            data = BertDataset(input_examples,
+            data = BertDataset(input_examples[phase],
                                transform=input_example_to_tensors)
 
             if phase == 'train':
                 sampler = RandomSampler(data)
-            else:
+            elif phase in ['val', 'train']:
                 sampler = SequentialSampler(data)
+            else:
+                sampler = None
 
-            dataloader[phase] = DataLoader(data,
-                                           sampler=sampler,
-                                           batch_size=self.batch_size)
+            _dataloader[phase] = DataLoader(data,
+                                            sampler=sampler,
+                                            batch_size=batch_size)
 
-        return dataloader, csv_reader.tag_list
+        return _dataloader
 
-    def prune_examples(self, list_of_examples, phase, ratio=None):
+    ####################################################################################################################
+    # HELPER
+    ####################################################################################################################
+    def _prune_examples(self, list_of_examples, phase, ratio=None):
         """
         prunes list_of_examples by taking only the first examples
         ---------------------------------------------------------
@@ -89,3 +133,4 @@ class DataPreprocessor:
             info = f'> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples'
             self.default_logger.log_info(info)
             return list_of_examples[:num_examples_new]
+

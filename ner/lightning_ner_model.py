@@ -1,6 +1,7 @@
 
 import warnings
 import numpy as np
+import json
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
 import pytorch_lightning as pl
@@ -21,28 +22,61 @@ from ner.metrics.logged_metrics import LoggedMetrics
 from ner.logging.mlflow_client import MLflowClient
 from ner.logging.default_logger import DefaultLogger
 from ner.metrics.ner_metrics import convert_to_chunk
+from ner.utils.util_functions import split_parameters
 
 
 class LightningNerModel(pl.LightningModule):
 
-    def __init__(self,
-                 params,
-                 hparams,
-                 log_dirs,
-                 experiment=False):
+    def __init__(self, hparams):
         """
-        :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
-        :param log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
-        :param experiment: [bool] whether run is part of an experiment w/ multiple runs
+        :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__()
-        self.params = params
-        self._hparams = hparams
-        self.log_dirs = log_dirs
+        self.hparams = hparams
 
-        # logging
-        self.default_logger = DefaultLogger(__file__, log_file=log_dirs.log_file, level=params.logging_level)
+        # split up hparams
+        self.params, self._hparams, self.log_dirs, self.experiment = split_parameters(hparams)
+
+        self._preparations_general()
+        if 'tag_list' not in self.hparams:
+            # train/val/test
+            self._preparations_train()
+            self._preparations_train_data()
+        else:
+            # predict
+            self._preparations_predict_data()
+
+    ####################################################################################################################
+    # PREPARATIONS
+    ####################################################################################################################
+    def _preparations_general(self):
+        """
+        :created attr: default_logger    [DefaultLogger]
+        :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: data_preprocessor [DataPreprocessor]
+        :return: -
+        """
+        self.default_logger = DefaultLogger(__file__, log_file=self.log_dirs.log_file, level=self.params.logging_level)
+
+        # tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(self.params.pretrained_model_name,
+                                                       do_lower_case=False)  # needs to be False !!
+
+        self.data_preprocessor = DataPreprocessor(
+            tokenizer=self.tokenizer,
+            do_lower_case=self.params.uncased,  # can be True !!
+            default_logger=self.default_logger,
+            max_seq_length=self._hparams.max_seq_length,
+        )
+
+    def _preparations_train(self):
+        """
+        :created attr: logged_metrics         [LoggedMetrics]
+        :created attr: mlflow_client          [MLflowClient]
+        :created attr: epoch_metrics          [dict] w/ keys = 'val', 'test' & values = [dict]
+        :created attr: classification_reports [dict] w/ keys = 'val', 'test' & values = [dict]
+        :return: -
+        """
         self.logged_metrics = LoggedMetrics()
 
         self.mlflow_client = MLflowClient(experiment_name=self.params.experiment_name,
@@ -50,43 +84,39 @@ class LightningNerModel(pl.LightningModule):
                                           log_dirs=self.log_dirs,
                                           logged_metrics=self.logged_metrics.as_flat_list(),
                                           default_logger=self.default_logger)
-        self.mlflow_client.log_params(params, hparams, experiment=experiment)
+        self.mlflow_client.log_params(self.params, self.hparams, experiment=self.experiment)
 
         self.epoch_metrics = {'val': dict(), 'test': dict()}
         self.classification_reports = {'val': dict(), 'test': dict()}
 
-        self._preparations()
-
-    def _preparations(self):
+    def _preparations_train_data(self):
         """
-        :created attr: dataloader [dict] w/ keys 'train', 'val', 'test' & values = [torch Dataloader]
-        :created attr: tag_list   [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
-        :created attr: model      [transformers AutoModelForTokenClassification]
-        :created attr: optimizer  [torch optimizer]
-        :created attr: scheduler  [torch LambdaLR]
+        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: model             [transformers AutoModelForTokenClassification]
+        :created attr: dataloader        [dict] w/ keys 'train', 'val', 'test' & values = [torch Dataloader]
+        :created attr: optimizer         [torch optimizer]
+        :created attr: scheduler         [torch LambdaLR]
         :return: -
         """
-        # tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(self.params.pretrained_model_name,
-                                                  do_lower_case=False)  # needs to be False !!
-
-        # data
-        self.dataloader, self.tag_list = DataPreprocessor(
+        # input_examples & tag_list
+        input_examples, self.tag_list = self.data_preprocessor.get_input_examples_train(
             dataset_name=self.params.dataset_name,
-            tokenizer=tokenizer,
-            batch_size=self._hparams.batch_size,
-            do_lower_case=self.params.uncased,  # can be True !!
-            default_logger=self.default_logger,
-            max_seq_length=self._hparams.max_seq_length,
             prune_ratio={'train': self.params.prune_ratio_train,
                          'val': self.params.prune_ratio_val,
                          'test': self.params.prune_ratio_test},
-        ).preprocess()
-        self.default_logger.log_info('> self.tag_list:', self.tag_list)
+        )
+        self.default_logger.log_debug('> self.tag_list:', self.tag_list)
+        self.hparams.tag_list = json.dumps(self.tag_list)  # save for PREDICT (see below)
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
                                                                      num_labels=len(self.tag_list))
+
+        # dataloader
+        self.dataloader = self.data_preprocessor.to_dataloader(input_examples,
+                                                               self.tag_list,
+                                                               batch_size=self._hparams.batch_size)
+
         # optimizer
         self.optimizer = self._create_optimizer(self._hparams.lr_max,
                                                 fp16=self.params.fp16)
@@ -96,6 +126,65 @@ class LightningNerModel(pl.LightningModule):
                                                 self._hparams.lr_schedule,
                                                 self._hparams.lr_num_cycles)
 
+    def _preparations_predict_data(self):
+        """
+        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: model             [transformers AutoModelForTokenClassification]
+        :return: -
+        """
+        # tag_list
+        self.tag_list = json.loads(self.hparams.tag_list)
+
+        # model
+        self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
+                                                                     num_labels=len(self.tag_list))
+
+    ####################################################################################################################
+    # PREDICT
+    ####################################################################################################################
+    def predict(self, examples):
+        """
+        :param examples:     [list] of [str]
+        :return: predictions [list] of [list] of (word, tag) tuples
+        """
+        # input_examples
+        input_examples = self.data_preprocessor.get_input_examples_predict(
+            examples=examples,
+        )
+
+        # dataloader
+        dataloader = self.data_preprocessor.to_dataloader(input_examples,
+                                                          self.tag_list,
+                                                          batch_size=1)
+
+        # get predictions
+        predictions = list()  # for each example: list of tuples (word, tag)
+        for sample in dataloader['predict']:
+            # predict tags on tokens
+            input_ids, attention_mask, segment_ids, label_ids, = sample
+            output_tensors = self.model(input_ids, attention_mask, segment_ids, label_ids)
+            output_token_tags = [self.tag_list[np.argmax(output_tensors[0][0][i].detach().numpy())]
+                                 for i in range(self._hparams.max_seq_length)]
+
+            # predict tags on words between [CLS] and [SEP]
+            tokens = self.tokenizer.convert_ids_to_tokens(input_ids[0])
+            output_word_tags = list()
+            for token, output_token_tag in zip(tokens, output_token_tags):
+                if token == '[SEP]':
+                    break
+                if token != '[CLS]':
+                    if not token.startswith('##'):
+                        output_word_tags.append([token, output_token_tag])
+                    else:
+                        output_word_tags[-1][0] += token.strip('##')
+
+            predictions.append([tuple(elem) for elem in output_word_tags])
+
+        return predictions
+
+    ####################################################################################################################
+    # TRAIN/VAL/TEST
+    ####################################################################################################################
     ####################################################################################################################
     # FORWARD & BACKWARD PROPAGATION
     ####################################################################################################################
