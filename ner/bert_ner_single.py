@@ -9,6 +9,7 @@ from pytorch_lightning.callbacks import EarlyStopping
 
 from ner.lightning_ner_model import LightningNerModel
 from ner.logging.default_logger import DefaultLogger
+from ner.utils.util_functions import unify_parameters
 
 
 def main(params, hparams, log_dirs, experiment: bool):
@@ -23,11 +24,12 @@ def main(params, hparams, log_dirs, experiment: bool):
     default_logger.clear()
 
     print_run_information(params, hparams, default_logger)
+    lightning_hparams = unify_parameters(params, hparams, log_dirs, experiment)
 
     tb_logger = logging_start(params, log_dirs)
     with mlflow.start_run(run_name=params.run_name, nested=experiment):
 
-        model = LightningNerModel(params, hparams, log_dirs, experiment=experiment)
+        model = LightningNerModel(lightning_hparams)
         callbacks = get_callbacks(params, hparams, log_dirs)
 
         trainer = Trainer(
@@ -98,10 +100,11 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
     """
     early_stopping_params = {k: vars(_hparams)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
-    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name)
+    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name, '')
 
     _callbacks = {
-        'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath) if _params.checkpoints else None,
+        'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath,
+                                      verbose=True) if _params.checkpoints else None,
         'early_stop': EarlyStopping(**early_stopping_params, verbose=True)
     }
     return _callbacks

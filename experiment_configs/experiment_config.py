@@ -2,6 +2,7 @@
 import os
 from os.path import abspath, dirname
 from configparser import ConfigParser
+from ner.utils.util_functions import get_hardcoded_parameters
 
 
 class ExperimentConfig:
@@ -9,33 +10,7 @@ class ExperimentConfig:
     class that parses <experiment_name>.ini files
     """
 
-    # hardcoded types
-    params = {
-        'dataset_name': 'str',
-        'dataset_tags': 'str',
-        'prune_ratio_train': 'float',
-        'prune_ratio_val': 'float',
-        'prune_ratio_test': 'float',
-
-        'pretrained_model_name': 'str',
-        'uncased': 'bool',
-
-        'checkpoints': 'bool',
-        'logging_level': 'str',
-    }
-    hparams = {
-        'batch_size': 'int',
-        'max_seq_length': 'int',
-        'max_epochs': 'int',
-        'monitor': 'str',
-        'min_delta': 'float',
-        'patience': 'int',
-        'mode': 'str',
-        'lr_max': 'float',
-        'lr_schedule': 'str',
-        'lr_warmup_epochs': 'int',
-        'lr_num_cycles': 'int',
-    }
+    _, params, hparams, _ = get_hardcoded_parameters(keys=False)
 
     def __init__(self,
                  experiment_name: str,
