@@ -177,6 +177,14 @@ def _tb_logger_stopped_epoch(_tb_logger,
     hparams_dict.update(hparams_val)
     hparams_dict.update(hparams_test)
 
+    """
+    NOTE: 
+    The following command (= that adds hyperparameters (_hparams) & most important metrics (hparams_dict) to tb logging)
+    logs properly to tensorboard's SCALAR, but not to HPARAMS.
+    Apparently it is incompatible with pytorch-lightning's default tensorboard logging, 
+    see https://github.com/PyTorchLightning/pytorch-lightning/issues/1225
+    So technically speaking there are 2 logs for each run, pytorch-lightning's default & the one below. 
+    """
     # log
     _tb_logger.experiment.add_hparams(
         vars(_hparams),

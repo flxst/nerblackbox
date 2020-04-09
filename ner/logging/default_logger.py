@@ -26,7 +26,7 @@ class DefaultLogger:
         self.logger = logging.getLogger(name)
         self.logger.propagate = level == 'debug'  # only shows console output if level is 'debug'
 
-        # log path
+        # log file
         self.filename = log_file if log_file else self.default_log_file
 
         # level
@@ -35,11 +35,12 @@ class DefaultLogger:
             self.logger.setLevel(self.level)
 
         # add file handler
-        f_handler = logging.FileHandler(filename=self.filename, mode=mode)
-        f_handler.setFormatter(logging.Formatter(self.custom_format, datefmt=self.custom_datefmt))
-        if self.level:
-            f_handler.setLevel(self.level)
-        self.logger.addHandler(f_handler)
+        if len(self.logger.handlers) == 0:  # avoid adding same file handler multiple times
+            f_handler = logging.FileHandler(filename=self.filename, mode=mode)
+            f_handler.setFormatter(logging.Formatter(self.custom_format, datefmt=self.custom_datefmt))
+            if self.level:
+                f_handler.setLevel(self.level)
+            self.logger.addHandler(f_handler)
 
         if mode == 'w':
             self.log_debug(f'ACTIVATE FILE LOGGER {name} w/ PATH = {self.filename}')
