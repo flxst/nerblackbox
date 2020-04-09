@@ -2,3 +2,4 @@ mlruns
 tensorboard
 *.log
 *.npy
+remote

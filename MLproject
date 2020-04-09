@@ -1,5 +1,5 @@
 
-name: test project
+name: NerBlackBox project
 
 entry_points:
   main:
@@ -9,7 +9,7 @@ entry_points:
       device: {type: string, default: gpu}
       fp16: {type: int, default: 1}
     command: |
-        python scripts/script_bert_ner_experiment.py \
+        python ner_black_box/scripts/script_bert_ner_experiment.py \
         --experiment_name {experiment_name} \
         --run_name {run_name} \
         --device {device} \
