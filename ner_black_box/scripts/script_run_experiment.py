@@ -4,19 +4,14 @@ import torch
 import mlflow
 
 import logging
-logging.basicConfig(level=logging.WARNING)  # basic setting that is mainly applied to mlflow's default logging
-
 import warnings
-warnings.filterwarnings('ignore')
 
-from os.path import abspath, dirname
-import sys
-BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
-sys.path.append(BASE_DIR)
-
-from ner_black_box.utils.env_variable import ENV_VARIABLE
 import ner_black_box.ner_training.bert_ner_single as bert_ner_single
-from ner_black_box.experiment_config import ExperimentConfig
+from ner_black_box.utils.env_variable import env_variable
+from ner_black_box.experiment_config.experiment_config import ExperimentConfig
+
+logging.basicConfig(level=logging.WARNING)  # basic setting that is mainly applied to mlflow's default logging
+warnings.filterwarnings('ignore')
 
 
 def main(params, log_dirs):
@@ -44,6 +39,38 @@ def main(params, log_dirs):
             bert_ner_single.main(params, hparams, log_dirs, experiment=True)
 
 
+def _parse_args(_parser, _args):
+    """
+    :param _parser: [argparse ArgumentParser]
+    :param _args:   [argparse arguments]
+    :return _params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16, experiment_run_name
+    :return _log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
+    """
+    # parsing
+    _params = None
+    for group in _parser._action_groups:
+        group_dict = {a.dest: getattr(_args, a.dest, None) for a in group._group_actions}
+        if group.title == 'args_general':
+            group_dict['device'] = torch.device(
+                'cuda' if torch.cuda.is_available() and group_dict['device'] == 'gpu' else 'cpu')
+            group_dict['fp16'] = True if group_dict['fp16'] and group_dict['device'] == 'cuda' else False
+            if len(group_dict['run_name']) == 0:
+                group_dict['run_name'] = None
+            _params = argparse.Namespace(**group_dict)
+
+    # log_dirs
+    _log_dirs_dict = {
+        'mlflow': env_variable('DIR_MLFLOW'),
+        'tensorboard': env_variable('DIR_TENSORBOARD'),
+        'checkpoints': env_variable('DIR_CHECKPOINTS'),
+        'log_file': env_variable('LOG_FILE'),
+        'mlflow_file': env_variable('MLFLOW_FILE'),
+    }
+    _log_dirs = argparse.Namespace(**_log_dirs_dict)
+
+    return _params, _log_dirs
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -54,27 +81,6 @@ if __name__ == '__main__':
     args_general.add_argument('--device', type=str, required=True)           # .. device
     args_general.add_argument('--fp16', type=bool, required=True)            # .. device
 
-    # parsing
-    _args = parser.parse_args()
-    _params = None
-    for group in parser._action_groups:
-        group_dict = {a.dest: getattr(_args, a.dest, None) for a in group._group_actions}
-        if group.title == 'args_general':
-            group_dict['device'] = torch.device('cuda' if torch.cuda.is_available() and group_dict['device'] == 'gpu' else 'cpu')
-            group_dict['fp16'] = True if group_dict['fp16'] and group_dict['device'] == 'cuda' else False
-            if len(group_dict['run_name']) == 0:
-                group_dict['run_name'] = None
-            _params = argparse.Namespace(**group_dict)
-
-    # log_dirs
-    _log_dirs_dict = {
-        'mlflow': ENV_VARIABLE['DIR_MLFLOW'],
-        'tensorboard': ENV_VARIABLE['DIR_TENSORBOARD'],
-        'checkpoints': ENV_VARIABLE['DIR_CHECKPOINTS'],
-        'log_file': ENV_VARIABLE['LOG_FILE'],
-        'mlflow_file': ENV_VARIABLE['MLFLOW_FILE'],
-    }
-    _log_dirs = argparse.Namespace(**_log_dirs_dict)
-
-    # main
+    args = parser.parse_args()
+    _params, _log_dirs = _parse_args(parser, args)
     main(_params, _log_dirs)

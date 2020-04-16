@@ -13,9 +13,6 @@ from transformers import get_cosine_schedule_with_warmup
 from transformers import get_cosine_with_hard_restarts_schedule_with_warmup
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 
-from os.path import abspath, dirname
-BASE_DIR = abspath(dirname(dirname(__file__)))
-
 from ner_black_box.ner_training.data_preprocessing.data_preprocessor import DataPreprocessor
 from ner_black_box.ner_training.metrics.ner_metrics import NerMetrics
 from ner_black_box.ner_training.metrics.logged_metrics import LoggedMetrics
@@ -23,6 +20,7 @@ from ner_black_box.ner_training.logging.mlflow_client import MLflowClient
 from ner_black_box.ner_training.logging.default_logger import DefaultLogger
 from ner_black_box.ner_training.metrics.ner_metrics import convert_to_chunk
 from ner_black_box.utils.util_functions import split_parameters
+from ner_black_box.utils.env_variable import env_variable
 
 
 class LightningNerModel(pl.LightningModule):
@@ -484,7 +482,7 @@ class LightningNerModel(pl.LightningModule):
 
         if phase == 'val':
             for field in ['true', 'pred']:
-                np.save(f'results/{field}.npy', tags[field])
+                np.save(f'{env_variable("DIR_RESULTS")}/{field}.npy', tags[field])
 
         # batch / dataset metrics
         metrics = {'all+_loss': _np_dict['loss']}

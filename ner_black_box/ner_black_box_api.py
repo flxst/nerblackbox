@@ -2,30 +2,50 @@
 import pandas as pd
 from mlflow.tracking import MlflowClient
 
-from os.path import abspath, dirname, join
-BASE_DIR = abspath(dirname(__file__))
-
-from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
-from ner_black_box.scripts import run_experiment as run_experiment_python_script
+import os
+from os.path import abspath, join
+from ner_black_box.utils.env_variable import env_variable
+import ner_black_box.ner_black_box_main as ner_black_box_main
 
 
 class NerBlackBoxApi:
 
     def __init__(self,
-                 path_results='results',
-                 path_experiment_configs='experiment_configs'):
+                 base_dir='.',
+                 data_dir='data'):
+        """
+        :param base_dir: [str] relative path w.r.t. current directory
+        :param data_dir: [str] relative path w.r.t. base_dir
+        """
 
-        self.path_results = join(BASE_DIR, path_results)
-        self.path_experiment_configs = path_experiment_configs
+        os.environ['BASE_DIR'] = abspath(base_dir)
+        os.environ['DATA_DIR'] = join(abspath(base_dir), data_dir)
+        print('BASE_DIR = ', os.environ.get('BASE_DIR'))
+        print('DATA_DIR = ', os.environ.get('DATA_DIR'))
 
-        self.client = MlflowClient(join(self.path_results, 'mlruns'))
-        self._get_experiments()
+        if os.path.isdir(os.environ.get('DATA_DIR')):
+            self._set_client_and_get_experiments()
+        else:
+            # will be set in init() method
+            self.client = None
+            self.experiment_id2name = None
+            self.experiment_name2id = None
 
         self.experiment_name = None
         self.experiment = None
         self.runs = None
         self.best_run = None
         self.best_model = None
+
+    def _set_client_and_get_experiments(self):
+        """
+        :created attr: client             [Mlflow client]
+        :created attr: experiment_id2name [dict] w/ keys = experiment_id [str] & values = experiment_name [str]
+        :created attr: experiment_name2id [dict] w/ keys = experiment_name [str] & values = experiment_id [str]
+        :return: -
+        """
+        self.client = MlflowClient(join(env_variable('DIR_RESULTS'), 'mlruns'))
+        self._get_experiments()
 
     def _get_experiments(self):
         """
@@ -39,9 +59,48 @@ class NerBlackBoxApi:
         self.experiment_name2id = {v: k for k, v in self.experiment_id2name.items()}
 
     ####################################################################################################################
-    # ONE EXPERIMENT
+    # NER BLACK BOX
     ####################################################################################################################
-    def set_experiment(self, experiment_name: str):
+    def init(self):
+        ner_black_box_main.main('init')
+        self._set_client_and_get_experiments()
+
+    @staticmethod
+    def set_up_dataset(dataset: str,
+                       **kwargs_optional):
+        """
+        :param dataset:          [str] e.g. 'swedish_ner_corpus'
+        :param kwargs_optional:
+        :return: -
+        """
+
+        kwargs = {k: v for k, v in kwargs_optional.items() if v is not None}
+        kwargs['dataset'] = dataset
+
+        ner_black_box_main.main('set_up_dataset', **kwargs)
+
+    def run_experiment(self,
+                       experiment_name: str = None,
+                       **kwargs_optional):
+        """
+        :param         experiment_name: [str or None], e.g. exp0
+        :return: -
+        """
+        self._check_experiment_name(experiment_name)
+
+        kwargs = {k: v for k, v in kwargs_optional.items() if v is not None}
+        kwargs['experiment_name'] = self.experiment_name
+
+        ner_black_box_main.main('run_experiment', **kwargs)
+
+        self._get_experiments()  # needs to updated to get results from experiment that was run
+        self.get_experiment_results()
+
+    ####################################################################################################################
+    # SINGLE EXPERIMENT
+    ####################################################################################################################
+    def set_experiment(self,
+                       experiment_name: str):
         """
         :param         experiment_name: [str], e.g. exp0
         :changed attr: experiment_name: [str], e.g. exp0
@@ -55,12 +114,17 @@ class NerBlackBoxApi:
         :changed attr: experiment_name: [str],         e.g. exp0
         :return: -
         """
+        from ner_black_box.utils.env_variable import env_variable
+
         if experiment_name is None and self.experiment_name is None:
             print('experiment_name needs to be set')
             return None
         elif experiment_name is not None and self.experiment_name != experiment_name:
             self.experiment_name = experiment_name
         print(f'> experiment_name = {self.experiment_name}')
+
+        self.path_experiment_config = join(env_variable('DIR_EXPERIMENT_CONFIGS'), f'{self.experiment_name}.ini')
+        print(f'> experiment_config = {self.path_experiment_config}')
 
     def show_experiment_config(self, experiment_name: str = None):
         """
@@ -71,22 +135,10 @@ class NerBlackBoxApi:
         """
         self._check_experiment_name(experiment_name)
 
-        path_experiment_config = join(BASE_DIR, self.path_experiment_configs, f'{self.experiment_name}.ini')
-        with open(path_experiment_config, 'r') as file:
+        with open(self.path_experiment_config, 'r') as file:
             lines = file.read()
         print()
         print(lines)
-
-    def run_experiment(self, experiment_name: str = None):
-        """
-        :param         experiment_name: [str or None], e.g. exp0
-        :return: -
-        """
-        self._check_experiment_name(experiment_name)
-
-        run_experiment_python_script.main(self.experiment_name)
-
-        self._get_experiments()  # needs to updated to get results from experiment that was run
 
     def get_experiment_results(self, experiment_name: str = None):
         """
@@ -97,6 +149,8 @@ class NerBlackBoxApi:
         :changed attr: best_model:      [LightningNerModel]
         :return: -
         """
+        from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
+
         self._check_experiment_name(experiment_name)
 
         if self.experiment_name not in self.experiment_name2id.keys():
@@ -112,7 +166,7 @@ class NerBlackBoxApi:
         self.best_model.eval()
 
     ####################################################################################################################
-    # ONE EXPERIMENT: HELPER
+    # SINGLE EXPERIMENT: HELPER
     ####################################################################################################################
     def _get_single_experiment_results(self, experiment_id: str):
         """
@@ -138,8 +192,7 @@ class NerBlackBoxApi:
             'run_id': best_run_id,
             'run_name': best_run_name,
             'chk_f1_micro': best_run_chk_f1_micro,
-            'checkpoint': join(self.path_results,
-                               'checkpoints',
+            'checkpoint': join(env_variable('DIR_CHECKPOINTS'),
                                experiment_name,
                                best_run_name,
                                f'_ckpt_epoch_{best_run_epoch_best}.ckpt')

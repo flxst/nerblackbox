@@ -1,12 +1,8 @@
 
-from os.path import abspath, dirname
-import sys
-BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
-sys.path.append(BASE_DIR)
-
 import numpy as np
 import pandas as pd
 import pytest
+from pkg_resources import resource_filename
 from ner_black_box.ner_training.metrics.ner_metrics import NerMetrics
 
 
@@ -18,7 +14,8 @@ class TestNerMetrics:
     metrics_micro_macro = ['precision', 'recall', 'f1']
     metrics = metrics_simple + metrics_micro_macro
 
-    df = pd.read_csv(f'{BASE_DIR}/ner_black_box/tests/test_ner_metrics.csv', sep=';')
+    path_csv = resource_filename('ner_black_box', 'tests/test_ner_metrics.csv')
+    df = pd.read_csv(path_csv, sep=';')
 
     ####################################################################################################################
     # TEST #############################################################################################################

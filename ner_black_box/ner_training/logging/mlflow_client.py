@@ -1,6 +1,6 @@
 
 import mlflow
-from ner_black_box.experiment_config import ExperimentConfig
+from ner_black_box.experiment_config.experiment_config import ExperimentConfig
 
 
 class MLflowClient:

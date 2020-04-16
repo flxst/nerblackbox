@@ -3,7 +3,7 @@ import os
 from os.path import join
 from configparser import ConfigParser
 from ner_black_box.utils.util_functions import get_hardcoded_parameters
-from ner_black_box.utils.util_functions import ENV_VARIABLE
+from ner_black_box.utils.util_functions import env_variable
 
 
 class ExperimentConfig:
@@ -29,7 +29,7 @@ class ExperimentConfig:
         self.device = device
         self.fp16 = fp16
 
-        self.config_path = join(ENV_VARIABLE['DIR_EXPERIMENT_CONFIGS'], f'{self.experiment_name}.ini')
+        self.config_path = join(env_variable('DIR_EXPERIMENT_CONFIGS'), f'{self.experiment_name}.ini')
         if not os.path.isfile(self.config_path):
             raise Exception(f'config file at {self.config_path} does not exist')
 

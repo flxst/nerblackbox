@@ -5,17 +5,13 @@ import json
 import pandas as pd
 from abc import ABC, abstractmethod
 
-from os.path import abspath, dirname, join
-import sys
-BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
-sys.path.append(BASE_DIR)
+from os.path import join
 
 from ner_black_box.utils.util_functions import get_dataset_path
+from ner_black_box.utils.env_variable import env_variable
 from ner_black_box.datasets.plots import Plots
-
-from ner_black_box.ner_training.logging.default_logger import DefaultLogger
 from ner_black_box.datasets.formatter.util_functions import get_ner_tag_mapping
-from ner_black_box.utils.env_variable import ENV_VARIABLE
+from ner_black_box.ner_training.logging.default_logger import DefaultLogger
 
 
 class BaseFormatter(ABC):
@@ -82,10 +78,10 @@ class BaseFormatter(ABC):
         -------------------------------
         :return: -
         """
-        directory_path = f'{ENV_VARIABLE["DIR_DATASETS"]}/{self.ner_dataset}/analyze_data'
+        directory_path = f'{env_variable("DIR_DATASETS")}/{self.ner_dataset}/analyze_data'
         os.makedirs(directory_path, exist_ok=True)
 
-        bash_cmd = f'echo \"*\" > {ENV_VARIABLE["DIR_DATASETS"]}/{self.ner_dataset}/.gitignore'
+        bash_cmd = f'echo \"*\" > {env_variable("DIR_DATASETS")}/{self.ner_dataset}/.gitignore'
         try:
             subprocess.run(bash_cmd, shell=True, check=True)
         except subprocess.CalledProcessError as e:
@@ -103,7 +99,7 @@ class BaseFormatter(ABC):
         else:
             ner_tag_mapping = dict()
 
-        json_path = f'{ENV_VARIABLE["DIR_DATASETS"]}/{self.ner_dataset}/ner_tag_mapping.json'
+        json_path = f'{env_variable("DIR_DATASETS")}/{self.ner_dataset}/ner_tag_mapping.json'
         with open(json_path, 'w') as f:
             json.dump(ner_tag_mapping, f)
 

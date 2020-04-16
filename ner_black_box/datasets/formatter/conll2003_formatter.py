@@ -2,11 +2,7 @@
 import os
 import requests
 
-from os.path import abspath, dirname, join, isfile
-import sys
-BASE_DIR = abspath(dirname(dirname(__file__)))
-sys.path.append(BASE_DIR)
-
+from os.path import join, isfile
 from ner_black_box.datasets.formatter.base_formatter import BaseFormatter
 
 

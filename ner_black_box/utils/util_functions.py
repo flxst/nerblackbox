@@ -1,11 +1,9 @@
 
 import os
-from ner_black_box.utils.env_variable import ENV_VARIABLE
-
-from os.path import abspath, dirname, join
-BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
-
+from os.path import join
 from argparse import Namespace
+
+from ner_black_box.utils.env_variable import env_variable
 
 
 def get_available_datasets():
@@ -14,7 +12,7 @@ def get_available_datasets():
     ---------------------------------------------------------
     :return: available datasets: [list] of [str], e.g. ['suc', 'swedish_ner_corpus']
     """
-    dir_datasets = ENV_VARIABLE['DIR_DATASETS']
+    dir_datasets = env_variable('DIR_DATASETS')
     return [
         folder
         for folder in os.listdir(dir_datasets)
@@ -30,7 +28,7 @@ def get_dataset_path(dataset):
     :return: dataset_path: [str] path to dataset directory
     """
     if dataset in ['suc', 'swedish_ner_corpus', 'conll2003']:
-        dataset_path = join(ENV_VARIABLE['DIR_DATASETS'], dataset)
+        dataset_path = join(env_variable('DIR_DATASETS'), dataset)
     else:
         raise Exception(f'dataset = {dataset} unknown.')
 

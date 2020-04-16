@@ -2,13 +2,10 @@
 import os
 import subprocess
 
-from os.path import abspath, dirname, join
-import sys
-BASE_DIR = abspath(dirname(dirname(__file__)))
-sys.path.append(BASE_DIR)
+from os.path import join
 
 from ner_black_box.datasets.formatter.base_formatter import BaseFormatter
-from ner_black_box.utils.env_variable import ENV_VARIABLE
+from ner_black_box.utils.env_variable import env_variable
 
 
 class SwedishNerCorpusFormatter(BaseFormatter):
@@ -29,9 +26,9 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         :return: -
         """
         bash_cmds = [
-            f'git clone https://github.com/klintan/swedish-ner-corpus.git {ENV_VARIABLE["DIR_DATASETS"]}/_swedish_ner_corpus',
-            f'mv {ENV_VARIABLE["DIR_DATASETS"]}/_swedish_ner_corpus/* {ENV_VARIABLE["DIR_DATASETS"]}/swedish_ner_corpus',
-            f'rm -rf {ENV_VARIABLE["DIR_DATASETS"]}/_swedish_ner_corpus'
+            f'git clone https://github.com/klintan/swedish-ner-corpus.git {env_variable("DIR_DATASETS")}/_swedish_ner_corpus',
+            f'mv {env_variable("DIR_DATASETS")}/_swedish_ner_corpus/* {env_variable("DIR_DATASETS")}/swedish_ner_corpus',
+            f'rm -rf {env_variable("DIR_DATASETS")}/_swedish_ner_corpus'
         ]
 
         for bash_cmd in bash_cmds:

@@ -1,11 +1,5 @@
 
 import argparse
-
-from os.path import abspath, dirname
-import sys
-BASE_DIR = abspath(dirname(dirname(dirname(__file__))))
-sys.path.append(BASE_DIR)
-
 from ner_black_box.datasets.formatter.custom_formatter import CustomFormatter
 
 
@@ -41,7 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('--with_tags', type=bool, default=False)
     parser.add_argument('--modify', type=bool, default=True)
     parser.add_argument('--val_fraction', type=float, default=0.3)
-    parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--verbose', type=bool, default=False)
     _args = parser.parse_args()
 
     main(_args)

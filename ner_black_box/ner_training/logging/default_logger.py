@@ -1,10 +1,9 @@
 
 import logging
 
-from os.path import abspath, dirname, join
-import sys
-BASE_DIR = abspath(dirname(dirname(dirname(dirname(__file__)))))
-sys.path.append(BASE_DIR)
+import os
+from os.path import join
+BASE_DIR = os.environ.get('BASE_DIR')
 
 
 class DefaultLogger:
