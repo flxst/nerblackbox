@@ -53,7 +53,7 @@ def _parse_args(_parser, _args):
         if group.title == 'args_general':
             group_dict['device'] = torch.device(
                 'cuda' if torch.cuda.is_available() and group_dict['device'] == 'gpu' else 'cpu')
-            group_dict['fp16'] = True if group_dict['fp16'] and group_dict['device'] == 'cuda' else False
+            group_dict['fp16'] = True if group_dict['fp16'] and group_dict['device'].type == 'cuda' else False
             if len(group_dict['run_name']) == 0:
                 group_dict['run_name'] = None
             _params = argparse.Namespace(**group_dict)

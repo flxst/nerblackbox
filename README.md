@@ -6,7 +6,7 @@ on any dataset for the following `Downstream Tasks`:
 
 ## Installation
 1. Clone this repository: `git clone <url>`
-2. Install package: `pip install .`
+2. Install package: `pip install -e .`
 3. Install GPU support (recommended): `bash setup_gpu_support.sh`
 
 
