@@ -4,6 +4,7 @@ from mlflow.tracking import MlflowClient
 
 import os
 from os.path import abspath, join
+
 from ner_black_box.utils.env_variable import env_variable
 import ner_black_box.ner_black_box_main as ner_black_box_main
 
@@ -149,7 +150,7 @@ class NerBlackBoxApi:
         :changed attr: best_model:      [LightningNerModel]
         :return: -
         """
-        from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
+        from ner_black_box.ner_training.lightning_ner_model_predict import LightningNerModelPredict
 
         self._check_experiment_name(experiment_name)
 
@@ -162,8 +163,9 @@ class NerBlackBoxApi:
         experiment_id = self.experiment_name2id[self.experiment_name]
         self.experiment, self.runs, self.best_run = self._get_single_experiment_results(experiment_id)
 
-        self.best_model = LightningNerModel.load_from_checkpoint(checkpoint_path=self.best_run['checkpoint'])
+        self.best_model = LightningNerModelPredict.load_from_checkpoint(checkpoint_path=self.best_run['checkpoint'])
         self.best_model.eval()
+        self.best_model.freeze()
 
     ####################################################################################################################
     # SINGLE EXPERIMENT: HELPER

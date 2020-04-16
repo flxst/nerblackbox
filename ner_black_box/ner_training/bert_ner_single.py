@@ -10,6 +10,7 @@ from pytorch_lightning.callbacks import EarlyStopping
 from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
 from ner_black_box.ner_training.logging.default_logger import DefaultLogger
 from ner_black_box.utils.util_functions import unify_parameters
+from ner_black_box.utils.env_variable import env_variable
 
 
 def main(params, hparams, log_dirs, experiment: bool):
@@ -44,7 +45,28 @@ def main(params, hparams, log_dirs, experiment: bool):
         trainer.fit(model)
         trainer.test()
 
-        logging_end(tb_logger, hparams, callbacks, model, default_logger)
+        callback_info = get_callback_info(callbacks, params, hparams)
+
+        # use best checkpoint
+        model_best = LightningNerModel.load_from_checkpoint(checkpoint_path=callback_info['checkpoint_best'])
+        model_best.eval()
+        model_best.freeze()
+        best_trainer = Trainer(
+            gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
+            precision=16 if (params.fp16 and params.device.type == 'cuda') else 32,
+            logger=tb_logger,
+        )
+        best_trainer.test(model_best)
+
+        """
+        print('MODEL')
+        print(model.epoch_metrics)
+        print('BEST MODEL')
+        print(model_best.epoch_metrics)
+        """
+
+        # logging end
+        logging_end(tb_logger, callback_info, hparams, model, model_best, default_logger)
 
 
 ########################################################################################################################
@@ -110,6 +132,27 @@ def get_callbacks(_params, _hparams, _log_dirs):
     return _callbacks
 
 
+def get_callback_info(_callbacks, _params, _hparams):
+    """
+    :param _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
+    :param _params:    [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+    :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
+    :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
+    """
+    callback_info = dict()
+    callback_info['epoch_best'] = \
+        int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch_')[-1].replace('.ckpt', ''))
+    callback_info['epoch_stopped'] = \
+        _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs - 1
+    callback_info['checkpoint_best'] = \
+        join(env_variable('DIR_CHECKPOINTS'),
+             _params.experiment_name,
+             _params.run_name,
+             f'_ckpt_epoch_{callback_info["epoch_best"]}.ckpt')
+
+    return callback_info
+
+
 def logging_start(_params, _log_dirs):
     """
     :param _params:      [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
@@ -123,34 +166,44 @@ def logging_start(_params, _log_dirs):
     return _tb_logger
 
 
-def logging_end(_tb_logger, _hparams, _callbacks, _model, _logger):
+def logging_end(_tb_logger, _callback_info, _hparams, _model_stopped, _model_best, _logger):
     """
-    :param _tb_logger:    [pytorch lightning TensorBoardLogger]
-    :param _hparams:      [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
-    :param _callbacks:    [dict] w/ keys = 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
-    :param _model:        [LightningNerModel]
-    :param _logger:       [DefaultLogger]
+    :param _tb_logger:     [pytorch lightning TensorBoardLogger]
+    :param _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
+    :param _hparams:       [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
+    :param _model_stopped: [LightningNerModel] epoch_stopped
+    :param _model_best:    [LightningNerModel] epoch_best
+    :param _logger:        [DefaultLogger]
     :return: -
     """
-    epoch_best = int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch_')[-1].replace('.ckpt', ''))
-    epoch_stopped = \
-        _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs-1
+    epoch_best = _callback_info['epoch_best']
+    epoch_stopped = _callback_info['epoch_stopped']
 
     _logger.log_info(f'epoch_best: {epoch_best}')
     _logger.log_info(f'epoch_stopped: {epoch_stopped}')
 
-    _model.mlflow_client.log_metric('epoch_best', epoch_best)
-    _model.mlflow_client.log_metric('epoch_stopped', epoch_stopped)
+    _model_stopped.mlflow_client.log_metric('epoch_best', epoch_best)
+    _model_stopped.mlflow_client.log_metric('epoch_stopped', epoch_stopped)
+    for metric in ('all_f1_micro', 'fil_f1_micro', 'chk_f1_micro'):
+        _model_stopped.mlflow_client.log_metric(f'epoch_stopped_val_{metric}',
+                                                _model_stopped.epoch_metrics['val'][epoch_stopped][metric])
+        _model_stopped.mlflow_client.log_metric(f'epoch_stopped_test_{metric}',
+                                                _model_stopped.epoch_metrics['test'][epoch_stopped][metric])
+        _model_stopped.mlflow_client.log_metric(f'epoch_best_val_{metric}',
+                                                _model_stopped.epoch_metrics['val'][epoch_best][metric])
+        _model_stopped.mlflow_client.log_metric(f'epoch_best_test_{metric}',
+                                                _model_best.epoch_metrics['test'][0][metric])
 
-    _model.mlflow_client.finish_artifact_logger()                                       # mlflow
-    _tb_logger_stopped_epoch(_tb_logger, _hparams, epoch_best, epoch_stopped, _model)   # tensorboard
+    _model_stopped.mlflow_client.finish_artifact_logger()                                                   # mlflow
+    _tb_logger_stopped_epoch(_tb_logger, _hparams, epoch_best, epoch_stopped, _model_stopped, _model_best)  # tb
 
 
 def _tb_logger_stopped_epoch(_tb_logger,
                              _hparams,
                              _epoch_best,
                              _epoch_stopped,
-                             _model,
+                             _model_stopped,
+                             _model_best,
                              metrics=('all_f1_micro', 'fil_f1_micro', 'chk_f1_micro')):
     """
     log hparams and metrics for stopped epoch
@@ -159,7 +212,8 @@ def _tb_logger_stopped_epoch(_tb_logger,
     :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
     :param _epoch_best:     [int]
     :param _epoch_stopped:  [int]
-    :param _model:          [LightningNerModel]
+    :param _model_stopped:  [LightningNerModel] epoch_stopped
+    :param _model_best:     [LightningNerModel] epoch_best
     :param metrics:         [tuple] of metrics to be logged in hparams section
     :return:
     """
@@ -170,12 +224,33 @@ def _tb_logger_stopped_epoch(_tb_logger,
     hparams_dict['hparam/train/epoch_stopped'] = _epoch_stopped
 
     # val/test
-    hparams_val = {f'hparam/val/{metric.replace("+", "P")}': _model.epoch_metrics['val'][_epoch_stopped][metric]
-                     for metric in metrics}
-    hparams_test = {f'hparam/test/{metric.replace("+", "P")}': _model.epoch_metrics['test'][_epoch_stopped][metric]
-                    for metric in metrics}
-    hparams_dict.update(hparams_val)
-    hparams_dict.update(hparams_test)
+    hparams_stopped_val = {
+        f'hparam/val/epoch_stopped_{_epoch_stopped}/{metric.replace("+", "P")}':
+            _model_stopped.epoch_metrics['val'][_epoch_stopped][metric]
+        for metric in metrics
+    }
+    hparams_stopped_test = {
+        f'hparam/test/epoch_stopped_{_epoch_stopped}/{metric.replace("+", "P")}':
+            _model_stopped.epoch_metrics['test'][_epoch_stopped][metric]
+        for metric in metrics
+    }
+
+    hparams_best_val = {
+        f'hparam/val/epoch_best_{_epoch_best}/{metric.replace("+", "P")}':
+            _model_stopped.epoch_metrics['val'][_epoch_best][metric]
+        for metric in metrics
+    }
+
+    hparams_best_test = {
+        f'hparam/test/epoch_best_{_epoch_best}/{metric.replace("+", "P")}':
+            _model_best.epoch_metrics['test'][0][metric]
+        for metric in metrics
+    }
+
+    hparams_dict.update(hparams_stopped_val)
+    hparams_dict.update(hparams_stopped_test)
+    hparams_dict.update(hparams_best_val)
+    hparams_dict.update(hparams_best_test)
 
     """
     NOTE: 

@@ -35,20 +35,18 @@ class LightningNerModel(pl.LightningModule):
         # split up hparams
         self.params, self._hparams, self.log_dirs, self.experiment = split_parameters(hparams)
 
-        if 'tag_list' not in self.hparams:
-            # train/val/test
-            self._preparations_train()         # attr: default_logger, logged_metrics, mlflow_client, ..
-            self._preparations_data_general()  # attr: tokenizer, data_preprocessor
-            self._preparations_data_train()    # attr: tag_list, model, dataloader, optimizer, scheduler
-        else:
-            # predict
-            self._preparations_predict()       # attr: default_logger
-            self._preparations_data_general()  # attr: tokenizer, data_preprocessor
-            self._preparations_data_predict()  # attr: tag_list, model
+        # preparations
+        self._preparations()
 
     ####################################################################################################################
     # PREPARATIONS
     ####################################################################################################################
+    def _preparations(self):
+        # train/val/test
+        self._preparations_train()         # attr: default_logger, logged_metrics, mlflow_client, ..
+        self._preparations_data_general()  # attr: tokenizer, data_preprocessor
+        self._preparations_data_train()    # attr: tag_list, model, dataloader, optimizer, scheduler
+
     def _preparations_train(self):
         """
         :created attr: default_logger         [DefaultLogger]
