@@ -14,8 +14,16 @@ on any dataset for the following `Downstream Tasks`:
 
 Fine-tune a model in a few simple steps, 
 using either 
-- the command line interface (CLI) or 
+- the CLI (command line interface) or 
 - the Python API.
+```
+# CLI
+nerbb --help
+
+# Python API
+from ner_black_box import NerBlackBox
+nerbb = NerBlackBox()
+```
 
 1.  Initialization:
 
@@ -45,35 +53,86 @@ using either
     └── results
     ```
 
-2. run experiment
+2. Single Experiment
 
     ```
-    # e.g. <experiment_name> = 'experiment_default'
+    # e.g. <experiment_name> = 'exp_default'
     ```
+
+    a. Show Experiment Configuration
+    
     ```
     # CLI
-    nerbb --run-experiment <experiment_name>  
+    nerbb --show_experiment_config <experiment_name>  
+    
+    # Python API
+    nerbb.show_experiment_config(<experiment_name>)
+    ```
+
+    b. Run Experiment
+
+    ```
+    # CLI
+    nerbb --run_experiment <experiment_name>  
     
     # Python API
     nerbb.run_experiment(<experiment_name>)
     ```
-    metrics & results are logged in directory `./data/results` with 
-    - mlflow, display with `mlflow ui`
-    - tensorboard, display with `tensorboard --logdir tensorboard --reload_multifile=true`
+       
+    c. Access detailed run histories & results using either mlflow or tensorboard:
     
-3. inspect results:
+    - `nerbb --mflow`
+    - `nerbb --tensorboard` 
+    
+    d. Inspect main results:
 
-        # CLI
-        nerbb --get-experiment-results <experiment_name>
+    ```
+    # CLI
+    nerbb --get_experiment_results <experiment_name>  # prints overview on runs
+    
+    # Python API
+    experiment_results = nerbb.get_experiment_results(<experiment_name>)
+    
+    experiment_results.experiment  # data frame with overview on experiment
+    experiment_results.runs        # data frame with overview on runs
+    experiment_results.best_run    # dictionary with overview on best run
+    experiment_results.best_model  # pytorch model  
+    ```
+            
+    e. use best model for predictions (only python API):
+
+    ```
+    # e.g. <text_input> = ['some text that needs to be tagged']
+    ```
+    ```
+    # Python API
+    experiment_results.best_model.predict(<text_input>)
+    ```
+   
+3. All Experiments
+
+    a. Get Experiments Overview
+
+    ```
+    # CLI
+    nerbb --get_experiments  
+    
+    # Python API
+    nerbb.get_experiments()
+    ```
+       
+    b. Get Best Runs Overview:
+    ```
+    # CLI
+    nerbb --get_experiments_best_runs
+    
+    # Python API
+    nerbb.get_experiments_best_runs()
+    ```
         
-        # Python API
-        nerbb.get_experiment_results(<experiment_name>)                 
-        
-
-This works out of the box for built-in datasets and models.
-Custom datasets and models can also be included.
-
 ## Datasets and Models
+
+The aboove works out of the box for built-in datasets and models.
     
 - Built-in datasets:
     - CoNLL2003 (english)
@@ -85,15 +144,23 @@ Custom datasets and models can also be included.
 ### Custom Datasets
  
 To include your own custom dataset, do the following:
-- Create a new module `datasets/formatter/<new_dataset>_formatter.py`
-- Derive the class `<NewDataset>Formatter` from `BaseFormatter` and implement the abstract base methods
+ - Create a new folder `./data/datasets/<new_dataset>`.
+ - Add the following files to the folder:
+    - `train.csv`
+    - `val.csv`
+    - `test.csv`
+     - (todo: additional information on csv format needed here)
+    
+Own custom datasets can also be created programmatically (like the built-in datasets):
+ - Create a new module `./data/datasets/formatter/<new_dataset>_formatter.py`
+ - Derive the class `<NewDataset>Formatter` from `BaseFormatter` and implement the abstract base methods
+ - (todo: additional instructions needed here)
 
 ### Custom Models
  
 To include a new model, do the following:
- - Create a new folder `pretrained_model/<new_model>`. The folder name must include the architecture type, e.g. `bert`
+ - Create a new folder `./data/pretrained_model/<new_model>`. The folder name must include the architecture type, e.g. `bert`
  - Add the following files to the folder:
     - `config.json`
     - `pytorch_model.bin`
     - `vocab.txt`
-    
