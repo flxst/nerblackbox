@@ -15,7 +15,7 @@ class NerBlackBoxMain:
 
     def __init__(self,
                  flag,
-                 dataset=None,
+                 dataset_name=None,
                  with_tags=False,
                  modify=True,
                  val_fraction=0.3,
@@ -29,7 +29,7 @@ class NerBlackBoxMain:
         assert flag is not None, 'missing input flag (--init OR --set_up_dataset OR --analyze_data OR --run_experiment)'
 
         self.flag = flag
-        self.dataset = dataset
+        self.dataset_name = dataset_name
         self.with_tags = with_tags
         self.modify = modify
         self.val_fraction = val_fraction
@@ -60,8 +60,8 @@ class NerBlackBoxMain:
         if self.flag == 'init':
             self.create_data_directory()
 
-            for _dataset in ['conll2003', 'swedish_ner_corpus']:
-                self.set_up_dataset(_dataset, self.with_tags, self.modify, self.val_fraction, self.verbose)
+            for _dataset_name in ['conll2003', 'swedish_ner_corpus']:
+                self.set_up_dataset(_dataset_name, self.with_tags, self.modify, self.val_fraction, self.verbose)
 
             self._set_client_and_get_experiments()
 
@@ -69,15 +69,15 @@ class NerBlackBoxMain:
         # --analyze_data
         ################################################################################################################
         elif self.flag == 'analyze_data':
-            assert self.dataset is not None, 'missing input --analyze_data <dataset>'
-            self.analyze_data(self.dataset, self.verbose)
+            assert self.dataset_name is not None, 'missing input --analyze_data <dataset_name>'
+            self.analyze_data(self.dataset_name, self.verbose)
 
         ################################################################################################################
         # --set_up_dataset
         ################################################################################################################
         elif self.flag == 'set_up_dataset':
-            assert self.dataset is not None, 'missing input --set_up_dataset <dataset>'
-            self.set_up_dataset(self.dataset, self.with_tags, self.modify, self.val_fraction, self.verbose)
+            assert self.dataset_name is not None, 'missing input --set_up_dataset <dataset_name>'
+            self.set_up_dataset(self.dataset_name, self.with_tags, self.modify, self.val_fraction, self.verbose)
 
         ################################################################################################################
         # --show_experiment_config
@@ -132,9 +132,9 @@ class NerBlackBoxMain:
             exit(0)
 
     @staticmethod
-    def analyze_data(_dataset, _verbose):
+    def analyze_data(_dataset_name, _verbose):
         _parameters = {
-            'ner_dataset': _dataset,
+            'ner_dataset': _dataset_name,
             'verbose': False,
         }
 
@@ -147,10 +147,10 @@ class NerBlackBoxMain:
         )
 
     @staticmethod
-    def set_up_dataset(_dataset, _with_tags, _modify, _val_fraction, _verbose):
+    def set_up_dataset(_dataset_name, _with_tags, _modify, _val_fraction, _verbose):
 
         _parameters = {
-            'ner_dataset': _dataset,
+            'ner_dataset': _dataset_name,
             'with_tags': _with_tags,
             'modify': _modify,
             'val_fraction': _val_fraction,

@@ -25,110 +25,110 @@ from ner_black_box import NerBlackBox
 nerbb = NerBlackBox()
 ```
 
-1.  Initialization:
+#### 1.  Initialization:
 
-    ```
-    # CLI
-    nerbb --init  
-    
-    # Python API
-    nerbb.init()
-    ```
-    
-    This creates a `./data` directory with the following structure:
-    ```
-    data/
-    └── datasets
-        └── conll2003           # built-in dataset (english)
-            └── train.csv
-            └── val.csv
-            └── test.csv
-        └── swedish_ner_corpus  # built-in dataset (swedish)
-            └── train.csv
-            └── val.csv
-            └── test.csv
-    └── experiment_configs
-        └── experiment_default.ini
-    └── pretrained_models       # custom model checkpoints
-    └── results
-    ```
+```
+# CLI
+nerbb --init  
 
-2. Single Experiment
+# Python API
+nerbb.init()
+```
 
-    ```
-    # e.g. <experiment_name> = 'exp_default'
-    ```
+This creates a `./data` directory with the following structure:
+```
+data/
+└── datasets
+    └── conll2003           # built-in dataset (english)
+        └── train.csv
+        └── val.csv
+        └── test.csv
+    └── swedish_ner_corpus  # built-in dataset (swedish)
+        └── train.csv
+        └── val.csv
+        └── test.csv
+└── experiment_configs
+    └── experiment_default.ini
+└── pretrained_models       # custom model checkpoints
+└── results
+```
 
-    a. Show Experiment Configuration
-    
-    ```
-    # CLI
-    nerbb --show_experiment_config <experiment_name>  
-    
-    # Python API
-    nerbb.show_experiment_config(<experiment_name>)
-    ```
+#### 2. Single Experiment
 
-    b. Run Experiment
+```
+# e.g. <experiment_name> = 'exp_default'
+```
 
-    ```
-    # CLI
-    nerbb --run_experiment <experiment_name>  
-    
-    # Python API
-    nerbb.run_experiment(<experiment_name>)
-    ```
-       
-    c. Access detailed run histories & results using either mlflow or tensorboard:
-    
-    - `nerbb --mflow`
-    - `nerbb --tensorboard` 
-    
-    d. Inspect main results:
+a. Show Experiment Configuration
 
-    ```
-    # CLI
-    nerbb --get_experiment_results <experiment_name>  # prints overview on runs
-    
-    # Python API
-    experiment_results = nerbb.get_experiment_results(<experiment_name>)
-    
-    experiment_results.experiment  # data frame with overview on experiment
-    experiment_results.runs        # data frame with overview on runs
-    experiment_results.best_run    # dictionary with overview on best run
-    experiment_results.best_model  # pytorch model  
-    ```
-            
-    e. use best model for predictions (only python API):
+```
+# CLI
+nerbb --show_experiment_config <experiment_name>  
 
-    ```
-    # e.g. <text_input> = ['some text that needs to be tagged']
-    ```
-    ```
-    # Python API
-    experiment_results.best_model.predict(<text_input>)
-    ```
+# Python API
+nerbb.show_experiment_config(<experiment_name>)
+```
+
+b. Run Experiment
+
+```
+# CLI
+nerbb --run_experiment <experiment_name>  
+
+# Python API
+nerbb.run_experiment(<experiment_name>)
+```
    
-3. All Experiments
+c. Access detailed run histories & results using either mlflow or tensorboard (CLI):
 
-    a. Get Experiments Overview
+- `nerbb --mflow` [+ enter http://localhost:5000 in your browser]
+- `nerbb --tensorboard`[+ enter http://localhost:6006 in your browser] 
 
-    ```
-    # CLI
-    nerbb --get_experiments  
-    
-    # Python API
-    nerbb.get_experiments()
-    ```
-       
-    b. Get Best Runs Overview:
-    ```
-    # CLI
-    nerbb --get_experiments_best_runs
-    
-    # Python API
-    nerbb.get_experiments_best_runs()
-    ```
+d. Inspect main results:
+
+```
+# CLI
+nerbb --get_experiment_results <experiment_name>  # prints overview on runs
+
+# Python API
+experiment_results = nerbb.get_experiment_results(<experiment_name>)
+
+experiment_results.experiment  # data frame with overview on experiment
+experiment_results.runs        # data frame with overview on runs
+experiment_results.best_run    # dictionary with overview on best run
+experiment_results.best_model  # pytorch model  
+```
+        
+e. use best model for predictions (only python API):
+
+```
+# e.g. <text_input> = ['some text that needs to be tagged']
+```
+```
+# Python API
+experiment_results.best_model.predict(<text_input>)
+```
+   
+#### 3. All Experiments
+
+a. Get Experiments Overview
+
+```
+# CLI
+nerbb --get_experiments  
+
+# Python API
+nerbb.get_experiments()
+```
+   
+b. Get Best Runs Overview:
+```
+# CLI
+nerbb --get_experiments_best_runs
+
+# Python API
+nerbb.get_experiments_best_runs()
+```
         
 ## Datasets and Models
 
@@ -152,6 +152,7 @@ To include your own custom dataset, do the following:
      - (todo: additional information on csv format needed here)
     
 Own custom datasets can also be created programmatically (like the built-in datasets):
+ - (todo: revise the following)
  - Create a new module `./data/datasets/formatter/<new_dataset>_formatter.py`
  - Derive the class `<NewDataset>Formatter` from `BaseFormatter` and implement the abstract base methods
  - (todo: additional instructions needed here)

@@ -1,6 +1,6 @@
 
 import torch
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+from torch.nn.utils.rnn import pad_sequence
 
 
 class InputExampleToTensors:
@@ -72,7 +72,7 @@ class InputExampleToTensors:
         input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
 
         # 2. attention_mask
-        attention_mask = [1] * len(input_ids)  # 1 = real tokens, 0 = padding tokens. Only real tokens are attended to.
+        attention_mask = [1] * len(input_ids)  # 1 = real tokens, 0 = padding tokens.
 
         # 3. segment_ids
         if tokens_b is None:
@@ -83,15 +83,15 @@ class InputExampleToTensors:
         # 4. tag_ids
         tag_ids = [self.tag2id[tag] for tag in tags]
 
-        # 5. padding
+        # 5. cast to tensor & padding
         input_ids = self._pad_sequence(input_ids, 0)
         attention_mask = self._pad_sequence(attention_mask, 0)
         segment_ids = self._pad_sequence(segment_ids, 0)
         tag_ids = self._pad_sequence(tag_ids, 0)
-        assert input_ids.shape[0] == self.max_seq_length
-        assert attention_mask.shape[0] == self.max_seq_length
-        assert segment_ids.shape[0] == self.max_seq_length
-        assert tag_ids.shape[0] == self.max_seq_length
+        assert input_ids.shape[0] == self.max_seq_length, f'shape[0] = {input_ids[0].shape}'
+        assert attention_mask.shape[0] == self.max_seq_length, f'shape[0] = {attention_mask[0].shape}'
+        assert segment_ids.shape[0] == self.max_seq_length, f'shape[0] = {segment_ids[0].shape}'
+        assert tag_ids.shape[0] == self.max_seq_length, f'shape[0] = {tag_ids[0].shape}'
 
         ####################
         # return
@@ -153,20 +153,18 @@ class InputExampleToTensors:
             else:
                 seq_b.pop()
 
-    def _pad_sequence(self, _input, value):
+    def _pad_sequence(self, _input_list, padding_value):
         """
         pad _input sequence with value until self.max_seq_length is reached
         -------------------------------------------------------------------
-        :param _input: [list]
-        :param value:  [int], e.g. 0
+        :param _input_list:   [list] of [int]
+        :param padding_value: [int], e.g. 0
         :return: padded _input as [torch tensor]
         """
-        padded = pad_sequences(
-            [_input],
-            maxlen=self.max_seq_length,
-            padding="post",
-            value=value,
-            dtype="long",
-            truncating="post"
+        padded = pad_sequence(
+            [torch.tensor(_input_list), torch.zeros(self.max_seq_length)],
+            batch_first=True,
+            padding_value=padding_value,
         )
-        return torch.tensor(padded, dtype=torch.long).view(-1)
+        return padded[0]
+

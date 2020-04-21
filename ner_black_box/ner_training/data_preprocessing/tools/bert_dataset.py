@@ -26,5 +26,3 @@ class BertDataset(Dataset):
         :return: transformed sample
         """
         return self.transform(self.samples[index])
-
-
