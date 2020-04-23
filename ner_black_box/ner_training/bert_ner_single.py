@@ -1,6 +1,7 @@
 
 import torch
 import mlflow
+import os
 from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.logging import TensorBoardLogger
@@ -11,6 +12,7 @@ from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
 from ner_black_box.ner_training.logging.default_logger import DefaultLogger
 from ner_black_box.utils.util_functions import unify_parameters
 from ner_black_box.utils.env_variable import env_variable
+from ner_black_box.utils.util_functions import get_package_version
 
 
 def main(params, hparams, log_dirs, experiment: bool):
@@ -58,15 +60,12 @@ def main(params, hparams, log_dirs, experiment: bool):
         )
         best_trainer.test(model_best)
 
-        """
-        print('MODEL')
-        print(model.epoch_metrics)
-        print('BEST MODEL')
-        print(model_best.epoch_metrics)
-        """
-
         # logging end
         logging_end(tb_logger, callback_info, hparams, model, model_best, default_logger)
+
+        # remove checkpoint
+        if params.checkpoints is False:
+            remove_checkpoint(callback_info['checkpoint_best'], default_logger)
 
 
 ########################################################################################################################
@@ -79,6 +78,7 @@ def print_run_information(_params, _hparams, _logger):
     :param _logger:   [DefaultLogger]
     :return: -
     """
+    _logger.log_info(f'>>> NER BLACK BOX VERSION: {get_package_version()}')
     _logger.log_info('- PARAMS -----------------------------------------')
     _logger.log_info(f'> experiment_name: {_params.experiment_name}')
     _logger.log_info(f'> run_name:        {_params.run_name}')
@@ -122,11 +122,11 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
     """
     early_stopping_params = {k: vars(_hparams)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
-    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name, '')
+    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name, '{epoch}')
 
     _callbacks = {
         'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath,
-                                      verbose=True) if _params.checkpoints else None,
+                                      verbose=True),  # if _params.checkpoints else None,
         'early_stop': EarlyStopping(**early_stopping_params, verbose=True)
     }
     return _callbacks
@@ -139,16 +139,31 @@ def get_callback_info(_callbacks, _params, _hparams):
     :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     """
+    def checkpoint2epoch(_checkpoint_name):
+        """
+        :param _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
+        :return: _epoch:         [int], e.g. 2
+        """
+        return int(_checkpoint_name.split('epoch=')[-1].split('_')[0].replace('.ckpt', ''))
+
+    def epoch2checkpoint(_epoch):
+        """
+        :param _epoch:            [int], e.g. 2
+        :return _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
+        """
+        return f'epoch={_epoch}.ckpt'
+
+    checkpoint_best = list(_callbacks['checkpoint'].best_k_models.keys())[0]
     callback_info = dict()
-    callback_info['epoch_best'] = \
-        int(list(_callbacks['checkpoint'].best_k_models.keys())[0].split('epoch_')[-1].replace('.ckpt', ''))
+    callback_info['epoch_best'] = checkpoint2epoch(checkpoint_best)
     callback_info['epoch_stopped'] = \
         _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs - 1
     callback_info['checkpoint_best'] = \
         join(env_variable('DIR_CHECKPOINTS'),
              _params.experiment_name,
              _params.run_name,
-             f'_ckpt_epoch_{callback_info["epoch_best"]}.ckpt')
+             epoch2checkpoint(callback_info['epoch_best']),
+             )
 
     return callback_info
 
@@ -265,3 +280,15 @@ def _tb_logger_stopped_epoch(_tb_logger,
         vars(_hparams),
         hparams_dict,
     )
+
+
+def remove_checkpoint(_checkpoint_path, _default_logger):
+    """
+    remove checkpoint stored at _checkpoint_path
+    --------------------------------------------
+    :param _checkpoint_path: [str], e.g. '[..]/data/results/checkpoints/exp_default/run1/epoch=0.ckpt'
+    :param _default_logger:  [DefaultLogger]
+    :return: -
+    """
+    os.remove(_checkpoint_path)
+    _default_logger.log_info(f'> checkpoint {_checkpoint_path} removed')

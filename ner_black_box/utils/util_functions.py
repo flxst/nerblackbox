@@ -2,6 +2,7 @@
 import os
 from os.path import join
 from argparse import Namespace
+import pkg_resources
 
 from ner_black_box.utils.env_variable import env_variable
 
@@ -97,7 +98,8 @@ def unify_parameters(_params, _hparams, _log_dirs, _experiment):
     :param _experiment:         [bool]
     :return: _lightning_hparams [Namespace] with keys = all keys from input namespaces + 'experiment'
     """
-    _dict = vars(_params)
+    _dict = dict()
+    _dict.update(vars(_params))
     _dict.update(vars(_hparams))
     _dict.update(vars(_log_dirs))
     _dict.update({'experiment': _experiment})
@@ -122,3 +124,7 @@ def split_parameters(_lightning_hparams):
     _log_dirs = Namespace(**{k: v for k, v in vars(_lightning_hparams).items() if k in keys_log_dirs})
     _experiment = vars(_lightning_hparams).get('experiment')
     return _params, _hparams, _log_dirs, _experiment
+
+
+def get_package_version():
+    return pkg_resources.get_distribution('ner_black_box').version
