@@ -57,17 +57,17 @@ class ExperimentConfig:
         parse <experiment_name>.ini files
         if self.run_name is specified, parse only that run. else parse all runs.
         ------------------------------------------------------------------------
-        :return: runs             [list] of [str], e.g. ['run1', 'run2']
-                 _run_params  [dict] w/ keys = run_name [str], values = params [dict],
-                                     e.g. {'run1': {'patience': 2, 'mode': 'min', ..}, ..}
-                 _run_hparams [dict] w/ keys = run_name [str], values = hparams [dict],
-                                     e.g. {'run1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
+        :return: runs         [list] of [str], e.g. ['run1', 'run2']
+                 _runs_params  [dict] w/ keys = run_name [str], values = params [dict],
+                                      e.g. {'run1': {'patience': 2, 'mode': 'min', ..}, ..}
+                 _runs_hparams [dict] w/ keys = run_name [str], values = hparams [dict],
+                                      e.g. {'run1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         config, config_dict = self._get_config()
 
         # _params_config & _hparams_config
-        _run_params = dict()
-        _run_hparams = dict()
+        _runs_params = dict()
+        _runs_hparams = dict()
 
         if self.run_name is None:  # multiple runs
             runs = [run for run in config.sections() if run.startswith('run')]
@@ -77,29 +77,33 @@ class ExperimentConfig:
 
         for run in runs:
             # _run_params
-            _run_params[run] = {
+            _run_params = {
                 'experiment_name': self.experiment_name,
                 'run_name': run,
                 'device': self.device,
                 'fp16': self.fp16,
                 'experiment_run_name': f'{self.experiment_name}/{run}',
             }
-            _run_params[run].update(config_dict['params'])
+            _run_params.update(config_dict['params'])
 
             # _run_hparams
-            _run_hparams[run] = config_dict['hparams']
+            _run_hparams = dict()
+            _run_hparams.update(config_dict['hparams'])
 
             for k, v in config_dict[run].items():
                 if k in self.params:
-                    _run_params[run][k] = v
+                    _run_params[k] = v
                 elif k in self.hparams:
-                    _run_hparams[run][k] = v
+                    _run_hparams[k] = v
                 else:
                     raise Exception(f'parameter = {k} is unknown.')
 
-        assert set(_run_params.keys()) == set(_run_hparams.keys())
+            _runs_params[run] = _run_params
+            _runs_hparams[run] = _run_hparams
 
-        return runs, _run_params, _run_hparams
+        assert set(_runs_params.keys()) == set(_runs_hparams.keys())
+
+        return runs, _runs_params, _runs_hparams
 
     ####################################################################################################################
     # HELPER METHODS

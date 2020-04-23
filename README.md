@@ -48,16 +48,29 @@ data/
         └── val.csv
         └── test.csv
 └── experiment_configs
-    └── experiment_default.ini
+    └── exp_default.ini
 └── pretrained_models       # custom model checkpoints
 └── results
 ```
 
 #### 2. Single Experiment
 
-```
-# e.g. <experiment_name> = 'exp_default'
-```
+- A single experiment is defined through a configuration 
+file in `./data/experiment_configs/<experiment_name>.ini`
+
+- The following parameters need to be specified in the configuration file:
+    - dataset
+    - pretrained model
+    - hyperparameters 
+    
+- Note that an experiment can entail multiple training runs with different 
+hyperparameter combinations.
+
+- See `./data/experiment_configs/exp_default.ini` for an example
+
+---
+Once an experiment is defined, the following commands can be used to 
+run the experiment and access its results:
 
 a. Show Experiment Configuration
 
@@ -81,10 +94,10 @@ nerbb.run_experiment(<experiment_name>)
    
 c. Access detailed run histories & results using either mlflow or tensorboard (CLI):
 
-- `nerbb --mflow` [+ enter http://localhost:5000 in your browser]
+- `nerbb --mlflow` [+ enter http://localhost:5000 in your browser]
 - `nerbb --tensorboard`[+ enter http://localhost:6006 in your browser] 
 
-d. Inspect main results:
+d. Get main results:
 
 ```
 # CLI
@@ -99,7 +112,7 @@ experiment_results.best_run    # dictionary with overview on best run
 experiment_results.best_model  # pytorch model  
 ```
         
-e. use best model for predictions (only python API):
+e. Use best model for predictions (only python API):
 
 ```
 # e.g. <text_input> = ['some text that needs to be tagged']
@@ -132,7 +145,7 @@ nerbb.get_experiments_best_runs()
         
 ## Datasets and Models
 
-The aboove works out of the box for built-in datasets and models.
+The above works out of the box for built-in datasets and models.
     
 - Built-in datasets:
     - CoNLL2003 (english)
@@ -159,7 +172,7 @@ Own custom datasets can also be created programmatically (like the built-in data
 
 ### Custom Models
  
-To include a new model, do the following:
+To include your own custom model, do the following:
  - Create a new folder `./data/pretrained_model/<new_model>`. The folder name must include the architecture type, e.g. `bert`
  - Add the following files to the folder:
     - `config.json`

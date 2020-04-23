@@ -24,7 +24,7 @@ def main(params, log_dirs):
                                          run_name=params.run_name,
                                          device=params.device,
                                          fp16=params.fp16)
-    runs, run_params, run_hparams = experiment_config.parse()
+    runs, runs_params, runs_hparams = experiment_config.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
         for k, v in experiment_config.get_params_and_hparams(run_name=None).items():
@@ -32,8 +32,8 @@ def main(params, log_dirs):
 
         for run in runs:
             # params & hparams: dict -> namespace
-            params = argparse.Namespace(**run_params[run])
-            hparams = argparse.Namespace(**run_hparams[run])
+            params = argparse.Namespace(**runs_params[run])
+            hparams = argparse.Namespace(**runs_hparams[run])
 
             # bert_ner: single run
             bert_ner_single.main(params, hparams, log_dirs, experiment=True)
