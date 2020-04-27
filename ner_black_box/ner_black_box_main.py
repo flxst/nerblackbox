@@ -446,4 +446,3 @@ class NerBlackBoxMain:
     @staticmethod
     def show_as_df(_dict):
         return pd.DataFrame(_dict)
-

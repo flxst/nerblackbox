@@ -70,13 +70,6 @@ class LightningNerModel(pl.LightningModule):
         self.epoch_metrics = {'val': dict(), 'test': dict()}
         self.classification_reports = {'val': dict(), 'test': dict()}
 
-    def _preparations_predict(self):
-        """
-        :created attr: default_logger    [None]
-        :return: -
-        """
-        self.default_logger = None
-
     def _preparations_data_general(self):
         """
         :created attr: tokenizer         [transformers AutoTokenizer]
@@ -130,62 +123,6 @@ class LightningNerModel(pl.LightningModule):
         self.scheduler = self._create_scheduler(self._hparams.lr_warmup_epochs,
                                                 self._hparams.lr_schedule,
                                                 self._hparams.lr_num_cycles)
-
-    def _preparations_data_predict(self):
-        """
-        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
-        :created attr: model             [transformers AutoModelForTokenClassification]
-        :return: -
-        """
-        # tag_list
-        self.tag_list = json.loads(self.hparams.tag_list)
-
-        # model
-        self.model = AutoModelForTokenClassification.from_pretrained(self.params.pretrained_model_name,
-                                                                     num_labels=len(self.tag_list))
-
-    ####################################################################################################################
-    # PREDICT
-    ####################################################################################################################
-    def predict(self, examples):
-        """
-        :param examples:     [list] of [str]
-        :return: predictions [list] of [list] of (word, tag) tuples
-        """
-        # input_examples
-        input_examples = self.data_preprocessor.get_input_examples_predict(
-            examples=examples,
-        )
-
-        # dataloader
-        dataloader = self.data_preprocessor.to_dataloader(input_examples,
-                                                          self.tag_list,
-                                                          batch_size=1)
-
-        # get predictions
-        predictions = list()  # for each example: list of tuples (word, tag)
-        for sample in dataloader['predict']:
-            # predict tags on tokens
-            input_ids, attention_mask, segment_ids, label_ids, = sample
-            output_tensors = self.model(input_ids, attention_mask, segment_ids, label_ids)
-            output_token_tags = [self.tag_list[np.argmax(output_tensors[0][0][i].detach().numpy())]
-                                 for i in range(self._hparams.max_seq_length)]
-
-            # predict tags on words between [CLS] and [SEP]
-            tokens = self.tokenizer.convert_ids_to_tokens(input_ids[0])
-            output_word_tags = list()
-            for token, output_token_tag in zip(tokens, output_token_tags):
-                if token == '[SEP]':
-                    break
-                if token != '[CLS]':
-                    if not token.startswith('##'):
-                        output_word_tags.append([token, output_token_tag])
-                    else:
-                        output_word_tags[-1][0] += token.strip('##')
-
-            predictions.append([tuple(elem) for elem in output_word_tags])
-
-        return predictions
 
     ####################################################################################################################
     # TRAIN/VAL/TEST
