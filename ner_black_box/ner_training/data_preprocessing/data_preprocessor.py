@@ -105,7 +105,7 @@ class DataPreprocessor:
 
             if phase == 'train':
                 sampler = RandomSampler(data)
-            elif phase in ['val', 'train']:
+            elif phase in ['val', 'test']:
                 sampler = SequentialSampler(data)
             else:
                 sampler = None
