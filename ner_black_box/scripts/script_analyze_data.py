@@ -1,6 +1,6 @@
 
 import argparse
-from ner_black_box.datasets.formatter.custom_formatter import CustomFormatter
+from ner_black_box.datasets.formatter.auto_formatter import AutoFormatter
 
 
 def main(args):
@@ -11,7 +11,7 @@ def main(args):
     --------------------------------------------------------------------------------
     :return: -
     """
-    formatter = CustomFormatter.for_dataset(args.ner_dataset)
+    formatter = AutoFormatter.for_dataset(args.ner_dataset)
     formatter.analyze_data()                   # IV: analyze data
     formatter.plot_data()                      # IV: analyze data
 

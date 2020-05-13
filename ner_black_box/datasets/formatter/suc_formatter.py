@@ -1,5 +1,5 @@
 
-import shutil
+import os
 
 from os.path import join
 from ner_black_box.datasets.formatter.base_formatter import BaseFormatter
@@ -9,7 +9,7 @@ class SUCFormatter(BaseFormatter):
 
     def __init__(self):
         ner_dataset = 'suc'
-        ner_tag_list = ['PER', 'ORG', 'LOC', 'OBJ', 'WRK']
+        ner_tag_list = ['person', 'place', 'inst', 'work', 'misc']  # misc: see create_ner_tag_mapping()
         super().__init__(ner_dataset, ner_tag_list)
 
     ####################################################################################################################
@@ -27,10 +27,16 @@ class SUCFormatter(BaseFormatter):
     def create_ner_tag_mapping(self):
         """
         II: customize ner_training tag mapping if wanted
-        -------------------------------------
+        ------------------------------------------------
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        return dict()
+        return {
+            'animal': 'misc',
+            'myth': 'misc',
+            'product': 'misc',
+            'event': 'misc',
+            'other': 'misc',
+        }
 
     def format_data(self):
         """
@@ -38,15 +44,9 @@ class SUCFormatter(BaseFormatter):
         ----------------
         :return: -
         """
-        file_name = {
-            'train': 'train_original.csv',
-            'val': 'valid_original.csv',
-            'test': 'test_original.csv',
-        }
         for phase in ['train', 'val', 'test']:
-            original_file_path = join(self.dataset_path, file_name[phase])
-            formatted_file_path = join(self.dataset_path, f'{phase}_formatted.csv')
-            shutil.copy2(original_file_path, formatted_file_path)
+            rows = self._read_original_file(phase)
+            self._write_formatted_csv(phase, rows)
 
     def resplit_data(self, val_fraction: float):
         """
@@ -67,14 +67,46 @@ class SUCFormatter(BaseFormatter):
         df_test = self._read_formatted_csvs(['test'])
         self._write_final_csv('test', df_test)
 
+    ####################################################################################################################
+    # HELPER: READ ORIGINAL
+    ####################################################################################################################
+    def _read_original_file(self, phase):
         """
-        # val, test -> train
-        df_train = self._read_formatted_csvs(['val', 'test'])
-        self._write_final_csv('train', df_train)
+        III: format data
+        ---------------------------------------------
+        :param phase:   [str] 'train' or 'test'
+        :return: _rows: [list] of [list] of [str], e.g. [[], ['Inger', 'PER'], ['säger', '0'], ..]
+        """
+        file_name = {
+            'train': 'suc-train.conll',
+            'val': 'suc-dev.conll',
+            'test': 'suc-test.conll',
+        }
+        file_path_original = join(self.dataset_path, file_name[phase])
 
-        # train       -> val & test
-        df_val_test = self._read_formatted_csvs(['train'])
-        df_val, df_test = self._split_val_test(df_val_test, val_fraction)
-        self._write_final_csv('val', df_val)
-        self._write_final_csv('test', df_test)
+        _rows = list()
+        if os.path.isfile(file_path_original):
+            with open(file_path_original) as f:
+                for i, row in enumerate(f.readlines()):
+                    _rows.append(row.strip().split())
+            print(f'\n> read {file_path_original}')
+        else:
+            raise Exception(f'> original file {file_path_original} could not be found.')
+
+        _rows = [[row[1], self.transform_tags(row[-3], row[-2])]
+                 if len(row) > 0 else list()
+                 for row in _rows]
+
+        return _rows
+
+    @staticmethod
+    def transform_tags(bio, tag):
         """
+        :param bio: [str] 'O', 'B', 'I'
+        :param tag: [str] '_', 'person', ..
+        :return: transformed tag: [str], e.g. 'O', 'B-person', ..
+        """
+        if bio == 'O':
+            return 'O'
+        else:
+            return f'{bio}-{tag}'

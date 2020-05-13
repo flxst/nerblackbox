@@ -4,7 +4,7 @@ from ner_black_box.datasets.formatter.suc_formatter import SUCFormatter
 from ner_black_box.datasets.formatter.conll2003_formatter import CoNLL2003Formatter
 
 
-class CustomFormatter:
+class AutoFormatter:
 
     @staticmethod
     def for_dataset(ner_dataset: str):

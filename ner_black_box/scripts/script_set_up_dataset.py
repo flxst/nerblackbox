@@ -1,6 +1,6 @@
 
 import argparse
-from ner_black_box.datasets.formatter.custom_formatter import CustomFormatter
+from ner_black_box.datasets.formatter.auto_formatter import AutoFormatter
 
 
 def main(args):
@@ -8,17 +8,13 @@ def main(args):
     - I: get data for ner_dataset
     - II: write ner_tag_mapping.json file
     - III: format data
-      . reshape original files to standard format
     - IV: resplit data
-      . split train/val/test
-    - V: analyze data
-      . read reshaped text files
-      . analyze data and output class distribution
+    - V: analyze and plot data
     --------------------------------------------------------------------------------
     :return: -
     """
     # formatter
-    formatter = CustomFormatter.for_dataset(args.ner_dataset)
+    formatter = AutoFormatter.for_dataset(args.ner_dataset)
 
     formatter.create_directory()
     formatter.get_data(verbose=args.verbose)                     # I: get_data
