@@ -9,6 +9,16 @@ from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
 
 class LightningNerModelPredict(LightningNerModel):
 
+    @classmethod
+    def load_from_checkpoint(cls,
+                             checkpoint_path,
+                             map_location=None,
+                             tags_csv=None,
+                             ):
+        model = super().load_from_checkpoint(checkpoint_path, map_location, tags_csv)
+        model.freeze()  # for inference mode
+        return model
+
     def __init__(self, hparams):
         """
         :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..

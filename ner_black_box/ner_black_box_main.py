@@ -9,6 +9,7 @@ import pandas as pd
 from mlflow.tracking import MlflowClient
 
 from ner_black_box.utils.env_variable import env_variable
+from ner_black_box.utils.util_functions import epoch2checkpoint
 
 
 class NerBlackBoxMain:
@@ -276,8 +277,6 @@ class NerBlackBoxMain:
         else:
             if self.best_run['checkpoint'] is not None:
                 self.best_model = LightningNerModelPredict.load_from_checkpoint(self.best_run['checkpoint'])
-                self.best_model.eval()
-                self.best_model.freeze()
             else:
                 self.best_model = None
 
@@ -310,7 +309,7 @@ class NerBlackBoxMain:
                 env_variable('DIR_CHECKPOINTS'),
                 experiment_name,
                 best_run_name,
-                f'_ckpt_epoch_{best_run_epoch_best}.ckpt',
+                epoch2checkpoint(best_run_epoch_best),
             )
 
             _best_run = {

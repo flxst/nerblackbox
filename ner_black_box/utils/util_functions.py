@@ -128,3 +128,20 @@ def split_parameters(_lightning_hparams):
 
 def get_package_version():
     return pkg_resources.get_distribution('ner_black_box').version
+
+
+def checkpoint2epoch(_checkpoint_name):
+    """
+    :param _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
+    :return: _epoch:         [int], e.g. 2
+    """
+    return int(_checkpoint_name.split('epoch=')[-1].split('_')[0].replace('.ckpt', ''))
+
+
+def epoch2checkpoint(_epoch):
+    """
+    :param _epoch:            [int], e.g. 2
+    :return _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
+    """
+    return f'epoch={_epoch}.ckpt'
+

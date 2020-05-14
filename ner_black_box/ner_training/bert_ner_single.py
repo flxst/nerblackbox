@@ -12,7 +12,7 @@ from ner_black_box.ner_training.lightning_ner_model import LightningNerModel
 from ner_black_box.ner_training.logging.default_logger import DefaultLogger
 from ner_black_box.utils.util_functions import unify_parameters
 from ner_black_box.utils.env_variable import env_variable
-from ner_black_box.utils.util_functions import get_package_version
+from ner_black_box.utils.util_functions import get_package_version, checkpoint2epoch, epoch2checkpoint
 
 
 def main(params, hparams, log_dirs, experiment: bool):
@@ -51,8 +51,6 @@ def main(params, hparams, log_dirs, experiment: bool):
 
         # use best checkpoint
         model_best = LightningNerModel.load_from_checkpoint(checkpoint_path=callback_info['checkpoint_best'])
-        model_best.eval()
-        model_best.freeze()
         best_trainer = Trainer(
             gpus=torch.cuda.device_count() if params.device.type == 'cuda' else None,
             precision=16 if (params.fp16 and params.device.type == 'cuda') else 32,
@@ -139,20 +137,6 @@ def get_callback_info(_callbacks, _params, _hparams):
     :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     """
-    def checkpoint2epoch(_checkpoint_name):
-        """
-        :param _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
-        :return: _epoch:         [int], e.g. 2
-        """
-        return int(_checkpoint_name.split('epoch=')[-1].split('_')[0].replace('.ckpt', ''))
-
-    def epoch2checkpoint(_epoch):
-        """
-        :param _epoch:            [int], e.g. 2
-        :return _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
-        """
-        return f'epoch={_epoch}.ckpt'
-
     checkpoint_best = list(_callbacks['checkpoint'].best_k_models.keys())[0]
     callback_info = dict()
     callback_info['epoch_best'] = checkpoint2epoch(checkpoint_best)
