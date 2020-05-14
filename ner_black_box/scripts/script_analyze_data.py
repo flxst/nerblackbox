@@ -1,6 +1,7 @@
 
 import argparse
 from ner_black_box.datasets.formatter.auto_formatter import AutoFormatter
+import mlflow
 
 
 def main(args):
@@ -11,9 +12,10 @@ def main(args):
     --------------------------------------------------------------------------------
     :return: -
     """
-    formatter = AutoFormatter.for_dataset(args.ner_dataset)
-    formatter.analyze_data()                   # IV: analyze data
-    formatter.plot_data()                      # IV: analyze data
+    with mlflow.start_run(run_name='analyze_data'):
+        formatter = AutoFormatter.for_dataset(args.ner_dataset)
+        formatter.analyze_data()                   # IV: analyze data
+        formatter.plot_data()                      # IV: analyze data
 
 
 if __name__ == '__main__':

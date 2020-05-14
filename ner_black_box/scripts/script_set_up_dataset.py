@@ -1,6 +1,7 @@
 
 import argparse
 from ner_black_box.datasets.formatter.auto_formatter import AutoFormatter
+import mlflow
 
 
 def main(args):
@@ -13,16 +14,17 @@ def main(args):
     --------------------------------------------------------------------------------
     :return: -
     """
-    # formatter
-    formatter = AutoFormatter.for_dataset(args.ner_dataset)
+    with mlflow.start_run(run_name='set_up_dataset'):
+        # formatter
+        formatter = AutoFormatter.for_dataset(args.ner_dataset)
 
-    formatter.create_directory()
-    formatter.get_data(verbose=args.verbose)                     # I: get_data
-    formatter.create_ner_tag_mapping_json(modify=args.modify)    # II: create ner tag mapping
-    formatter.format_data()                                      # III: format data
-    formatter.resplit_data(val_fraction=args.val_fraction)       # IV: resplit data
-    formatter.analyze_data()                                     # V: analyze data
-    formatter.plot_data()                                        # V: analyze data
+        formatter.create_directory()
+        formatter.get_data(verbose=args.verbose)                     # I: get_data
+        formatter.create_ner_tag_mapping_json(modify=args.modify)    # II: create ner tag mapping
+        formatter.format_data()                                      # III: format data
+        formatter.resplit_data(val_fraction=args.val_fraction)       # IV: resplit data
+        formatter.analyze_data()                                     # V: analyze data
+        formatter.plot_data()                                        # V: analyze data
 
 
 if __name__ == '__main__':

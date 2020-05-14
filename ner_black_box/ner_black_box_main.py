@@ -28,6 +28,8 @@ class NerBlackBoxMain:
                  ):
         assert flag is not None, 'missing input flag (--init OR --set_up_dataset OR --analyze_data OR --run_experiment)'
 
+        os.environ["MLFLOW_TRACKING_URI"] = env_variable('DIR_MLFLOW')
+
         self.flag = flag
         self.dataset_name = dataset_name
         self.with_tags = with_tags
@@ -54,6 +56,7 @@ class NerBlackBoxMain:
         self.best_model = None
 
     def main(self, ids=(), as_df=True):
+
         ################################################################################################################
         # --init
         ################################################################################################################
@@ -115,8 +118,6 @@ class NerBlackBoxMain:
             assert self.usage in ['cli', 'api'], 'missing usage'
             return self.get_experiments_best_runs(ids, as_df)
 
-
-
     @staticmethod
     def create_data_directory():
         if resource_isdir(Requirement.parse('ner_black_box'), 'ner_black_box/data'):
@@ -141,7 +142,7 @@ class NerBlackBoxMain:
         mlflow.projects.run(
             uri=resource_filename(Requirement.parse('ner_black_box'), 'ner_black_box'),
             entry_point='analyze_data',
-            experiment_name=None,
+            experiment_name='analyze_data',
             parameters=_parameters,
             use_conda=False,
         )
@@ -160,14 +161,12 @@ class NerBlackBoxMain:
         mlflow.projects.run(
             uri=resource_filename(Requirement.parse('ner_black_box'), 'ner_black_box'),
             entry_point='set_up_dataset',
-            experiment_name=None,
+            experiment_name='set_up_dataset',
             parameters=_parameters,
             use_conda=False,
         )
 
     def run_experiment(self, _experiment_name, _run_name, _device, _fp16):
-        os.environ["MLFLOW_TRACKING_URI"] = env_variable('DIR_MLFLOW')
-
         _parameters = {
             'experiment_name': _experiment_name,
             'run_name': _run_name if _run_name else '',
@@ -193,7 +192,7 @@ class NerBlackBoxMain:
         :created attr: experiment_name2id [dict] w/ keys = experiment_name [str] & values = experiment_id [str]
         :return: -
         """
-        self.client = MlflowClient(join(env_variable('DIR_RESULTS'), 'mlruns'))
+        self.client = MlflowClient()
         self._get_experiments()
 
     def _get_experiments(self):
