@@ -274,9 +274,12 @@ class NerBlackBoxMain:
         if self.usage == 'cli':
             print(self.runs)
         else:
-            self.best_model = LightningNerModelPredict.load_from_checkpoint(checkpoint_path=self.best_run['checkpoint'])
-            self.best_model.eval()
-            self.best_model.freeze()
+            if self.best_run['checkpoint'] is not None:
+                self.best_model = LightningNerModelPredict.load_from_checkpoint(self.best_run['checkpoint'])
+                self.best_model.eval()
+                self.best_model.freeze()
+            else:
+                self.best_model = None
 
             return self.experiment, self.runs, self.best_run, self.best_model
 
@@ -300,18 +303,24 @@ class NerBlackBoxMain:
             best_run_id = _df_best_run[('info', 'run_id')]
             best_run_name = _df_best_run[('info', 'run_name')]
             best_run_epoch_best = _df_best_run[('metrics', 'epoch_best')]
-            best_run_chk_f1_micro = _df_best_run[('metrics', 'chk_f1_micro')]
+            best_run_epoch_best_val_chk_f1_micro = _df_best_run[('metrics', 'epoch_best_val_chk_f1_micro')]
+            best_run_epoch_best_test_chk_f1_micro = _df_best_run[('metrics', 'epoch_best_test_chk_f1_micro')]
+
+            checkpoint = join(
+                env_variable('DIR_CHECKPOINTS'),
+                experiment_name,
+                best_run_name,
+                f'_ckpt_epoch_{best_run_epoch_best}.ckpt',
+            )
 
             _best_run = {
                 'experiment_id': experiment_id,
                 'experiment_name': experiment_name,
                 'run_id': best_run_id,
                 'run_name': best_run_name,
-                'chk_f1_micro': best_run_chk_f1_micro,
-                'checkpoint': join(env_variable('DIR_CHECKPOINTS'),
-                                   experiment_name,
-                                   best_run_name,
-                                   f'_ckpt_epoch_{best_run_epoch_best}.ckpt')
+                'epoch_best_val_chk_f1_micro': best_run_epoch_best_val_chk_f1_micro,
+                'epoch_best_test_chk_f1_micro': best_run_epoch_best_test_chk_f1_micro,
+                'checkpoint': checkpoint if os.path.isfile(checkpoint) else None,
             }
         else:
             _best_run = None
@@ -386,7 +395,7 @@ class NerBlackBoxMain:
         :return: _experiment: [pandas DataFrame] overview on experiment parameters
         :return: _runs:       [pandas DataFrame] overview on run parameters & results
         """
-        fields_metrics = ['epoch_best', 'epoch_stopped', 'allP_loss', 'chk_f1_micro']
+        fields_metrics = ['epoch_best', 'epoch_stopped', 'epoch_best_val_chk_f1_micro', 'epoch_best_test_chk_f1_micro']
         parameters_runs = dict()
 
         for i in range(len(_runs)):
@@ -434,7 +443,8 @@ class NerBlackBoxMain:
             print('parameters_runs:', parameters_runs)
         _experiment = pd.DataFrame(parameters_experiment, index=['experiment']).T
         try:
-            _runs = pd.DataFrame(parameters_runs).sort_values(by=('metrics', 'chk_f1_micro'), ascending=False)
+            _runs = pd.DataFrame(parameters_runs).sort_values(by=('metrics', 'epoch_best_val_chk_f1_micro'),
+                                                              ascending=False)
             return _experiment, _runs
         except:
             return None, None
