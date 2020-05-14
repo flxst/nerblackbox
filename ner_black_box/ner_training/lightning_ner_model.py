@@ -234,17 +234,14 @@ class LightningNerModel(pl.LightningModule):
     ####################################################################################################################
     # DATALOADER
     ####################################################################################################################
-    @pl.data_loader
     def train_dataloader(self):
         # REQUIRED
         return self.dataloader['train']
 
-    @pl.data_loader
     def val_dataloader(self):
         # OPTIONAL
         return self.dataloader['val']
 
-    @pl.data_loader
     def test_dataloader(self):
         # OPTIONAL
         return self.dataloader['test']

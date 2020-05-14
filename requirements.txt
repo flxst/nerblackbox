@@ -15,7 +15,7 @@ cloudpickle==1.2.2
 configparser==4.0.2
 cycler==0.10.0
 databricks-cli==0.9.1
-dataclasses==0.7
+dataclasses==0.7; python_version < "3.7"
 decorator==4.4.1
 defusedxml==0.6.0
 docker==4.2.0

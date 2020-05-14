@@ -36,6 +36,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Development Status :: 2 - Pre-Alpha',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Operating System :: Unix',
         'Topic :: Text Processing :: Linguistic',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',

@@ -4,7 +4,7 @@ import mlflow
 import os
 from os.path import join
 from pytorch_lightning import Trainer
-from pytorch_lightning.logging import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import EarlyStopping
 
