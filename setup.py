@@ -14,7 +14,7 @@ def requirements():
 
 setup(
     name='ner_black_box',
-    version='0.0.1',
+    version='0.0.2',
     author='Felix Stollenwerk',
     author_email='felix.stollenwerk@arbetsformedlingen.se',
     description='fine-tune pretrained transformer models on the named entity recognition downstream task',
