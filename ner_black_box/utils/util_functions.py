@@ -47,9 +47,10 @@ def get_hardcoded_parameters(keys=False):
     _general = {
         'experiment_name': 'str',
         'run_name': 'str',
+        'run_name_nr': 'str',
         'device': 'str',
         'fp16': 'bool',
-        'experiment_run_name': 'str',
+        'experiment_run_name_nr': 'str',
     }
     _params = {
         'dataset_name': 'str',
@@ -61,6 +62,7 @@ def get_hardcoded_parameters(keys=False):
         'uncased': 'bool',
         'checkpoints': 'bool',
         'logging_level': 'str',
+        'multiple_runs': 'int',
     }
     _hparams = {
         'batch_size': 'int',

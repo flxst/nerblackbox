@@ -30,7 +30,7 @@ def main(params, hparams, log_dirs, experiment: bool):
     lightning_hparams = unify_parameters(params, hparams, log_dirs, experiment)
 
     tb_logger = logging_start(params, log_dirs)
-    with mlflow.start_run(run_name=params.run_name, nested=experiment):
+    with mlflow.start_run(run_name=params.run_name_nr, nested=experiment):
 
         model = LightningNerModel(lightning_hparams)
         callbacks = get_callbacks(params, hparams, log_dirs)
@@ -79,7 +79,7 @@ def print_run_information(_params, _hparams, _logger):
     _logger.log_info(f'>>> NER BLACK BOX VERSION: {get_package_version()}')
     _logger.log_info('- PARAMS -----------------------------------------')
     _logger.log_info(f'> experiment_name: {_params.experiment_name}')
-    _logger.log_info(f'> run_name:        {_params.run_name}')
+    _logger.log_info(f'> run_name_nr:     {_params.run_name_nr}')
     _logger.log_info('..')
     _logger.log_info(f'> available GPUs: {torch.cuda.device_count()}')
     _logger.log_info(f'> device:         {_params.device}')
@@ -112,6 +112,14 @@ def print_run_information(_params, _hparams, _logger):
     _logger.log_info('')
 
 
+def _get_model_checkpoint_directory(_params):
+    """
+    :param _params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+    :return: model_checkpoint_directory [str]
+    """
+    return join(env_variable('DIR_CHECKPOINTS'), _params.experiment_run_name_nr)
+
+
 def get_callbacks(_params, _hparams, _log_dirs):
     """
     :param _params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
@@ -120,7 +128,7 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
     """
     early_stopping_params = {k: vars(_hparams)[k] for k in ['monitor', 'min_delta', 'patience', 'mode']}
-    model_checkpoint_filepath = join(_log_dirs.checkpoints, _params.experiment_run_name, '{epoch}')
+    model_checkpoint_filepath = join(_get_model_checkpoint_directory(_params), '{epoch}')
 
     _callbacks = {
         'checkpoint': ModelCheckpoint(filepath=model_checkpoint_filepath,
@@ -143,11 +151,7 @@ def get_callback_info(_callbacks, _params, _hparams):
     callback_info['epoch_stopped'] = \
         _callbacks['early_stop'].stopped_epoch if _callbacks['early_stop'].stopped_epoch else _hparams.max_epochs - 1
     callback_info['checkpoint_best'] = \
-        join(env_variable('DIR_CHECKPOINTS'),
-             _params.experiment_name,
-             _params.run_name,
-             epoch2checkpoint(callback_info['epoch_best']),
-             )
+        join(_get_model_checkpoint_directory(_params), epoch2checkpoint(callback_info['epoch_best']))
 
     return callback_info
 
@@ -161,7 +165,7 @@ def logging_start(_params, _log_dirs):
     # mlflow.tracking.set_tracking_uri(_log_dirs.mlflow)                # mlflow
     # mlflow.set_experiment(_params.experiment_name)                    # mlflow
     _tb_logger = TensorBoardLogger(save_dir=_log_dirs.tensorboard,    # tensorboard
-                                   name=_params.experiment_run_name)
+                                   name=_params.experiment_run_name_nr)
     return _tb_logger
 
 

@@ -300,7 +300,7 @@ class NerBlackBoxMain:
         if _experiment is not None and _runs is not None:
             _df_best_run = _runs.iloc[0, :]
             best_run_id = _df_best_run[('info', 'run_id')]
-            best_run_name = _df_best_run[('info', 'run_name')]
+            best_run_name_nr = _df_best_run[('info', 'run_name_nr')]
             best_run_epoch_best = _df_best_run[('metrics', 'epoch_best')]
             best_run_epoch_best_val_chk_f1_micro = _df_best_run[('metrics', 'epoch_best_val_chk_f1_micro')]
             best_run_epoch_best_test_chk_f1_micro = _df_best_run[('metrics', 'epoch_best_test_chk_f1_micro')]
@@ -308,7 +308,7 @@ class NerBlackBoxMain:
             checkpoint = join(
                 env_variable('DIR_CHECKPOINTS'),
                 experiment_name,
-                best_run_name,
+                best_run_name_nr,
                 epoch2checkpoint(best_run_epoch_best),
             )
 
@@ -316,7 +316,7 @@ class NerBlackBoxMain:
                 'experiment_id': experiment_id,
                 'experiment_name': experiment_name,
                 'run_id': best_run_id,
-                'run_name': best_run_name,
+                'run_name_nr': best_run_name_nr,
                 'epoch_best_val_chk_f1_micro': best_run_epoch_best_val_chk_f1_micro,
                 'epoch_best_test_chk_f1_micro': best_run_epoch_best_test_chk_f1_micro,
                 'checkpoint': checkpoint if os.path.isfile(checkpoint) else None,
@@ -406,10 +406,10 @@ class NerBlackBoxMain:
                 else:
                     parameters_runs[('info', 'run_id')].append(_runs[i].info.run_id)
 
-                if ('info', 'run_name') not in parameters_runs.keys():
-                    parameters_runs[('info', 'run_name')] = [_runs[i].data.tags['mlflow.runName']]
+                if ('info', 'run_name_nr') not in parameters_runs.keys():
+                    parameters_runs[('info', 'run_name_nr')] = [_runs[i].data.tags['mlflow.runName']]
                 else:
-                    parameters_runs[('info', 'run_name')].append(_runs[i].data.tags['mlflow.runName'])
+                    parameters_runs[('info', 'run_name_nr')].append(_runs[i].data.tags['mlflow.runName'])
 
                 for k, v in _runs[i].data.params.items():
                     if ('params', k) not in parameters_runs.keys():

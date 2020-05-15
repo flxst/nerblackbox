@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 
 def main(params, log_dirs):
     """
-    :param params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16, experiment_run_name
+    :param params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16, experiment_run_name_nr
     :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     :return: -
     """
@@ -24,16 +24,16 @@ def main(params, log_dirs):
                                          run_name=params.run_name,
                                          device=params.device,
                                          fp16=params.fp16)
-    runs, runs_params, runs_hparams = experiment_config.parse()
+    runs_name_nr, runs_params, runs_hparams = experiment_config.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
-        for k, v in experiment_config.get_params_and_hparams(run_name=None).items():
+        for k, v in experiment_config.get_params_and_hparams(run_name_nr=None).items():
             mlflow.log_param(k, v)
 
-        for run in runs:
+        for run_name_nr in runs_name_nr:
             # params & hparams: dict -> namespace
-            params = argparse.Namespace(**runs_params[run])
-            hparams = argparse.Namespace(**runs_hparams[run])
+            params = argparse.Namespace(**runs_params[run_name_nr])
+            hparams = argparse.Namespace(**runs_hparams[run_name_nr])
 
             # bert_ner: single run
             bert_ner_single.main(params, hparams, log_dirs, experiment=True)
@@ -43,7 +43,7 @@ def _parse_args(_parser, _args):
     """
     :param _parser: [argparse ArgumentParser]
     :param _args:   [argparse arguments]
-    :return _params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16, experiment_run_name
+    :return _params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16
     :return _log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     """
     # parsing

@@ -30,13 +30,14 @@ class SUCFormatter(BaseFormatter):
         ------------------------------------------------
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        return {
-            'animal': 'misc',
-            'myth': 'misc',
-            'product': 'misc',
-            'event': 'misc',
-            'other': 'misc',
-        }
+        return dict()
+        # return {
+        #     'animal': 'misc',
+        #     'myth': 'misc',
+        #     'product': 'misc',
+        #     'event': 'misc',
+        #     'other': 'misc',
+        # }
 
     def format_data(self):
         """
