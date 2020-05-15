@@ -10,7 +10,7 @@ from mlflow.tracking import MlflowClient
 
 from ner_black_box.utils.env_variable import env_variable
 from ner_black_box.utils.util_functions import epoch2checkpoint
-from ner_black_box.utils.util_functions import get_run_name, compute_mean_and_std
+from ner_black_box.utils.util_functions import get_run_name, compute_mean_and_dmean
 
 
 class NerBlackBoxMain:
@@ -511,10 +511,10 @@ class NerBlackBoxMain:
                 for run_name in runs_name
             }
 
-            def get_mean_and_std(_parameters_runs, phase):
+            def get_mean_and_dmean(_parameters_runs, phase):
                 values = [_parameters_runs[('metrics', f'epoch_best_{phase}_chk_f1_micro')][idx]
                           for idx in indices[run_name]]
-                return compute_mean_and_std(values)
+                return compute_mean_and_dmean(values)
 
             #######################
             # loop over runs_name
@@ -530,13 +530,13 @@ class NerBlackBoxMain:
                     _parameters_runs_average[key].append(_parameters_runs[key][random_index])
 
                 # add ('metrics', *)
-                val_mean, val_std = get_mean_and_std(_parameters_runs, 'val')
-                test_mean, test_std = get_mean_and_std(_parameters_runs, 'test')
+                val_mean, val_dmean = get_mean_and_dmean(_parameters_runs, 'val')
+                test_mean, test_dmean = get_mean_and_dmean(_parameters_runs, 'test')
                 metrics = {
                     'epoch_best_val_chk_f1_micro': val_mean,
-                    'd_epoch_best_val_chk_f1_micro': val_std,
+                    'd_epoch_best_val_chk_f1_micro': val_dmean,
                     'epoch_best_test_chk_f1_micro': test_mean,
-                    'd_epoch_best_test_chk_f1_micro': test_std,
+                    'd_epoch_best_test_chk_f1_micro': test_dmean,
                 }
                 for k in metrics.keys():
                     key = ('metrics', k)
@@ -544,26 +544,22 @@ class NerBlackBoxMain:
 
             return _parameters_runs_average
 
-        parameters_runs_average = average(parameters_runs)
-
         ###########################################
         # sort & return
         ###########################################
-        if verbose:
-            print()
-            print('parameters_experiment:', parameters_experiment)
-            print()
-            print('parameters_runs:', parameters_runs)
-            print()
-            print('parameters_runs_average:', parameters_runs_average)
+        by = ('metrics', 'epoch_best_val_chk_f1_micro')
+        try:
+            _single_runs = pd.DataFrame(parameters_runs).sort_values(by=by, ascending=False)
+        except:
+            _single_runs = None
 
         try:
-            by = ('metrics', 'epoch_best_val_chk_f1_micro')
-            _single_runs = pd.DataFrame(parameters_runs).sort_values(by=by, ascending=False)
+            parameters_runs_average = average(parameters_runs)
             _average_runs = pd.DataFrame(parameters_runs_average).sort_values(by=by, ascending=False)
-            return _experiment, _single_runs, _average_runs
         except:
-            return None, None, None
+            _average_runs = None
+
+        return _experiment, _single_runs, _average_runs
 
     ####################################################################################################################
     # ADDITONAL HELPER

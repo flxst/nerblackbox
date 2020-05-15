@@ -166,18 +166,18 @@ def get_run_name_nr(_run_name, _run_nr):
     return f'{_run_name}-{_run_nr}'
 
 
-def compute_mean_and_std(values):
+def compute_mean_and_dmean(values):
     """
-    compute mean and standard deviation
-    -----------------------------------
+    compute mean and its error dmean = std deviation / sqrt(N)
+    ----------------------------------------------------------
     :param values: [list / np array] of [float]
-    :return: mean [float]
-    :return: std  [float]
+    :return: mean  [float]
+    :return: dmean [float]
     """
     if len(values) == 1:
         return values[0], None
     elif len(values) > 1:
-        return np.mean(values), np.std(values)
+        return np.mean(values), np.std(values)/np.sqrt(len(values))
     else:
-        raise Exception(f'cannot compute mean and std of empty list!')
+        raise Exception(f'cannot compute mean and dmean of empty list!')
 

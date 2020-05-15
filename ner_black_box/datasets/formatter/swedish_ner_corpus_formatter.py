@@ -46,11 +46,10 @@ class SwedishNerCorpusFormatter(BaseFormatter):
         -------------------------------------
         :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
-        return dict()
-        # return {
-        #     'ORG*': 'ORG',
-        #     'PRG': 'O',
-        # }
+        return {
+            'ORG*': 'ORG',
+            'PRG': 'O',
+        }
 
     def format_data(self):
         """

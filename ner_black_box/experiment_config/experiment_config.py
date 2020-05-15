@@ -35,6 +35,10 @@ class ExperimentConfig:
         if not os.path.isfile(self.config_path):
             raise Exception(f'config file at {self.config_path} does not exist')
 
+        self.config_path_default = join(env_variable('DIR_EXPERIMENT_CONFIGS'), 'default.ini')
+        if not os.path.isfile(self.config_path_default):
+            raise Exception(f'default config file at {self.config_path_default} does not exist')
+
     def get_params_and_hparams(self, run_name_nr: str = None):
         """
         get dictionary of all parameters & their values that belong to
@@ -44,10 +48,13 @@ class ExperimentConfig:
         :param run_name_nr:          [str]  e.g. 'runA-1'
         :return: params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
         """
-        config, config_dict = self._get_config()
+        _, config_dict_default = self._get_config(default=True)
+        config, config_dict = self._get_config(default=False)
 
         if run_name_nr is None:
-            params_and_hparams = config_dict['params']
+            params_and_hparams = config_dict_default['params']
+            params_and_hparams.update(config_dict_default['hparams'])
+            params_and_hparams.update(config_dict['params'])
             params_and_hparams.update(config_dict['hparams'])
         else:
             run_name = get_run_name(run_name_nr)
@@ -66,9 +73,14 @@ class ExperimentConfig:
                  _runs_hparams [dict] w/ keys = run [str], values = hparams [dict],
                                       e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
-        config, config_dict = self._get_config()
-        multiple_runs = config_dict['params']['multiple_runs']
-        print('multiple_runs', multiple_runs)
+        _, config_dict_default = self._get_config(default=True)
+        config, config_dict = self._get_config(default=False)
+        if 'params' in config_dict.keys() and 'multiple_runs' in config_dict['params'].keys():
+            multiple_runs = config_dict['params']['multiple_runs']
+        elif 'params' in config_dict_default.keys() and 'multiple_runs' in config_dict_default['params'].keys():
+            multiple_runs = config_dict_default['params']['multiple_runs']
+        else:
+            raise Exception(f'multiple runs is neither specified in the experiment config nor in the default config.')
 
         # _params_config & _hparams_config
         _runs_params = dict()
@@ -93,10 +105,12 @@ class ExperimentConfig:
                 'fp16': self.fp16,
                 'experiment_run_name_nr': f'{self.experiment_name}/{run_name_nr}',
             }
+            _run_params.update(config_dict_default['params'])
             _run_params.update(config_dict['params'])
 
             # _run_hparams
             _run_hparams = dict()
+            _run_hparams.update(config_dict_default['hparams'])
             _run_hparams.update(config_dict['hparams'])
 
             for k, v in config_dict[run_name].items():
@@ -118,23 +132,34 @@ class ExperimentConfig:
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
-    def _get_config(self):
+    def _get_config(self, default: bool = False):
         """
         get ConfigParser instance and derive config dictionary from it
         --------------------------------------------------------------
+        :param default:        [bool] if True, get default configuration instead of experiment
         :return: _config:      [ConfigParser instance]
         :return: _config_dict: [dict] w/ keys = sections [str], values = [dict] w/ params: values
         """
         _config = ConfigParser()
-        _config.read(self.config_path)
+        _config.read(self.config_path_default if default else self.config_path)
         _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}  # {'hparams': {'monitor': 'val_loss'}}
         _config_dict = {s: {k: self._convert(k, v) for k, v in subdict.items()} for s, subdict in _config_dict.items()}
 
         # combine sections 'dataset', 'model' & 'settings' to single section 'params'
         _config_dict['params'] = dict()
         for s in ['dataset', 'model', 'settings']:
-            _config_dict['params'].update(_config_dict[s])
-            _config_dict.pop(s)
+            if s in _config_dict.keys():
+                _config_dict['params'].update(_config_dict[s])
+                _config_dict.pop(s)
+
+        # derive uncased
+        if 'uncased' not in _config_dict['params'].keys() and 'pretrained_model_name' in _config_dict['params']:
+            if 'uncased' in _config_dict['params']['pretrained_model_name']:
+                _config_dict['params']['uncased'] = True
+            elif 'cased' in _config_dict['params']['pretrained_model_name']:
+                _config_dict['params']['uncased'] = False
+            else:
+                raise Exception('cannot derive uncased = True/False from pretrained_model_name.')
 
         return _config, _config_dict
 

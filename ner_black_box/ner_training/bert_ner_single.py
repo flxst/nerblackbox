@@ -96,6 +96,7 @@ def print_run_information(_params, _hparams, _logger):
     _logger.log_info('..')
     _logger.log_info(f'> checkpoints:           {_params.checkpoints}')
     _logger.log_info(f'> logging_level:         {_params.logging_level}')
+    _logger.log_info(f'> multiple_runs:         {_params.multiple_runs}')
     _logger.log_info('')
     _logger.log_info('- HPARAMS ----------------------------------------')
     _logger.log_info(f'> batch_size:       {_hparams.batch_size}')

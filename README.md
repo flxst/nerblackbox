@@ -48,7 +48,8 @@ data/
         └── val.csv
         └── test.csv
 └── experiment_configs
-    └── exp_default.ini
+    └── default.ini
+    └── exp0.ini
 └── pretrained_models       # custom model checkpoints
 └── results
 ```
@@ -66,7 +67,7 @@ file in `./data/experiment_configs/<experiment_name>.ini`
 - Note that an experiment can entail multiple training runs with different 
 hyperparameter combinations.
 
-- See `./data/experiment_configs/exp_default.ini` for an example
+- See `./data/experiment_configs/exp0.ini` for an example
 
 ---
 Once an experiment is defined, the following commands can be used to 
