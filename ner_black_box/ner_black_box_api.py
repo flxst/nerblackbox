@@ -87,8 +87,8 @@ class NerBlackBoxApi:
         """
         nerbb = NerBlackBoxMain('get_experiment_results', experiment_name=experiment_name, usage='api')
         namespace = dict()
-        namespace['experiment'], namespace['runs'], namespace['best_run'], namespace['best_model'] = \
-            nerbb.main()
+        namespace['experiment'], namespace['single_runs'], namespace['average_runs'], \
+            namespace['best_single_run'], namespace['best_average_run'], namespace['best_model'] = nerbb.main()
         return Namespace(**namespace)
 
     @staticmethod
@@ -97,6 +97,8 @@ class NerBlackBoxApi:
         return nerbb.main(ids, as_df)
 
     @staticmethod
-    def get_experiments_best_runs(ids: tuple = (), as_df: bool = True):
-        nerbb = NerBlackBoxMain('get_experiments_best_runs', usage='api')
-        return nerbb.main(ids, as_df)
+    def get_experiments_results(ids: tuple = (), as_df: bool = True):
+        nerbb = NerBlackBoxMain('get_experiments_results', usage='api')
+        namespace = dict()
+        namespace['best_single_runs'], namespace['best_average_runs'] = nerbb.main(ids, as_df)
+        return Namespace(**namespace)

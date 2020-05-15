@@ -16,7 +16,7 @@ from ner_black_box.ner_black_box_main import NerBlackBoxMain
 @click.option("--run_experiment",            "flag", help="flag", flag_value='run_experiment')
 @click.option("--get_experiment_results",    "flag", help="flag", flag_value='get_experiment_results')
 @click.option("--get_experiments",           "flag", help="flag", flag_value='get_experiments')
-@click.option("--get_experiments_best_runs", "flag", help="flag", flag_value='get_experiments_best_runs')
+@click.option("--get_experiments_results",   "flag", help="flag", flag_value='get_experiments_results')
 @click.option("--mlflow",                    "flag", help="flag", flag_value='mlflow')
 @click.option("--tensorboard",               "flag", help="flag", flag_value='tensorboard')
 @click.option("--with_tags",       default=None,    help="--set_up_dataset")
@@ -52,6 +52,7 @@ def main(data_dir, **kwargs_optional):
             'show_experiment_config',
             'run_experiment',
             'get_experiment_results',
+            'get_experiments_results',
         ]
         dataset_flags = [
             'set_up_dataset',

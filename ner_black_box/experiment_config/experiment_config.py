@@ -4,6 +4,7 @@ from os.path import join
 from configparser import ConfigParser
 from ner_black_box.utils.util_functions import get_hardcoded_parameters
 from ner_black_box.utils.util_functions import env_variable
+from ner_black_box.utils.util_functions import get_run_name, get_run_name_nr
 from itertools import product
 
 
@@ -34,14 +35,6 @@ class ExperimentConfig:
         if not os.path.isfile(self.config_path):
             raise Exception(f'config file at {self.config_path} does not exist')
 
-    @staticmethod
-    def _get_run_name(_run_name_nr):
-        return _run_name_nr.split('-')[0]
-
-    @staticmethod
-    def _get_run_name_nr(_run_name, _run_nr):
-        return f'{_run_name}-{_run_nr}'
-
     def get_params_and_hparams(self, run_name_nr: str = None):
         """
         get dictionary of all parameters & their values that belong to
@@ -57,7 +50,7 @@ class ExperimentConfig:
             params_and_hparams = config_dict['params']
             params_and_hparams.update(config_dict['hparams'])
         else:
-            run_name = self._get_run_name(run_name_nr)
+            run_name = get_run_name(run_name_nr)
             params_and_hparams = config_dict[run_name]
 
         return params_and_hparams
@@ -89,7 +82,7 @@ class ExperimentConfig:
 
         _runs_name_nr = list()
         for run_name, run_nr in product(run_names, list(range(1, multiple_runs+1))):
-            run_name_nr = self._get_run_name_nr(run_name, run_nr)
+            run_name_nr = get_run_name_nr(run_name, run_nr)
 
             # _run_params
             _run_params = {

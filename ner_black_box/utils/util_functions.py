@@ -1,5 +1,6 @@
 
 import os
+import numpy as np
 from os.path import join
 from argparse import Namespace
 import pkg_resources
@@ -146,4 +147,37 @@ def epoch2checkpoint(_epoch):
     :return _checkpoint_name: [str], e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
     """
     return f'epoch={_epoch}.ckpt'
+
+
+def get_run_name(_run_name_nr):
+    """
+    :param _run_name_nr: [str], e.g. 'runA-1'
+    :return: _run_name:  [str], e.g. 'runA'
+    """
+    return _run_name_nr.split('-')[0]
+
+
+def get_run_name_nr(_run_name, _run_nr):
+    """
+    :param _run_name:      [str], e.g. 'runA'
+    :param _run_nr:        [int], e.g. 1
+    :return: _run_name_nr: [str], e.g. 'runA-1'
+    """
+    return f'{_run_name}-{_run_nr}'
+
+
+def compute_mean_and_std(values):
+    """
+    compute mean and standard deviation
+    -----------------------------------
+    :param values: [list / np array] of [float]
+    :return: mean [float]
+    :return: std  [float]
+    """
+    if len(values) == 1:
+        return values[0], None
+    elif len(values) > 1:
+        return np.mean(values), np.std(values)
+    else:
+        raise Exception(f'cannot compute mean and std of empty list!')
 

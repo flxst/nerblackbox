@@ -106,10 +106,12 @@ nerbb --get_experiment_results <experiment_name>  # prints overview on runs
 # Python API
 experiment_results = nerbb.get_experiment_results(<experiment_name>)
 
-experiment_results.experiment  # data frame with overview on experiment
-experiment_results.runs        # data frame with overview on runs
-experiment_results.best_run    # dictionary with overview on best run
-experiment_results.best_model  # pytorch model  
+experiment_results.experiment        # data frame with overview on experiment
+experiment_results.single_runs       # data frame with overview on single runs
+experiment_results.average_runs      # data frame with overview on average runs
+experiment_results.best_single_run   # dictionary with overview on best single run
+experiment_results.best_average_run  # dictionary with overview on best average run
+experiment_results.best_model        # pytorch model of best single run  
 ```
         
 e. Use best model for predictions (only python API):
@@ -137,10 +139,12 @@ nerbb.get_experiments()
 b. Get Best Runs Overview:
 ```
 # CLI
-nerbb --get_experiments_best_runs
+nerbb --get_experiments_results
 
 # Python API
-nerbb.get_experiments_best_runs()
+experiments_results = nerbb.get_experiments_results()
+experiments_results.best_single_runs    # data frame with overview on best single runs
+experiments_results.best_average_runs   # data frame with overview on best average runs
 ```
         
 ## Datasets and Models

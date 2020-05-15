@@ -10,6 +10,7 @@ from mlflow.tracking import MlflowClient
 
 from ner_black_box.utils.env_variable import env_variable
 from ner_black_box.utils.util_functions import epoch2checkpoint
+from ner_black_box.utils.util_functions import get_run_name, compute_mean_and_std
 
 
 class NerBlackBoxMain:
@@ -52,8 +53,10 @@ class NerBlackBoxMain:
             self.experiment_name2id = None
 
         self.experiment = None
-        self.runs = None
-        self.best_run = None
+        self.single_runs = None
+        self.average_runs = None
+        self.best_single_run = None
+        self.best_average_run = None
         self.best_model = None
 
     def main(self, ids=(), as_df=True):
@@ -115,9 +118,9 @@ class NerBlackBoxMain:
         ################################################################################################################
         # --get_experiments_best_runs
         ################################################################################################################
-        elif self.flag == 'get_experiments_best_runs':
+        elif self.flag == 'get_experiments_results':
             assert self.usage in ['cli', 'api'], 'missing usage'
-            return self.get_experiments_best_runs(ids, as_df)
+            return self.get_experiments_results(ids, as_df)
 
     @staticmethod
     def create_data_directory():
@@ -270,17 +273,23 @@ class NerBlackBoxMain:
             return None, None, None, None
 
         experiment_id = self.experiment_name2id[self.experiment_name]
-        self.experiment, self.runs, self.best_run = self._get_single_experiment_results(experiment_id)
+        self.experiment, self.single_runs, self.average_runs, self.best_single_run, self.best_average_run = \
+            self._get_single_experiment_results(experiment_id)
 
         if self.usage == 'cli':
-            print(self.runs)
+            print('### single runs ###')
+            print(self.single_runs)
+            print()
+            print('### average runs ###')
+            print(self.average_runs)
         else:
-            if self.best_run['checkpoint'] is not None:
-                self.best_model = LightningNerModelPredict.load_from_checkpoint(self.best_run['checkpoint'])
+            if self.best_single_run['checkpoint'] is not None:
+                self.best_model = LightningNerModelPredict.load_from_checkpoint(self.best_single_run['checkpoint'])
             else:
                 self.best_model = None
 
-            return self.experiment, self.runs, self.best_run, self.best_model
+            return self.experiment, self.single_runs, self.average_runs, \
+                self.best_single_run, self.best_average_run, self.best_model
 
     ####################################################################################################################
     # SINGLE EXPERIMENT: HELPER
@@ -288,42 +297,66 @@ class NerBlackBoxMain:
     def _get_single_experiment_results(self, experiment_id: str, verbose: bool = False):
         """
         :param experiment_id: [str], e.g. '0'
-        :return: _experiment: [pandas DataFrame] overview on experiment parameters
-        :return: _runs:       [pandas DataFrame] overview on run parameters & results
-        :return: _best_run:   [dict] overview on best run parameters & results
+        :return: _experiment:       [pandas DataFrame] overview on experiment parameters
+        :return: _single_runs:      [pandas DataFrame] overview on run parameters & single  results
+        :return: _average_runs:     [pandas DataFrame] overview on run parameters & average results
+        :return: _best_single_run:  [dict] overview on best run parameters & single  results
+        :return: _best_average_run: [dict] overview on best run parameters & average results
         """
         experiment_name = self.experiment_id2name[experiment_id]
         runs = self.client.search_runs(experiment_id)
 
-        _experiment, _runs = self._parse_and_create_dataframe(runs, verbose=verbose)
+        _experiment, _single_runs, _average_runs = self._parse_and_create_dataframe(runs, verbose=verbose)
 
-        if _experiment is not None and _runs is not None:
-            _df_best_run = _runs.iloc[0, :]
-            best_run_id = _df_best_run[('info', 'run_id')]
-            best_run_name_nr = _df_best_run[('info', 'run_name_nr')]
-            best_run_epoch_best = _df_best_run[('metrics', 'epoch_best')]
-            best_run_epoch_best_val_chk_f1_micro = _df_best_run[('metrics', 'epoch_best_val_chk_f1_micro')]
-            best_run_epoch_best_test_chk_f1_micro = _df_best_run[('metrics', 'epoch_best_test_chk_f1_micro')]
+        # best run
+        if _experiment is not None and _single_runs is not None:
+            _df_best_single_run = _single_runs.iloc[0, :]
+            best_single_run_id = _df_best_single_run[('info', 'run_id')]
+            best_single_run_name_nr = _df_best_single_run[('info', 'run_name_nr')]
+            best_single_run_epoch_best = _df_best_single_run[('metrics', 'epoch_best')]
+            best_single_run_epoch_best_val_chk_f1_micro = _df_best_single_run[('metrics', 'epoch_best_val_chk_f1_micro')]
+            best_single_run_epoch_best_test_chk_f1_micro = _df_best_single_run[('metrics', 'epoch_best_test_chk_f1_micro')]
 
             checkpoint = join(
                 env_variable('DIR_CHECKPOINTS'),
                 experiment_name,
-                best_run_name_nr,
-                epoch2checkpoint(best_run_epoch_best),
+                best_single_run_name_nr,
+                epoch2checkpoint(best_single_run_epoch_best),
             )
 
-            _best_run = {
+            _best_single_run = {
                 'experiment_id': experiment_id,
                 'experiment_name': experiment_name,
-                'run_id': best_run_id,
-                'run_name_nr': best_run_name_nr,
-                'epoch_best_val_chk_f1_micro': best_run_epoch_best_val_chk_f1_micro,
-                'epoch_best_test_chk_f1_micro': best_run_epoch_best_test_chk_f1_micro,
+                'run_id': best_single_run_id,
+                'run_name_nr': best_single_run_name_nr,
+                'epoch_best_val_chk_f1_micro': best_single_run_epoch_best_val_chk_f1_micro,
+                'epoch_best_test_chk_f1_micro': best_single_run_epoch_best_test_chk_f1_micro,
                 'checkpoint': checkpoint if os.path.isfile(checkpoint) else None,
             }
         else:
-            _best_run = None
-        return _experiment, _runs, _best_run
+            _best_single_run = None
+
+        # best run average
+        if _experiment is not None and _average_runs is not None:
+            _df_best_average_run = _average_runs.iloc[0, :]
+            best_average_run_name = _df_best_average_run[('info', 'run_name')]
+            best_average_run_epoch_best_val_chk_f1_micro = _df_best_average_run[('metrics', 'epoch_best_val_chk_f1_micro')]
+            d_best_average_run_epoch_best_val_chk_f1_micro = _df_best_average_run[('metrics', 'd_epoch_best_val_chk_f1_micro')]
+            best_average_run_epoch_best_test_chk_f1_micro = _df_best_average_run[('metrics', 'epoch_best_test_chk_f1_micro')]
+            d_best_average_run_epoch_best_test_chk_f1_micro = _df_best_average_run[('metrics', 'd_epoch_best_test_chk_f1_micro')]
+
+            _best_average_run = {
+                'experiment_id': experiment_id,
+                'experiment_name': experiment_name,
+                'run_name': best_average_run_name,
+                'epoch_best_val_chk_f1_micro': best_average_run_epoch_best_val_chk_f1_micro,
+                'd_epoch_best_val_chk_f1_micro': d_best_average_run_epoch_best_val_chk_f1_micro,
+                'epoch_best_test_chk_f1_micro': best_average_run_epoch_best_test_chk_f1_micro,
+                'd_epoch_best_test_chk_f1_micro': d_best_average_run_epoch_best_test_chk_f1_micro,
+            }
+        else:
+            _best_average_run = None
+        return _experiment, _single_runs, _average_runs, _best_single_run, _best_average_run
 
     ####################################################################################################################
     # ALL EXPERIMENTS
@@ -342,29 +375,39 @@ class NerBlackBoxMain:
         )
         df = pd.DataFrame(experiments_overview) if as_df else experiments_overview
         if self.usage == 'cli':
+            print('### experiments ###')
             print(df)
         else:
             return df
 
-    def get_experiments_best_runs(self, ids: tuple = (), as_df: bool = False, verbose: bool = False):
+    def get_experiments_results(self, ids: tuple = (), as_df: bool = False, verbose: bool = False):
         """
-        :param ids:   [tuple] of [str], e.g. ('4', '5')
-        :param as_df: [bool] if True, return [pandas DataFrame], else return [dict]
+        :param ids:     [tuple] of [str], e.g. ('4', '5')
+        :param as_df:   [bool] if True, return [pandas DataFrame], else return [dict]
+        :param verbose: [bool]
         :return: best_runs_overview [pandas DataFrame] or [dict]
         """
         experiments_filtered = self._filter_experiments_by_ids(ids)
 
-        best_runs_overview = list()
+        best_single_runs_overview = list()
+        best_average_runs_overview = list()
         for _id in sorted(list(experiments_filtered.keys())):
-            _, _, best_run = self._get_single_experiment_results(_id, verbose=verbose)
-            if best_run:
-                best_runs_overview.append(best_run)
+            _, _, _, best_single_run, best_average_run = self._get_single_experiment_results(_id, verbose=verbose)
+            if best_single_run:
+                best_single_runs_overview.append(best_single_run)
+            if best_average_run:
+                best_average_runs_overview.append(best_average_run)
 
-        df = pd.DataFrame(best_runs_overview) if as_df else best_runs_overview
+        df_single = pd.DataFrame(best_single_runs_overview) if as_df else best_single_runs_overview
+        df_average = pd.DataFrame(best_average_runs_overview) if as_df else best_average_runs_overview
         if self.usage == 'cli':
-            print(df)
+            print('### best single runs ###')
+            print(df_single)
+            print()
+            print('### best average runs ###')
+            print(df_average)
         else:
-            return df
+            return df_single, df_average
 
     ####################################################################################################################
     # ALL EXPERIMENTS: HELPER
@@ -391,12 +434,16 @@ class NerBlackBoxMain:
         ------------------------------------------------------------------
         :param _runs:   [list] of [mlflow.entities.Run objects]
         :param verbose: [bool]
-        :return: _experiment: [pandas DataFrame] overview on experiment parameters
-        :return: _runs:       [pandas DataFrame] overview on run parameters & results
+        :return: _experiment:   [pandas DataFrame] overview on experiment parameters
+        :return: _single_runs:  [pandas DataFrame] overview on single  run parameters & results
+        :return: _average_runs: [pandas DataFrame] overview on average run parameters & results
         """
         fields_metrics = ['epoch_best', 'epoch_stopped', 'epoch_best_val_chk_f1_micro', 'epoch_best_test_chk_f1_micro']
-        parameters_runs = dict()
 
+        ###########################################
+        # parameters_experiment & parameters_runs
+        ###########################################
+        parameters_runs = dict()
         for i in range(len(_runs)):
             if len(_runs[i].data.metrics) == 0:  # experiment
                 parameters_experiment = {k: [v] for k, v in _runs[i].data.params.items()}
@@ -429,24 +476,94 @@ class NerBlackBoxMain:
                         except:
                             parameters_runs[('metrics', k)] = [-1]
 
+        _experiment = pd.DataFrame(parameters_experiment, index=['experiment']).T
         for k in ['epoch_best', 'epoch_stopped']:
             try:
                 parameters_runs[('metrics', k)] = [int(elem) for elem in parameters_runs[('metrics', k)]]
             except:
                 parameters_runs[('metrics', k)] = [-1]
 
+        ###########################################
+        # parameters_runs_average
+        ###########################################
+        def average(_parameters_runs):
+            _parameters_runs_average = {('info', 'run_name'): list()}
+            _parameters_runs_average.update({
+                k: list()
+                for k in _parameters_runs.keys()
+                if k[0] not in ['info', 'metrics']
+            })
+            _parameters_runs_average.update({
+                k: list()
+                for k in [
+                    ('metrics', 'epoch_best_val_chk_f1_micro'),
+                    ('metrics', 'd_epoch_best_val_chk_f1_micro'),
+                    ('metrics', 'epoch_best_test_chk_f1_micro'),
+                    ('metrics', 'd_epoch_best_test_chk_f1_micro'),
+                ]
+            })
+
+            runs_name_nr = _parameters_runs[('info', 'run_name_nr')]
+            nr_runs = len(runs_name_nr)
+            runs_name = list(set([get_run_name(run_name_nr) for run_name_nr in runs_name_nr]))
+            indices = {
+                run_name: [idx for idx in range(nr_runs) if get_run_name(runs_name_nr[idx]) == run_name]
+                for run_name in runs_name
+            }
+
+            def get_mean_and_std(_parameters_runs, phase):
+                values = [_parameters_runs[('metrics', f'epoch_best_{phase}_chk_f1_micro')][idx]
+                          for idx in indices[run_name]]
+                return compute_mean_and_std(values)
+
+            #######################
+            # loop over runs_name
+            #######################
+            for run_name in runs_name:
+                # add ('info', 'run_name')
+                _parameters_runs_average[('info', 'run_name')].append(run_name)
+
+                # add ('params', *)
+                random_index = indices[run_name][0]
+                keys_kept = [k for k in _parameters_runs.keys() if k[0] == 'params']
+                for key in keys_kept:
+                    _parameters_runs_average[key].append(_parameters_runs[key][random_index])
+
+                # add ('metrics', *)
+                val_mean, val_std = get_mean_and_std(_parameters_runs, 'val')
+                test_mean, test_std = get_mean_and_std(_parameters_runs, 'test')
+                metrics = {
+                    'epoch_best_val_chk_f1_micro': val_mean,
+                    'd_epoch_best_val_chk_f1_micro': val_std,
+                    'epoch_best_test_chk_f1_micro': test_mean,
+                    'd_epoch_best_test_chk_f1_micro': test_std,
+                }
+                for k in metrics.keys():
+                    key = ('metrics', k)
+                    _parameters_runs_average[key].append(metrics[k])
+
+            return _parameters_runs_average
+
+        parameters_runs_average = average(parameters_runs)
+
+        ###########################################
+        # sort & return
+        ###########################################
         if verbose:
             print()
             print('parameters_experiment:', parameters_experiment)
             print()
             print('parameters_runs:', parameters_runs)
-        _experiment = pd.DataFrame(parameters_experiment, index=['experiment']).T
+            print()
+            print('parameters_runs_average:', parameters_runs_average)
+
         try:
-            _runs = pd.DataFrame(parameters_runs).sort_values(by=('metrics', 'epoch_best_val_chk_f1_micro'),
-                                                              ascending=False)
-            return _experiment, _runs
+            by = ('metrics', 'epoch_best_val_chk_f1_micro')
+            _single_runs = pd.DataFrame(parameters_runs).sort_values(by=by, ascending=False)
+            _average_runs = pd.DataFrame(parameters_runs_average).sort_values(by=by, ascending=False)
+            return _experiment, _single_runs, _average_runs
         except:
-            return None, None
+            return None, None, None
 
     ####################################################################################################################
     # ADDITONAL HELPER
