@@ -8,7 +8,7 @@ entry_points:
       experiment_name: {type: string}
       run_name: {type: string}
       device: {type: string}
-      fp16: {type: bool}
+      fp16: {type: int}
     command: |
         python scripts/script_run_experiment.py \
         --experiment_name {experiment_name} \
@@ -19,10 +19,10 @@ entry_points:
   set_up_dataset:
     parameters:
       ner_dataset: {type: string}
-      with_tags: {type: bool}
-      modify: {type: bool}
+      with_tags: {type: int}
+      modify: {type: int}
       val_fraction: {type: float}
-      verbose: {type: bool}
+      verbose: {type: int}
     command: |
         python scripts/script_set_up_dataset.py \
         --ner_dataset {ner_dataset} \
@@ -34,7 +34,7 @@ entry_points:
   analyze_data:
     parameters:
       ner_dataset: {type: string}
-      verbose: {type: bool}
+      verbose: {type: int}
     command: |
         python scripts/script_analyze_data.py \
         --ner_dataset {ner_dataset} \

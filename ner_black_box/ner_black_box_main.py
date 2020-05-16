@@ -175,7 +175,7 @@ class NerBlackBoxMain:
             'experiment_name': _experiment_name,
             'run_name': _run_name if _run_name else '',
             'device': _device,
-            'fp16': _fp16,
+            'fp16': int(_fp16),
         }
 
         mlflow.projects.run(

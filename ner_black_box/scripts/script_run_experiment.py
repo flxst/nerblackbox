@@ -40,7 +40,7 @@ def main(params, log_dirs):
             bert_ner_single.main(params, hparams, log_dirs, experiment=True)
 
             # clear gpu memory
-            clear_gpu_memory(device=params.device, verbose=True)#params.logging_level == 'debug')
+            clear_gpu_memory(device=params.device, verbose=params.logging_level == 'debug')
 
 
 def clear_gpu_memory(device, verbose: bool = False):
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     args_general.add_argument('--experiment_name', type=str, required=True)  # .. logging w/ mlflow & tensorboard
     args_general.add_argument('--run_name', type=str, required=True)         # .. logging w/ mlflow & tensorboard
     args_general.add_argument('--device', type=str, required=True)           # .. device
-    args_general.add_argument('--fp16', type=bool, required=True)            # .. device
+    args_general.add_argument('--fp16', type=int, required=True)             # .. device
 
     args = parser.parse_args()
     _params, _log_dirs = _parse_args(parser, args)
