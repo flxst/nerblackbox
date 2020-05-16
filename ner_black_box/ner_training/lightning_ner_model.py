@@ -157,8 +157,8 @@ class LightningNerModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         # REQUIRED
         input_ids, attention_mask, segment_ids, tag_ids = batch
-        outputs = self.forward(input_ids, attention_mask, segment_ids, tag_ids)
-        batch_train_loss, logits = outputs[:2]
+        outputs = self(input_ids, attention_mask, segment_ids, tag_ids)
+        batch_train_loss = outputs[0]
 
         # logging
         self.write_metrics_for_tensorboard('train', {'all+_loss': batch_train_loss})
@@ -191,7 +191,7 @@ class LightningNerModel(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         # OPTIONAL
         input_ids, attention_mask, segment_ids, tag_ids = batch
-        outputs = self.forward(input_ids, attention_mask, segment_ids, tag_ids)
+        outputs = self(input_ids, attention_mask, segment_ids, tag_ids)
         batch_loss, logits = outputs[:2]
 
         # debug
@@ -214,7 +214,7 @@ class LightningNerModel(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         # OPTIONAL
         input_ids, attention_mask, segment_ids, tag_ids = batch
-        outputs = self.forward(input_ids, attention_mask, segment_ids, tag_ids)
+        outputs = self(input_ids, attention_mask, segment_ids, tag_ids)
         batch_loss, logits = outputs[:2]
 
         # debug
