@@ -19,13 +19,13 @@ from ner_black_box.ner_black_box_main import NerBlackBoxMain
 @click.option("--get_experiments_results",   "flag", help="flag", flag_value='get_experiments_results')
 @click.option("--mlflow",                    "flag", help="flag", flag_value='mlflow')
 @click.option("--tensorboard",               "flag", help="flag", flag_value='tensorboard')
-@click.option("--with_tags",       default=None,    help="--set_up_dataset")
-@click.option("--modify",          default=None,    help="--set_up_dataset")
-@click.option("--val_fraction",    default=None,    help="--set_up_dataset")
-@click.option("--verbose",         default=None,    help="--set_up_dataset")
-@click.option("--run_name",        default=None,    help="--run_experiment")
-@click.option("--device",          default=None,    help="--run_experiment")
-@click.option("--fp16",            default=None,    help="--run_experiment")
+@click.option("--with_tags",       default=None, type=bool,  help="--set_up_dataset")
+@click.option("--modify",          default=None, type=bool,  help="--set_up_dataset")
+@click.option("--val_fraction",    default=None, type=float, help="--set_up_dataset")
+@click.option("--verbose",         default=None, type=bool,  help="--set_up_dataset")
+@click.option("--run_name",        default=None, type=str,   help="--run_experiment")
+@click.option("--device",          default=None, type=str,   help="--run_experiment")
+@click.option("--fp16",            default=None, type=bool,  help="--run_experiment")
 def main(data_dir, **kwargs_optional):
 
     # environ

@@ -25,7 +25,7 @@ class NerBlackBoxMain:
                  experiment_name=None,
                  run_name=None,
                  device='gpu',
-                 fp16=True,
+                 fp16=False,
                  usage='cli',
                  ):
         assert flag is not None, 'missing input flag (--init OR --set_up_dataset OR --analyze_data OR --run_experiment)'
@@ -140,7 +140,7 @@ class NerBlackBoxMain:
     def analyze_data(_dataset_name, _verbose):
         _parameters = {
             'ner_dataset': _dataset_name,
-            'verbose': False,
+            'verbose': _verbose,
         }
 
         mlflow.projects.run(
