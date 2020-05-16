@@ -2,6 +2,7 @@
 import argparse
 import torch
 import mlflow
+import gc
 
 import logging
 import warnings
@@ -37,6 +38,39 @@ def main(params, log_dirs):
 
             # bert_ner: single run
             bert_ner_single.main(params, hparams, log_dirs, experiment=True)
+
+            # clear gpu memory
+            clear_gpu_memory(device=params.device, verbose=True)#params.logging_level == 'debug')
+
+
+def clear_gpu_memory(device, verbose: bool = False):
+    """
+    clear object from GPU memory
+    ----------------------------
+    :param device:  [torch device]
+    :param verbose: [bool]
+    :return: -
+    """
+    if device.type == 'cuda':
+        if verbose:
+            print(torch.cuda.memory_summary(device=device))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            object_counter = 0
+            for obj in gc.get_objects():
+                try:
+                    if obj.is_cuda:
+                        object_counter += 1
+                        del obj
+                except:
+                    pass
+            gc.collect()
+            torch.cuda.empty_cache()
+        print(f'> cleared {object_counter} objects from GPU memory')
+
+        if verbose:
+            print(torch.cuda.memory_summary(device=device))
 
 
 def _parse_args(_parser, _args):
