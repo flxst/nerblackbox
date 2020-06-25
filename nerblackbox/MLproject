@@ -1,0 +1,39 @@
+
+name: NerBlackBox project
+
+entry_points:
+
+  run_experiment:
+    parameters:
+      experiment_name: {type: string}
+      run_name: {type: string}
+      device: {type: string}
+      fp16: {type: int}
+    command: |
+        python modules/scripts/script_run_experiment.py \
+        --experiment_name {experiment_name} \
+        --run_name {run_name} \
+        --device {device} \
+        --fp16 {fp16}
+
+  set_up_dataset:
+    parameters:
+      ner_dataset: {type: string}
+      modify: {type: int}
+      val_fraction: {type: float}
+      verbose: {type: int}
+    command: |
+        python modules/scripts/script_set_up_dataset.py \
+        --ner_dataset {ner_dataset} \
+        --modify {modify} \
+        --val_fraction {val_fraction} \
+        --verbose {verbose}
+
+  analyze_data:
+    parameters:
+      ner_dataset: {type: string}
+      verbose: {type: int}
+    command: |
+        python modules/scripts/script_analyze_data.py \
+        --ner_dataset {ner_dataset} \
+        --verbose {verbose}

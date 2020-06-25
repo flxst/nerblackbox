@@ -1,9 +1,9 @@
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def readme():
-    with open('README.md') as f:
+    with open('README.rst') as f:
         return f.read()
 
 
@@ -13,8 +13,8 @@ def requirements():
 
 
 setup(
-    name='ner_black_box',
-    version='0.0.2',
+    name='nerblackbox',
+    version='0.0.4',
     author='Felix Stollenwerk',
     author_email='felix.stollenwerk@arbetsformedlingen.se',
     description='fine-tune pretrained transformer models on the named entity recognition downstream task',
@@ -22,14 +22,15 @@ setup(
     keywords='NLP BERT NER transformer named entity recognition pytorch',
     url='',
     license='Apache',
-    packages=['ner_black_box'],
+    packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     install_requires=requirements(),
     python_requires=">=3.6.0",
-    entry_points={
-        'console_scripts': ['nerbb=ner_black_box.ner_black_box_cli:main'],
-    },
+    entry_points='''
+            [console_scripts]
+            nerbb=nerblackbox.cli:main
+        ''',
     include_package_data=True,
     zip_safe=False,
     classifiers=[
