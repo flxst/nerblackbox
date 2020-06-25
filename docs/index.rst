@@ -31,8 +31,8 @@ Fine-tuning can be done in a few simple steps using either the Command Line Inte
 .. code-block:: python
 
    # CLI
-   nerbb --run_experiment <experiment_name>
-   nerbb --predict <experiment_name> <text_input>
+   nerbb run_experiment <experiment_name>
+   nerbb predict <experiment_name> <text_input>
 
    # Python API
    nerbb = NerBlackBox()
@@ -57,7 +57,8 @@ Table of Contents
    installation
    quickstart
    datasetsandmodels
-   nerblackbox
+   apidocumentation
+
 
 .. Indices and tables
    ==================

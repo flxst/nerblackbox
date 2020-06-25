@@ -1,11 +1,10 @@
 sphinx
 sphinx-autobuild
+sphinx-reload
+sphinx-click
 
 # if using typehints
 sphinx-autodoc-typehints
-
-sphinxcontrib-blockdiag
-sphinxcontrib-examplecode
 
 mock
 autodoc

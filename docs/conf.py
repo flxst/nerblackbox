@@ -51,7 +51,7 @@ release = version
 
 pygments_style = 'sphinx'
 
-extensions = ['sphinx.ext.autodoc', 'sphinx_click.ext', 'sphinxcontrib.blockdiag']
+extensions = ['sphinx.ext.autodoc', 'sphinx_click.ext']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -3,7 +3,12 @@ sphinx-apidoc -f -o . ../nerblackbox ../nerblackbox/modules
 
 sed -e '/Submodule/{N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst                     # remove Submodule + 1 line
 sed -e '/Module contents/{N;N;N;N;N;N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst     # remove Module contents + 6 lines
-sed 's/nerblackbox package/API Documentation/g' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst  # replace
+sed '/nerblackbox package/i \
+  \
+  .. _apidocumentation:\
+  \
+  ' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst                           # replace
+sed 's/nerblackbox package/API Documentation/g' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst                           # replace
 sed '/nerblackbox.api module/i \
 Content: \
 \
@@ -35,3 +40,9 @@ sed 's/nerblackbox.cli module/CLI/g' nerblackbox.rst > temp.rst; mv temp.rst ner
 echo '.. click:: nerblackbox.cli:main
    :prog: nerbb
    :show-nested:' >> nerblackbox.rst
+
+echo "rm ./modules.rst"
+rm modules.rst
+
+echo "mv ./nerblackbox.rst ./apidocumentation.rst"
+mv nerblackbox.rst apidocumentation.rst
