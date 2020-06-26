@@ -1,6 +1,15 @@
 Datasets and Models
 ===================
 
+Content:
+
+- :ref:`builtindatasetsandmodels`
+- :ref:`customdatasets`
+- :ref:`custommodels`
+
+
+.. _builtindatasetsandmodels:
+
 Built-in Datasets & Models
 --------------------------
 **nerblackbox** and its CLI/API (see :ref:`quickstart` and :ref:`apidocumentation`) work out of the box for the built-in datasets and models.
@@ -15,6 +24,9 @@ Built-in Datasets & Models
 - Built-in models:
 
     - All built-in or community-uploaded BERT models of the `transformers library <https://huggingface.co/transformers/>`_
+
+
+.. _customdatasets:
 
 Custom Datasets
 ---------------
@@ -36,6 +48,9 @@ To include your own custom dataset, do the following:
  - Create a new module ``./data/datasets/formatter/<new_dataset>_formatter.py``
  - Derive the class ``<NewDataset>Formatter`` from ``BaseFormatter`` and implement the abstract base methods
  - (todo: additional instructions needed here)
+
+
+.. _custommodels:
 
 Custom Models
 -------------

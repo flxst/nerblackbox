@@ -56,8 +56,8 @@ Table of Contents
 
    installation
    quickstart
-   datasetsandmodels
    apidocumentation
+   datasetsandmodels
 
 
 .. Indices and tables

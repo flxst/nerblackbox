@@ -2,6 +2,7 @@
 sphinx-apidoc -f -o . ../nerblackbox ../nerblackbox/modules
 
 sed -e '/Submodule/{N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst                     # remove Submodule + 1 line
+sed -e '/Subpackages/{N;N;N;N;N;N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst         # remove Submodule + 6 lines
 sed -e '/Module contents/{N;N;N;N;N;N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst     # remove Module contents + 6 lines
 sed '/nerblackbox package/i \
   \
@@ -40,6 +41,9 @@ sed 's/nerblackbox.cli module/CLI/g' nerblackbox.rst > temp.rst; mv temp.rst ner
 echo '.. click:: nerblackbox.cli:main
    :prog: nerbb
    :show-nested:' >> nerblackbox.rst
+
+echo "rm ./nerblackbox.tests.rst"
+rm nerblackbox.tests.rst
 
 echo "rm ./modules.rst"
 rm modules.rst
