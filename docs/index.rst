@@ -7,7 +7,18 @@
 nerblackbox
 ===========
 
-A python package to seamlessly fine-tune transformer models for Named Entity Recognition
+A python package to smoothly fine-tune transformer-based models for Named Entity Recognition.
+
+About
+=====
+
+`Transformer-based models <https://arxiv.org/abs/1706.03762>`_ like `BERT <https://arxiv.org/abs/1810.04805>`_ have had a `game-changing impact <https://paperswithcode.com/task/language-modelling>`_ on Natural Language Processing.
+
+In order to utilize the `publicly accessible pretrained models <https://huggingface.co/transformers/pretrained_models.html>`_ for
+`Named Entity Recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_,
+one needs to retrain (or "fine-tune") them using labeled text.
+
+**nerblackbox** makes this easy.
 
 .. image:: _static/nerblackbox.png
   :width: 600
@@ -24,9 +35,17 @@ and you get
 - its **Performance** on the dataset
 
 Usage
-----------------------------
+-----
 
-Fine-tuning can be done in a few simple steps using either the Command Line Interface (CLI) or the Python API:
+Fine-tuning can be done in a few simple steps using an "experiment configuration"
+
+.. code-block:: python
+
+   # <experiment_name> configuration file
+   dataset_name = swedish_ner_corpus
+   pretrained_model_name = af-ai-center/bert-base-swedish-uncased
+
+and either the Command Line Interface (CLI) or the Python API:
 
 .. code-block:: python
 

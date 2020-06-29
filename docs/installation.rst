@@ -1,8 +1,11 @@
 Installation
 ============
 
-From Source:
+- from PyPI:
 
-1. Clone this repository: ``git clone <url>``
-2. Install package: ``pip install .``
-3. Install GPU support (recommended): ``bash setup_gpu_support.sh``
+    ``pip install nerblackbox``
+
+- from source:
+
+    1. clone the repo: ``git clone <url>``
+    2. install package: ``pip install .``

@@ -17,7 +17,7 @@ setup(
     version='0.0.4',
     author='Felix Stollenwerk',
     author_email='felix.stollenwerk@arbetsformedlingen.se',
-    description='fine-tune pretrained transformer models on the named entity recognition downstream task',
+    description='fine-tune pretrained transformer-based models for named entity recognition',
     long_description=readme(),
     keywords='NLP BERT NER transformer named entity recognition pytorch',
     url='',
