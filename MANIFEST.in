@@ -1,3 +1,4 @@
+include requirements.txt
 include nerblackbox/MLproject
 include nerblackbox/modules/data/datasets/*
 include nerblackbox/modules/data/pretrained_models/*

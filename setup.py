@@ -1,20 +1,23 @@
 
 from setuptools import setup, find_packages
+import pathlib
+
+BASE_DIR = pathlib.Path(__file__).parent.resolve()
 
 
 def readme():
-    with open('README.rst') as f:
+    with open(f'{BASE_DIR}/README.rst') as f:
         return f.read()
 
 
 def requirements():
-    with open('requirements.txt') as f:
+    with open(f'{BASE_DIR}/requirements.txt') as f:
         return f.read().splitlines()
 
 
 setup(
     name='nerblackbox',
-    version='0.0.4',
+    version='0.0.5',
     author='Felix Stollenwerk',
     author_email='felix.stollenwerk@arbetsformedlingen.se',
     description='fine-tune pretrained transformer-based models for named entity recognition',
@@ -38,6 +41,7 @@ setup(
         'Development Status :: 2 - Pre-Alpha',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Operating System :: Unix',
         'Topic :: Text Processing :: Linguistic',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
