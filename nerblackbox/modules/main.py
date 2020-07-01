@@ -608,7 +608,7 @@ class NerBlackBoxMain:
     ####################################################################################################################
     @staticmethod
     def _assert_flag(flag):
-        if flag is not None:
+        if flag is None:
             message = f'> missing flag (e.g. init, set_up_dataset, run_experiment)'
             print(message)
             exit(0)

@@ -98,8 +98,6 @@ def main(**kwargs_optional):
     # print('BASE_DIR = ', os.environ.get('BASE_DIR'))
     # print('DATA_DIR = ', os.environ.get('DATA_DIR'))
 
-    print(kwargs)
-
     if 'flag' not in kwargs.keys():
         print('need to specify flag (see --help)')
         exit(0)
