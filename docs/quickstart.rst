@@ -87,7 +87,7 @@ A single experiment is defined through a configuration file in ``./data/experime
 2b. Run an experiment
 ^^^^^^^^^^^^^^^^^^^^^
 
-Once a single experiment is defined, the following commands can be used to run it.
+Once a single experiment is defined, the following command can be used to run it.
 
     .. code-block:: python
 
