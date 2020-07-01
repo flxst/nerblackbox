@@ -18,7 +18,7 @@ In order to utilize the `publicly accessible pretrained models <https://huggingf
 `Named Entity Recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_,
 one needs to retrain (or "fine-tune") them using labeled text.
 
-**nerblackbox** makes this easy.
+**nerblackbox makes this easy.**
 
 .. image:: _static/nerblackbox.png
   :width: 600

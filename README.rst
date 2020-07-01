@@ -13,9 +13,9 @@ In order to utilize the `publicly accessible pretrained models <https://huggingf
 `Named Entity Recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_,
 one needs to retrain (or "fine-tune") them using labeled text.
 
-**nerblackbox** makes this easy.
+**nerblackbox makes this easy.**
 
-![nerblackbox image](docs/_static/nerblackbox.png)
+.. image:: ./docs/_static/nerblackbox.png
 
 You give it
 
@@ -33,16 +33,14 @@ Installation
 
     ``pip install nerblackbox``
 
-See <url> for more details.
-
 Usage
 =====
 
-Fine-tuning can be done in a few simple steps using an "experiment configuration"
+Fine-tuning can be done in a few simple steps using an "experiment configuration file"
 
 .. code-block:: python
 
-   # <experiment_name> configuration file
+   # cat <experiment_name>.ini
    dataset_name = swedish_ner_corpus
    pretrained_model_name = af-ai-center/bert-base-swedish-uncased
 
@@ -62,4 +60,4 @@ and either the Command Line Interface (CLI) or the Python API:
 Documentation
 =============
 
-see <url> for a full documentation
+see https://nerblackbox.readthedocs.io

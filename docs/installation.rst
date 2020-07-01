@@ -7,5 +7,5 @@ Installation
 
 - from source:
 
-    1. clone the repo: ``git clone <url>``
-    2. install package: ``pip install .``
+    1. ``git clone https://github.com/af-ai-center/nerblackbox.git``
+    2. ``pip install .``
