@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datasets and Models &#8212; nerblackbox 0.0.4 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API Documentation" href="apidocumentation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="apidocumentation.html" title="API Documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Datasets and Models</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="datasets-and-models">
+<h1>Datasets and Models<a class="headerlink" href="#datasets-and-models" title="Permalink to this headline">¶</a></h1>
+<p>Content:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#builtindatasetsandmodels"><span class="std std-ref">Built-in Datasets &amp; Models</span></a></p></li>
+<li><p><a class="reference internal" href="#customdatasets"><span class="std std-ref">Custom Datasets</span></a></p></li>
+<li><p><a class="reference internal" href="#custommodels"><span class="std std-ref">Custom Models</span></a></p></li>
+</ul>
+<div class="section" id="built-in-datasets-models">
+<span id="builtindatasetsandmodels"></span><h2>Built-in Datasets &amp; Models<a class="headerlink" href="#built-in-datasets-models" title="Permalink to this headline">¶</a></h2>
+<p><strong>nerblackbox</strong> and its CLI/API (see <a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">Quickstart</span></a> and <a class="reference internal" href="apidocumentation.html#apidocumentation"><span class="std std-ref">API Documentation</span></a>) work out of the box for the built-in datasets and models.</p>
+<ul id="builtindatasets">
+<li><p>Built-in datasets:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>CoNLL2003 (english)</p></li>
+<li><p>Swedish NER Corpus (swedish)</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Built-in models:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>All built-in or community-uploaded BERT models of the <a class="reference external" href="https://huggingface.co/transformers/">transformers library</a></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="custom-datasets">
+<span id="customdatasets"></span><h2>Custom Datasets<a class="headerlink" href="#custom-datasets" title="Permalink to this headline">¶</a></h2>
+<p>To include your own custom dataset, do the following:</p>
+<ul>
+<li><p>Create a folder <code class="docutils literal notranslate"><span class="pre">./data/datasets/&lt;new_dataset&gt;</span></code> with the following files:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">train.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">val.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test.csv</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><dl class="simple">
+<dt>Each row of the respective <code class="docutils literal notranslate"><span class="pre">*.csv</span></code> files has to contain one training sample in the format</dt><dd><p><code class="docutils literal notranslate"><span class="pre">&lt;labels&gt;</span> <span class="pre">&lt;tab&gt;</span> <span class="pre">&lt;text&gt;</span></code>,
+e.g. <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">0</span> <span class="pre">0</span> <span class="pre">0</span> <span class="pre">0</span> <span class="pre">PER</span> <span class="pre">&lt;tab&gt;</span> <span class="pre">this</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">sample</span> <span class="pre">with</span> <span class="pre">a</span> <span class="pre">person</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="custom-models">
+<span id="custommodels"></span><h2>Custom Models<a class="headerlink" href="#custom-models" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>To include your own custom model, do the following:</dt><dd><ul>
+<li><p>Create a new folder <code class="docutils literal notranslate"><span class="pre">./data/pretrained_model/&lt;new_model&gt;</span></code> with the following files:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">config.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pytorch_model.bin</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vocab.txt</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<blockquote>
+<div><p>The folder name must include the architecture type, e.g. <code class="docutils literal notranslate"><span class="pre">bert</span></code></p>
+</div></blockquote>
+</dd>
+</dl>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apidocumentation.html">API Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Datasets and Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#built-in-datasets-models">Built-in Datasets &amp; Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-datasets">Custom Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-models">Custom Models</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="apidocumentation.html" title="API Documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Datasets and Models</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Arbetsförmedlingen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation &#8212; nerblackbox 0.0.4 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Datasets and Models" href="datasetsandmodels.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="datasetsandmodels.html" title="Datasets and Models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quickstart"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API Documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-documentation">
+<span id="apidocumentation"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Content:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#python-api"><span class="std std-ref">Python API</span></a></p></li>
+<li><p><a class="reference internal" href="#cli"><span class="std std-ref">CLI</span></a></p></li>
+</ul>
+<div class="section" id="module-nerblackbox.api">
+<span id="id1"></span><span id="python-api"></span><h2>Python API<a class="headerlink" href="#module-nerblackbox.api" title="Permalink to this headline">¶</a></h2>
+<p>Python API of the nerblackbox package.</p>
+<dl class="py class">
+<dt id="nerblackbox.api.NerBlackBoxApi">
+<em class="property">class </em><code class="sig-prename descclassname">nerblackbox.api.</code><code class="sig-name descname">NerBlackBoxApi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_dir</span><span class="o">=</span><span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">data_dir</span><span class="o">=</span><span class="default_value">'./data'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>class that provides Python API for all nerblackbox functionalities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_dir</strong> – [str] relative path of base directory with respect to current directory</p></li>
+<li><p><strong>data_dir</strong> – [str] relative path of data directory with respect to current directory</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.analyze_data">
+<code class="sig-name descname">analyze_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.analyze_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>analyze a dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset_name</strong> – [str] e.g. ‘swedish_ner_corpus’</p></li>
+<li><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘verbose’: [bool]}</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.get_experiment_results">
+<code class="sig-name descname">get_experiment_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.get_experiment_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>get results for a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>experiment_results: [ExperimentResults] instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.get_experiments">
+<code class="sig-name descname">get_experiments</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.get_experiments" title="Permalink to this definition">¶</a></dt>
+<dd><p>show list of experiments that have been run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘ids’: [tuple of int], ‘as_df’: [bool]}</p>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>experiments_overview: [pandas DataFrame] or [dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.get_experiments_results">
+<code class="sig-name descname">get_experiments_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.get_experiments_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>get results from multiple experiments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘ids’: [tuple of int], ‘as_df’: [bool]}</p>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>experiments_results: [dict] w/ keys = ‘best_single_runs’, ‘best_average_runs’
+&amp; values = [pandas DataFrame] or [dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.init">
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>initialize the data_dir directory, download &amp; prepare built-in datasets, prepare experiment configuration.
+needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">text_input</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>predict labels for text_input using the best model of a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p></li>
+<li><p><strong>text_input</strong> – [str or list of str], e.g. ‘this text needs to be tagged’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.run_experiment">
+<code class="sig-name descname">run_experiment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.run_experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>run a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p></li>
+<li><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘run_name’: [str], ‘device’: [torch device], ‘fp16’: [bool]}</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.set_up_dataset">
+<code class="sig-name descname">set_up_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.set_up_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>set up a dataset using the associated Formatter class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset_name</strong> – [str] e.g. ‘swedish_ner_corpus’</p></li>
+<li><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘modify’: [bool], ‘val_fraction’: [float], ‘verbose’: [bool]}</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.show_experiment_config">
+<code class="sig-name descname">show_experiment_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.show_experiment_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>show a single experiment configuration in detail.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBoxApi.show_experiment_configs">
+<code class="sig-name descname">show_experiment_configs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBoxApi.show_experiment_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>show overview on all available experiment configurations.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-nerblackbox.modules.experiment_results"></span><dl class="py class">
+<dt id="nerblackbox.modules.experiment_results.ExperimentResults">
+<em class="property">class </em><code class="sig-prename descclassname">nerblackbox.modules.experiment_results.</code><code class="sig-name descname">ExperimentResults</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">single_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">average_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_single_run</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_average_run</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_model</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.experiment_results.ExperimentResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>class that contains results of a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment</strong> – [pandas DataFrame] overview on experiment parameters</p></li>
+<li><p><strong>single_runs</strong> – [pandas DataFrame] overview on run parameters &amp; single  results</p></li>
+<li><p><strong>average_runs</strong> – [pandas DataFrame] overview on run parameters &amp; average results</p></li>
+<li><p><strong>best_single_run</strong> – [dict] overview on best run parameters &amp; single  results</p></li>
+<li><p><strong>best_average_run</strong> – [dict] overview on best run parameters &amp; average results</p></li>
+<li><p><strong>best_model</strong> – [LightningNerModelPredict] instance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-nerblackbox.modules.experiments_results"></span><dl class="py class">
+<dt id="nerblackbox.modules.experiments_results.ExperimentsResults">
+<em class="property">class </em><code class="sig-prename descclassname">nerblackbox.modules.experiments_results.</code><code class="sig-name descname">ExperimentsResults</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">best_single_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_average_runs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.experiments_results.ExperimentsResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>class that contains results of multiple experiments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>best_single_runs</strong> – [pandas DataFrame] overview on best single runs</p></li>
+<li><p><strong>best_average_runs</strong> – [pandas DataFrame] overview on best average runs</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="cli">
+<span id="id2"></span><h2>CLI<a class="headerlink" href="#cli" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-nerblackbox.cli"></span><p>Command Line Interface of the nerblackbox package.</p>
+<div class="section" id="nerbb">
+<h3>nerbb<a class="headerlink" href="#nerbb" title="Permalink to this headline">¶</a></h3>
+<dl class="field-list simple">
+<dt class="field-odd">param FLAG</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<ul>
+<li><dl>
+<dt>analyze_data:</dt><dd><p>analyze a dataset.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;dataset_name&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>get_experiment_results:</dt><dd><p>get results for a single experiment.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;experiment_name&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>get_experiments:</dt><dd><p>show list of experiments that have been run.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>get_experiments_results:</dt><dd><p>get results from multiple experiments.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>init:</dt><dd><p>initialize the data_dir directory, download &amp; prepare built-in datasets, prepare experiment configuration.
+needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>mlflow:</dt><dd><p>show detailed experiment results in mlflow (port = 5000)</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>predict:</dt><dd><p>predict labels for text_input using the best model of a single experiment.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;experiment_name&gt;</span> <span class="pre">&lt;text_input&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>run_experiment:</dt><dd><p>run a single experiment.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;experiment_name&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>set_up_dataset:</dt><dd><p>set up a dataset using the associated Formatter class.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;dataset_name&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>show_experiment_config:</dt><dd><p>show a single experiment configuration in detail.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;experiment_name&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>show_experiment_configs:</dt><dd><p>show overview on all available experiment configurations.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>tensorboard:</dt><dd><p>show detailed experiment results in tensorboard. (port = 6006)</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>nerbb <span class="o">[</span>OPTIONS<span class="o">]</span> FLAG <span class="o">[</span>FLAG_ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt id="cmdoption-nerbb-data_dir">
+<code class="sig-name descname">--data_dir</code><code class="sig-prename descclassname"> &lt;data_dir&gt;</code><a class="headerlink" href="#cmdoption-nerbb-data_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] relative path of data directory</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-modify">
+<code class="sig-name descname">--modify</code><code class="sig-prename descclassname"> &lt;modify&gt;</code><a class="headerlink" href="#cmdoption-nerbb-modify" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] if flag=set_up_dataset</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-val_fraction">
+<code class="sig-name descname">--val_fraction</code><code class="sig-prename descclassname"> &lt;val_fraction&gt;</code><a class="headerlink" href="#cmdoption-nerbb-val_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] if flag=set_up_dataset</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-verbose">
+<code class="sig-name descname">--verbose</code><code class="sig-prename descclassname"> &lt;verbose&gt;</code><a class="headerlink" href="#cmdoption-nerbb-verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] if flag=set_up_dataset</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-run_name">
+<code class="sig-name descname">--run_name</code><code class="sig-prename descclassname"> &lt;run_name&gt;</code><a class="headerlink" href="#cmdoption-nerbb-run_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] if flag=run_experiment</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-device">
+<code class="sig-name descname">--device</code><code class="sig-prename descclassname"> &lt;device&gt;</code><a class="headerlink" href="#cmdoption-nerbb-device" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] if flag=run_experiment</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-fp16">
+<code class="sig-name descname">--fp16</code><code class="sig-prename descclassname"> &lt;fp16&gt;</code><a class="headerlink" href="#cmdoption-nerbb-fp16" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] if flag=run_experiment</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt id="cmdoption-nerbb-arg-FLAG">
+<code class="sig-name descname">FLAG</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-arg-FLAG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-arg-FLAG_ARGS">
+<code class="sig-name descname">FLAG_ARGS</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-arg-FLAG_ARGS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-nerblackbox.api">Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli">CLI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasetsandmodels.html">Datasets and Models</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="datasetsandmodels.html" title="Datasets and Models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quickstart"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.4 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API Documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Arbetsförmedlingen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

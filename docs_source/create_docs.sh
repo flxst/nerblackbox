@@ -1,5 +1,15 @@
+
+#########################
+# CREATE AUTODOC *.rst
+#########################
+echo
+echo '=== CREATE AUTODOC ==='
+
 # needs to be run from docs directory
-sphinx-apidoc -f -o . ../nerblackbox ../nerblackbox/modules
+DIR=./source
+
+sphinx-apidoc -f -o ${DIR} ../nerblackbox ../nerblackbox/modules
+cd ${DIR}
 
 sed -e '/Submodule/{N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst                     # remove Submodule + 1 line
 sed -e '/Subpackages/{N;N;N;N;N;N;N;d;}' nerblackbox.rst > temp.rst; mv temp.rst nerblackbox.rst         # remove Submodule + 6 lines
@@ -50,3 +60,18 @@ rm modules.rst
 
 echo "mv ./nerblackbox.rst ./apidocumentation.rst"
 mv nerblackbox.rst apidocumentation.rst
+cd ..
+
+#########################
+# CREATE HTML
+#########################
+echo
+echo '=== CREATE HTML ==='
+make html
+
+#########################
+# COPY TO DOCS
+#########################
+echo
+echo '=== COPY TO DOCS ==='
+cp -r _build/html/* ../docs

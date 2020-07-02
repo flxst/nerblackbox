@@ -1,6 +1,3 @@
-DOCUMENTATION
-=============
-
 HOW TO (RE)CREATE THE DOCUMENTATION
 -----------------------------------
 
@@ -12,9 +9,9 @@ HOW TO (RE)CREATE THE DOCUMENTATION
 
     ``bash create_docs.sh``
 
-HOW TO RENDER THE DOCUMENTATION
--------------------------------
+HOW TO RENDER THE DOCUMENTATION LOCALLY
+---------------------------------------
 
 1. run the following command
 
-    ``sphinx-reload doc``
+    ``sphinx-reload .``
