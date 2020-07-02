@@ -1,6 +1,8 @@
 
 from setuptools import setup, find_packages
 import pathlib
+import os.path
+import codecs
 
 BASE_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -15,9 +17,24 @@ def requirements():
         return f.read().splitlines()
 
 
+def get_package_version(rel_path):
+
+    def read(_rel_path):
+        here = os.path.abspath(os.path.dirname(__file__))
+        with codecs.open(os.path.join(here, _rel_path), 'r') as fp:
+            return fp.read()
+
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
+
+
 setup(
     name='nerblackbox',
-    version='0.0.5',
+    version=get_package_version("nerblackbox/__about__.py"),
     author='Felix Stollenwerk',
     author_email='felix.stollenwerk@arbetsformedlingen.se',
     description='fine-tune pretrained transformer-based models for named entity recognition',

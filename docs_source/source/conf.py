@@ -30,9 +30,6 @@ project = 'nerblackbox'
 copyright = '2020, Arbetsförmedlingen'
 author = 'Felix Stollenwerk'
 
-# The full version, including alpha/beta/rc tags
-release = '0.0.4'
-
 project = nerblackbox.__about__.__project__
 author = nerblackbox.__about__.__author__
 # copyright = u'Copyright 2020 - {0} {1}'.format(date.today().year, author)
