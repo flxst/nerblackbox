@@ -43,7 +43,15 @@
             
   <div class="section" id="nerblackbox">
 <h1>nerblackbox<a class="headerlink" href="#nerblackbox" title="Permalink to this headline">¶</a></h1>
-<p>A python package to smoothly fine-tune transformer-based models for Named Entity Recognition.</p>
+<p>A python package to smoothly fine-tune transformer-based models for Named Entity Recognition (NER).</p>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Source Code: <a class="reference external" href="https://github.com/af-ai-center/nerblackbox">https://github.com/af-ai-center/nerblackbox</a></p></li>
+<li><p>Documentation: <a class="reference external" href="https://af-ai-center.github.io/nerblackbox">https://af-ai-center.github.io/nerblackbox</a></p></li>
+<li><p>PyPI: <a class="reference external" href="https://pypi.org/project/nerblackbox">https://pypi.org/project/nerblackbox</a></p></li>
+</ul>
+</div>
 <div class="section" id="about">
 <h2>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://arxiv.org/abs/1706.03762">Transformer-based models</a> like <a class="reference external" href="https://arxiv.org/abs/1810.04805">BERT</a> have had a <a class="reference external" href="https://paperswithcode.com/task/language-modelling">game-changing impact</a> on Natural Language Processing.</p>
@@ -75,19 +83,19 @@ one needs to retrain (or “fine-tune”) them using labeled text.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CLI</span>
 <span class="n">nerbb</span> <span class="n">run_experiment</span> <span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span>          <span class="c1"># fine-tune</span>
 <span class="n">nerbb</span> <span class="n">get_experiment_results</span> <span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span>  <span class="c1"># get results/performance</span>
-<span class="n">nerbb</span> <span class="n">predict</span> <span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span>    <span class="c1"># apply best model</span>
+<span class="n">nerbb</span> <span class="n">predict</span> <span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span>    <span class="c1"># apply best model for NER</span>
 
 <span class="c1"># Python API</span>
 <span class="n">nerbb</span> <span class="o">=</span> <span class="n">NerBlackBox</span><span class="p">()</span>
 <span class="n">nerbb</span><span class="o">.</span><span class="n">run_experiment</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">)</span>         <span class="c1"># fine-tune</span>
 <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">)</span> <span class="c1"># get results/performance</span>
-<span class="n">nerbb</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span><span class="p">)</span>  <span class="c1"># apply best model</span>
+<span class="n">nerbb</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span><span class="p">)</span>  <span class="c1"># apply best model for NER</span>
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">Quickstart</span></a> for more details.</p>
 </div>
-<div class="section" id="some-features-of-nerblackbox">
-<h2>Some features of nerblackbox<a class="headerlink" href="#some-features-of-nerblackbox" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="some-features">
+<h2>Some features<a class="headerlink" href="#some-features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>GPU support</p></li>
 <li><p>Hyperparameter Search</p></li>

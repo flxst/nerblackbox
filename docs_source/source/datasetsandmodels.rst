@@ -56,6 +56,7 @@ Custom Models
 -------------
 
 To include your own custom model, do the following:
+
  - Create a new folder ``./data/pretrained_model/<new_model>`` with the following files:
 
     - ``config.json``

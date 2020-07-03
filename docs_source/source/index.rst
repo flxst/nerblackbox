@@ -15,8 +15,8 @@ Usage
 
 See :ref:`quickstart` for more details.
 
-Some features of nerblackbox
-============================
+Some features
+=============
 
 * GPU support
 * Hyperparameter Search

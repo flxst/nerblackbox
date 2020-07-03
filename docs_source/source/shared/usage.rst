@@ -13,10 +13,10 @@ and either the Command Line Interface (CLI) or the Python API:
    # CLI
    nerbb run_experiment <experiment_name>          # fine-tune
    nerbb get_experiment_results <experiment_name>  # get results/performance
-   nerbb predict <experiment_name> <text_input>    # apply best model
+   nerbb predict <experiment_name> <text_input>    # apply best model for NER
 
    # Python API
    nerbb = NerBlackBox()
    nerbb.run_experiment(<experiment_name>)         # fine-tune
    nerbb.get_experiment_results(<experiment_name>) # get results/performance
-   nerbb.predict(<experiment_name>, <text_input>)  # apply best model
+   nerbb.predict(<experiment_name>, <text_input>)  # apply best model for NER

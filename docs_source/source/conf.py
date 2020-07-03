@@ -14,12 +14,12 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-import os
+from os.path import split, abspath, join, dirname
 import sys
 # from datetime import date
 
-file_loc = os.path.split(__file__)[0]
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(file_loc), '.')))
+file_loc = split(__file__)[0]
+sys.path.insert(0, abspath(join(dirname(dirname(file_loc)), '.')))
 
 import nerblackbox
 

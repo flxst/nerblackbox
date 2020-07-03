@@ -39,6 +39,7 @@ setup(
     author_email='felix.stollenwerk@arbetsformedlingen.se',
     description='fine-tune pretrained transformer-based models for named entity recognition',
     long_description=readme(),
+    long_description_content_type='text/x-rst',
     keywords='NLP BERT NER transformer named entity recognition pytorch',
     url='',
     license='Apache',
