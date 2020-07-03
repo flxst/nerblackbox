@@ -40,14 +40,21 @@ setup(
     description='fine-tune pretrained transformer-based models for named entity recognition',
     long_description=readme(),
     long_description_content_type='text/x-rst',
-    keywords='NLP BERT NER transformer named entity recognition pytorch',
-    url='',
-    license='Apache',
+    keywords=[
+        'NLP',
+        'NER',
+        'named entity recognition',
+        'BERT',
+        'transformer',
+        'pytorch',
+    ],
+    url='https://pypi.org/project/nerblackbox',
+    license='Apache 2.0',
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     install_requires=requirements(),
-    python_requires=">=3.6.0",
+    python_requires=">=3.6",
     entry_points='''
             [console_scripts]
             nerbb=nerblackbox.cli:main
