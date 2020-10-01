@@ -29,12 +29,7 @@ def get_dataset_path(dataset):
     :param dataset:        [str] dataset name, e.g. 'suc', 'swedish_ner_corpus'
     :return: dataset_path: [str] path to dataset directory
     """
-    if dataset in ['suc', 'swedish_ner_corpus', 'conll2003']:
-        dataset_path = join(env_variable('DIR_DATASETS'), dataset)
-    else:
-        raise Exception(f'dataset = {dataset} unknown.')
-
-    return dataset_path
+    return join(env_variable('DIR_DATASETS'), dataset)
 
 
 def get_hardcoded_parameters(keys=False):
