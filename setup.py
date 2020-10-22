@@ -17,6 +17,11 @@ def requirements():
         return f.read().splitlines()
 
 
+def requirements_dev():
+    with open(f'{BASE_DIR}/requirements_dev.txt') as f:
+        return f.read().splitlines()
+
+
 def get_package_version(rel_path):
 
     def read(_rel_path):
@@ -54,6 +59,9 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     install_requires=requirements(),
+    extras_require={
+        'dev': requirements_dev(),
+    },
     python_requires=">=3.6",
     entry_points='''
             [console_scripts]
