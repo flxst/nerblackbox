@@ -16,7 +16,7 @@ from nerblackbox.modules.main import NerBlackBoxMain
 @click.option("--verbose/--no-verbose", default=False,              help="[bool] if flag=set_up_dataset")
 @click.option("--run_name",             default=None,   type=str,   help="[str] if flag=run_experiment")
 @click.option("--device",               default=None,   type=str,   help="[str] if flag=run_experiment")
-@click.option("--fp16",                 default=None,   type=bool,  help="[bool] if flag=run_experiment")
+@click.option("--fp16/--no-fp16",       default=False,              help="[bool] if flag=run_experiment")
 @click.option("--results/--no-results", default=False,              help="[bool] if flag=clear_data")
 def main(**kwargs_optional):
     r"""
