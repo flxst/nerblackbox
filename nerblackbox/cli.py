@@ -10,13 +10,14 @@ from nerblackbox.modules.main import NerBlackBoxMain
 @click.command()
 @click.argument('flag')
 @click.argument('flag_args', nargs=-1, type=click.UNPROCESSED)
-@click.option("--data_dir",     default='data', type=str, help="[str] relative path of data directory")
-@click.option("--modify",       default=None, type=bool,  help="[bool] if flag=set_up_dataset")
-@click.option("--val_fraction", default=None, type=float, help="[float] if flag=set_up_dataset")
-@click.option("--verbose",      default=None, type=bool,  help="[bool] if flag=set_up_dataset")
-@click.option("--run_name",     default=None, type=str,   help="[str] if flag=run_experiment")
-@click.option("--device",       default=None, type=str,   help="[str] if flag=run_experiment")
-@click.option("--fp16",         default=None, type=bool,  help="[bool] if flag=run_experiment")
+@click.option("--data_dir",             default='data', type=str,   help="[str] relative path of data directory")
+@click.option("--modify",               default=None,   type=bool,  help="[bool] if flag=set_up_dataset")
+@click.option("--val_fraction",         default=None,   type=float, help="[float] if flag=set_up_dataset")
+@click.option("--verbose/--no-verbose", default=False,              help="[bool] if flag=set_up_dataset")
+@click.option("--run_name",             default=None,   type=str,   help="[str] if flag=run_experiment")
+@click.option("--device",               default=None,   type=str,   help="[str] if flag=run_experiment")
+@click.option("--fp16",                 default=None,   type=bool,  help="[bool] if flag=run_experiment")
+@click.option("--results/--no-results", default=False,              help="[bool] if flag=clear_data")
 def main(**kwargs_optional):
     r"""
 
@@ -26,6 +27,9 @@ def main(**kwargs_optional):
         analyze a dataset.
 
         ``FLAG_ARGS = <dataset_name>``
+
+    - clear_data:
+        clear data (checkpoints and optionally results)
 
     - get_experiment_results:
         get results for a single experiment.
@@ -78,6 +82,7 @@ def main(**kwargs_optional):
 
     possible_flags = [
         'analyze_data',
+        'clear_data',
         'get_experiment_results',
         'get_experiments',
         'get_experiments_results',

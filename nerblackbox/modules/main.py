@@ -1,12 +1,12 @@
 
 import os
 import glob
-from os.path import join
+from os.path import join, isfile, isdir
 import mlflow
 import shutil
 from argparse import Namespace
 from pkg_resources import Requirement
-from pkg_resources import resource_filename, resource_isdir, resource_listdir, resource_exists
+from pkg_resources import resource_filename, resource_isdir
 import pandas as pd
 from mlflow.tracking import MlflowClient
 
@@ -32,6 +32,7 @@ class NerBlackBoxMain:
                  text_input=None,        # predict
                  ids=(),                 # get_experiments, get_experiments_results
                  as_df=True,             # get_experiments, get_experiments_results
+                 results=False,          # clear_data
                  ):
         """
         :param flag:            [str], e.g. 'analyze_data', 'set_up_dataset', 'run_experiment', ..
@@ -47,6 +48,7 @@ class NerBlackBoxMain:
         :param text_input:      [str], e.g. 'this is some text that needs to be annotated'
         :param ids:             [tuple of int], experiment_ids to include
         :param as_df:           [bool] if True, return pandas DataFrame, else return dict
+        :param results:         [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
         """
         self._assert_flag(flag)
 
@@ -65,6 +67,7 @@ class NerBlackBoxMain:
         self.text_input = text_input      # predict
         self.ids = ids                    # get_experiments, get_experiments_results
         self.as_df = as_df                # get_experiments, get_experiments_results
+        self.results = results            # clear_data
 
         if os.path.isdir(os.environ.get('DATA_DIR')):
             self._set_client_and_get_experiments()
@@ -154,6 +157,12 @@ class NerBlackBoxMain:
             self._assert_flag_arg('text_input')
             return self.predict()
 
+        ################################################################################################################
+        # clear
+        ################################################################################################################
+        elif self.flag == 'clear_data':
+            return self.clear_data()
+
     ####################################################################################################################
     # FLAGS ############################################################################################################
     ####################################################################################################################
@@ -174,6 +183,49 @@ class NerBlackBoxMain:
             parameters=_parameters,
             use_conda=False,
         )
+
+    def clear_data(self):
+        """
+        :used attr: clear_all [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
+        """
+        results_dir = join(os.environ.get('DATA_DIR'), 'results')
+        assert isdir(results_dir), f'directory {results_dir} does not exist.'
+
+        # checkpoints
+        objects_to_remove = glob.glob(join(results_dir, 'checkpoints', '*'))  # list
+
+        # results (mlflow, tensorboard, ..)
+        if self.results:
+            results_files = \
+                glob.glob(join(results_dir, 'mlruns', '*')) + \
+                glob.glob(join(results_dir, 'mlruns', '.*')) + \
+                glob.glob(join(results_dir, 'tensorboard', '*')) + \
+                glob.glob(join(results_dir, 'logs.log')) + \
+                glob.glob(join(results_dir, '*.npy'))
+            objects_to_remove.extend(results_files)
+
+        if len(objects_to_remove) == 0:
+            print(f'There is no data to remove in {results_dir}')
+        else:
+            for elem in objects_to_remove:
+                print(elem)
+            while 1:
+                answer = input('Do you want to remove the above files? (y/n) ')
+                if answer == 'y':
+                    for elem in objects_to_remove:
+                        if isfile(elem):
+                            os.remove(elem)
+                        elif isdir(elem):
+                            shutil.rmtree(elem, ignore_errors=False)
+                        else:
+                            raise ValueError(f'object {elem} is neither a file nor a dir and cannot be removed')
+                    print(f'Files removed')
+                    break
+                elif answer == 'n':
+                    print(f'No files removed')
+                    break
+                else:
+                    print('Please enter either y or n')
 
     def get_experiment_results(self):
         """
@@ -424,7 +476,7 @@ class NerBlackBoxMain:
                 'run_name_nr': best_single_run_name_nr,
                 'epoch_best_val_chk_f1_micro': best_single_run_epoch_best_val_chk_f1_micro,
                 'epoch_best_test_chk_f1_micro': best_single_run_epoch_best_test_chk_f1_micro,
-                'checkpoint': checkpoint if os.path.isfile(checkpoint) else None,
+                'checkpoint': checkpoint if isfile(checkpoint) else None,
             }
         else:
             _best_single_run = None
