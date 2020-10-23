@@ -5,7 +5,16 @@
 nerblackbox
 ===========
 
-A python package to smoothly fine-tune transformer-based models for Named Entity Recognition (NER).
+A python package to fine-tune transformer-based models for Named Entity Recognition (NER).
+
+.. image:: https://img.shields.io/pypi/v/nerblackbox
+    :alt: PyPI
+
+.. image:: https://img.shields.io/pypi/pyversions/nerblackbox
+    :alt: PyPI - Python Version
+
+.. image:: https://img.shields.io/pypi/l/nerblackbox
+    :alt: PyPI - License
 
 Resources
 =========
