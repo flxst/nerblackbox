@@ -4,8 +4,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Documentation &#8212; nerblackbox 0.0.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Documentation &#8212; nerblackbox 0.0.6 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="quickstart.html" title="Quickstart"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">API Documentation</a></li> 
       </ul>
     </div>  
@@ -254,6 +254,11 @@ needs to be called exactly once before any other CLI/API commands of the package
 </dd>
 </dl>
 </li>
+<li><dl class="simple">
+<dt>clear_data:</dt><dd><p>clear data (checkpoints and optionally results)</p>
+</dd>
+</dl>
+</li>
 <li><dl>
 <dt>get_experiment_results:</dt><dd><p>get results for a single experiment.</p>
 <p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;experiment_name&gt;</span></code></p>
@@ -322,7 +327,7 @@ needs to be called exactly once before any other CLI/API commands of the package
 <p class="rubric">Options</p>
 <dl class="std option">
 <dt id="cmdoption-nerbb-data_dir">
-<code class="sig-name descname">--data_dir</code><code class="sig-prename descclassname"> &lt;data_dir&gt;</code><a class="headerlink" href="#cmdoption-nerbb-data_dir" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-data-dir"></span><code class="sig-name descname">--data_dir</code><code class="sig-prename descclassname"> &lt;data_dir&gt;</code><a class="headerlink" href="#cmdoption-nerbb-data_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>[str] relative path of data directory</p>
 </dd></dl>
 
@@ -334,19 +339,19 @@ needs to be called exactly once before any other CLI/API commands of the package
 
 <dl class="std option">
 <dt id="cmdoption-nerbb-val_fraction">
-<code class="sig-name descname">--val_fraction</code><code class="sig-prename descclassname"> &lt;val_fraction&gt;</code><a class="headerlink" href="#cmdoption-nerbb-val_fraction" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-val-fraction"></span><code class="sig-name descname">--val_fraction</code><code class="sig-prename descclassname"> &lt;val_fraction&gt;</code><a class="headerlink" href="#cmdoption-nerbb-val_fraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] if flag=set_up_dataset</p>
 </dd></dl>
 
 <dl class="std option">
 <dt id="cmdoption-nerbb-verbose">
-<code class="sig-name descname">--verbose</code><code class="sig-prename descclassname"> &lt;verbose&gt;</code><a class="headerlink" href="#cmdoption-nerbb-verbose" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-no-verbose"></span><code class="sig-name descname">--verbose</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--no-verbose</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-verbose" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] if flag=set_up_dataset</p>
 </dd></dl>
 
 <dl class="std option">
 <dt id="cmdoption-nerbb-run_name">
-<code class="sig-name descname">--run_name</code><code class="sig-prename descclassname"> &lt;run_name&gt;</code><a class="headerlink" href="#cmdoption-nerbb-run_name" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-run-name"></span><code class="sig-name descname">--run_name</code><code class="sig-prename descclassname"> &lt;run_name&gt;</code><a class="headerlink" href="#cmdoption-nerbb-run_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>[str] if flag=run_experiment</p>
 </dd></dl>
 
@@ -358,20 +363,26 @@ needs to be called exactly once before any other CLI/API commands of the package
 
 <dl class="std option">
 <dt id="cmdoption-nerbb-fp16">
-<code class="sig-name descname">--fp16</code><code class="sig-prename descclassname"> &lt;fp16&gt;</code><a class="headerlink" href="#cmdoption-nerbb-fp16" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-no-fp16"></span><code class="sig-name descname">--fp16</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--no-fp16</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-fp16" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] if flag=run_experiment</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-nerbb-results">
+<span id="cmdoption-nerbb-no-results"></span><code class="sig-name descname">--results</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--no-results</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-results" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] if flag=clear_data</p>
 </dd></dl>
 
 <p class="rubric">Arguments</p>
 <dl class="std option">
 <dt id="cmdoption-nerbb-arg-FLAG">
-<code class="sig-name descname">FLAG</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-arg-FLAG" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-arg-flag"></span><code class="sig-name descname">FLAG</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-arg-FLAG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Required argument</p>
 </dd></dl>
 
 <dl class="std option">
 <dt id="cmdoption-nerbb-arg-FLAG_ARGS">
-<code class="sig-name descname">FLAG_ARGS</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-arg-FLAG_ARGS" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-nerbb-arg-flag-args"></span><code class="sig-name descname">FLAG_ARGS</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-nerbb-arg-FLAG_ARGS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optional argument(s)</p>
 </dd></dl>
 
@@ -427,13 +438,13 @@ needs to be called exactly once before any other CLI/API commands of the package
         <li class="right" >
           <a href="quickstart.html" title="Quickstart"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">API Documentation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Arbetsförmedlingen.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

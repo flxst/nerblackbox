@@ -39,7 +39,6 @@ CLI
    :undoc-members:
    :show-inheritance:
 
-
 .. click:: nerblackbox.cli:main
    :prog: nerbb
    :show-nested:
