@@ -2,6 +2,7 @@ autodoc
 black
 coverage
 jupyter
+mypy
 pip-chill
 pytest
 sphinx-autobuild
