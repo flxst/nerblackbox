@@ -1,4 +1,5 @@
 autodoc
+black
 coverage
 jupyter
 pip-chill

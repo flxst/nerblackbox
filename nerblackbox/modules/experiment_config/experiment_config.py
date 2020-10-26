@@ -1,4 +1,3 @@
-
 import os
 from os.path import join
 from configparser import ConfigParser
@@ -15,11 +14,7 @@ class ExperimentConfig:
 
     _, params, hparams, _ = get_hardcoded_parameters(keys=False)
 
-    def __init__(self,
-                 experiment_name: str,
-                 run_name: str,
-                 device,
-                 fp16: bool):
+    def __init__(self, experiment_name: str, run_name: str, device, fp16: bool):
         """
         :param experiment_name: [str],         e.g. 'exp1'
         :param run_name:        [str or None], e.g. 'runA'
@@ -31,13 +26,19 @@ class ExperimentConfig:
         self.device = device
         self.fp16 = fp16
 
-        self.config_path = join(env_variable('DIR_EXPERIMENT_CONFIGS'), f'{self.experiment_name}.ini')
+        self.config_path = join(
+            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+        )
         if not os.path.isfile(self.config_path):
-            raise Exception(f'config file at {self.config_path} does not exist')
+            raise Exception(f"config file at {self.config_path} does not exist")
 
-        self.config_path_default = join(env_variable('DIR_EXPERIMENT_CONFIGS'), 'default.ini')
+        self.config_path_default = join(
+            env_variable("DIR_EXPERIMENT_CONFIGS"), "default.ini"
+        )
         if not os.path.isfile(self.config_path_default):
-            raise Exception(f'default config file at {self.config_path_default} does not exist')
+            raise Exception(
+                f"default config file at {self.config_path_default} does not exist"
+            )
 
     def get_params_and_hparams(self, run_name_nr: str = None):
         """
@@ -52,10 +53,10 @@ class ExperimentConfig:
         config, config_dict = self._get_config(default=False)
 
         if run_name_nr is None:
-            params_and_hparams = config_dict_default['params']
-            params_and_hparams.update(config_dict_default['hparams'])
-            params_and_hparams.update(config_dict['params'])
-            params_and_hparams.update(config_dict['hparams'])
+            params_and_hparams = config_dict_default["params"]
+            params_and_hparams.update(config_dict_default["hparams"])
+            params_and_hparams.update(config_dict["params"])
+            params_and_hparams.update(config_dict["hparams"])
         else:
             run_name = get_run_name(run_name_nr)
             params_and_hparams = config_dict[run_name]
@@ -75,43 +76,55 @@ class ExperimentConfig:
         """
         _, config_dict_default = self._get_config(default=True)
         config, config_dict = self._get_config(default=False)
-        if 'params' in config_dict.keys() and 'multiple_runs' in config_dict['params'].keys():
-            multiple_runs = config_dict['params']['multiple_runs']
-        elif 'params' in config_dict_default.keys() and 'multiple_runs' in config_dict_default['params'].keys():
-            multiple_runs = config_dict_default['params']['multiple_runs']
+        if (
+            "params" in config_dict.keys()
+            and "multiple_runs" in config_dict["params"].keys()
+        ):
+            multiple_runs = config_dict["params"]["multiple_runs"]
+        elif (
+            "params" in config_dict_default.keys()
+            and "multiple_runs" in config_dict_default["params"].keys()
+        ):
+            multiple_runs = config_dict_default["params"]["multiple_runs"]
         else:
-            raise Exception(f'multiple runs is neither specified in the experiment config nor in the default config.')
+            raise Exception(
+                f"multiple runs is neither specified in the experiment config nor in the default config."
+            )
 
         # _params_config & _hparams_config
         _runs_params = dict()
         _runs_hparams = dict()
 
         if self.run_name is None:  # multiple runs
-            run_names = [run_name for run_name in config.sections() if run_name.startswith('run')]
+            run_names = [
+                run_name for run_name in config.sections() if run_name.startswith("run")
+            ]
         else:
-            run_names = [run_name for run_name in config.sections() if run_name == self.run_name]
+            run_names = [
+                run_name for run_name in config.sections() if run_name == self.run_name
+            ]
             assert len(run_names) == 1
 
         _runs_name_nr = list()
-        for run_name, run_nr in product(run_names, list(range(1, multiple_runs+1))):
+        for run_name, run_nr in product(run_names, list(range(1, multiple_runs + 1))):
             run_name_nr = get_run_name_nr(run_name, run_nr)
 
             # _run_params
             _run_params = {
-                'experiment_name': self.experiment_name,
-                'run_name': run_name,
-                'run_name_nr': run_name_nr,
-                'device': self.device,
-                'fp16': self.fp16,
-                'experiment_run_name_nr': f'{self.experiment_name}/{run_name_nr}',
+                "experiment_name": self.experiment_name,
+                "run_name": run_name,
+                "run_name_nr": run_name_nr,
+                "device": self.device,
+                "fp16": self.fp16,
+                "experiment_run_name_nr": f"{self.experiment_name}/{run_name_nr}",
             }
-            _run_params.update(config_dict_default['params'])
-            _run_params.update(config_dict['params'])
+            _run_params.update(config_dict_default["params"])
+            _run_params.update(config_dict["params"])
 
             # _run_hparams
             _run_hparams = dict()
-            _run_hparams.update(config_dict_default['hparams'])
-            _run_hparams.update(config_dict['hparams'])
+            _run_hparams.update(config_dict_default["hparams"])
+            _run_hparams.update(config_dict["hparams"])
 
             for k, v in config_dict[run_name].items():
                 if k in self.params:
@@ -119,7 +132,7 @@ class ExperimentConfig:
                 elif k in self.hparams:
                     _run_hparams[k] = v
                 else:
-                    raise Exception(f'parameter = {k} is unknown.')
+                    raise Exception(f"parameter = {k} is unknown.")
 
             _runs_name_nr.append(run_name_nr)
             _runs_params[run_name_nr] = _run_params
@@ -142,24 +155,34 @@ class ExperimentConfig:
         """
         _config = ConfigParser()
         _config.read(self.config_path_default if default else self.config_path)
-        _config_dict = {s: dict(_config.items(s)) for s in _config.sections()}  # {'hparams': {'monitor': 'val_loss'}}
-        _config_dict = {s: {k: self._convert(k, v) for k, v in subdict.items()} for s, subdict in _config_dict.items()}
+        _config_dict = {
+            s: dict(_config.items(s)) for s in _config.sections()
+        }  # {'hparams': {'monitor': 'val_loss'}}
+        _config_dict = {
+            s: {k: self._convert(k, v) for k, v in subdict.items()}
+            for s, subdict in _config_dict.items()
+        }
 
         # combine sections 'dataset', 'model' & 'settings' to single section 'params'
-        _config_dict['params'] = dict()
-        for s in ['dataset', 'model', 'settings']:
+        _config_dict["params"] = dict()
+        for s in ["dataset", "model", "settings"]:
             if s in _config_dict.keys():
-                _config_dict['params'].update(_config_dict[s])
+                _config_dict["params"].update(_config_dict[s])
                 _config_dict.pop(s)
 
         # derive uncased
-        if 'uncased' not in _config_dict['params'].keys() and 'pretrained_model_name' in _config_dict['params']:
-            if 'uncased' in _config_dict['params']['pretrained_model_name']:
-                _config_dict['params']['uncased'] = True
-            elif 'cased' in _config_dict['params']['pretrained_model_name']:
-                _config_dict['params']['uncased'] = False
+        if (
+            "uncased" not in _config_dict["params"].keys()
+            and "pretrained_model_name" in _config_dict["params"]
+        ):
+            if "uncased" in _config_dict["params"]["pretrained_model_name"]:
+                _config_dict["params"]["uncased"] = True
+            elif "cased" in _config_dict["params"]["pretrained_model_name"]:
+                _config_dict["params"]["uncased"] = False
             else:
-                raise Exception('cannot derive uncased = True/False from pretrained_model_name.')
+                raise Exception(
+                    "cannot derive uncased = True/False from pretrained_model_name."
+                )
 
         return _config, _config_dict
 
@@ -176,15 +199,15 @@ class ExperimentConfig:
         elif _input_key in self.hparams.keys():
             convert_to = self.hparams[_input_key]
         else:
-            raise Exception(f'_input_key = {_input_key} unknown.')
+            raise Exception(f"_input_key = {_input_key} unknown.")
 
-        if convert_to == 'str':
+        if convert_to == "str":
             return _input_value
-        elif convert_to == 'int':
+        elif convert_to == "int":
             return int(_input_value)
-        elif convert_to == 'float':
+        elif convert_to == "float":
             return float(_input_value)
-        elif convert_to == 'bool':
-            return _input_value not in ['False', 'false']
+        elif convert_to == "bool":
+            return _input_value not in ["False", "false"]
         else:
-            raise Exception(f'convert_to = {convert_to} not known.')
+            raise Exception(f"convert_to = {convert_to} not known.")

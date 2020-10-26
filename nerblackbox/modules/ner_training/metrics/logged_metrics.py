@@ -1,6 +1,4 @@
-
 class LoggedMetrics:
-
     def __init__(self, logged_metrics=None):
         """
         :param logged_metrics: [list] of [tuples] w/ (metric, phase_list, tags_list, micro_macro_list),
@@ -8,14 +6,19 @@ class LoggedMetrics:
         """
         if logged_metrics is None:
             self.logged_metrics = [
-                ('loss',      ['train', 'val', 'test'], ['all+'],               ['simple']),
-                ('acc',       ['train', 'val', 'test'], ['all+'],               ['simple']),
-                ('precision', ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('precision', ['val', 'test'],          ['chk', 'ind'],         ['micro']),
-                ('recall',    ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('recall',    ['val', 'test'],          ['chk', 'ind'],         ['micro']),
-                ('f1',        ['val', 'test'],          ['all+', 'all', 'fil'], ['micro', 'macro']),
-                ('f1',        ['val', 'test'],          ['chk', 'ind'],         ['micro']),
+                ("loss", ["train", "val", "test"], ["all+"], ["simple"]),
+                ("acc", ["train", "val", "test"], ["all+"], ["simple"]),
+                (
+                    "precision",
+                    ["val", "test"],
+                    ["all+", "all", "fil"],
+                    ["micro", "macro"],
+                ),
+                ("precision", ["val", "test"], ["chk", "ind"], ["micro"]),
+                ("recall", ["val", "test"], ["all+", "all", "fil"], ["micro", "macro"]),
+                ("recall", ["val", "test"], ["chk", "ind"], ["micro"]),
+                ("f1", ["val", "test"], ["all+", "all", "fil"], ["micro", "macro"]),
+                ("f1", ["val", "test"], ["chk", "ind"], ["micro"]),
             ]
         else:
             self.logged_metrics = logged_metrics
@@ -25,11 +28,13 @@ class LoggedMetrics:
             assert isinstance(tags_list, list)
             assert isinstance(micro_macro_list, list)
 
-    def get_metrics(self,
-                    tag_group: list = None,
-                    phase_group: list = None,
-                    micro_macro_group: list = None,
-                    exclude: list = None):
+    def get_metrics(
+        self,
+        tag_group: list = None,
+        phase_group: list = None,
+        micro_macro_group: list = None,
+        exclude: list = None,
+    ):
         """
         get metrics, filtered
         ---------------------
@@ -41,14 +46,27 @@ class LoggedMetrics:
         """
         filtered_metrics = list()
         for metric, phase_list, tags_list, micro_macro_list in self.logged_metrics:
-            add_metric_1 = True if tag_group is None \
+            add_metric_1 = (
+                True
+                if tag_group is None
                 else all([tag in tags_list for tag in tag_group])
-            add_metric_2 = True if phase_group is None \
+            )
+            add_metric_2 = (
+                True
+                if phase_group is None
                 else all([phase in phase_list for phase in phase_group])
-            add_metric_3 = True if micro_macro_group is None \
-                else all([micro_macro in micro_macro_list for micro_macro in micro_macro_group])
-            add_metric_4 = True if exclude is None \
-                else metric not in exclude
+            )
+            add_metric_3 = (
+                True
+                if micro_macro_group is None
+                else all(
+                    [
+                        micro_macro in micro_macro_list
+                        for micro_macro in micro_macro_group
+                    ]
+                )
+            )
+            add_metric_4 = True if exclude is None else metric not in exclude
 
             if add_metric_1 and add_metric_2 and add_metric_3 and add_metric_4:
                 filtered_metrics.append(metric)
@@ -64,9 +82,9 @@ class LoggedMetrics:
         flat_list = list()
         for metric, _, tags_list, micro_macro_list in self.logged_metrics:
             for tags in tags_list:
-                if micro_macro_list == ['simple']:
-                    flat_list.append(f'{tags}_{metric}')
+                if micro_macro_list == ["simple"]:
+                    flat_list.append(f"{tags}_{metric}")
                 else:
                     for style in micro_macro_list:
-                        flat_list.append(f'{tags}_{metric}_{style}')
+                        flat_list.append(f"{tags}_{metric}_{style}")
         return flat_list

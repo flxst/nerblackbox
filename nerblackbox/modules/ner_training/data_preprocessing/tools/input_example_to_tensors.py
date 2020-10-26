@@ -1,4 +1,3 @@
-
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
@@ -9,11 +8,13 @@ class InputExampleToTensors:
     (input_ids, attention_mask, segment_ids, tag_ids)
     """
 
-    def __init__(self,
-                 tokenizer,
-                 max_seq_length: int = 128,
-                 tag_tuple: tuple = ('O', 'PER', 'ORG'),
-                 default_logger=None):
+    def __init__(
+        self,
+        tokenizer,
+        max_seq_length: int = 128,
+        tag_tuple: tuple = ("O", "PER", "ORG"),
+        default_logger=None,
+    ):
         """
         :param tokenizer:      [BertTokenizer] used to tokenize to Wordpieces and transform to indices
         :param max_seq_length: [int]
@@ -25,7 +26,7 @@ class InputExampleToTensors:
 
         self.tag2id = {tag: i for i, tag in enumerate(tag_tuple)}
         if self.default_logger:
-            self.default_logger.log_debug('> tag2id:', self.tag2id)
+            self.default_logger.log_debug("> tag2id:", self.tag2id)
 
     def __call__(self, input_example):
         """
@@ -43,8 +44,8 @@ class InputExampleToTensors:
         ####################
         # A0. tokens_*, tags_*
         ####################
-        tokens_a, tags_a = self._tokenize_words_and_tags(input_example, segment='a')
-        tokens_b, tags_b = self._tokenize_words_and_tags(input_example, segment='b')
+        tokens_a, tags_a = self._tokenize_words_and_tags(input_example, segment="a")
+        tokens_b, tags_b = self._tokenize_words_and_tags(input_example, segment="b")
 
         # Modify `tokens_a` (and `tokens_b`) in place so that the total length is less than the specified length.
         if tokens_b is None:
@@ -59,11 +60,11 @@ class InputExampleToTensors:
         ####################
         # A1. tokens, tags
         ####################
-        tokens = ['[CLS]'] + tokens_a + ['[SEP]']
-        tags = ['[CLS]'] + tags_a + ['[SEP]']
+        tokens = ["[CLS]"] + tokens_a + ["[SEP]"]
+        tags = ["[CLS]"] + tags_a + ["[SEP]"]
         if tokens_b and tags_b:
-            tokens += tokens_b + ['[SEP]']
-            tags += tags_b + ['[SEP]']
+            tokens += tokens_b + ["[SEP]"]
+            tags += tags_b + ["[SEP]"]
 
         ####################
         # B. input_ids, attention_mask, segment_ids, tag_ids
@@ -88,10 +89,16 @@ class InputExampleToTensors:
         attention_mask = self._pad_sequence(attention_mask, 0)
         segment_ids = self._pad_sequence(segment_ids, 0)
         tag_ids = self._pad_sequence(tag_ids, 0)
-        assert input_ids.shape[0] == self.max_seq_length, f'shape[0] = {input_ids[0].shape}'
-        assert attention_mask.shape[0] == self.max_seq_length, f'shape[0] = {attention_mask[0].shape}'
-        assert segment_ids.shape[0] == self.max_seq_length, f'shape[0] = {segment_ids[0].shape}'
-        assert tag_ids.shape[0] == self.max_seq_length, f'shape[0] = {tag_ids[0].shape}'
+        assert (
+            input_ids.shape[0] == self.max_seq_length
+        ), f"shape[0] = {input_ids[0].shape}"
+        assert (
+            attention_mask.shape[0] == self.max_seq_length
+        ), f"shape[0] = {attention_mask[0].shape}"
+        assert (
+            segment_ids.shape[0] == self.max_seq_length
+        ), f"shape[0] = {segment_ids[0].shape}"
+        assert tag_ids.shape[0] == self.max_seq_length, f"shape[0] = {tag_ids[0].shape}"
 
         ####################
         # return
@@ -115,15 +122,19 @@ class InputExampleToTensors:
                  tags:   [list] of [str], e.g. [   0,              'ORG', 'ORG']
         """
         # [list] of (word, tag) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
-        if segment == 'a':
-            word_tag_pairs = zip(input_example.text_a.split(' '), input_example.tags_a.split(' '))
-        elif segment == 'b':
+        if segment == "a":
+            word_tag_pairs = zip(
+                input_example.text_a.split(" "), input_example.tags_a.split(" ")
+            )
+        elif segment == "b":
             if input_example.text_b is None or input_example.tags_b is None:
                 return None, None
             else:
-                word_tag_pairs = zip(input_example.text_b.split(' '), input_example.tags_b.split(' '))
+                word_tag_pairs = zip(
+                    input_example.text_b.split(" "), input_example.tags_b.split(" ")
+                )
         else:
-            raise Exception(f'> segment = {segment} unknown')
+            raise Exception(f"> segment = {segment} unknown")
 
         tokens = []
         tokens_tags = []
@@ -133,7 +144,9 @@ class InputExampleToTensors:
             tokens.extend(word_tokens)
             tokens_tags.append(tag)
             for _ in word_tokens[1:]:
-                tokens_tags.append(tag.replace('B-', 'I-'))  # replace only applies to IOB tags
+                tokens_tags.append(
+                    tag.replace("B-", "I-")
+                )  # replace only applies to IOB tags
 
         return tokens, tokens_tags
 
@@ -167,4 +180,3 @@ class InputExampleToTensors:
             padding_value=padding_value,
         )
         return padded[0]
-

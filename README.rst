@@ -19,6 +19,9 @@ A python package to fine-tune transformer-based models for Named Entity Recognit
     :target: https://travis-ci.org/af-ai-center/nerblackbox
     :alt: Travis CI
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
 .. image:: https://img.shields.io/pypi/l/nerblackbox
     :target: https://github.com/af-ai-center/nerblackbox/blob/latest/LICENSE.txt
     :alt: PyPI - License

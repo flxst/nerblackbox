@@ -1,4 +1,3 @@
-
 import os
 
 from os.path import join
@@ -6,10 +5,15 @@ from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
 
 
 class SUCFormatter(BaseFormatter):
-
     def __init__(self):
-        ner_dataset = 'suc'
-        ner_tag_list = ['person', 'place', 'inst', 'work', 'misc']  # misc: see create_ner_tag_mapping()
+        ner_dataset = "suc"
+        ner_tag_list = [
+            "person",
+            "place",
+            "inst",
+            "work",
+            "misc",
+        ]  # misc: see create_ner_tag_mapping()
         super().__init__(ner_dataset, ner_tag_list)
 
     ####################################################################################################################
@@ -22,7 +26,7 @@ class SUCFormatter(BaseFormatter):
         :param verbose: [bool]
         :return: -
         """
-        print('(suc: nothing to do)')
+        print("(suc: nothing to do)")
 
     def create_ner_tag_mapping(self):
         """
@@ -45,7 +49,7 @@ class SUCFormatter(BaseFormatter):
         ----------------
         :return: -
         """
-        for phase in ['train', 'val', 'test']:
+        for phase in ["train", "val", "test"]:
             rows = self._read_original_file(phase)
             self._write_formatted_csv(phase, rows)
 
@@ -57,16 +61,16 @@ class SUCFormatter(BaseFormatter):
         :return: -
         """
         # train -> train
-        df_train = self._read_formatted_csvs(['train'])
-        self._write_final_csv('train', df_train)
+        df_train = self._read_formatted_csvs(["train"])
+        self._write_final_csv("train", df_train)
 
         # val  -> val
-        df_val = self._read_formatted_csvs(['val'])
-        self._write_final_csv('val', df_val)
+        df_val = self._read_formatted_csvs(["val"])
+        self._write_final_csv("val", df_val)
 
         # test  -> test
-        df_test = self._read_formatted_csvs(['test'])
-        self._write_final_csv('test', df_test)
+        df_test = self._read_formatted_csvs(["test"])
+        self._write_final_csv("test", df_test)
 
     ####################################################################################################################
     # HELPER: READ ORIGINAL
@@ -79,9 +83,9 @@ class SUCFormatter(BaseFormatter):
         :return: _rows: [list] of [list] of [str], e.g. [[], ['Inger', 'PER'], ['säger', '0'], ..]
         """
         file_name = {
-            'train': 'suc-train.conll',
-            'val': 'suc-dev.conll',
-            'test': 'suc-test.conll',
+            "train": "suc-train.conll",
+            "val": "suc-dev.conll",
+            "test": "suc-test.conll",
         }
         file_path_original = join(self.dataset_path, file_name[phase])
 
@@ -90,13 +94,14 @@ class SUCFormatter(BaseFormatter):
             with open(file_path_original) as f:
                 for i, row in enumerate(f.readlines()):
                     _rows.append(row.strip().split())
-            print(f'\n> read {file_path_original}')
+            print(f"\n> read {file_path_original}")
         else:
-            raise Exception(f'> original file {file_path_original} could not be found.')
+            raise Exception(f"> original file {file_path_original} could not be found.")
 
-        _rows = [[row[1], self.transform_tags(row[-3], row[-2])]
-                 if len(row) > 0 else list()
-                 for row in _rows]
+        _rows = [
+            [row[1], self.transform_tags(row[-3], row[-2])] if len(row) > 0 else list()
+            for row in _rows
+        ]
 
         return _rows
 
@@ -107,7 +112,7 @@ class SUCFormatter(BaseFormatter):
         :param tag: [str] '_', 'person', ..
         :return: transformed tag: [str], e.g. 'O', 'B-person', ..
         """
-        if bio == 'O':
-            return 'O'
+        if bio == "O":
+            return "O"
         else:
-            return f'{bio}-{tag}'
+            return f"{bio}-{tag}"

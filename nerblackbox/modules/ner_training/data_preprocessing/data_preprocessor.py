@@ -1,19 +1,21 @@
-
-from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import BertDataset
-from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import CsvReader
-from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import InputExample
-from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example_to_tensors import InputExampleToTensors
+from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import (
+    BertDataset,
+)
+from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import (
+    CsvReader,
+)
+from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import (
+    InputExample,
+)
+from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example_to_tensors import (
+    InputExampleToTensors,
+)
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 
 class DataPreprocessor:
-
-    def __init__(self,
-                 tokenizer,
-                 do_lower_case,
-                 default_logger,
-                 max_seq_length=64):
+    def __init__(self, tokenizer, do_lower_case, default_logger, max_seq_length=64):
         """
         :param tokenizer:      [transformers Tokenizer]
         :param do_lower_case:  [bool] if True, make text data lowercase
@@ -25,9 +27,7 @@ class DataPreprocessor:
         self.default_logger = default_logger
         self.max_seq_length = max_seq_length
 
-    def get_input_examples_train(self,
-                                 dataset_name,
-                                 prune_ratio):
+    def get_input_examples_train(self, dataset_name, prune_ratio):
         """
         get input examples for TRAIN from csv files
         -------------------------------------------
@@ -37,21 +37,25 @@ class DataPreprocessor:
         :return: tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         """
         if prune_ratio is None:
-            prune_ratio = {'train': 1.0, 'val': 1.0, 'test': 1.0}
+            prune_ratio = {"train": 1.0, "val": 1.0, "test": 1.0}
 
         dataset_path = get_dataset_path(dataset_name)
 
         # csv_reader
-        csv_reader = CsvReader(dataset_path,
-                               self.tokenizer,
-                               do_lower_case=self.do_lower_case,   # can be True (applies .lower()) !!
-                               default_logger=self.default_logger)
+        csv_reader = CsvReader(
+            dataset_path,
+            self.tokenizer,
+            do_lower_case=self.do_lower_case,  # can be True (applies .lower()) !!
+            default_logger=self.default_logger,
+        )
 
         input_examples = dict()
-        for phase in ['train', 'val', 'test']:
+        for phase in ["train", "val", "test"]:
             # train data
             input_examples_all = csv_reader.get_input_examples(phase)
-            input_examples[phase] = self._prune_examples(input_examples_all, phase, ratio=prune_ratio[phase])
+            input_examples[phase] = self._prune_examples(
+                input_examples_all, phase, ratio=prune_ratio[phase]
+            )
 
         return input_examples, csv_reader.tag_list
 
@@ -67,11 +71,14 @@ class DataPreprocessor:
             examples = [example.lower() for example in examples]
 
         input_examples = {
-            'predict': [
-                InputExample(guid='',
-                             text_a=example,
-                             tags_a=' '.join(['O' for _ in range(len(example.split()))]),  # pseudo tags
-                             )
+            "predict": [
+                InputExample(
+                    guid="",
+                    text_a=example,
+                    tags_a=" ".join(
+                        ["O" for _ in range(len(example.split()))]
+                    ),  # pseudo tags
+                )
                 for example in examples
             ]
         }
@@ -92,27 +99,30 @@ class DataPreprocessor:
                                            values = [torch Dataloader]
         """
         # input_example_to_tensors
-        input_example_to_tensors = InputExampleToTensors(self.tokenizer,
-                                                         max_seq_length=self.max_seq_length,
-                                                         tag_tuple=tuple(tag_list),
-                                                         default_logger=self.default_logger)
+        input_example_to_tensors = InputExampleToTensors(
+            self.tokenizer,
+            max_seq_length=self.max_seq_length,
+            tag_tuple=tuple(tag_list),
+            default_logger=self.default_logger,
+        )
 
         _dataloader = dict()
         for phase in input_examples.keys():
             # dataloader
-            data = BertDataset(input_examples[phase],
-                               transform=input_example_to_tensors)
+            data = BertDataset(
+                input_examples[phase], transform=input_example_to_tensors
+            )
 
-            if phase == 'train':
+            if phase == "train":
                 sampler = RandomSampler(data)
-            elif phase in ['val', 'test']:
+            elif phase in ["val", "test"]:
                 sampler = SequentialSampler(data)
             else:
                 sampler = None
 
-            _dataloader[phase] = DataLoader(data,
-                                            sampler=sampler,
-                                            batch_size=batch_size)
+            _dataloader[phase] = DataLoader(
+                data, sampler=sampler, batch_size=batch_size
+            )
 
         return _dataloader
 
@@ -132,7 +142,7 @@ class DataPreprocessor:
             return list_of_examples
         else:
             num_examples_old = len(list_of_examples)
-            num_examples_new = int(ratio*float(num_examples_old))
-            info = f'> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples'
+            num_examples_new = int(ratio * float(num_examples_old))
+            info = f"> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples"
             self.default_logger.log_info(info)
             return list_of_examples[:num_examples_new]
