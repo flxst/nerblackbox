@@ -1,3 +1,5 @@
+import os
+from os.path import join
 import warnings
 import numpy as np
 import json
@@ -56,6 +58,7 @@ class LightningNerModel(pl.LightningModule):
         :created attr: mlflow_client          [MLflowClient]
         :created attr: epoch_metrics          [dict] w/ keys = 'val', 'test' & values = [dict]
         :created attr: classification_reports [dict] w/ keys = 'val', 'test' & values = [dict]
+        :created attr: pretrained_model_name  [str]
         :return: -
         """
         self.default_logger = DefaultLogger(
@@ -78,6 +81,19 @@ class LightningNerModel(pl.LightningModule):
         self.epoch_metrics = {"val": dict(), "test": dict()}
         self.classification_reports = {"val": dict(), "test": dict()}
 
+        try:
+            # use transformers model
+            AutoTokenizer.from_pretrained(self.params.pretrained_model_name)
+            self.pretrained_model_name = self.params.pretrained_model_name
+        except ValueError:
+            # use local model
+            self.pretrained_model_name = join(os.environ.get("DATA_DIR"),
+                                              "pretrained_models",
+                                              self.params.pretrained_model_name)
+        print('##########')
+        print(self.pretrained_model_name)
+        print('##########')
+
     def _preparations_data_general(self):
         """
         :created attr: tokenizer         [transformers AutoTokenizer]
@@ -86,7 +102,7 @@ class LightningNerModel(pl.LightningModule):
         """
         # tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
-            self.params.pretrained_model_name, do_lower_case=False
+            self.pretrained_model_name, do_lower_case=False
         )  # needs to be False !!
 
         self.data_preprocessor = DataPreprocessor(
@@ -121,7 +137,7 @@ class LightningNerModel(pl.LightningModule):
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(
-            self.params.pretrained_model_name, num_labels=len(self.tag_list)
+            self.pretrained_model_name, num_labels=len(self.tag_list)
         )
 
         # dataloader

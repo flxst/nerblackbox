@@ -42,6 +42,8 @@ To include your own custom dataset, do the following:
     ``<labels> <tab> <text>``,
     e.g. ``0 0 0 0 0 0 PER <tab> this is a sample with a person``
 
+- Use ``dataset_name = <new_dataset>`` in your experiment configuration file.
+
 .. TODO
  Own custom datasets can also be created programmatically (like the :ref:`Built-in datasets <builtindatasets>`):
  - (todo: revise the following)
@@ -57,10 +59,12 @@ Custom Models
 
 To include your own custom model, do the following:
 
- - Create a new folder ``./data/pretrained_model/<new_model>`` with the following files:
+- Create a new folder ``./data/pretrained_models/<new_model>`` with the following files:
 
     - ``config.json``
     - ``pytorch_model.bin``
     - ``vocab.txt``
 
-  The folder name must include the architecture type, e.g. ``bert``
+- ``<new_model>`` must include the architecture type, e.g. ``bert``
+
+- Use ``pretrained_model_name = <new_model>`` in your experiment configuration file.

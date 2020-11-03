@@ -1,6 +1,6 @@
 import os
-import glob
 from os.path import join, isfile, isdir
+import glob
 import mlflow
 import shutil
 from argparse import Namespace
