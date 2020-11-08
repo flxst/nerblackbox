@@ -90,9 +90,6 @@ class LightningNerModel(pl.LightningModule):
             self.pretrained_model_name = join(os.environ.get("DATA_DIR"),
                                               "pretrained_models",
                                               self.params.pretrained_model_name)
-        print('##########')
-        print(self.pretrained_model_name)
-        print('##########')
 
     def _preparations_data_general(self):
         """

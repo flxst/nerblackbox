@@ -36,10 +36,12 @@ class LightningNerModelPredict(LightningNerModel):
 
     def _preparations_predict(self):
         """
-        :created attr: default_logger    [None]
+        :created attr: default_logger         [None]
+        :created attr: pretrained_model_name  [str]
         :return: -
         """
         self.default_logger = None
+        self.pretrained_model_name = self.params.pretrained_model_name
 
     def _preparations_data_predict(self):
         """
