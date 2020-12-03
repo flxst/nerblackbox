@@ -26,9 +26,18 @@ class LightningNerModelPredict(LightningNerModel):
         super().__init__(hparams)
 
     ####################################################################################################################
-    # PREPARATIONS
+    # Abstract Base Methods ############################################################################################
     ####################################################################################################################
     def _preparations(self):
+        """
+        :created attr: default_logger    [DefaultLogger]
+        :created attr: logged_metrics    [LoggedMetrics]
+        :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: data_preprocessor [DataPreprocessor]
+        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: model             [transformers AutoModelForTokenClassification]
+        :return: -
+        """
         # predict
         self._preparations_predict()  # attr: default_logger
         self._preparations_data_general()  # attr: tokenizer, data_preprocessor

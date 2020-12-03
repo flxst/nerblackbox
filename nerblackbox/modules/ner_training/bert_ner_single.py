@@ -7,7 +7,9 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import EarlyStopping
 
-from nerblackbox.modules.ner_training.lightning_ner_model import LightningNerModel
+from nerblackbox.modules.ner_training.lightning_ner_model_train import (
+    LightningNerModelTrain,
+)
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 from nerblackbox.modules.utils.util_functions import unify_parameters
 from nerblackbox.modules.utils.env_variable import env_variable
@@ -37,7 +39,7 @@ def main(params, hparams, log_dirs, experiment: bool):
     tb_logger = logging_start(params, log_dirs)
     with mlflow.start_run(run_name=params.run_name_nr, nested=experiment):
 
-        model = LightningNerModel(lightning_hparams)
+        model = LightningNerModelTrain(lightning_hparams)
         callbacks = get_callbacks(params, hparams, log_dirs)
 
         trainer = Trainer(
@@ -55,7 +57,7 @@ def main(params, hparams, log_dirs, experiment: bool):
         callback_info = get_callback_info(callbacks, params, hparams)
 
         # use best checkpoint
-        model_best = LightningNerModel.load_from_checkpoint(
+        model_best = LightningNerModelTrain.load_from_checkpoint(
             checkpoint_path=callback_info["checkpoint_best"]
         )
         best_trainer = Trainer(
@@ -198,8 +200,8 @@ def logging_end(
     :param _tb_logger:     [pytorch lightning TensorBoardLogger]
     :param _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     :param _hparams:       [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
-    :param _model_stopped: [LightningNerModel] epoch_stopped
-    :param _model_best:    [LightningNerModel] epoch_best
+    :param _model_stopped: [LightningNerModelTrain] epoch_stopped
+    :param _model_best:    [LightningNerModelTrain] epoch_best
     :param _logger:        [DefaultLogger]
     :return: -
     """
@@ -250,8 +252,8 @@ def _tb_logger_stopped_epoch(
     :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
     :param _epoch_best:     [int]
     :param _epoch_stopped:  [int]
-    :param _model_stopped:  [LightningNerModel] epoch_stopped
-    :param _model_best:     [LightningNerModel] epoch_best
+    :param _model_stopped:  [LightningNerModelTrain] epoch_stopped
+    :param _model_best:     [LightningNerModelTrain] epoch_best
     :param metrics:         [tuple] of metrics to be logged in hparams section
     :return:
     """
