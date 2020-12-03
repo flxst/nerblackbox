@@ -87,9 +87,11 @@ class LightningNerModel(pl.LightningModule):
             self.pretrained_model_name = self.params.pretrained_model_name
         except ValueError:
             # use local model
-            self.pretrained_model_name = join(os.environ.get("DATA_DIR"),
-                                              "pretrained_models",
-                                              self.params.pretrained_model_name)
+            self.pretrained_model_name = join(
+                os.environ.get("DATA_DIR"),
+                "pretrained_models",
+                self.params.pretrained_model_name,
+            )
 
     def _preparations_data_general(self):
         """

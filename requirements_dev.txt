@@ -4,6 +4,7 @@ coverage
 jupyter
 mypy
 pip-chill
+pylint
 pytest
 sphinx-autobuild
 sphinx-autodoc-typehints

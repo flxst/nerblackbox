@@ -8,7 +8,7 @@ BASE_DIR = abspath(dirname(dirname(abspath(__file__))))
 
 def main(args):
     assert args.black is not None or args.pylint or args.mypy or args.coverage, \
-        f'need to specify --black|--pylint|--mypy|--convert'
+        f'need to specify --black|--pylint|--mypy|--coverage'
 
     commands_list = [f'cd {BASE_DIR}/dev']
     if args.black is not None:
