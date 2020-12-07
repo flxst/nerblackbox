@@ -12,7 +12,7 @@ Content:
 
 Built-in Datasets & Models
 --------------------------
-**nerblackbox** and its CLI/API (see :ref:`quickstart` and :ref:`apidocumentation`) work out of the box for the built-in datasets and models.
+**nerblackbox** and its CLI/Python API (see :ref:`quickstart`, :ref:`cli` and :ref:`api`) work out of the box for the built-in datasets and models.
 
 .. _builtindatasets:
 

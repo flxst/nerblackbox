@@ -3,7 +3,7 @@ HOW TO (RE)CREATE THE DOCUMENTATION
 
 1. make sure packages are installed:
 
-    ``pip install -r requirements_docs.txt``
+    ``pip install -e .[dev]``
 
 2. run script to create autodocumentation (nerblackbox.rst)
 

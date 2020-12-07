@@ -13,7 +13,7 @@ using either the
 
         nerbb --help
 
-* or the :ref:`python_api`.
+* or the :ref:`api`.
 
     .. code-block:: python
 
@@ -112,8 +112,8 @@ Once an experiment is finished, one can inspect the main results or detailed res
             # Python API
             experiment_results = nerbb.get_experiment_results(<experiment_name>)
 
-        See :ref:`python_api`
-        for details on how to access ``experiment_results``
+        See :ref:`experimentresults`
+        for details on how to use ``experiment_results``
 
     * Get detailed results & run histories using either mlflow or tensorboard:
 
@@ -141,6 +141,9 @@ Once an experiment is finished, one can inspect the main results or detailed res
         experiment_results = nerbb.get_experiment_results(<experiment_name>)
         experiment_results.best_model.predict(<text_input>)
 
+    See :ref:`nermodelpredict`
+    for details on how to use ``experiments_results.best_model``
+
 3. Multiple Experiments
 -----------------------
 
@@ -166,5 +169,5 @@ Once one or more experiments have been run, the following commands can be used t
             # Python API
             experiments_results = nerbb.get_experiments_results()
 
-        See :ref:`python_api`
-        for details on how to access ``experiments_results``
+        See :ref:`experimentsresults`
+        for details on how to use ``experiments_results``

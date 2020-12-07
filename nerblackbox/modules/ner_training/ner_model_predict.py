@@ -15,9 +15,8 @@ class NerModelPredict(NerModel):
         map_location=None,
         tags_csv=None,
     ):
-        """
-        load model in inference mode from checkpoint_path
-        -------------------------------------------------
+        r"""load model in inference mode from checkpoint_path
+
         :param checkpoint_path: [str] path to checkpoint
         :return: model:         [NerModelPredict] instance loaded from checkpoint
         """
@@ -76,9 +75,8 @@ class NerModelPredict(NerModel):
     # PREDICT
     ####################################################################################################################
     def predict(self, examples):
-        """
-        predict tags
-        ------------
+        r"""predict tags
+
         :param examples:     [list] of [str]
         :return: predictions [list] of [Namespace] with .internal [list] of (word, tag) tuples
                                                    and  .external [list] of (word, tag) tuples
@@ -86,9 +84,8 @@ class NerModelPredict(NerModel):
         return self._predict(examples, proba=False)
 
     def predict_proba(self, examples):
-        """
-        predict probabilities for tags
-        ------------------------------
+        r"""predict probabilities for tags
+
         :param examples:     [list] of [str]
         :return: predictions [list] of [Namespace] with .internal [list] of (word, proba_dist) tuples
                                                    and  .external [list] of (word, proba_dist) tuples

@@ -81,3 +81,5 @@ html_sidebars = {
         "searchbox.html",
     ]
 }
+
+add_module_names = False

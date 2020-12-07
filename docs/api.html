@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python API &#8212; nerblackbox 0.0.6 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Datasets and Models" href="datasetsandmodels.html" />
+    <link rel="prev" title="CLI" href="cli.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="datasetsandmodels.html" title="Datasets and Models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="CLI"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Python API</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="python-api">
+<span id="api"></span><h1>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
+<p>Classes:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#nerblackbox"><span class="std std-ref">NerBlackBox</span></a></p></li>
+<li><p><a class="reference internal" href="#experimentresults"><span class="std std-ref">ExperimentResults</span></a></p></li>
+<li><p><a class="reference internal" href="#experimentsresults"><span class="std std-ref">ExperimentsResults</span></a></p></li>
+<li><p><a class="reference internal" href="#nermodelpredict"><span class="std std-ref">NerModelPredict</span></a></p></li>
+</ul>
+<p>Usage:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="o">&lt;</span><span class="n">class</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="section" id="nerblackbox">
+<span id="id1"></span><h2>NerBlackBox<a class="headerlink" href="#nerblackbox" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-nerblackbox.api"></span><dl class="py class">
+<dt id="nerblackbox.api.NerBlackBox">
+<em class="property">class </em><code class="sig-name descname">NerBlackBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_dir</span><span class="o">=</span><span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">data_dir</span><span class="o">=</span><span class="default_value">'./data'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>class that provides all nerblackbox functionalities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_dir</strong> – [str] relative path of base directory with respect to current directory</p></li>
+<li><p><strong>data_dir</strong> – [str] relative path of data directory with respect to current directory</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.analyze_data">
+<code class="sig-name descname">analyze_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.analyze_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>analyze a dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset_name</strong> – [str] e.g. ‘swedish_ner_corpus’</p></li>
+<li><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘verbose’: [bool]}</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.get_experiment_results">
+<code class="sig-name descname">get_experiment_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.get_experiment_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>get results for a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>experiment_results: [ExperimentResults] instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.get_experiments">
+<code class="sig-name descname">get_experiments</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.get_experiments" title="Permalink to this definition">¶</a></dt>
+<dd><p>show list of experiments that have been run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘ids’: [tuple of int], ‘as_df’: [bool]}</p>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>experiments_overview: [pandas DataFrame] or [dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.get_experiments_results">
+<code class="sig-name descname">get_experiments_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.get_experiments_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>get results from multiple experiments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘ids’: [tuple of int], ‘as_df’: [bool]}</p>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>experiments_results: [dict] w/ keys = ‘best_single_runs’, ‘best_average_runs’
+&amp; values = [pandas DataFrame] or [dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.init">
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>initialize the data_dir directory, download &amp; prepare built-in datasets, prepare experiment configuration.
+needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">text_input</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>predict labels for text_input using the best model of a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p></li>
+<li><p><strong>text_input</strong> – [str or list of str], e.g. ‘this text needs to be tagged’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.run_experiment">
+<code class="sig-name descname">run_experiment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.run_experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>run a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p></li>
+<li><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘run_name’: [str], ‘device’: [torch device], ‘fp16’: [bool]}</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.set_up_dataset">
+<code class="sig-name descname">set_up_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs_optional</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.set_up_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>set up a dataset using the associated Formatter class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset_name</strong> – [str] e.g. ‘swedish_ner_corpus’</p></li>
+<li><p><strong>kwargs_optional</strong> – <p>[dict] with optional key-value pairs</p>
+<p>{‘modify’: [bool], ‘val_fraction’: [float], ‘verbose’: [bool]}</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.show_experiment_config">
+<code class="sig-name descname">show_experiment_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.show_experiment_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>show a single experiment configuration in detail.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>experiment_name</strong> – [str], e.g. ‘exp0’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.show_experiment_configs">
+<code class="sig-name descname">show_experiment_configs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.show_experiment_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>show overview on all available experiment configurations.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="experimentresults">
+<span id="id2"></span><h2>ExperimentResults<a class="headerlink" href="#experimentresults" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-nerblackbox.modules.experiment_results"></span><dl class="py class">
+<dt id="nerblackbox.modules.experiment_results.ExperimentResults">
+<em class="property">class </em><code class="sig-name descname">ExperimentResults</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">single_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">average_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_single_run</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_average_run</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_model</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.experiment_results.ExperimentResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>class that contains results of a single experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>experiment</strong> – [pandas DataFrame] overview on experiment parameters</p></li>
+<li><p><strong>single_runs</strong> – [pandas DataFrame] overview on run parameters &amp; single  results</p></li>
+<li><p><strong>average_runs</strong> – [pandas DataFrame] overview on run parameters &amp; average results</p></li>
+<li><p><strong>best_single_run</strong> – [dict] overview on best run parameters &amp; single  results</p></li>
+<li><p><strong>best_average_run</strong> – [dict] overview on best run parameters &amp; average results</p></li>
+<li><p><strong>best_model</strong> – [NerModelPredict] instance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="experimentsresults">
+<span id="id3"></span><h2>ExperimentsResults<a class="headerlink" href="#experimentsresults" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-nerblackbox.modules.experiments_results"></span><dl class="py class">
+<dt id="nerblackbox.modules.experiments_results.ExperimentsResults">
+<em class="property">class </em><code class="sig-name descname">ExperimentsResults</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">best_single_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_average_runs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.experiments_results.ExperimentsResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>class that contains results of multiple experiments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>best_single_runs</strong> – [pandas DataFrame] overview on best single runs</p></li>
+<li><p><strong>best_average_runs</strong> – [pandas DataFrame] overview on best average runs</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="nermodelpredict">
+<span id="id4"></span><h2>NerModelPredict<a class="headerlink" href="#nermodelpredict" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-nerblackbox.modules.ner_training.ner_model_predict"></span><dl class="py class">
+<dt id="nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict">
+<em class="property">class </em><code class="sig-name descname">NerModelPredict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hparams</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict.load_from_checkpoint">
+<em class="property">classmethod </em><code class="sig-name descname">load_from_checkpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">checkpoint_path</span></em>, <em class="sig-param"><span class="n">map_location</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tags_csv</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict.load_from_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>load model in inference mode from checkpoint_path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>checkpoint_path</strong> – [str] path to checkpoint</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>model:         [NerModelPredict] instance loaded from checkpoint</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">examples</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>predict tags</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>examples</strong> – [list] of [str]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>predictions [list] of [Namespace] with .internal [list] of (word, tag) tuples
+and  .external [list] of (word, tag) tuples</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict.predict_proba">
+<code class="sig-name descname">predict_proba</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">examples</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict.predict_proba" title="Permalink to this definition">¶</a></dt>
+<dd><p>predict probabilities for tags</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>examples</strong> – [list] of [str]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>predictions [list] of [Namespace] with .internal [list] of (word, proba_dist) tuples
+and  .external [list] of (word, proba_dist) tuples
+where proba_dist = [dict] that maps self.tag_list to probabilities</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasetsandmodels.html">Datasets and Models</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="datasetsandmodels.html" title="Datasets and Models"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="CLI"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">nerblackbox 0.0.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Python API</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Arbetsförmedlingen.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.1.
+    </div>
+  </body>
+</html>

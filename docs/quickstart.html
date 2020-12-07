@@ -6,8 +6,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quickstart &#8212; nerblackbox 0.0.6 documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Documentation" href="apidocumentation.html" />
+    <link rel="next" title="CLI" href="cli.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -30,7 +30,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="apidocumentation.html" title="API Documentation"
+          <a href="cli.html" title="CLI"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Installation"
@@ -50,14 +50,14 @@
 <p><strong>nerblackbox</strong> allows to fine-tune a transformer model in a few simple steps,
 using either the</p>
 <ul>
-<li><p>the <a class="reference internal" href="apidocumentation.html#cli"><span class="std std-ref">CLI</span></a> (command line interface)</p>
+<li><p>the <a class="reference internal" href="cli.html#cli"><span class="std std-ref">CLI</span></a> (command line interface)</p>
 <blockquote>
 <div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">nerbb --help</span>
 </pre></div>
 </div>
 </div></blockquote>
 </li>
-<li><p>or the <a class="reference internal" href="apidocumentation.html#python-api"><span class="std std-ref">Python API</span></a>.</p>
+<li><p>or the <a class="reference internal" href="api.html#api"><span class="std std-ref">Python API</span></a>.</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">NerBlackBox</span>
 <span class="n">nerbb</span> <span class="o">=</span> <span class="n">NerBlackBox</span><span class="p">()</span>
@@ -154,8 +154,8 @@ using either the</p>
 <span class="n">experiment_results</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="apidocumentation.html#python-api"><span class="std std-ref">Python API</span></a>
-for details on how to access <code class="docutils literal notranslate"><span class="pre">experiment_results</span></code></p>
+<p>See <a class="reference internal" href="api.html#experimentresults"><span class="std std-ref">ExperimentResults</span></a>
+for details on how to use <code class="docutils literal notranslate"><span class="pre">experiment_results</span></code></p>
 </div></blockquote>
 </li>
 <li><p>Get detailed results &amp; run histories using either mlflow or tensorboard:</p>
@@ -186,6 +186,8 @@ for details on how to access <code class="docutils literal notranslate"><span cl
 <span class="n">experiment_results</span><span class="o">.</span><span class="n">best_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>See <a class="reference internal" href="api.html#nermodelpredict"><span class="std std-ref">NerModelPredict</span></a>
+for details on how to use <code class="docutils literal notranslate"><span class="pre">experiments_results.best_model</span></code></p>
 </div></blockquote>
 </div>
 </div>
@@ -214,8 +216,8 @@ for details on how to access <code class="docutils literal notranslate"><span cl
 <span class="n">experiments_results</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiments_results</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="apidocumentation.html#python-api"><span class="std std-ref">Python API</span></a>
-for details on how to access <code class="docutils literal notranslate"><span class="pre">experiments_results</span></code></p>
+<p>See <a class="reference internal" href="api.html#experimentsresults"><span class="std std-ref">ExperimentsResults</span></a>
+for details on how to use <code class="docutils literal notranslate"><span class="pre">experiments_results</span></code></p>
 </div></blockquote>
 </li>
 </ol>
@@ -233,13 +235,9 @@ for details on how to access <code class="docutils literal notranslate"><span cl
 <h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#initialization">1. Initialization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#single-experiment">2. Single Experiment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#multiple-experiments">3. Multiple Experiments</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="apidocumentation.html">API Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Python API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasetsandmodels.html">Datasets and Models</a></li>
 </ul>
 
@@ -267,7 +265,7 @@ for details on how to access <code class="docutils literal notranslate"><span cl
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="apidocumentation.html" title="API Documentation"
+          <a href="cli.html" title="CLI"
              >next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Installation"
@@ -278,7 +276,7 @@ for details on how to access <code class="docutils literal notranslate"><span cl
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Arbetsförmedlingen.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.1.
     </div>
   </body>
 </html>
