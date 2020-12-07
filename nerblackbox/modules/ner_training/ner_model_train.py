@@ -7,10 +7,10 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
-from nerblackbox.modules.ner_training.lightning_ner_model import LightningNerModel
+from nerblackbox.modules.ner_training.ner_model import NerModel
 
 
-class LightningNerModelTrain(LightningNerModel):
+class NerModelTrain(NerModel):
     def __init__(self, hparams):
         """
         :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..

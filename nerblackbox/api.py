@@ -1,4 +1,4 @@
-r"""Python API of the nerblackbox package."""
+# r"""Python API of the nerblackbox package."""
 
 import os
 from os.path import abspath
@@ -17,8 +17,8 @@ finally:
         print(e2)
 
 
-class NerBlackBoxApi:
-    r"""class that provides Python API for all nerblackbox functionalities.
+class NerBlackBox:
+    r"""class that provides all nerblackbox functionalities.
 
     :param base_dir: [str] relative path of base directory with respect to current directory
     :param data_dir: [str] relative path of data directory with respect to current directory

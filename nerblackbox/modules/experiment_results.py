@@ -7,7 +7,7 @@ class ExperimentResults:
     :param average_runs:     [pandas DataFrame] overview on run parameters & average results
     :param best_single_run:  [dict] overview on best run parameters & single  results
     :param best_average_run: [dict] overview on best run parameters & average results
-    :param best_model:       [LightningNerModelPredict] instance
+    :param best_model:       [NerModelPredict] instance
     """
 
     def __init__(
@@ -30,6 +30,6 @@ class ExperimentResults:
     def _set_best_model(self, best_model):
         """set best model.
 
-        :param best_model:       [LightningNerModelPredict] instance
+        :param best_model:       [NerModelPredict] instance
         """
         self.best_model = best_model

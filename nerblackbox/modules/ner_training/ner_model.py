@@ -21,7 +21,7 @@ from nerblackbox.modules.utils.util_functions import split_parameters
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
-class LightningNerModel(pl.LightningModule, ABC):
+class NerModel(pl.LightningModule, ABC):
     def __init__(self, hparams):
         """
         :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..

@@ -237,8 +237,8 @@ class NerBlackBoxMain:
         :used attr: experiment_name [str], e.g. 'exp0'
         :return: experiment_results [ExperimentResults]
         """
-        from nerblackbox.modules.ner_training.lightning_ner_model_predict import (
-            LightningNerModelPredict,
+        from nerblackbox.modules.ner_training.ner_model_predict import (
+            NerModelPredict,
         )
 
         if self.experiment_name not in self.experiment_name2id.keys():
@@ -258,7 +258,7 @@ class NerBlackBoxMain:
             print(experiment_results.average_runs)
         else:
             if experiment_results.best_single_run["checkpoint"] is not None:
-                best_model = LightningNerModelPredict.load_from_checkpoint(
+                best_model = NerModelPredict.load_from_checkpoint(
                     experiment_results.best_single_run["checkpoint"]
                 )
                 experiment_results._set_best_model(best_model)

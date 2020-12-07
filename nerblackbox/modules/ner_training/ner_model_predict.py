@@ -4,10 +4,10 @@ from transformers import AutoModelForTokenClassification
 from argparse import Namespace
 from torch.nn.functional import softmax
 
-from nerblackbox.modules.ner_training.lightning_ner_model import LightningNerModel
+from nerblackbox.modules.ner_training.ner_model import NerModel
 
 
-class LightningNerModelPredict(LightningNerModel):
+class NerModelPredict(NerModel):
     @classmethod
     def load_from_checkpoint(
         cls,
@@ -15,6 +15,12 @@ class LightningNerModelPredict(LightningNerModel):
         map_location=None,
         tags_csv=None,
     ):
+        """
+        load model in inference mode from checkpoint_path
+        -------------------------------------------------
+        :param checkpoint_path: [str] path to checkpoint
+        :return: model:         [NerModelPredict] instance loaded from checkpoint
+        """
         model = super().load_from_checkpoint(checkpoint_path, map_location, tags_csv)
         model.freeze()  # for inference mode
         return model
