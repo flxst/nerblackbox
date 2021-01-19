@@ -16,25 +16,27 @@ from nerblackbox.modules.utils.util_functions import (
     compute_mean_and_dmean,
 )
 from nerblackbox.modules.experiment_results import ExperimentResults
+from typing import Optional, Any, Tuple, Union, Dict, List
+from pandas import DataFrame
 
 
 class NerBlackBoxMain:
     def __init__(
         self,
-        flag,
-        usage="cli",
-        dataset_name=None,  # analyze_data & set_up_dataset
-        modify=True,  # set_up_dataset
-        val_fraction=0.3,  # set_up_dataset
-        verbose=False,
-        experiment_name=None,
-        run_name=None,  # run_experiment
-        device="gpu",  # run_experiment
-        fp16=False,  # run_experiment
-        text_input=None,  # predict
-        ids=(),  # get_experiments, get_experiments_results
-        as_df=True,  # get_experiments, get_experiments_results
-        results=False,  # clear_data
+        flag: str,
+        usage: str = "cli",
+        dataset_name: Optional[str] = None,  # analyze_data & set_up_dataset
+        modify: bool = True,  # set_up_dataset
+        val_fraction: float = 0.3,  # set_up_dataset
+        verbose: bool = False,
+        experiment_name: str = None,
+        run_name: str = None,  # run_experiment
+        device: Any = "gpu",  # run_experiment
+        fp16: bool = False,  # run_experiment
+        text_input: str = None,  # predict
+        ids: Optional[Tuple[str]] = None,  # get_experiments, get_experiments_results
+        as_df: bool = True,  # get_experiments, get_experiments_results
+        results: bool = False,  # clear_data
     ):
         """
         :param flag:            [str], e.g. 'analyze_data', 'set_up_dataset', 'run_experiment', ..
@@ -71,7 +73,8 @@ class NerBlackBoxMain:
         self.as_df = as_df  # get_experiments, get_experiments_results
         self.results = results  # clear_data
 
-        if os.path.isdir(os.environ.get("DATA_DIR")):
+        data_dir = env_variable("DATA_DIR")
+        if os.path.isdir(data_dir):
             self._set_client_and_get_experiments()
         else:
             # will be set in init() method
@@ -168,7 +171,7 @@ class NerBlackBoxMain:
     ####################################################################################################################
     # FLAGS ############################################################################################################
     ####################################################################################################################
-    def analyze_data(self):
+    def analyze_data(self) -> None:
         """
         :used attr: dataset_name [str] e.g. 'swedish_ner_corpus'
         :used attr: verbose      [bool]
@@ -186,11 +189,12 @@ class NerBlackBoxMain:
             use_conda=False,
         )
 
-    def clear_data(self):
+    def clear_data(self) -> None:
         """
         :used attr: clear_all [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
         """
-        results_dir = join(os.environ.get("DATA_DIR"), "results")
+        data_dir = env_variable("DATA_DIR")
+        results_dir = join(data_dir, "results")
         assert isdir(results_dir), f"directory {results_dir} does not exist."
 
         # checkpoints
@@ -232,7 +236,7 @@ class NerBlackBoxMain:
                 else:
                     print("Please enter either y or n")
 
-    def get_experiment_results(self):
+    def get_experiment_results(self) -> Optional[ExperimentResults]:
         """
         :used attr: experiment_name [str], e.g. 'exp0'
         :return: experiment_results [ExperimentResults]
@@ -241,6 +245,9 @@ class NerBlackBoxMain:
             NerModelPredict,
         )
 
+        assert (
+            self.experiment_id2name is not None
+        ), f"ERROR! self.experiment_id2name is None."
         if self.experiment_name not in self.experiment_name2id.keys():
             print(f"no experiment with experiment_name = {self.experiment_name} found")
             print(f"experiments that were found:")
@@ -256,6 +263,7 @@ class NerBlackBoxMain:
             print()
             print("### average runs ###")
             print(experiment_results.average_runs)
+            return None
         else:
             if experiment_results.best_single_run["checkpoint"] is not None:
                 best_model = NerModelPredict.load_from_checkpoint(
@@ -265,12 +273,13 @@ class NerBlackBoxMain:
 
             return experiment_results
 
-    def get_experiments(self):
+    def get_experiments(self) -> Optional[Union[DataFrame, Dict]]:
         r"""
         :used attr: ids    [tuple] of [str], e.g. ('4', '5')
         :used attr: as_df  [bool] if True, return [pandas DataFrame], else return [dict]
         :return: experiments_overview [pandas DataFrame] or [dict]
         """
+        assert self.ids is not None, f"ERROR! self.ids is None."
         experiments_id2name_filtered = self._filter_experiments_by_ids(self.ids)
 
         experiments_overview = sorted(
@@ -284,10 +293,11 @@ class NerBlackBoxMain:
         if self.usage == "cli":
             print("### experiments ###")
             print(df)
+            return None
         else:
             return df
 
-    def get_experiments_results(self):
+    def get_experiments_results(self) -> Optional[Namespace]:
         r"""
         :used attr: ids     [tuple] of [str], e.g. ('4', '5')
         :used attr: as_df   [bool] if True, return [pandas DataFrame], else return [dict]
@@ -295,13 +305,14 @@ class NerBlackBoxMain:
         :return: experiments_results: [Namespace] w/ attributes = 'best_single_runs', 'best_average_runs'
                                                    & values = [pandas DataFrame] or [dict]
         """
+        assert self.ids is not None, f"ERROR! self.ids is None."
         experiments_filtered = self._filter_experiments_by_ids(self.ids)
 
         best_single_runs_overview = list()
         best_average_runs_overview = list()
         for _id in sorted(list(experiments_filtered.keys())):
             experiment_results = self._get_single_experiment_results(
-                _id, verbose=self.verbose
+                _id,
             )
             if experiment_results.best_single_run:
                 best_single_runs_overview.append(experiment_results.best_single_run)
@@ -324,6 +335,7 @@ class NerBlackBoxMain:
             print()
             print("### best average runs ###")
             print(df_average)
+            return None
         else:
             return Namespace(
                 **{
@@ -332,7 +344,7 @@ class NerBlackBoxMain:
                 }
             )
 
-    def predict(self):
+    def predict(self) -> Optional[List[Namespace]]:
         """
         :used attr: experiment_name [str], e.g. 'exp1'
         :used attr: text_input      [str], e.g. 'this is some text that needs to be annotated'
@@ -346,9 +358,11 @@ class NerBlackBoxMain:
         predictions = experiment_results.best_model.predict(self.text_input)
         if self.usage == "cli":
             print(predictions[0].external)
-        return predictions
+            return None
+        else:
+            return predictions
 
-    def run_experiment(self):
+    def run_experiment(self) -> None:
         """
         :used attr: experiment_name [str],         e.g. 'exp1'
         :used attr: run_name        [str] or None, e.g. 'runA'
@@ -373,9 +387,9 @@ class NerBlackBoxMain:
         self._get_experiments()  # needs to updated to get results from experiment that was run
         self.get_experiment_results()
 
-    def set_up_dataset(self, _dataset_name):
+    def set_up_dataset(self, _dataset_name: str) -> None:
         """
-        :used attr: dataset_name [str] e.g. 'swedish_ner_corpus'
+        :param _dataset_name:    [str] e.g. 'swedish_ner_corpus'
         :used attr: modify       [bool] if True: modify tags as specified in method modify_ner_tag_mapping()
         :used attr: val_fraction [float] e.g. 0.3
         :used attr: verbose      [bool]
@@ -396,7 +410,7 @@ class NerBlackBoxMain:
             use_conda=False,
         )
 
-    def show_experiment_config(self):
+    def show_experiment_config(self) -> None:
         """
         print experiment config
         -----------------------
@@ -415,7 +429,7 @@ class NerBlackBoxMain:
         print(lines)
 
     @staticmethod
-    def show_experiment_configs():
+    def show_experiment_configs() -> None:
         experiment_configs = glob.glob(
             join(env_variable("DIR_EXPERIMENT_CONFIGS"), "*.ini")
         )
@@ -430,24 +444,25 @@ class NerBlackBoxMain:
     # HELPER ###########################################################################################################
     ####################################################################################################################
     @staticmethod
-    def _create_data_directory():
+    def _create_data_directory() -> None:
         if resource_isdir(Requirement.parse("nerblackbox"), "nerblackbox/modules/data"):
             data_source = resource_filename(
                 Requirement.parse("nerblackbox"), "nerblackbox/modules/data"
             )
-            data_target = os.environ.get("DATA_DIR")
+
+            data_dir = env_variable("DATA_DIR")
             print("data_source =", data_source)
-            print("data_target =", data_target)
-            if os.path.isdir(data_target):
-                print(f"init: target {data_target} already exists")
+            print("data_target =", data_dir)
+            if os.path.isdir(data_dir):
+                print(f"init: target {data_dir} already exists")
             else:
-                shutil.copytree(data_source, data_target)
-                print(f"init: target {data_target} created")
+                shutil.copytree(data_source, data_dir)
+                print(f"init: target {data_dir} created")
         else:
             print("init not executed successfully")
             exit(0)
 
-    def _set_client_and_get_experiments(self):
+    def _set_client_and_get_experiments(self) -> None:
         """
         :created attr: client             [Mlflow client]
         :created attr: experiment_id2name [dict] w/ keys = experiment_id [str] & values = experiment_name [str]
@@ -457,12 +472,13 @@ class NerBlackBoxMain:
         self.client = MlflowClient()
         self._get_experiments()
 
-    def _get_experiments(self):
+    def _get_experiments(self) -> None:
         """
         :created attr: experiment_id2name [dict] w/ keys = experiment_id [str] & values = experiment_name [str]
         :created attr: experiment_name2id [dict] w/ keys = experiment_name [str] & values = experiment_id [str]
         :return: -
         """
+        assert self.client is not None, f"ERROR! self.client is None."
         self.experiment_id2name = {
             elem["_experiment_id"]: elem["_name"]
             for elem in [
@@ -470,25 +486,29 @@ class NerBlackBoxMain:
             ]
             if elem["_name"] != "Default"
         }
+
+        assert (
+            self.experiment_id2name is not None
+        ), f"ERROR! self.experiment_id2name is None."
         self.experiment_name2id = {v: k for k, v in self.experiment_id2name.items()}
 
     ####################################################################################################################
     # HELPER: SINGLE EXPERIMENT
     ####################################################################################################################
-    def _get_single_experiment_results(self, experiment_id: str, verbose: bool = False):
+    def _get_single_experiment_results(self, experiment_id: str) -> ExperimentResults:
         r"""
         :param experiment_id: [str], e.g. '0'
-        :return: _experiment:       [pandas DataFrame] overview on experiment parameters
-        :return: _single_runs:      [pandas DataFrame] overview on run parameters & single  results
-        :return: _average_runs:     [pandas DataFrame] overview on run parameters & average results
-        :return: _best_single_run:  [dict] overview on best run parameters & single  results
-        :return: _best_average_run: [dict] overview on best run parameters & average results
+        :return: experiment_results: [ExperimentResults]
         """
+        assert (
+            self.experiment_id2name is not None
+        ), f"ERROR! self.experiment_id2name is None."
+
         experiment_name = self.experiment_id2name[experiment_id]
         runs = self.client.search_runs(experiment_id)
 
         _experiment, _single_runs, _average_runs = self._parse_and_create_dataframe(
-            runs, verbose=verbose
+            runs,
         )
 
         # best run
@@ -521,7 +541,7 @@ class NerBlackBoxMain:
                 "checkpoint": checkpoint if isfile(checkpoint) else None,
             }
         else:
-            _best_single_run = None
+            _best_single_run = dict()
 
         # best run average
         if _experiment is not None and _average_runs is not None:
@@ -550,7 +570,7 @@ class NerBlackBoxMain:
                 "d_epoch_best_test_chk_f1_micro": d_best_average_run_epoch_best_test_chk_f1_micro,
             }
         else:
-            _best_average_run = None
+            _best_average_run = dict()
         return ExperimentResults(
             _experiment,
             _single_runs,
@@ -562,13 +582,17 @@ class NerBlackBoxMain:
     ####################################################################################################################
     # HELPER: ALL EXPERIMENTS
     ####################################################################################################################
-    def _filter_experiments_by_ids(self, _ids):
+    def _filter_experiments_by_ids(self, _ids: Tuple[str]) -> Dict:
         r"""
         get _experiments_id2name [dict] with _ids as keys
         -------------------------------------------------
         :param _ids:  [tuple] of [str], e.g. ('4', '5')
         :return: _experiments_id2name [dict] w/ keys = experiment_id [str] & values = experiment_name [str]
         """
+        assert (
+            self.experiment_id2name is not None
+        ), f"ERROR! self.experiment_id2name is None."
+
         if len(_ids) == 0:
             _experiments_id2name = self.experiment_id2name
         else:
@@ -578,12 +602,13 @@ class NerBlackBoxMain:
         return _experiments_id2name
 
     @staticmethod
-    def _parse_and_create_dataframe(_runs, verbose=False):
+    def _parse_and_create_dataframe(
+        _runs: List,
+    ) -> Tuple[DataFrame, DataFrame, DataFrame]:
         r"""
         turn mlflow Run objects (= search_runs() results) into data frames
         ------------------------------------------------------------------
         :param _runs:   [list] of [mlflow.entities.Run objects]
-        :param verbose: [bool]
         :return: _experiment:   [pandas DataFrame] overview on experiment parameters
         :return: _single_runs:  [pandas DataFrame] overview on single  run parameters & results
         :return: _average_runs: [pandas DataFrame] overview on average run parameters & results
@@ -598,7 +623,7 @@ class NerBlackBoxMain:
         ###########################################
         # parameters_experiment & parameters_runs
         ###########################################
-        parameters_runs = dict()
+        parameters_runs: Dict[Tuple, Any] = dict()
         for i in range(len(_runs)):
             if len(_runs[i].data.metrics) == 0:  # experiment
                 parameters_experiment = {
@@ -750,21 +775,21 @@ class NerBlackBoxMain:
     # HELPER: ADDITONAL
     ####################################################################################################################
     @staticmethod
-    def _assert_flag(flag):
+    def _assert_flag(flag: str) -> None:
         if flag is None:
             message = f"> missing flag (e.g. init, set_up_dataset, run_experiment)"
             print(message)
             exit(0)
 
-    def _assert_flag_arg(self, flag_arg):
+    def _assert_flag_arg(self, flag_arg: str) -> None:
         if getattr(self, flag_arg) is None:
             message = f"> missing argument: nerbb {self.flag} <{flag_arg}>"
             print(message)
             exit(0)
 
-    def _assert_usage(self):
+    def _assert_usage(self) -> None:
         assert self.usage in ["cli", "api"], "missing usage"
 
     @staticmethod
-    def show_as_df(_dict):
+    def show_as_df(_dict: Dict) -> DataFrame:
         return pd.DataFrame(_dict)

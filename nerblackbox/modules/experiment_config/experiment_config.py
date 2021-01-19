@@ -5,6 +5,7 @@ from nerblackbox.modules.utils.util_functions import get_hardcoded_parameters
 from nerblackbox.modules.utils.util_functions import env_variable
 from nerblackbox.modules.utils.util_functions import get_run_name, get_run_name_nr
 from itertools import product
+from typing import Union, Tuple, Any, Dict, Optional, List
 
 
 class ExperimentConfig:
@@ -40,7 +41,9 @@ class ExperimentConfig:
                 f"default config file at {self.config_path_default} does not exist"
             )
 
-    def get_params_and_hparams(self, run_name_nr: str = None):
+    def get_params_and_hparams(
+        self, run_name_nr: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         get dictionary of all parameters & their values that belong to
         either generally    to experiment (run_name == None)
@@ -63,7 +66,7 @@ class ExperimentConfig:
 
         return params_and_hparams
 
-    def parse(self):
+    def parse(self) -> Tuple[List[str], Dict[str, Dict], Dict[str, Dict]]:
         """
         parse <experiment_name>.ini files
         if self.run_name is specified, parse only that run. else parse all runs.
@@ -145,7 +148,7 @@ class ExperimentConfig:
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
-    def _get_config(self, default: bool = False):
+    def _get_config(self, default: bool = False) -> Tuple[ConfigParser, Dict]:
         """
         get ConfigParser instance and derive config dictionary from it
         --------------------------------------------------------------
@@ -155,7 +158,7 @@ class ExperimentConfig:
         """
         _config = ConfigParser()
         _config.read(self.config_path_default if default else self.config_path)
-        _config_dict = {
+        _config_dict: Dict[str, Dict[str, Any]] = {
             s: dict(_config.items(s)) for s in _config.sections()
         }  # {'hparams': {'monitor': 'val_loss'}}
         _config_dict = {
@@ -186,7 +189,9 @@ class ExperimentConfig:
 
         return _config, _config_dict
 
-    def _convert(self, _input_key: str, _input_value):
+    def _convert(
+        self, _input_key: str, _input_value: str
+    ) -> Union[str, int, float, bool]:
         """
         convert _input string to str/int/float/bool
         -------------------------------------------

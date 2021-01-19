@@ -10,6 +10,7 @@ class DefaultLogger:
 
     custom_datefmt = "%Y/%m/%d %H:%M:%S"
     custom_format = "%(asctime)s - %(name)s - %(levelname)s -  %(message)s"
+    assert BASE_DIR is not None, "ERROR! BASE_DIR not found."
     default_log_file = join(BASE_DIR, "logs.log")
 
     def __init__(self, path, log_file=None, level=None, mode="a"):

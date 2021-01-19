@@ -1,3 +1,7 @@
+from typing import Optional, Any, Dict
+from pandas import DataFrame
+
+
 class ExperimentResults:
 
     r"""class that contains results of a single experiment.
@@ -12,12 +16,12 @@ class ExperimentResults:
 
     def __init__(
         self,
-        experiment=None,
-        single_runs=None,
-        average_runs=None,
-        best_single_run=None,
-        best_average_run=None,
-        best_model=None,
+        experiment: Optional[DataFrame] = None,
+        single_runs: Optional[DataFrame] = None,
+        average_runs: Optional[DataFrame] = None,
+        best_single_run: Optional[Dict] = None,
+        best_average_run: Optional[Dict] = None,
+        best_model: Optional[Any] = None,
     ):
 
         self.experiment = experiment
