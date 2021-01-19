@@ -68,22 +68,24 @@ using either the</p>
 </ul>
 <div class="section" id="initialization">
 <h2>1. Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h2>
-<p>The following command needs to be executed once:</p>
+<p>The following commands need to be executed once:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CLI</span>
 <span class="n">nerbb</span> <span class="n">init</span>
+<span class="n">nerbb</span> <span class="n">download</span>    <span class="c1"># optional, if built-in datasets shall be used</span>
 
 <span class="c1"># Python API</span>
 <span class="n">nerbb</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+<span class="n">nerbb</span><span class="o">.</span><span class="n">download</span><span class="p">()</span>  <span class="c1"># optional, if built-in datasets shall be used</span>
 </pre></div>
 </div>
-<p>It creates a <code class="docutils literal notranslate"><span class="pre">./data</span></code> directory with the following structure:</p>
+<p>This creates a <code class="docutils literal notranslate"><span class="pre">./data</span></code> directory with the following structure:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span>data/
 └── datasets
-    └── conll2003           # built-in dataset (english)
+    └── conll2003           # built-in dataset (english), requires download
         └── train.csv
         └── val.csv
         └── test.csv
-    └── swedish_ner_corpus  # built-in dataset (swedish)
+    └── swedish_ner_corpus  # built-in dataset (swedish), requires download
         └── train.csv
         └── val.csv
         └── test.csv

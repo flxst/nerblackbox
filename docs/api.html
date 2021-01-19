@@ -64,7 +64,7 @@
 <span id="id1"></span><h2>NerBlackBox<a class="headerlink" href="#nerblackbox" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-nerblackbox.api"></span><dl class="py class">
 <dt id="nerblackbox.api.NerBlackBox">
-<em class="property">class </em><code class="sig-name descname">NerBlackBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_dir</span><span class="o">=</span><span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">data_dir</span><span class="o">=</span><span class="default_value">'./data'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">NerBlackBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_dir</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">data_dir</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'./data'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox" title="Permalink to this definition">¶</a></dt>
 <dd><p>class that provides all nerblackbox functionalities.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -88,6 +88,14 @@
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nerblackbox.api.NerBlackBox.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>download &amp; prepare built-in datasets, prepare experiment configuration.
+needs to be called exactly once before any other CLI/API commands of the package are executed
+in case built-in datasets shall be used.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -140,7 +148,7 @@
 <dl class="py method">
 <dt id="nerblackbox.api.NerBlackBox.init">
 <code class="sig-name descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.api.NerBlackBox.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>initialize the data_dir directory, download &amp; prepare built-in datasets, prepare experiment configuration.
+<dd><p>initialize the data_dir directory.
 needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
 </dd></dl>
 
@@ -214,7 +222,7 @@ needs to be called exactly once before any other CLI/API commands of the package
 <span id="id2"></span><h2>ExperimentResults<a class="headerlink" href="#experimentresults" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-nerblackbox.modules.experiment_results"></span><dl class="py class">
 <dt id="nerblackbox.modules.experiment_results.ExperimentResults">
-<em class="property">class </em><code class="sig-name descname">ExperimentResults</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">single_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">average_runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_single_run</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_average_run</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_model</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.experiment_results.ExperimentResults" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">ExperimentResults</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiment</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>pandas.core.frame.DataFrame<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">single_runs</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>pandas.core.frame.DataFrame<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">average_runs</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>pandas.core.frame.DataFrame<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_single_run</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_average_run</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">best_model</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nerblackbox.modules.experiment_results.ExperimentResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>class that contains results of a single experiment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

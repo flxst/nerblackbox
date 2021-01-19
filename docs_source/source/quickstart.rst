@@ -24,28 +24,30 @@ using either the
 1. Initialization
 -----------------
 
-The following command needs to be executed once:
+The following commands need to be executed once:
 
 .. code-block:: python
 
     # CLI
     nerbb init
+    nerbb download    # optional, if built-in datasets shall be used
 
     # Python API
     nerbb.init()
+    nerbb.download()  # optional, if built-in datasets shall be used
 
 
-It creates a ``./data`` directory with the following structure:
+This creates a ``./data`` directory with the following structure:
 
 .. code-block:: xml
 
     data/
     └── datasets
-        └── conll2003           # built-in dataset (english)
+        └── conll2003           # built-in dataset (english), requires download
             └── train.csv
             └── val.csv
             └── test.csv
-        └── swedish_ner_corpus  # built-in dataset (swedish)
+        └── swedish_ner_corpus  # built-in dataset (swedish), requires download
             └── train.csv
             └── val.csv
             └── test.csv
@@ -54,7 +56,6 @@ It creates a ``./data`` directory with the following structure:
         └── exp_test.ini
     └── pretrained_models       # custom model checkpoints
     └── results
-
 
 
 2. Single Experiment

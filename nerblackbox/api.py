@@ -2,6 +2,7 @@
 
 import os
 from os.path import abspath
+from typing import Optional, Dict
 
 try:
     from nerblackbox.modules.main import NerBlackBoxMain
@@ -24,7 +25,7 @@ class NerBlackBox:
     :param data_dir: [str] relative path of data directory with respect to current directory
     """
 
-    def __init__(self, base_dir=".", data_dir="./data"):
+    def __init__(self, base_dir: str = ".", data_dir: str = "./data"):
         r"""
         :param base_dir: [str] relative path of base directory with respect to current directory
         :param data_dir: [str] relative path of data directory with respect to current directory
@@ -51,6 +52,16 @@ class NerBlackBox:
         kwargs["dataset_name"] = dataset_name
 
         nerbb = NerBlackBoxMain("analyze_data", **kwargs)
+        nerbb.main()
+
+    def download(self):
+        r"""download & prepare built-in datasets, prepare experiment configuration.
+        needs to be called exactly once before any other CLI/API commands of the package are executed
+        in case built-in datasets shall be used.
+        """
+        _ = self._process_kwargs_optional()
+
+        nerbb = NerBlackBoxMain("download")
         nerbb.main()
 
     def get_experiment_results(self, experiment_name: str):
@@ -97,7 +108,7 @@ class NerBlackBox:
         return nerbb.main()
 
     def init(self):
-        r"""initialize the data_dir directory, download & prepare built-in datasets, prepare experiment configuration.
+        r"""initialize the data_dir directory.
         needs to be called exactly once before any other CLI/API commands of the package are executed.
         """
         _ = self._process_kwargs_optional()
@@ -172,7 +183,7 @@ class NerBlackBox:
     # HELPER
     ####################################################################################################################
     @staticmethod
-    def _process_kwargs_optional(_kwargs_optional=None):
+    def _process_kwargs_optional(_kwargs_optional: Optional[Dict] = None):
         if _kwargs_optional is None:
             return {}
         else:

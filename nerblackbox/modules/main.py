@@ -19,6 +19,8 @@ from nerblackbox.modules.experiment_results import ExperimentResults
 from typing import Optional, Any, Tuple, Union, Dict, List
 from pandas import DataFrame
 
+DATASETS = ["conll2003", "swedish_ner_corpus"]
+
 
 class NerBlackBoxMain:
     def __init__(
@@ -92,11 +94,14 @@ class NerBlackBoxMain:
         ################################################################################################################
         if self.flag == "init":
             self._create_data_directory()
-
-            for _dataset_name in ["conll2003", "swedish_ner_corpus"]:
-                self.set_up_dataset(_dataset_name)
-
             self._set_client_and_get_experiments()
+
+        ################################################################################################################
+        # download
+        ################################################################################################################
+        elif self.flag == "download":
+            for _dataset_name in DATASETS:
+                self.set_up_dataset(_dataset_name)
 
         ################################################################################################################
         # analyze_data

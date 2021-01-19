@@ -79,6 +79,13 @@
 </dd>
 </dl>
 </li>
+<li><dl class="simple">
+<dt>download:</dt><dd><p>download &amp; prepare built-in datasets, prepare experiment configuration.
+needs to be called exactly once before any other CLI/API commands of the package are executed
+in case built-in datasets shall be used.</p>
+</dd>
+</dl>
+</li>
 <li><dl>
 <dt>get_experiment_results:</dt><dd><p>get results for a single experiment.</p>
 <p><code class="docutils literal notranslate"><span class="pre">FLAG_ARGS</span> <span class="pre">=</span> <span class="pre">&lt;experiment_name&gt;</span></code></p>
@@ -96,7 +103,7 @@
 </dl>
 </li>
 <li><dl class="simple">
-<dt>init:</dt><dd><p>initialize the data_dir directory, download &amp; prepare built-in datasets, prepare experiment configuration.
+<dt>init:</dt><dd><p>initialize the data_dir directory.
 needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
 </dd>
 </dl>

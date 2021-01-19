@@ -37,6 +37,11 @@ def main(**kwargs_optional):
     - clear_data:
         clear data (checkpoints and optionally results)
 
+    - download:
+        download & prepare built-in datasets, prepare experiment configuration.
+        needs to be called exactly once before any other CLI/API commands of the package are executed
+        in case built-in datasets shall be used.
+
     - get_experiment_results:
         get results for a single experiment.
 
@@ -49,7 +54,7 @@ def main(**kwargs_optional):
         get results from multiple experiments.
 
     - init:
-        initialize the data_dir directory, download & prepare built-in datasets, prepare experiment configuration.
+        initialize the data_dir directory.
         needs to be called exactly once before any other CLI/API commands of the package are executed.
 
     - mlflow:
@@ -89,6 +94,7 @@ def main(**kwargs_optional):
     possible_flags = [
         "analyze_data",
         "clear_data",
+        "download",
         "get_experiment_results",
         "get_experiments",
         "get_experiments_results",
