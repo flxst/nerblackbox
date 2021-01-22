@@ -100,6 +100,16 @@ def download(ctx):
     _run_nerblackbox_main(ctx.obj, kwargs)
 
 
+@nerbb.command(name="get_experiments")
+@click.pass_context
+def get_experiments(ctx):
+    """get overview on experiments."""
+    kwargs = {
+        "flag": "get_experiments",
+    }
+    _run_nerblackbox_main(ctx.obj, kwargs)
+
+
 @nerbb.command(name="get_experiment_results")
 @click.pass_context
 @click.argument("experiment_name")
@@ -139,7 +149,7 @@ def mlflow():
 def predict(ctx, experiment_name: str, text_input: str):
     """predict labels for text_input using the best model of a single experiment."""
     kwargs = {
-        "flag": "show_experiment_config",
+        "flag": "predict",
         "experiment_name": experiment_name,
         "text_input": text_input,
     }

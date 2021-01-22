@@ -26,19 +26,19 @@ class NerBlackBoxMain:
     def __init__(
         self,
         flag: str,
-        usage: str = "cli",
+        usage: Optional[str] = "cli",
         dataset_name: Optional[str] = None,  # analyze_data & set_up_dataset
-        modify: bool = True,  # set_up_dataset
-        val_fraction: float = 0.3,  # set_up_dataset
-        verbose: bool = False,
-        experiment_name: str = None,
-        run_name: str = None,  # run_experiment
-        device: Any = "gpu",  # run_experiment
-        fp16: bool = False,  # run_experiment
-        text_input: str = None,  # predict
-        ids: Optional[Tuple[str]] = None,  # get_experiments, get_experiments_results
-        as_df: bool = True,  # get_experiments, get_experiments_results
-        results: bool = False,  # clear_data
+        modify: Optional[bool] = True,  # set_up_dataset
+        val_fraction: Optional[float] = 0.3,  # set_up_dataset
+        verbose: Optional[bool] = False,
+        experiment_name: Optional[str] = None,
+        run_name: Optional[str] = None,  # run_experiment
+        device: Optional[Any] = "gpu",  # run_experiment
+        fp16: Optional[bool] = False,  # run_experiment
+        text_input: Optional[str] = None,  # predict
+        ids: Optional[Tuple[str]] = (),  # get_experiments, get_experiments_results
+        as_df: Optional[bool] = True,  # get_experiments, get_experiments_results
+        results: Optional[bool] = False,  # clear_data
     ):
         """
         :param flag:            [str], e.g. 'analyze_data', 'set_up_dataset', 'run_experiment', ..
