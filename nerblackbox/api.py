@@ -2,7 +2,8 @@
 
 import os
 from os.path import abspath
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Union
+import pandas as pd
 
 try:
     from nerblackbox.modules.main import NerBlackBoxMain
@@ -19,16 +20,15 @@ finally:
 
 
 class NerBlackBox:
-    r"""class that provides all nerblackbox functionalities.
-
-    :param base_dir: [str] relative path of base directory with respect to current directory
-    :param data_dir: [str] relative path of data directory with respect to current directory
-    """
+    """class that provides all nerblackbox functionalities."""
 
     def __init__(self, base_dir: str = ".", data_dir: str = "./data"):
-        r"""
-        :param base_dir: [str] relative path of base directory with respect to current directory
-        :param data_dir: [str] relative path of data directory with respect to current directory
+        """
+
+        Args:
+            base_dir: relative path of base directory with respect to current directory
+            data_dir: relative path of data directory with respect to current directory
+
         """
 
         os.environ["BASE_DIR"] = abspath(base_dir)
@@ -39,13 +39,12 @@ class NerBlackBox:
     ####################################################################################################################
     # NER BLACK BOX
     ####################################################################################################################
-    def analyze_data(self, dataset_name: str, **kwargs_optional):
-        r"""analyze a dataset.
+    def analyze_data(self, dataset_name: str, **kwargs_optional: Dict):
+        """analyze a dataset.
 
-        :param dataset_name:    [str] e.g. 'swedish_ner_corpus'
-        :param kwargs_optional: [dict] with optional key-value pairs
-
-                                       {'verbose': [bool]}
+        Args:
+            dataset_name: e.g. "swedish_ner_corpus".
+            kwargs_optional: with optional key-value pairs {"verbose": [bool]}.
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
@@ -55,7 +54,7 @@ class NerBlackBox:
         nerbb.main()
 
     def download(self):
-        r"""download & prepare built-in datasets, prepare experiment configuration.
+        """download & prepare built-in datasets, prepare experiment configuration.
         needs to be called exactly once before any other CLI/API commands of the package are executed
         in case built-in datasets shall be used.
         """
@@ -65,10 +64,10 @@ class NerBlackBox:
         nerbb.main()
 
     def get_experiment_results(self, experiment_name: str):
-        r"""get results for a single experiment.
+        """get results for a single experiment.
 
-        :param experiment_name: [str], e.g. 'exp0'
-        :return: experiment_results: [ExperimentResults] instance
+        Args:
+            experiment_name: e.g. "exp0"
         """
         kwargs = self._process_kwargs_optional()
         kwargs["usage"] = "api"
@@ -77,14 +76,15 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("get_experiment_results", **kwargs)
         return nerbb.main()
 
-    def get_experiments(self, **kwargs_optional):
-        r"""show list of experiments that have been run.
+    def get_experiments(self, **kwargs_optional: Dict) -> pd.DataFrame:
+        """show list of experiments that have been run.
 
-        :param kwargs_optional: [dict] with optional key-value pairs
+        Args:
+            kwargs_optional: with optional key-value pairs \
+            {"ids": [tuple of int], "as_df": [bool]}
 
-                                       {'ids': [tuple of int], 'as_df': [bool]}
-
-        :return: experiments_overview: [pandas DataFrame] or [dict]
+        Returns:
+            experiments_overview: overview
         """
         kwargs = self._process_kwargs_optional(kwargs_optional)
         kwargs["usage"] = "api"
@@ -92,15 +92,16 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("get_experiments", **kwargs)
         return nerbb.main()
 
-    def get_experiments_results(self, **kwargs_optional):
-        r"""get results from multiple experiments.
+    def get_experiments_results(self, **kwargs_optional: Dict) -> Dict:
+        """get results from multiple experiments.
 
-        :param kwargs_optional: [dict] with optional key-value pairs
+        Args:
+            kwargs_optional: with optional key-value pairs \
+            {"ids": [tuple of int], "as_df": [bool]}
 
-                                       {'ids': [tuple of int], 'as_df': [bool]}
-
-        :return: experiments_results: [dict] w/ keys = 'best_single_runs', 'best_average_runs'
-                                              & values = [pandas DataFrame] or [dict]
+        Returns:
+            experiments_results: w/ keys = "best_single_runs", "best_average_runs" \
+            & values = [pandas DataFrame] or [dict]
         """
         kwargs = self._process_kwargs_optional(kwargs_optional)
         kwargs["usage"] = "api"
@@ -108,7 +109,7 @@ class NerBlackBox:
         return nerbb.main()
 
     def init(self):
-        r"""initialize the data_dir directory.
+        """initialize the data_dir directory.
         needs to be called exactly once before any other CLI/API commands of the package are executed.
         """
         _ = self._process_kwargs_optional()
@@ -116,11 +117,12 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("init")
         nerbb.main()
 
-    def predict(self, experiment_name: str, text_input: str):
-        r"""predict labels for text_input using the best model of a single experiment.
+    def predict(self, experiment_name: str, text_input: Union[str, List[str]]):
+        """predict labels for text_input using the best model of a single experiment.
 
-        :param experiment_name: [str], e.g. 'exp0'
-        :param text_input: [str or list of str], e.g. 'this text needs to be tagged'
+        Args:
+            experiment_name: e.g. "exp0"
+            text_input: e.g. "this text needs to be tagged"
         """
 
         kwargs = self._process_kwargs_optional()
@@ -131,13 +133,13 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("predict", **kwargs)
         return nerbb.main()
 
-    def run_experiment(self, experiment_name: str, **kwargs_optional):
-        r"""run a single experiment.
+    def run_experiment(self, experiment_name: str, **kwargs_optional: Dict):
+        """run a single experiment.
 
-        :param experiment_name: [str], e.g. 'exp0'
-        :param kwargs_optional: [dict] with optional key-value pairs
-
-                                       {'run_name': [str], 'device': [torch device], 'fp16': [bool]}
+        Args:
+            experiment_name: e.g. "exp0"
+            kwargs_optional: with optional key-value pairs \
+            {"run_name": [str], "device": [torch device], "fp16": [bool]}
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
@@ -146,13 +148,13 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("run_experiment", **kwargs)
         nerbb.main()
 
-    def set_up_dataset(self, dataset_name: str, **kwargs_optional):
-        r"""set up a dataset using the associated Formatter class.
+    def set_up_dataset(self, dataset_name: str, **kwargs_optional: Dict):
+        """set up a dataset using the associated Formatter class.
 
-        :param dataset_name:    [str] e.g. 'swedish_ner_corpus'
-        :param kwargs_optional: [dict] with optional key-value pairs
-
-                                       {'modify': [bool], 'val_fraction': [float], 'verbose': [bool]}
+        Args:
+            dataset_name: e.g. "swedish_ner_corpus"
+            kwargs_optional: with optional key-value pairs \
+            {"modify": [bool], "val_fraction": [float], "verbose": [bool]}
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
@@ -162,9 +164,10 @@ class NerBlackBox:
         nerbb.main()
 
     def show_experiment_config(self, experiment_name: str):
-        r"""show a single experiment configuration in detail.
+        """show a single experiment configuration in detail.
 
-        :param experiment_name: [str], e.g. 'exp0'
+        Args:
+            experiment_name: e.g. "exp0"
         """
         kwargs = self._process_kwargs_optional()
         kwargs["experiment_name"] = experiment_name
@@ -173,7 +176,7 @@ class NerBlackBox:
         nerbb.main()
 
     def show_experiment_configs(self):
-        r"""show overview on all available experiment configurations."""
+        """show overview on all available experiment configurations."""
         _ = self._process_kwargs_optional()
 
         nerbb = NerBlackBoxMain("show_experiment_configs")

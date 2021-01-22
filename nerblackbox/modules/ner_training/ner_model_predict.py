@@ -3,30 +3,39 @@ import numpy as np
 from transformers import AutoModelForTokenClassification
 from argparse import Namespace
 from torch.nn.functional import softmax
+from typing import List, Union
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
 
 
 class NerModelPredict(NerModel):
+    """
+    class that predicts tags for given text
+    """
+
     @classmethod
     def load_from_checkpoint(
         cls,
-        checkpoint_path,
+        checkpoint_path: str,
         map_location=None,
         tags_csv=None,
-    ):
-        r"""load model in inference mode from checkpoint_path
+    ) -> "NerModelPredict":
+        """load model in inference mode from checkpoint_path
 
-        :param checkpoint_path: [str] path to checkpoint
-        :return: model:         [NerModelPredict] instance loaded from checkpoint
+        Args:
+            checkpoint_path: path to checkpoint
+
+        Returns:
+            model loaded from checkpoint
         """
         model = super().load_from_checkpoint(checkpoint_path, map_location, tags_csv)
         model.freeze()  # for inference mode
         return model
 
-    def __init__(self, hparams):
+    def __init__(self, hparams: Namespace):
         """
-        :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        Args:
+            hparams: attr experiment_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__(hparams)
 
@@ -74,33 +83,42 @@ class NerModelPredict(NerModel):
     ####################################################################################################################
     # PREDICT
     ####################################################################################################################
-    def predict(self, examples):
-        r"""predict tags
+    def predict(self, examples: List[str]) -> List[Namespace]:
+        """predict tags
 
-        :param examples:     [list] of [str]
-        :return: predictions [list] of [Namespace] with .internal [list] of (word, tag) tuples
-                                                   and  .external [list] of (word, tag) tuples
+        Args:
+            examples: e.g. ["example 1", "example 2"]
+
+        Returns:
+            predictions: with .internal [list] of (word, tag) tuples \
+                         and  .external [list] of (word, tag) tuples
         """
         return self._predict(examples, proba=False)
 
-    def predict_proba(self, examples):
-        r"""predict probabilities for tags
+    def predict_proba(self, examples: List[str]) -> List[Namespace]:
+        """predict probabilities for tags
 
-        :param examples:     [list] of [str]
-        :return: predictions [list] of [Namespace] with .internal [list] of (word, proba_dist) tuples
-                                                   and  .external [list] of (word, proba_dist) tuples
-                                                   where proba_dist = [dict] that maps self.tag_list to probabilities
+        Args:
+            examples: e.g. ["example 1", "example 2"]
+        Returns:
+            predictions: with .internal [list] of (word, proba_dist) tuples \
+                         and  .external [list] of (word, proba_dist) tuples \
+                         where proba_dist = [dict] that maps self.tag_list to probabilities
         """
         return self._predict(examples, proba=True)
 
-    def _predict(self, examples, proba: bool = False):
-        """
-        predict tags or probabilities for tags
-        --------------------------------------
-        :param examples:     [list] of [str] or just [str]
-        :param proba:        [bool] predict probabilities instead of labels
-        :return: predictions [list] of [Namespace] with .internal [list] of (word, tag / proba_dist) tuples
-                                                   and  .external [list] of (word, tag / proba_dist) tuples
+    def _predict(
+        self, examples: Union[str, List[str]], proba: bool = False
+    ) -> List[Namespace]:
+        """predict tags or probabilities for tags
+
+        Args:
+            examples: e.g. ["example 1", "example 2"]
+            proba: predict probabilities instead of labels
+
+        Returns:
+            predictions: with .internal [list] of (word, tag / proba_dist) tuples \
+                         and  .external [list] of (word, tag / proba_dist) tuples
         """
         if isinstance(examples, str):
             examples = [examples]

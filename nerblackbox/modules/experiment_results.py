@@ -1,18 +1,11 @@
-from typing import Optional, Any, Dict
+from typing import Optional, Dict
 from pandas import DataFrame
+from nerblackbox.modules.ner_training.ner_model_predict import NerModelPredict
 
 
 class ExperimentResults:
 
-    r"""class that contains results of a single experiment.
-
-    :param experiment:       [pandas DataFrame] overview on experiment parameters
-    :param single_runs:      [pandas DataFrame] overview on run parameters & single  results
-    :param average_runs:     [pandas DataFrame] overview on run parameters & average results
-    :param best_single_run:  [dict] overview on best run parameters & single  results
-    :param best_average_run: [dict] overview on best run parameters & average results
-    :param best_model:       [NerModelPredict] instance
-    """
+    """class that contains results of a single experiment."""
 
     def __init__(
         self,
@@ -21,8 +14,18 @@ class ExperimentResults:
         average_runs: Optional[DataFrame] = None,
         best_single_run: Optional[Dict] = None,
         best_average_run: Optional[Dict] = None,
-        best_model: Optional[Any] = None,
+        best_model: Optional[NerModelPredict] = None,
     ):
+        """
+
+        Args:
+            experiment: overview on experiment parameters
+            single_runs: overview on run parameters & single  results
+            average_runs: overview on run parameters & average results
+            best_single_run: overview on best run parameters & single results
+            best_average_run: overview on best run parameters & average results
+            best_model: best model
+        """
 
         self.experiment = experiment
         self.single_runs = single_runs
@@ -31,9 +34,10 @@ class ExperimentResults:
         self.best_average_run = best_average_run
         self.best_model = best_model
 
-    def _set_best_model(self, best_model):
+    def _set_best_model(self, best_model: NerModelPredict) -> None:
         """set best model.
 
-        :param best_model:       [NerModelPredict] instance
+        Args:
+            best_model: best model
         """
         self.best_model = best_model
