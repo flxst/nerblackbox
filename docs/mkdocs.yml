@@ -1,0 +1,32 @@
+site_name: nerblackbox
+theme:
+  name: material
+  palette:
+    primary: black
+  features:
+    - toc.integrate
+  favicon: images/package-16.svg
+  icon:
+    logo: octicons/package-16
+plugins:
+  - mkdocstrings
+markdown_extensions:
+  - attr_list
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - mkdocs-click
+extra_css:
+  - stylesheets/extra.css
+nav:
+    - 'index.md'
+    - 'getting_started.md'
+    - 'cli.md'
+    - Python API:
+      - Overview: 'python_api/overview.md'
+      - 'python_api/nerblackbox.md'
+      - 'python_api/experiment_results.md'
+      - 'python_api/experiments_results.md'
+      - 'python_api/ner_model_predict.md'
+    - 'datasets_and_models.md'
