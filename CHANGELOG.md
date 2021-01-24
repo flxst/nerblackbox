@@ -1,6 +1,15 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## 0.0.8 (2021-01-24)
+#### Added
+- CLI command "nerbb download" (and corresponding python method) to download built-in datasets
+
+#### Changed
+- CLI command "nerbb init" (and corresponding python method) no longer automatically downloads built-in datasets
+
+
 ## 0.0.7 (2020-12-07)
 #### Added
 - NerModelPredict: option to predict probabilities instead of tags
