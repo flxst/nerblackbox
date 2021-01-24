@@ -1,6 +1,4 @@
 
-.. .. include:: ./docs_source/source/shared/main1.rst
-
 ===========
 nerblackbox
 ===========
@@ -44,9 +42,7 @@ one needs to retrain (or "fine-tune") them using labeled text.
 
 **nerblackbox makes this easy.**
 
-.. image:: https://raw.githubusercontent.com/af-ai-center/nerblackbox/master/docs/_static/nerblackbox.png
-
-.. .. include:: ./docs_source/source/shared/main2.rst
+.. image:: https://raw.githubusercontent.com/af-ai-center/nerblackbox/master/docs/docs/images/nerblackbox.png
 
 You give it
 
@@ -65,8 +61,6 @@ Installation
 
 Usage
 =====
-
-.. .. include:: ./docs_source/source/shared/usage.rst
 
 Fine-tuning can be done in a few simple steps using an "experiment configuration file"
 

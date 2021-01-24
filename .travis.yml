@@ -3,5 +3,7 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
-install: pip install tox-travis
+install:
+  - pip install tox-travis
+  - travis_wait mvn install
 script: tox
