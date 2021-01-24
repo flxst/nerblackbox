@@ -11,6 +11,9 @@ CREATE THE DOCUMENTATION
     ``cd docs && mkdocs serve``
 
 
-3. push the documentation to github
+3. push the documentation to origin
 
-    ``cd docs && mkdocs gh-deploy``
+    ``cd docs && mkdocs gh-deploy [--force]``
+
+
+4. push the documentation to github (branch `gh-pages`) manually

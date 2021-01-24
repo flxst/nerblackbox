@@ -2,6 +2,8 @@
 
 **nerblackbox** - a python package to fine-tune transformer-based models for Named Entity Recognition (NER).
 
+Latest version: 0.0.8
+
 -----------
 ## Resources
 

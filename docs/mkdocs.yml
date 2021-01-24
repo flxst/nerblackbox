@@ -8,8 +8,11 @@ theme:
   favicon: images/package-16.svg
   icon:
     logo: octicons/package-16
+copyright: Copyright &copy; 2020 - 2021 Arbetsförmedlingen
 plugins:
   - mkdocstrings
+  - search
+# repo_url: https://github.com/af-ai-center/nerblackbox
 markdown_extensions:
   - attr_list
   - admonition
