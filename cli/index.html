@@ -1,0 +1,645 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="shortcut icon" href="../images/package-16.svg">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.5">
+    
+    
+      
+        <title>Command Line Interface - nerblackbox</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.15aa0b43.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.75751829.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#000000">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="">
+      
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#command-line-interface" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="nerblackbox" class="md-header-nav__button md-logo" aria-label="nerblackbox">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.878.392a1.75 1.75 0 00-1.756 0l-5.25 3.045A1.75 1.75 0 001 4.951v6.098c0 .624.332 1.2.872 1.514l5.25 3.045a1.75 1.75 0 001.756 0l5.25-3.045c.54-.313.872-.89.872-1.514V4.951c0-.624-.332-1.2-.872-1.514L8.878.392zM7.875 1.69a.25.25 0 01.25 0l4.63 2.685L8 7.133 3.245 4.375l4.63-2.685zM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432L2.5 5.677zm6.25 8.271l4.625-2.683a.25.25 0 00.125-.216V5.677L8.75 8.432v5.516z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            nerblackbox
+          </span>
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            
+              Command Line Interface
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="nerblackbox" class="md-nav__button md-logo" aria-label="nerblackbox">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.878.392a1.75 1.75 0 00-1.756 0l-5.25 3.045A1.75 1.75 0 001 4.951v6.098c0 .624.332 1.2.872 1.514l5.25 3.045a1.75 1.75 0 001.756 0l5.25-3.045c.54-.313.872-.89.872-1.514V4.951c0-.624-.332-1.2-.872-1.514L8.878.392zM7.875 1.69a.25.25 0 01.25 0l4.63 2.685L8 7.133 3.245 4.375l4.63-2.685zM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432L2.5 5.677zm6.25 8.271l4.625-2.683a.25.25 0 00.125-.216V5.677L8.75 8.432v5.516z"/></svg>
+
+    </a>
+    nerblackbox
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Command Line Interface
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Command Line Interface
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#nerbb" class="md-nav__link">
+    nerbb
+  </a>
+  
+    <nav class="md-nav" aria-label="nerbb">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#analyze_data" class="md-nav__link">
+    analyze_data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clear_data" class="md-nav__link">
+    clear_data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download" class="md-nav__link">
+    download
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_experiment_results" class="md-nav__link">
+    get_experiment_results
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_experiments" class="md-nav__link">
+    get_experiments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#init" class="md-nav__link">
+    init
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mlflow" class="md-nav__link">
+    mlflow
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predict" class="md-nav__link">
+    predict
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_experiment" class="md-nav__link">
+    run_experiment
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_up_dataset" class="md-nav__link">
+    set_up_dataset
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show_experiment_config" class="md-nav__link">
+    show_experiment_config
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show_experiment_configs" class="md-nav__link">
+    show_experiment_configs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tensorboard" class="md-nav__link">
+    tensorboard
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
+      
+      <label class="md-nav__link" for="nav-4">
+        Python API
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Python API" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
+          <span class="md-nav__icon md-icon"></span>
+          Python API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api/overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api/nerblackbox/" class="md-nav__link">
+        NerBlackBox
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api/experiment_results/" class="md-nav__link">
+        ExperimentResults
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api/experiments_results/" class="md-nav__link">
+        ExperimentsResults
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api/ner_model_predict/" class="md-nav__link">
+        NerModelPredict
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets_and_models/" class="md-nav__link">
+        Datasets and Models
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="command-line-interface">Command Line Interface</h1>
+<h2 id="nerbb">nerbb</h2>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb [OPTIONS] COMMAND [ARGS]...
+</code></pre></div>
+<p>Options:</p>
+<div class="highlight"><pre><span></span><code>  --data_dir TEXT           [str] relative path of data directory
+  --modify / --no-modify    [bool] if flag=set_up_dataset
+  --val_fraction FLOAT      [float] if flag=set_up_dataset
+  --verbose / --no-verbose  [bool] if flag=set_up_dataset
+  --run_name TEXT           [str] if flag=run_experiment
+  --device TEXT             [str] if flag=run_experiment
+  --fp16 / --no-fp16        [bool] if flag=run_experiment
+  --results / --no-results  [bool] if flag=clear_data
+</code></pre></div>
+<h3 id="analyze_data">analyze_data</h3>
+<p>analyze a dataset.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb analyze_data [OPTIONS] DATASET_NAME
+</code></pre></div>
+<h3 id="clear_data">clear_data</h3>
+<p>clear data (checkpoints and optionally results).</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb clear_data [OPTIONS]
+</code></pre></div>
+<h3 id="download">download</h3>
+<p>download &amp; prepare built-in datasets, prepare experiment configuration.
+needs to be called exactly once before any other CLI/API commands of the package are executed
+in case built-in datasets shall be used.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb download [OPTIONS]
+</code></pre></div>
+<h3 id="get_experiment_results">get_experiment_results</h3>
+<p>get results for a single experiment.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb get_experiment_results [OPTIONS] EXPERIMENT_NAME
+</code></pre></div>
+<h3 id="get_experiments">get_experiments</h3>
+<p>get overview on experiments.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb get_experiments [OPTIONS]
+</code></pre></div>
+<h3 id="init">init</h3>
+<p>initialize the data_dir directory.
+needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb init [OPTIONS]
+</code></pre></div>
+<h3 id="mlflow">mlflow</h3>
+<p>show detailed experiment results in mlflow (port = 5000).</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb mlflow [OPTIONS]
+</code></pre></div>
+<h3 id="predict">predict</h3>
+<p>predict labels for text_input using the best model of a single experiment.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb predict [OPTIONS] EXPERIMENT_NAME TEXT_INPUT
+</code></pre></div>
+<h3 id="run_experiment">run_experiment</h3>
+<p>run a single experiment.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb run_experiment [OPTIONS] EXPERIMENT_NAME
+</code></pre></div>
+<h3 id="set_up_dataset">set_up_dataset</h3>
+<p>set up a dataset using the associated Formatter class.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb set_up_dataset [OPTIONS] DATASET_NAME
+</code></pre></div>
+<h3 id="show_experiment_config">show_experiment_config</h3>
+<p>show a single experiment configuration in detail.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb show_experiment_config [OPTIONS] EXPERIMENT_NAME
+</code></pre></div>
+<h3 id="show_experiment_configs">show_experiment_configs</h3>
+<p>show overview on all available experiment configurations.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb show_experiment_configs [OPTIONS]
+</code></pre></div>
+<h3 id="tensorboard">tensorboard</h3>
+<p>show detailed experiment results in tensorboard. (port = 6006).</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb tensorboard [OPTIONS]
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../getting_started/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Getting Started
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../python_api/overview/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Overview
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; 2020 - 2021 Arbetsförmedlingen
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.93c04032.min.js"></script>
+      <script src="../assets/javascripts/bundle.83e5331e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: ['toc.integrate'],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.8c7e0a7e.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
