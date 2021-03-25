@@ -9,7 +9,16 @@
 
     - CoNLL2003 (english)
     - Swedish NER Corpus (swedish)
-
+    - SUC 3.0 (swedish)
+      
+        !!! warning "This dataset is not open source."
+            ``` markdown
+            A directory ./data/datasets/suc with the following raw data files need to be manually added: 
+            - suc-train.conll
+            - suc-dev.conll
+            - suc-test.conll
+            ```
+  
 - Built-in models:
 
     - All built-in or community-uploaded BERT models of the [transformers library](https://huggingface.co/transformers/)

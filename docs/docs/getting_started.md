@@ -47,9 +47,12 @@ data/
         └── val.csv
         └── test.csv
 └── experiment_configs
-    └── default.ini
-    └── my_experiment.ini
-└── pretrained_models       # custom model checkpoints
+    └── default.ini                           # experiment config default values
+    └── my_experiment.ini                     # experiment config example
+    └── my_experiment_conll2003.ini           # experiment config template
+    └── my_experiment_swedish_ner_corpus.ini  # experiment config template
+    └── my_experiment_suc.ini                 # experiment config template
+└── pretrained_models                         # custom model checkpoints
 └── results
 ```
 
