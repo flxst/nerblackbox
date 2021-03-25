@@ -34,6 +34,12 @@ one needs to retrain (or "fine-tune") them using labeled text.
 - the best **Fine-tuned Model**
 - its **Performance** on the dataset
 
+-----------
+## Installation
+
+``` bash
+pip install nerblackbox
+```
 
 -----------
 ## Usage
