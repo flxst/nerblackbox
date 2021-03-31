@@ -1,3 +1,6 @@
+
+from typing import List
+
 from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import (
     BertDataset,
 )
@@ -57,7 +60,7 @@ class DataPreprocessor:
                 input_examples_all, phase, ratio=prune_ratio[phase]
             )
 
-        return input_examples, csv_reader.tag_list
+        return input_examples, self._ensure_completeness_in_case_of_bio_tags(csv_reader.tag_list)
 
     def get_input_examples_predict(self, examples):
         """
@@ -146,3 +149,18 @@ class DataPreprocessor:
             info = f"> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples"
             self.default_logger.log_info(info)
             return list_of_examples[:num_examples_new]
+
+    @staticmethod
+    def _ensure_completeness_in_case_of_bio_tags(tag_list: List[str]) -> List[str]:
+        """
+        make sure that there is an "I-*" tag for every "B-*" tag in case of BIO-tags
+        ----------------------------------------------------------------------------
+        :param tag_list:             e.g. ["B-person", "B-time", "I-person"]
+        :return: completed_tag_list: e.g. ["B-person", "B-time", "I-person", "I-time"]
+        """
+        b_tags = [tag for tag in tag_list if tag.startswith("B")]
+        for b_tag in b_tags:
+            i_tag = b_tag.replace("B-", "I-")
+            if i_tag not in tag_list:
+                tag_list.append(i_tag)
+        return tag_list
