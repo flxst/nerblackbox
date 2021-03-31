@@ -78,3 +78,6 @@ See [Getting Started](getting_started) for more details.
 * GPU support
 * Hyperparameter Search
 * Early Stopping
+* Multiple Runs
+
+-----------
