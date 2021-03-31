@@ -7,16 +7,36 @@
 
 - Built-in datasets:
 
-    - CoNLL2003 (english)
-    - Swedish NER Corpus (swedish)
-    - SUC 3.0 (swedish)
-      
-        !!! warning "This dataset is not open source."
-            ``` markdown
-            A directory ./data/datasets/suc with the following raw data files need to be manually added: 
-            - suc-train.conll
-            - suc-dev.conll
-            - suc-test.conll
+    | Name               | Language | Open Source | Directory Name     | Required Files |                
+    |---                 |---       |---          |---                 |---             |
+    | CoNLL 2003         | English  | Yes         | conll2003          | ---            |
+    | Swedish NER Corpus | Swedish  | Yes         | swedish_ner_corpus | ---            |
+    | SIC                | Swedish  | Yes         | sic                | ---            |
+    | SUC 3.0            | Swedish  | No          | suc                | `suc-train.conll`, `suc-dev.conll`, `suc-test.conll`                |
+
+    Datasets are pre-processed and made available by:
+  
+    !!! note "Open Source"
+        === "CLI"
+            ``` bash
+            nerbb download    
+            ```
+        === "Python"
+            ``` python
+            nerbb.download()  
+            ```
+    !!! warning "Not Open Source"
+        - create folder: `mkdir ./data/datasets/<Directory Name>`
+        - move `Required Files` manually to `./data/datasets/<Directory Name>`
+        - set up dataset:
+              
+        === "CLI"
+            ``` bash
+            nerbb set_up_dataset <Directory Name>
+            ```
+        === "Python"
+            ``` python
+            nerbb.set_up_dataset(<Directory Name>)  
             ```
   
 - Built-in models:
