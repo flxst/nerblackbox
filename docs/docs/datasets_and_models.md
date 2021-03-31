@@ -1,21 +1,22 @@
 # Datasets and Models
 
-## Built-in Datasets & Models
+**nerblackbox** and its [Command Line Interface](../cli) & [Python API](../python_api) 
+work out of the box (see [Getting Started](../getting_started)) 
+for **built-in** datasets and models.
+**Custom** datasets and models can easily be included.
 
-**nerblackbox** and its [Command Line Interface](../cli) & [Python API](../python_api) work out of the box (see [Getting Started](../getting_started)) for the built-in datasets and models.
+-----------
+## Built-in Datasets 
 
+| Name               | Language | Open Source | Sample Type  | #Samples (Train, Val, Test) | Directory Name     | Required Files | Source |               
+|---                 |---       |---          |---           |---                          |---                 |---             |---     |
+| CoNLL 2003         | English  | Yes         | Sentence     | (14040, 3249, 3452)         | conll2003          | ---            | [Description](https://www.clips.uantwerpen.be/conll2003/ner/); [Data](https://github.com/patverga/torch-ner-nlp-from-scratch/tree/master/data/conll2003)   |
+| Swedish NER Corpus | Swedish  | Yes         | Sentence     | (4819, 2065, 2452)          | swedish_ner_corpus | ---            | [Description+Data](https://github.com/klintan/swedish-ner-corpus)   |
+| SIC                | Swedish  | Yes         | Sentence     | (437, 187, 268)             | sic                | ---            | [Description+Data](https://www.ling.su.se/english/nlp/corpora-and-resources/sic)   |
+| SUC 3.0            | Swedish  | No          | Sentence     | (71046, 1546, 1568)         | suc                | `suc-*.conll`  | [Description](https://www.ling.su.se/english/nlp/corpora-and-resources/suc)   |
 
-- Built-in datasets:
+- Datasets are pre-processed and made available by:
 
-    | Name               | Language | Open Source | Directory Name     | Required Files |                
-    |---                 |---       |---          |---                 |---             |
-    | CoNLL 2003         | English  | Yes         | conll2003          | ---            |
-    | Swedish NER Corpus | Swedish  | Yes         | swedish_ner_corpus | ---            |
-    | SIC                | Swedish  | Yes         | sic                | ---            |
-    | SUC 3.0            | Swedish  | No          | suc                | `suc-train.conll`, `suc-dev.conll`, `suc-test.conll`                |
-
-    Datasets are pre-processed and made available by:
-  
     !!! note "Open Source"
         === "CLI"
             ``` bash
@@ -39,9 +40,12 @@
             nerbb.set_up_dataset(<Directory Name>)  
             ```
   
-- Built-in models:
+- Additional dataset details (tags, tag distribution, ..) can be found in `./data/datasets/<Directory Name>/analyze_data`
 
-    - All built-in or community-uploaded BERT models of the [transformers library](https://huggingface.co/transformers/)
+-----------
+## Built-in Models
+
+- All built-in or community-uploaded BERT models of the [transformers library](https://huggingface.co/transformers/)
 
 -----------
 ## Custom Datasets
