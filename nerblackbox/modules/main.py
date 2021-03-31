@@ -19,7 +19,11 @@ from nerblackbox.modules.experiment_results import ExperimentResults
 from typing import Optional, Any, Tuple, Union, Dict, List
 from pandas import DataFrame
 
-DATASETS = ["conll2003", "swedish_ner_corpus"]
+DATASETS_DOWNLOAD = [
+    "conll2003",
+    "swedish_ner_corpus",
+    "sic",
+]
 
 
 class NerBlackBoxMain:
@@ -100,7 +104,7 @@ class NerBlackBoxMain:
         # download
         ################################################################################################################
         elif self.flag == "download":
-            for _dataset_name in DATASETS:
+            for _dataset_name in DATASETS_DOWNLOAD:
                 self.set_up_dataset(_dataset_name)
 
         ################################################################################################################

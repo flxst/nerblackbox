@@ -1,6 +1,6 @@
 import os
-
 from os.path import join
+
 from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
 
 

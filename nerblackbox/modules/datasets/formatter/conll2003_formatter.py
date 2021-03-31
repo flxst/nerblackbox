@@ -1,7 +1,7 @@
 import os
 import requests
-
 from os.path import join, isfile
+
 from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
 
 
