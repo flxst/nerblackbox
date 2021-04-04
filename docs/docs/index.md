@@ -53,7 +53,7 @@ pip install nerblackbox
         ```
 
 
-- and use either the [`Command Line Interface (CLI)`](cli) or the [`Python API`](python_api) for fine-tuning and model application:
+- and use either the [`Command Line Interface (CLI)`](api_documentation/cli) or the [`Python API`](api_documentation/python_api/overview) for fine-tuning and model application:
 
     !!! note "fine-tuning and model application"
         === "CLI"
@@ -70,7 +70,7 @@ pip install nerblackbox
             nerbb.predict("my_experiment", "annotera den här texten")  # apply best model for NER
             ```
 
-See [Getting Started](getting_started) for more details.
+See [Guide](guide/getting_started) for more details.
 
 -----------
 ## Features

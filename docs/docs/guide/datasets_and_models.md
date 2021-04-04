@@ -1,6 +1,6 @@
 # Datasets and Models
 
-**nerblackbox** and its [Command Line Interface](../cli) & [Python API](../python_api) 
+**nerblackbox** and its [Command Line Interface](../../api_documentation/cli) & [Python API](../../api_documentation/python_api/overview) 
 work out of the box (see [Getting Started](../getting_started)) 
 for **built-in** datasets and models.
 **Custom** datasets and models can easily be included.

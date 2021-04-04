@@ -3,9 +3,9 @@
 - **Available Classes:**
 
     * [NerBlackBox](../nerblackbox)
-    * [ExperimentResults](../experimentresults)
-    * [ExperimentsResults](../experimentsresults)
-    * [NerModelPredict](../nermodelpredict)
+    * [ExperimentResults](../experiment_results)
+    * [ExperimentsResults](../experiments_results)
+    * [NerModelPredict](../ner_model_predict)
 
 
 ----------
