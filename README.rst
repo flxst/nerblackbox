@@ -2,7 +2,7 @@
 nerblackbox
 ===========
 
-A python package to fine-tune transformer-based models for Named Entity Recognition (NER).
+A python package to fine-tune transformer-based language models for Named Entity Recognition (NER).
 
 .. image:: https://img.shields.io/pypi/v/nerblackbox
     :target: https://pypi.org/project/nerblackbox
@@ -33,7 +33,7 @@ Resources
 About
 =====
 
-`Transformer-based models <https://arxiv.org/abs/1706.03762>`_ like `BERT <https://arxiv.org/abs/1810.04805>`_ have had a `game-changing impact <https://paperswithcode.com/task/language-modelling>`_ on Natural Language Processing.
+`Transformer-based language models <https://arxiv.org/abs/1706.03762>`_ like `BERT <https://arxiv.org/abs/1810.04805>`_ have had a `game-changing impact <https://paperswithcode.com/task/language-modelling>`_ on Natural Language Processing.
 
 In order to utilize the `publicly accessible pretrained models <https://huggingface.co/transformers/pretrained_models.html>`_ for
 `Named Entity Recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_,

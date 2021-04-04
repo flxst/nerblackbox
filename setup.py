@@ -40,7 +40,7 @@ setup(
     version=get_package_version("nerblackbox/__about__.py"),
     author="Felix Stollenwerk",
     author_email="felix.stollenwerk@arbetsformedlingen.se",
-    description="fine-tune transformer-based models for named entity recognition",
+    description="fine-tune transformer-based language models for named entity recognition",
     long_description=readme(),
     long_description_content_type="text/x-rst",
     keywords=[
