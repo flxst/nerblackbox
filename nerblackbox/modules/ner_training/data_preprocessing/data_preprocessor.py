@@ -1,4 +1,3 @@
-
 from typing import List
 
 from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import (
@@ -60,7 +59,9 @@ class DataPreprocessor:
                 input_examples_all, phase, ratio=prune_ratio[phase]
             )
 
-        return input_examples, self._ensure_completeness_in_case_of_bio_tags(csv_reader.tag_list)
+        return input_examples, self._ensure_completeness_in_case_of_bio_tags(
+            csv_reader.tag_list
+        )
 
     def get_input_examples_predict(self, examples):
         """

@@ -33,15 +33,15 @@ class SICFormatter(BaseFormatter):
         :return: -
         """
         bash_cmds = [
-            f'mkdir {env_variable("DIR_DATASETS")}/_sic',
-            f'curl -o {env_variable("DIR_DATASETS")}/_sic/sic.zip '
-            'https://www.ling.su.se/polopoly_fs/1.99145.1380811903\!/menu/standard/file/sic.zip',
-            f'cd {env_variable("DIR_DATASETS")}/_sic && unzip -o sic.zip',
-            f'mkdir {env_variable("DIR_DATASETS")}/sic/raw_data',
-            f'mv {env_variable("DIR_DATASETS")}/_sic/sic/annotated/* {env_variable("DIR_DATASETS")}/sic/raw_data',
-            f'rm -r {env_variable("DIR_DATASETS")}/_sic',
-            f'cat {env_variable("DIR_DATASETS")}/sic/raw_data/*.conll '
-            f'> {env_variable("DIR_DATASETS")}/sic/sic-train.conll',
+            f"mkdir {env_variable('DIR_DATASETS')}/_sic",
+            f"curl -o {env_variable('DIR_DATASETS')}/_sic/sic.zip "
+            "https://www.ling.su.se/polopoly_fs/1.99145.1380811903\!/menu/standard/file/sic.zip",
+            f"cd {env_variable('DIR_DATASETS')}/_sic && unzip -o sic.zip",
+            f"mkdir {env_variable('DIR_DATASETS')}/sic/raw_data",
+            f"mv {env_variable('DIR_DATASETS')}/_sic/sic/annotated/* {env_variable('DIR_DATASETS')}/sic/raw_data",
+            f"rm -r {env_variable('DIR_DATASETS')}/_sic",
+            f"cat {env_variable('DIR_DATASETS')}/sic/raw_data/*.conll "
+            f"> {env_variable('DIR_DATASETS')}/sic/sic-train.conll",
         ]
 
         for bash_cmd in bash_cmds:
@@ -80,7 +80,9 @@ class SICFormatter(BaseFormatter):
         """
         # train -> train, val, test
         df_train_val_test = self._read_formatted_csvs(["train"])
-        df_train_val, df_test = self._split_off_validation_set(df_train_val_test, val_fraction)
+        df_train_val, df_test = self._split_off_validation_set(
+            df_train_val_test, val_fraction
+        )
         df_train, df_val = self._split_off_validation_set(df_train_val, val_fraction)
         self._write_final_csv("train", df_train)
         self._write_final_csv("val", df_val)
@@ -111,12 +113,10 @@ class SICFormatter(BaseFormatter):
             raise Exception(f"> original file {file_path_original} could not be found.")
 
         _rows = [
-            [
-                row[1],
-                self.transform_tags(row[-3], row[-2])
-            ]
+            [row[1], self.transform_tags(row[-3], row[-2])]
             if len(row) > 0
-            and row[-3] not in ["_", "U"]  # filter out "_-_" and "_-person" (bugs in SIC dataset)
+            and row[-3]
+            not in ["_", "U"]  # filter out "_-_" and "_-person" (bugs in SIC dataset)
             else list()
             for row in _rows
         ]

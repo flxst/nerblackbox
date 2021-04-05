@@ -26,7 +26,9 @@ class NerModelPredict(NerModel):
         Returns:
             model loaded from checkpoint
         """
-        model = super().load_from_checkpoint(checkpoint_path, map_location=None, tags_csv=None)
+        model = super().load_from_checkpoint(
+            checkpoint_path, map_location=None, tags_csv=None
+        )
         model.freeze()  # for inference mode
         return model
 
