@@ -141,6 +141,61 @@
       
       
         
+          
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+
+
+  <li class="md-tabs__item">
+    <a href="." class="md-tabs__link md-tabs__link--active">
+      Overview
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="guide/getting_started/" class="md-tabs__link">
+        Guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="api_documentation/cli/" class="md-tabs__link">
+        API Documentation
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
       
       <main class="md-main" data-md-component="main">
         <div class="md-main__inner md-grid">
@@ -154,10 +209,12 @@
 
 
 
+  
+
 
   
 
-<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="." title="nerblackbox" class="md-nav__button md-logo" aria-label="nerblackbox">
       
@@ -224,6 +281,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#usage" class="md-nav__link">
     Usage
   </a>
@@ -253,52 +317,20 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="getting_started/" class="md-nav__link">
-        Getting Started
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="cli/" class="md-nav__link">
-        Command Line Interface
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-
-  
-  
-  
     
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
       
-      <label class="md-nav__link" for="nav-4">
-        Python API
+      <label class="md-nav__link" for="nav-2">
+        Guide
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Python API" data-md-level="1">
-        <label class="md-nav__title" for="nav-4">
+      <nav class="md-nav" aria-label="Guide" data-md-level="1">
+        <label class="md-nav__title" for="nav-2">
           <span class="md-nav__icon md-icon"></span>
-          Python API
+          Guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -308,8 +340,8 @@
   
   
     <li class="md-nav__item">
-      <a href="python_api/overview/" class="md-nav__link">
-        Overview
+      <a href="guide/getting_started/" class="md-nav__link">
+        Getting Started
       </a>
     </li>
   
@@ -320,8 +352,8 @@
   
   
     <li class="md-nav__item">
-      <a href="python_api/nerblackbox/" class="md-nav__link">
-        NerBlackBox
+      <a href="guide/custom_experiments/" class="md-nav__link">
+        Custom Experiments
       </a>
     </li>
   
@@ -332,32 +364,8 @@
   
   
     <li class="md-nav__item">
-      <a href="python_api/experiment_results/" class="md-nav__link">
-        ExperimentResults
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="python_api/experiments_results/" class="md-nav__link">
-        ExperimentsResults
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="python_api/ner_model_predict/" class="md-nav__link">
-        NerModelPredict
+      <a href="guide/datasets_and_models/" class="md-nav__link">
+        Datasets and Models
       </a>
     </li>
   
@@ -377,10 +385,126 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+      
+      <label class="md-nav__link" for="nav-3">
+        API Documentation
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API Documentation" data-md-level="1">
+        <label class="md-nav__title" for="nav-3">
+          <span class="md-nav__icon md-icon"></span>
+          API Documentation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
     <li class="md-nav__item">
-      <a href="datasets_and_models/" class="md-nav__link">
-        Datasets and Models
+      <a href="api_documentation/cli/" class="md-nav__link">
+        Command Line Interface
       </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-2" type="checkbox" id="nav-3-2" >
+      
+      <label class="md-nav__link" for="nav-3-2">
+        Python API
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Python API" data-md-level="2">
+        <label class="md-nav__title" for="nav-3-2">
+          <span class="md-nav__icon md-icon"></span>
+          Python API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_documentation/python_api/overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_documentation/python_api/nerblackbox/" class="md-nav__link">
+        NerBlackBox
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_documentation/python_api/experiment_results/" class="md-nav__link">
+        ExperimentResults
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_documentation/python_api/experiments_results/" class="md-nav__link">
+        ExperimentsResults
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api_documentation/python_api/ner_model_predict/" class="md-nav__link">
+        NerModelPredict
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -399,8 +523,8 @@
                 
                 
                 <h1 id="overview">Overview</h1>
-<p><strong>nerblackbox</strong> - a python package to fine-tune transformer-based models for Named Entity Recognition (NER).</p>
-<p>Latest version: 0.0.8</p>
+<p><strong>nerblackbox</strong> - a python package to fine-tune transformer-based language models for Named Entity Recognition (NER).</p>
+<p>Latest version: 0.0.9</p>
 <hr />
 <h2 id="resources">Resources</h2>
 <ul>
@@ -410,8 +534,8 @@
 </ul>
 <hr />
 <h2 id="about">About</h2>
-<p><a href="https://arxiv.org/abs/1706.03762">Transformer-based models</a> like <a href="https://arxiv.org/abs/1810.04805">BERT</a> have had a <a href="https://paperswithcode.com/task/language-modelling">game-changing impact</a> on Natural Language Processing.</p>
-<p>In order to utilize the <a href="https://huggingface.co/transformers/pretrained_models.html">publicly accessible pretrained models</a> for
+<p><a href="https://arxiv.org/abs/1706.03762">Transformer-based language models</a> like <a href="https://arxiv.org/abs/1810.04805">BERT</a> have had a <a href="https://paperswithcode.com/task/language-modelling">game-changing impact</a> on Natural Language Processing.</p>
+<p>In order to utilize <a href="https://huggingface.co/transformers/pretrained_models.html">Hugging Face's publicly accessible pretrained models</a> for
 <a href="https://en.wikipedia.org/wiki/Named-entity_recognition">Named Entity Recognition</a>,
 one needs to retrain (or "fine-tune") them using labeled text.</p>
 <p><strong>nerblackbox makes this easy.</strong></p>
@@ -427,6 +551,10 @@ one needs to retrain (or "fine-tune") them using labeled text.</p>
 <li>its <strong>Performance</strong> on the dataset</li>
 </ul>
 <hr />
+<h2 id="installation">Installation</h2>
+<div class="highlight"><pre><span></span><code>pip install nerblackbox
+</code></pre></div>
+<hr />
 <h2 id="usage">Usage</h2>
 <ul>
 <li>
@@ -439,7 +567,7 @@ pretrained_model_name = af-ai-center/bert-base-swedish-uncased
 </div>
 </li>
 <li>
-<p>and use either the <a href="cli"><code>Command Line Interface (CLI)</code></a> or the <a href="python_api"><code>Python API</code></a> for fine-tuning and model application:</p>
+<p>and use either the <a href="api_documentation/cli"><code>Command Line Interface (CLI)</code></a> or the <a href="api_documentation/python_api/overview"><code>Python API</code></a> for fine-tuning and model application:</p>
 <div class="admonition note">
 <p class="admonition-title">fine-tuning and model application</p>
 <div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">CLI</label><div class="tabbed-content">
@@ -459,14 +587,18 @@ nerbb predict my_experiment annotera den här texten  <span class="c1"># apply b
 </div>
 </li>
 </ul>
-<p>See <a href="getting_started">Getting Started</a> for more details.</p>
+<p>See <a href="guide/getting_started">Guide</a> for more details.</p>
 <hr />
 <h2 id="features">Features</h2>
 <ul>
-<li>GPU support</li>
+<li>GPU Support</li>
 <li>Hyperparameter Search</li>
 <li>Early Stopping</li>
+<li>Multiple Identical Runs</li>
+<li>Language Agnosticism</li>
 </ul>
+<p>Based on: <a href="https://huggingface.co/transformers/">Hugging Face Transformers</a>, <a href="https://www.pytorchlightning.ai/">PyTorch Lightning</a>, <a href="https://mlflow.org/docs/latest/index.html">MLfflow</a></p>
+<hr />
                 
               
               
@@ -486,7 +618,7 @@ nerbb predict my_experiment annotera den här texten  <span class="c1"># apply b
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
         
-          <a href="getting_started/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="guide/getting_started/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
@@ -508,7 +640,7 @@ nerbb predict my_experiment annotera den här texten  <span class="c1"># apply b
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2021 Arbetsförmedlingen
+            Copyright &copy; 2020 - 2021 Arbetsförmedlingen (Felix Stollenwerk)
           </div>
         
         Made with
@@ -529,7 +661,7 @@ nerbb predict my_experiment annotera den här texten  <span class="c1"># apply b
       <script>
         app = initialize({
           base: ".",
-          features: ['toc.integrate'],
+          features: ['navigation.tabs', 'toc.integrate'],
           search: Object.assign({
             worker: "assets/javascripts/worker/search.8c7e0a7e.min.js"
           }, typeof search !== "undefined" && search)
