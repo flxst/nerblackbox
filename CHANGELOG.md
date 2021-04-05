@@ -1,6 +1,13 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.9 (2021-04-05)
+#### Added
+- Swedish datasets (SIC & SUC 3.0)
+- Python 3.9 support
+
+#### Fixed
+- CLI command "get_experiments_results"
 
 ## 0.0.8 (2021-01-24)
 #### Added
