@@ -16,7 +16,7 @@ Latest version: 0.0.8
 
 [Transformer-based language models](https://arxiv.org/abs/1706.03762) like [BERT](https://arxiv.org/abs/1810.04805) have had a [game-changing impact](https://paperswithcode.com/task/language-modelling) on Natural Language Processing.
 
-In order to utilize the [publicly accessible pretrained models](https://huggingface.co/transformers/pretrained_models.html) for
+In order to utilize [Hugging Face's publicly accessible pretrained models](https://huggingface.co/transformers/pretrained_models.html) for
 [Named Entity Recognition](https://en.wikipedia.org/wiki/Named-entity_recognition),
 one needs to retrain (or "fine-tune") them using labeled text.
 
@@ -80,5 +80,7 @@ See [Guide](guide/getting_started) for more details.
 * Early Stopping
 * Multiple Identical Runs
 * Language Agnosticism
+
+Based on: [Hugging Face Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/), [MLfflow](https://mlflow.org/docs/latest/index.html)
 
 -----------
