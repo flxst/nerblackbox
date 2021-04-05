@@ -2,7 +2,7 @@
 
 Use either the [`Command Line Interface (CLI)`](../../api_documentation/cli) or the [`Python API`](../../api_documentation/python_api/overview).
 
-!!! note "basic usage"
+??? note "basic usage"
     === "CLI"
 
         ``` bash
@@ -21,7 +21,7 @@ Use either the [`Command Line Interface (CLI)`](../../api_documentation/cli) or 
 
 The following commands need to be executed once:
 
-!!! note "initialization"
+??? note "initialization"
     === "CLI"
         ``` bash
         nerbb init
@@ -38,22 +38,17 @@ This creates a ``./data`` directory with the following structure:
 ``` xml
 data/
 └── datasets
-    └── conll2003           # built-in dataset (english), requires download
+    └── conll2003                     # built-in dataset, requires download
         └── train.csv
         └── val.csv
         └── test.csv
-    └── swedish_ner_corpus  # built-in dataset (swedish), requires download
-        └── train.csv
-        └── val.csv
-        └── test.csv
-    └── [..]                # more built-in datasets, requires download
+    └── [..]                          # more built-in datasets, requires download
 └── experiment_configs
-    └── default.ini                           # experiment config default values
-    └── my_experiment.ini                     # experiment config example
-    └── my_experiment_conll2003.ini           # experiment config template
-    └── my_experiment_swedish_ner_corpus.ini  # experiment config template
-    └── [..]                                  # more experiment config templates
-└── pretrained_models                         # custom model checkpoints
+    └── default.ini                   # experiment config default values
+    └── my_experiment.ini             # experiment config example
+    └── my_experiment_conll2003.ini   # experiment config template
+    └── [..]                          # more experiment config templates
+└── pretrained_models                 # custom model checkpoints
 └── results
 ```
 
@@ -62,10 +57,10 @@ data/
 
 Fine-tuning a **specific model** on a **specific dataset** using **specific training (hyper)parameters** is called an **experiment**.
 
-An experiment is defined through an **experiment configuration** file in ``./data/experiment_configs/<experiment_name>.ini``
+An experiment is defined by an **experiment configuration** file ``./data/experiment_configs/<experiment_name>.ini``.
 One can view an experiment configuration as follows:
 
-!!! note "show experiment configuration"
+??? note "show experiment configuration"
     === "CLI"
         ``` bash
         nerbb show_experiment_config <experiment_name>
@@ -77,14 +72,13 @@ One can view an experiment configuration as follows:
 
 ### a. Use a predefined experiment
 
-The experiment configuration for ``<experiment_name> = my_experiment`` can be used. 
-
+For now, we use the predefined experiment configuration with ``<experiment_name> = my_experiment``.
 
 ### b. Run an experiment
 
 Once an experiment is defined, the following command can be used to run it.
 
-!!! note "run experiment"
+??? note "run experiment"
     === "CLI"
         ``` bash
         nerbb run_experiment <experiment_name>
@@ -98,7 +92,7 @@ Once an experiment is defined, the following command can be used to run it.
 
 Once an experiment is finished, one can inspect the main results or detailed results:
 
-!!! note "get main results"
+??? note "get main results"
     === "CLI"
         ``` bash
         nerbb get_experiment_results <experiment_name>  # prints overview on runs
@@ -110,7 +104,7 @@ Once an experiment is finished, one can inspect the main results or detailed res
 
     Python: see [ExperimentResults](../../api_documentation/python_api/experiment_results) for details on how to use ``experiment_results``
 
-!!! note "get detailed results & run histories using either mlflow or tensorboard"
+??? note "get detailed results & run histories using either mlflow or tensorboard"
   
     === "CLI"
         ``` bash
@@ -120,7 +114,7 @@ Once an experiment is finished, one can inspect the main results or detailed res
 
 ### d. Predict tags using the best model
 
-!!! note "predict tags using the best model"
+??? note "predict tags using the best model"
     === "CLI"
         ``` bash
         # e.g. <text_input> = "annotera den här texten"
@@ -143,7 +137,7 @@ Once an experiment is finished, one can inspect the main results or detailed res
 
 Once one or more experiments have been run, the following commands can be used to access their results:
 
-!!! note "get experiments overview"
+??? note "get experiments overview"
     === "CLI"
         ``` bash
         nerbb get_experiments
@@ -153,7 +147,7 @@ Once one or more experiments have been run, the following commands can be used t
         nerbb.get_experiments()
         ```
 
-!!! note "get overview on experiments' best runs"
+??? note "get overview on experiments' best runs"
     === "CLI"
         ``` bash
         nerbb get_experiments_results
@@ -164,3 +158,11 @@ Once one or more experiments have been run, the following commands can be used t
         ```
 
     Python: see [ExperimentsResults](../../api_documentation/python_api/experiments_results) for details on how to use ``experiments_results``
+
+-----------
+## 4. Next Steps
+
+- Create your own [`Custom Experiments`](../custom_experiments).
+- See [`Datasets and Models`](../datasets_and_models) 
+  for an overview on **built-in** datasets and models, and learn how to include your own **custom** datasets and models.
+

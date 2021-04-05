@@ -17,7 +17,7 @@ for **built-in** datasets and models.
 
 - Datasets are pre-processed and made available by:
 
-    !!! note "Open Source"
+    ??? note "Open Source"
         === "CLI"
             ``` bash
             nerbb download    
@@ -26,7 +26,7 @@ for **built-in** datasets and models.
             ``` python
             nerbb.download()  
             ```
-    !!! warning "Not Open Source"
+    ??? warning "Not Open Source"
         - create folder: `mkdir ./data/datasets/<Directory Name>`
         - move `Required Files` manually to `./data/datasets/<Directory Name>`
         - set up dataset:
@@ -45,14 +45,14 @@ for **built-in** datasets and models.
 -----------
 ## Built-in Models
 
-- All built-in or community-uploaded BERT models of the [transformers library](https://huggingface.co/transformers/)
+- All [built-in or community-uploaded BERT models](https://huggingface.co/models) of the [transformers library](https://huggingface.co/transformers/)
 
 -----------
 ## Custom Datasets
 
 To include your own custom dataset, do the following:
 
-- Create a folder ``./data/datasets/<new_dataset>`` with the following files:
+- Create a folder ``./data/datasets/<custom_dataset>`` with the following files:
 
     - ``train.csv``
     - ``val.csv``
@@ -61,13 +61,13 @@ To include your own custom dataset, do the following:
   ``<labels> <tab> <text>``,
   e.g. ``0 0 0 0 0 0 PER <tab> this is a sample with a person``
 
-- Use ``dataset_name = <new_dataset>`` in your experiment configuration file.
+- Use ``dataset_name = <custom_dataset>`` in your [experiment configuration file](../custom_experiments/#1-dataset).
 
 <!---
 TODO
 Own custom datasets can also be created programmatically (like the :ref:`Built-in datasets <builtindatasets>`):
 - (todo: revise the following)
-- Create a new module ``./data/datasets/formatter/<new_dataset>_formatter.py``
+- Create a new module ``./data/datasets/formatter/<custom_dataset>_formatter.py``
 - Derive the class ``<NewDataset>Formatter`` from ``BaseFormatter`` and implement the abstract base methods
 - (todo: additional instructions needed here)
 --->
@@ -77,12 +77,12 @@ Own custom datasets can also be created programmatically (like the :ref:`Built-i
 
 To include your own custom model, do the following:
 
-- Create a new folder ``./data/pretrained_models/<new_model>`` with the following files:
+- Create a new folder ``./data/pretrained_models/<custom_model>`` with the following files:
 
     - ``config.json``
     - ``pytorch_model.bin``
     - ``vocab.txt``
 
-- ``<new_model>`` must include the architecture type, e.g. ``bert``
+- ``<custom_model>`` must include the architecture type, e.g. ``bert``
 
-- Use ``pretrained_model_name = <new_model>`` in your experiment configuration file.
+- Use ``pretrained_model_name = <custom_model>`` in your [experiment configuration file](../custom_experiments/#2-model).

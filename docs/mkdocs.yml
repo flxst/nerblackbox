@@ -9,7 +9,7 @@ theme:
   favicon: images/package-16.svg
   icon:
     logo: octicons/package-16
-copyright: Copyright &copy; 2020 - 2021 Arbetsförmedlingen
+copyright: Copyright &copy; 2020 - 2021 Arbetsförmedlingen (Felix Stollenwerk)
 plugins:
   - mkdocstrings
   - search
@@ -20,6 +20,7 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.tabbed
+  - pymdownx.details
   - mkdocs-click
 extra_css:
   - stylesheets/extra.css
@@ -27,6 +28,7 @@ nav:
     - Overview: 'index.md'
     - Guide:
       - 'guide/getting_started.md'
+      - 'guide/custom_experiments.md'
       - 'guide/datasets_and_models.md'
     - API Documentation:
       - Command Line Interface: 'api_documentation/cli.md'
