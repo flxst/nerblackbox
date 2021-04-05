@@ -30,19 +30,19 @@ class NerBlackBoxMain:
     def __init__(
         self,
         flag: str,
-        usage: Optional[str] = "cli",
+        usage: str = "cli",
         dataset_name: Optional[str] = None,  # analyze_data & set_up_dataset
-        modify: Optional[bool] = True,  # set_up_dataset
-        val_fraction: Optional[float] = 0.3,  # set_up_dataset
-        verbose: Optional[bool] = False,
+        modify: bool = True,  # set_up_dataset
+        val_fraction: float = 0.3,  # set_up_dataset
+        verbose: bool = False,
         experiment_name: Optional[str] = None,
         run_name: Optional[str] = None,  # run_experiment
-        device: Optional[Any] = "gpu",  # run_experiment
-        fp16: Optional[bool] = False,  # run_experiment
+        device: Any = "gpu",  # run_experiment
+        fp16: bool = False,  # run_experiment
         text_input: Optional[str] = None,  # predict
-        ids: Optional[Tuple[str]] = (),  # get_experiments, get_experiments_results
-        as_df: Optional[bool] = True,  # get_experiments, get_experiments_results
-        results: Optional[bool] = False,  # clear_data
+        ids: Tuple[str, ...] = (),  # get_experiments, get_experiments_results
+        as_df: bool = True,  # get_experiments, get_experiments_results
+        results: bool = False,  # clear_data
     ):
         """
         :param flag:            [str], e.g. 'analyze_data', 'set_up_dataset', 'run_experiment', ..
@@ -56,7 +56,7 @@ class NerBlackBoxMain:
         :param device:          [torch device]
         :param fp16:            [bool]
         :param text_input:      [str], e.g. 'this is some text that needs to be annotated'
-        :param ids:             [tuple of int], experiment_ids to include
+        :param ids:             [tuple of str], experiment_ids to include
         :param as_df:           [bool] if True, return pandas DataFrame, else return dict
         :param results:         [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
         """
@@ -591,7 +591,7 @@ class NerBlackBoxMain:
     ####################################################################################################################
     # HELPER: ALL EXPERIMENTS
     ####################################################################################################################
-    def _filter_experiments_by_ids(self, _ids: Tuple[str]) -> Dict:
+    def _filter_experiments_by_ids(self, _ids: Tuple[str, ...]) -> Dict:
         r"""
         get _experiments_id2name [dict] with _ids as keys
         -------------------------------------------------
