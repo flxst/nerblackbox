@@ -13,7 +13,9 @@ CREATE THE DOCUMENTATION
 
 3. push the documentation to origin
 
-    ``cd docs && mkdocs gh-deploy mkdocs -m "vx.y.z" [-b "branch"] [--force]``
+    ``cd docs && mkdocs gh-deploy -m "vx.y.z" [-b "branch"] [--force]``
 
 
 4. push the documentation to github (branch `gh-pages`) manually
+   
+    ``git checkout gh-pages && git push public gh-pages``
