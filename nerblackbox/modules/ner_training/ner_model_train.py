@@ -1,8 +1,6 @@
-import os
-from os.path import join
 import json
 
-from transformers import AutoTokenizer, AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification
 
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
@@ -51,7 +49,6 @@ class NerModelTrain(NerModel):
         :created attr: mlflow_client          [MLflowClient]
         :created attr: epoch_metrics          [dict] w/ keys = 'val', 'test' & values = [dict]
         :created attr: classification_reports [dict] w/ keys = 'val', 'test' & values = [dict]
-        :created attr: pretrained_model_name  [str]
         :return: -
         """
         self.default_logger = DefaultLogger(
@@ -73,18 +70,6 @@ class NerModelTrain(NerModel):
 
         self.epoch_metrics = {"val": dict(), "test": dict()}
         self.classification_reports = {"val": dict(), "test": dict()}
-
-        try:
-            # use transformers model
-            AutoTokenizer.from_pretrained(self.params.pretrained_model_name)
-            self.pretrained_model_name = self.params.pretrained_model_name
-        except ValueError:
-            # use local model
-            self.pretrained_model_name = join(
-                os.environ.get("DATA_DIR"),
-                "pretrained_models",
-                self.params.pretrained_model_name,
-            )
 
     def _preparations_data_train(self):
         """

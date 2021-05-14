@@ -1,3 +1,5 @@
+import os
+from os.path import join
 import warnings
 import numpy as np
 from seqeval.metrics import classification_report as classification_report_seqeval
@@ -64,15 +66,30 @@ class NerModel(pl.LightningModule, ABC):
 
     def _preparations_data_general(self):
         """
-        :created attr: tokenizer         [transformers AutoTokenizer]
-        :created attr: data_preprocessor [DataPreprocessor]
+        :created attr: pretrained_model_name  [str]
+        :created attr: tokenizer              [transformers AutoTokenizer]
+        :created attr: data_preprocessor      [DataPreprocessor]
         :return: -
         """
-        # tokenizer
+        # 1. pretrained model name
+        try:
+            # use transformers model
+            AutoTokenizer.from_pretrained(self.params.pretrained_model_name)
+            self.pretrained_model_name = self.params.pretrained_model_name
+        except ValueError:
+            # use local model
+            self.pretrained_model_name = join(
+                os.environ.get("DATA_DIR"),
+                "pretrained_models",
+                self.params.pretrained_model_name,
+            )
+
+        # 2. tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.pretrained_model_name, do_lower_case=False, additional_special_tokens=['[newline]', '[NEWLINE]'],
         )  # do_lower_case needs to be False !!
 
+        # 3. data_preprocessor
         self.data_preprocessor = DataPreprocessor(
             tokenizer=self.tokenizer,
             do_lower_case=self.params.uncased,  # can be True !!

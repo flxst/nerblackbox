@@ -60,11 +60,9 @@ class NerModelPredict(NerModel):
     def _preparations_predict(self):
         """
         :created attr: default_logger         [None]
-        :created attr: pretrained_model_name  [str]
         :return: -
         """
         self.default_logger = None
-        self.pretrained_model_name = self.params.pretrained_model_name
 
     def _preparations_data_predict(self):
         """
@@ -83,7 +81,7 @@ class NerModelPredict(NerModel):
     ####################################################################################################################
     # PREDICT
     ####################################################################################################################
-    def predict(self, examples: List[str]) -> List[Namespace]:
+    def predict(self, examples: Union[str, List[str]]) -> List[Namespace]:
         """predict tags
 
         Args:
@@ -95,7 +93,7 @@ class NerModelPredict(NerModel):
         """
         return self._predict(examples, proba=False)
 
-    def predict_proba(self, examples: List[str]) -> List[Namespace]:
+    def predict_proba(self, examples: Union[str, List[str]]) -> List[Namespace]:
         """predict probabilities for tags
 
         Args:
