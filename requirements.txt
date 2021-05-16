@@ -3,7 +3,7 @@ mlflow==1.6.0
 pytorch-lightning==0.7.1
 seqeval==0.0.12
 scikit-learn==0.23.2
-tensorboardx==2.0
-transformers==2.3.0
+tensorboardx
+transformers==3.5.1
 
 dataclasses==0.7; python_version < "3.7"
