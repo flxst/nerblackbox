@@ -2,6 +2,7 @@ black
 coverage
 jupyter
 mkdocs-click
+mkdocs-material
 mkdocstrings
 mypy
 pip-chill

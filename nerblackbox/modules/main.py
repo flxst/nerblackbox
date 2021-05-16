@@ -633,6 +633,7 @@ class NerBlackBoxMain:
         # parameters_experiment & parameters_runs
         ###########################################
         parameters_runs: Dict[Tuple, Any] = dict()
+        parameters_experiment: Dict[Any, Any] = dict()
         for i in range(len(_runs)):
             if len(_runs[i].data.metrics) == 0:  # experiment
                 parameters_experiment = {

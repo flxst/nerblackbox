@@ -86,7 +86,9 @@ class NerModel(pl.LightningModule, ABC):
 
         # 2. tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
-            self.pretrained_model_name, do_lower_case=False, additional_special_tokens=['[newline]', '[NEWLINE]'],
+            self.pretrained_model_name,
+            do_lower_case=False,
+            additional_special_tokens=["[newline]", "[NEWLINE]"],
         )  # do_lower_case needs to be False !!
 
         # 3. data_preprocessor
