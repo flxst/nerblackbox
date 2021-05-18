@@ -138,7 +138,7 @@ class NerModel(pl.LightningModule, ABC):
         batch_train_loss = outputs[0]
 
         # logging
-        self.write_metrics_for_tensorboard("train", {"all+_loss": batch_train_loss})
+        self.write_metrics_for_tensorboard("train", {"all_loss": batch_train_loss})
 
         # debug
         if batch_idx == 0:
@@ -430,7 +430,7 @@ class NerModel(pl.LightningModule, ABC):
                                      'loss':     [np value]
                                      'tag_ids':  [np array] of shape [batch_size, seq_length]
                                      'logits'    [np array] of shape [batch_size, seq_length, num_tags]
-        :return: metrics       [dict] w/ keys 'all+_loss', 'all+_acc', 'fil_f1_micro', .. & values = [np array]
+        :return: metrics       [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
                  tags          [dict] w/ keys 'true', 'pred'      & values = [np array]
         """
         # batch / dataset
@@ -443,7 +443,7 @@ class NerModel(pl.LightningModule, ABC):
             field: self._convert_tag_ids_to_tags(tag_ids[field])
             for field in ["true", "pred"]
         }
-        tags = self._get_rid_of_pad_tag_occurrences(tags)
+        tags = self._get_rid_of_special_tag_occurrences(tags)
 
         self.default_logger.log_debug("phase:", phase)
         self.default_logger.log_debug(
@@ -458,9 +458,8 @@ class NerModel(pl.LightningModule, ABC):
                 np.save(f'{env_variable("DIR_RESULTS")}/{field}.npy', tags[field])
 
         # batch / dataset metrics
-        metrics = {"all+_loss": _np_dict["loss"]}
+        metrics = {"all_loss": _np_dict["loss"]}
         for tag_subset in [
-            "all+",
             "all",
             "fil",
             "chk",
@@ -496,19 +495,24 @@ class NerModel(pl.LightningModule, ABC):
         :param _tag_ids: [np array] of shape [batch_size * seq_length] with [int] elements
         :return: _tags:  [np array] of shape [batch_size * seq_length] with [str] elements
         """
-        return np.array([self.tag_list[elem] for elem in _tag_ids])
+        return np.array([
+            self.tag_list[tag_id]
+            if tag_id >= 0
+            else "[S]"
+            for tag_id in _tag_ids
+        ])
 
     @staticmethod
-    def _get_rid_of_pad_tag_occurrences(_tags):
+    def _get_rid_of_special_tag_occurrences(_tags):
         """
-        get rid of all elements where '[PAD]' occurs in true array
-        ----------------------------------------------------------
+        get rid of all elements where '[S]' occurs in true array
+        --------------------------------------------------------
         :param _tags:      [dict] w/ keys = 'true', 'pred' and
                                      values = [np array] of shape [batch_size * seq_length]
         :return: _tags_new [dict] w/ keys = 'true', 'pred' and
                                      values = [np array] of shape [batch_size * seq_length - # of pad occurrences]
         """
-        pad_indices = np.where(_tags["true"] == "[PAD]")
+        pad_indices = np.where(_tags["true"] == "[S]")
         return {key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]}
 
     def _compute_metrics_for_tags_subset(self, _tags, _phase, tag_subset: str):
@@ -518,11 +522,11 @@ class NerModel(pl.LightningModule, ABC):
         ---------------------------------------------------
         :param _tags:      [dict] w/ keys 'true', 'pred'      & values = [np array]
         :param _phase:     [str], 'train', 'val'
-        :param tag_subset: [str], e.g. 'all+', 'all', 'fil', 'PER'
+        :param tag_subset: [str], e.g. 'all', 'fil', 'PER'
         :return: _metrics  [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         tag_list = self._get_filtered_tags(tag_subset)
-        if tag_subset in ["all+", "all", "fil", "chk"]:
+        if tag_subset in ["all", "fil", "chk"]:
             tag_group = [tag_subset]
         else:
             tag_group = ["ind"]
@@ -584,18 +588,14 @@ class NerModel(pl.LightningModule, ABC):
         helper method
         get list of filtered tags corresponding to _tag_subset name
         -----------------------------------------------------------
-        :param _tag_subset: [str], e.g. 'all+', 'all', 'fil', 'PER'
+        :param _tag_subset: [str], e.g. 'all', 'fil', 'PER'
         :return: _filtered_tags: [list] of filtered tags [str]
         """
-        if _tag_subset == "all++":
-            return None
-        elif _tag_subset == "all+":
-            return [tag for tag in self.tag_list if not tag == "[PAD]"]
-        elif _tag_subset == "all":
-            return [tag for tag in self.tag_list if not tag.startswith("[")]
+        if _tag_subset == "all":
+            return self.tag_list
         elif _tag_subset in ["fil", "chk"]:
             return [
-                tag for tag in self.tag_list if not (tag.startswith("[") or tag == "O")
+                tag for tag in self.tag_list if tag != "O"
             ]
         else:
             return [_tag_subset]
@@ -722,16 +722,16 @@ class NerModel(pl.LightningModule, ABC):
             f"--- Epoch #{self.current_epoch} {phase.ljust(5).upper()} ----"
         )
         self.default_logger.log_info(
-            "all+ loss:         {:.2f}".format(_metrics["all+_loss"])
+            "all loss:         {:.2f}".format(_metrics["all_loss"])
         )
         self.default_logger.log_info(
-            "all+ acc:          {:.2f}".format(_metrics["all+_acc"])
+            "all acc:          {:.2f}".format(_metrics["all_acc"])
         )
         self.default_logger.log_debug(
-            "all+ f1 (micro):   {:.2f}".format(_metrics["all+_f1_micro"])
+            "all f1 (micro):   {:.2f}".format(_metrics["all_f1_micro"])
         )
         self.default_logger.log_debug(
-            "all+ f1 (macro):   {:.2f}".format(_metrics["all+_f1_macro"])
+            "all f1 (macro):   {:.2f}".format(_metrics["all_f1_macro"])
         )
         self.default_logger.log_info(
             "all  f1 (micro):   {:.2f}".format(_metrics["all_f1_micro"])

@@ -6,18 +6,18 @@ class LoggedMetrics:
         """
         if logged_metrics is None:
             self.logged_metrics = [
-                ("loss", ["train", "val", "test"], ["all+"], ["simple"]),
-                ("acc", ["train", "val", "test"], ["all+"], ["simple"]),
+                ("loss", ["train", "val", "test"], ["all"], ["simple"]),
+                ("acc", ["train", "val", "test"], ["all"], ["simple"]),
                 (
                     "precision",
                     ["val", "test"],
-                    ["all+", "all", "fil"],
+                    ["all", "fil"],
                     ["micro", "macro"],
                 ),
                 ("precision", ["val", "test"], ["chk", "ind"], ["micro"]),
-                ("recall", ["val", "test"], ["all+", "all", "fil"], ["micro", "macro"]),
+                ("recall", ["val", "test"], ["all", "fil"], ["micro", "macro"]),
                 ("recall", ["val", "test"], ["chk", "ind"], ["micro"]),
-                ("f1", ["val", "test"], ["all+", "all", "fil"], ["micro", "macro"]),
+                ("f1", ["val", "test"], ["all", "fil"], ["micro", "macro"]),
                 ("f1", ["val", "test"], ["chk", "ind"], ["micro"]),
             ]
         else:

@@ -39,7 +39,7 @@ class CsvReader:
 
         # data & tag_list
         self.data: Dict[str, pd.DataFrame] = dict()
-        self.tag_list: List[str] = list()
+        self.tag_list_found: List[str] = list()
         for phase in ["train", "val", "test"]:
             # data
             self.data[phase] = self._read_csv(os.path.join(self.path, f"{phase}.csv"))
@@ -48,12 +48,21 @@ class CsvReader:
             tag_list_phase = list(
                 set(" ".join(self.data[phase]["tags"].values).split())
             )
-            self.tag_list = sorted(
-                list(set(self.tag_list + tag_list_phase))
+            self.tag_list_found = sorted(
+                list(set(self.tag_list_found + tag_list_phase))
             )
 
+        self.tag_list: List[str] = ["O"] + [
+            elem for elem in self.tag_list_found if elem != "O"
+        ]
+
         if self.default_logger:
-            self.default_logger.log_debug(f"> tag list complete:      {self.tag_list}")
+            self.default_logger.log_debug(
+                f"> tag list found in data: {self.tag_list_found}"
+            )
+            self.default_logger.log_debug(
+                f"> tag list complete:      {self.tag_list}"
+            )
 
     ####################################################################################################################
     # PUBLIC METHODS
