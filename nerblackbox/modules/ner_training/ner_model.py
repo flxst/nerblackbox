@@ -89,6 +89,7 @@ class NerModel(pl.LightningModule, ABC):
             self.pretrained_model_name,
             do_lower_case=False,
             additional_special_tokens=["[newline]", "[NEWLINE]"],
+            use_fast=True,
         )  # do_lower_case needs to be False !!
 
         # 3. data_preprocessor

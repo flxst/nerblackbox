@@ -78,8 +78,8 @@ class DataPreprocessor:
             "predict": [
                 InputExample(
                     guid="",
-                    text_a=example,
-                    tags_a=" ".join(
+                    text=example,
+                    tags=" ".join(
                         ["O" for _ in range(len(example.split()))]
                     ),  # pseudo tags
                 )
@@ -114,7 +114,7 @@ class DataPreprocessor:
         for phase in input_examples.keys():
             # dataloader
             data = BertDataset(
-                input_examples[phase], transform=input_example_to_tensors
+                samples=input_examples[phase], transform=input_example_to_tensors
             )
 
             if phase == "train":

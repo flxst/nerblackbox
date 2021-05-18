@@ -1,5 +1,7 @@
 import torch
-from torch.nn.utils.rnn import pad_sequence
+import numpy as np
+from typing import List
+from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import InputExample
 
 
 class InputExampleToTensors:
@@ -28,14 +30,12 @@ class InputExampleToTensors:
         if self.default_logger:
             self.default_logger.log_debug("> tag2id:", self.tag2id)
 
-    def __call__(self, input_example):
+    def __call__(self, input_example: InputExample) -> (torch.tensor, torch.tensor, torch.tensor, torch.tensor):
         """
         transform input_example to tensors of length self.max_seq_length
         ----------------------------------------------------------------
-        :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
-                                                   text_b = None
-                                                   tags_a = '0 ORG'
-                                                   tags_b = None
+        :param input_example: [InputExample], e.g. text = 'at arbetsförmedlingen'
+                                                   tags = '0 ORG'
         :return: input_ids:      [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
         :return: attention_mask: [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
         :return: segment_ids:    [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
@@ -44,139 +44,41 @@ class InputExampleToTensors:
         ####################
         # A0. tokens_*, tags_*
         ####################
-        tokens_a, tags_a = self._tokenize_words_and_tags(input_example, segment="a")
-        tokens_b, tags_b = self._tokenize_words_and_tags(input_example, segment="b")
+        tokens_split_into_words = input_example.text.split()
+        tags_split_into_words = input_example.tags.split()
+        assert len(tokens_split_into_words) == len(tags_split_into_words), \
+            f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)}"
 
-        # Modify `tokens_a` (and `tokens_b`) in place so that the total length is less than the specified length.
-        if tokens_b is None:
-            # Account for [CLS] and [SEP] with "- 2"
-            self._truncate_seq_pair(self.max_seq_length - 2, tokens_a)
-            self._truncate_seq_pair(self.max_seq_length - 2, tags_a)
-        else:
-            # Account for [CLS], [SEP], [SEP] with "- 3"
-            self._truncate_seq_pair(self.max_seq_length - 3, tokens_a, tokens_b)
-            self._truncate_seq_pair(self.max_seq_length - 3, tags_a, tags_b)
+        encodings = self.tokenizer(
+            tokens_split_into_words,
+            padding='max_length',
+            truncation=True,
+            max_length=self.max_seq_length,
+            is_split_into_words=True,
+            return_offsets_mapping=True,
+        )
+        input_ids = torch.tensor(encodings["input_ids"])
+        attention_mask = torch.tensor(encodings["attention_mask"])
+        segment_ids = torch.tensor(encodings["token_type_ids"])
+        tag_ids = torch.tensor(self._encode_tags(tags_split_into_words, encodings.offset_mapping))
 
-        ####################
-        # A1. tokens, tags
-        ####################
-        tokens = ["[CLS]"] + tokens_a + ["[SEP]"]
-        tags = ["[CLS]"] + tags_a + ["[SEP]"]
-        if tokens_b and tags_b:
-            tokens += tokens_b + ["[SEP]"]
-            tags += tags_b + ["[SEP]"]
-
-        ####################
-        # B. input_ids, attention_mask, segment_ids, tag_ids
-        ####################
-        # 1. input_ids
-        input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
-
-        # 2. attention_mask
-        attention_mask = [1] * len(input_ids)  # 1 = real tokens, 0 = padding tokens.
-
-        # 3. segment_ids
-        if tokens_b is None:
-            segment_ids = [0] * len(tokens)
-        else:
-            segment_ids = [0] * len(tokens_a) + [1] * (len(tokens_b) + 1)
-
-        # 4. tag_ids
-        tag_ids = [self.tag2id[tag] for tag in tags]
-
-        # 5. cast to tensor & padding
-        input_ids = self._pad_sequence(input_ids, 0)
-        attention_mask = self._pad_sequence(attention_mask, 0)
-        segment_ids = self._pad_sequence(segment_ids, 0)
-        tag_ids = self._pad_sequence(tag_ids, 0)
-        assert (
-            input_ids.shape[0] == self.max_seq_length
-        ), f"shape[0] = {input_ids[0].shape}"
-        assert (
-            attention_mask.shape[0] == self.max_seq_length
-        ), f"shape[0] = {attention_mask[0].shape}"
-        assert (
-            segment_ids.shape[0] == self.max_seq_length
-        ), f"shape[0] = {segment_ids[0].shape}"
-        assert tag_ids.shape[0] == self.max_seq_length, f"shape[0] = {tag_ids[0].shape}"
-
-        ####################
-        # return
-        ####################
         return input_ids, attention_mask, segment_ids, tag_ids
 
     ####################################################################################################################
     # PRIVATE HELPER METHODS
     ####################################################################################################################
-    def _tokenize_words_and_tags(self, input_example, segment):
-        """
-        gets NER tags for tokenized version of text
-        ---------------------------------------------
-        :param input_example: [InputExample], e.g. text_a = 'at arbetsförmedlingen'
-                                                   text_b = None
-                                                   tags_a = '0 ORG'
-                                                   tags_b = None
-        :param segment:       [str], 'a' or 'b'
-        :changed attr: token_count [int] total number of tokens in df
-        :return: tokens: [list] of [str], e.g. ['at', 'arbetsförmedling', '##en]
-                 tags:   [list] of [str], e.g. [   0,              'ORG', 'ORG']
-        """
-        # [list] of (word, tag) pairs, e.g. [('at', '0'), ('Arbetsförmedlingen', 'ORG')]
-        if segment == "a":
-            word_tag_pairs = zip(
-                input_example.text_a.split(" "), input_example.tags_a.split(" ")
-            )
-        elif segment == "b":
-            if input_example.text_b is None or input_example.tags_b is None:
-                return None, None
-            else:
-                word_tag_pairs = zip(
-                    input_example.text_b.split(" "), input_example.tags_b.split(" ")
-                )
-        else:
-            raise Exception(f"> segment = {segment} unknown")
+    def _encode_tags(self, _tags_split_into_words: List[str], offsets: List[List[int]]) -> List[int]:
+        tag_ids_split_into_words: List[int] = [self.tag2id[tag] for tag in _tags_split_into_words]
 
-        tokens = []
-        tokens_tags = []
-        for word_tag_pair in word_tag_pairs:
-            word, tag = word_tag_pair[0], word_tag_pair[1]
-            word_tokens = self.tokenizer.tokenize(word)
-            tokens.extend(word_tokens)
-            tokens_tags.append(tag)
-            for _ in word_tokens[1:]:
-                tokens_tags.append(
-                    tag.replace("B-", "I-")
-                )  # replace only applies to IOB tags
+        # create an empty array of -100
+        arr_tag_ids: np.array = np.ones(len(offsets), dtype=int) * -100
+        arr_offsets: np.array = np.array(offsets)
 
-        return tokens, tokens_tags
+        # set labels whose first offset position is 0 and the second is not 0
+        nr_matches: int = len([elem for elem in arr_offsets if elem[0] == 0 and elem[1] != 0])
+        arr_tag_ids[(arr_offsets[:, 0] == 0) & (arr_offsets[:, 1] != 0)] = tag_ids_split_into_words[:nr_matches]
 
-    @staticmethod
-    def _truncate_seq_pair(max_length, seq_a, seq_b=()):
-        """Truncates a sequence pair in place to the maximum length."""
-        # This is a simple heuristic which will always truncate the longer sequence
-        # one token at a time. This makes more sense than truncating an equal percent
-        # of tokens from each, since if one sequence is very short then each token
-        # that's truncated likely contains more information than a longer sequence.
-        while True:
-            total_length = len(seq_a) + len(seq_b)
-            if total_length <= max_length:
-                break
-            if len(seq_a) > len(seq_b):
-                seq_a.pop()
-            else:
-                seq_b.pop()
+        # convert
+        tag_ids: List[int] = arr_tag_ids.tolist()
 
-    def _pad_sequence(self, _input_list, padding_value):
-        """
-        pad _input sequence with value until self.max_seq_length is reached
-        -------------------------------------------------------------------
-        :param _input_list:   [list] of [int]
-        :param padding_value: [int], e.g. 0
-        :return: padded _input as [torch tensor]
-        """
-        padded = pad_sequence(
-            [torch.tensor(_input_list), torch.zeros(self.max_seq_length)],
-            batch_first=True,
-            padding_value=padding_value,
-        )
-        return padded[0]
+        return tag_ids

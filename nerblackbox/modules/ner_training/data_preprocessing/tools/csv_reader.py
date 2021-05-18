@@ -1,4 +1,5 @@
 import os
+from typing import Dict, List
 import pandas as pd
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import (
     InputExample,
@@ -37,8 +38,8 @@ class CsvReader:
         self.token_count = None
 
         # data & tag_list
-        self.data = dict()
-        self.tag_list_found = list()
+        self.data: Dict[str, pd.DataFrame] = dict()
+        self.tag_list: List[str] = list()
         for phase in ["train", "val", "test"]:
             # data
             self.data[phase] = self._read_csv(os.path.join(self.path, f"{phase}.csv"))
@@ -47,18 +48,11 @@ class CsvReader:
             tag_list_phase = list(
                 set(" ".join(self.data[phase]["tags"].values).split())
             )
-            self.tag_list_found = sorted(
-                list(set(self.tag_list_found + tag_list_phase))
+            self.tag_list = sorted(
+                list(set(self.tag_list + tag_list_phase))
             )
-
-        self.tag_list = ["[PAD]", "[CLS]", "[SEP]", "O"] + [
-            elem for elem in self.tag_list_found if elem != "O"
-        ]
 
         if self.default_logger:
-            self.default_logger.log_debug(
-                f"> tag list found in data: {self.tag_list_found}"
-            )
             self.default_logger.log_debug(f"> tag list complete:      {self.tag_list}")
 
     ####################################################################################################################
@@ -76,7 +70,7 @@ class CsvReader:
     ####################################################################################################################
     # PRIVATE METHODS
     ####################################################################################################################
-    def _read_csv(self, path):
+    def _read_csv(self, path: str) -> pd.DataFrame:
         """
         read csv using pandas.
 
@@ -106,10 +100,10 @@ class CsvReader:
         for i, row in enumerate(df.itertuples()):
             # input_example
             guid = f"{set_type}-{i}"
-            text_a = row.text.lower() if self.do_lower_case else row.text
-            tags_a = row.tags
+            text = row.text.lower() if self.do_lower_case else row.text
+            tags = row.tags
 
-            input_example = InputExample(guid=guid, text_a=text_a, tags_a=tags_a)
+            input_example = InputExample(guid=guid, text=text, tags=tags)
 
             # append
             examples.append(input_example)
