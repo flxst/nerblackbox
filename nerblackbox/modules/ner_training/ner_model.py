@@ -1,11 +1,9 @@
 import os
 from os.path import join
-import warnings
-import numpy as np
-from seqeval.metrics import classification_report as classification_report_seqeval
-from sklearn.metrics import classification_report as classification_report_sklearn
 import pytorch_lightning as pl
 from abc import ABC, abstractmethod
+import torch
+from typing import List, Dict
 
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
@@ -17,10 +15,8 @@ from transformers import AutoTokenizer
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
     DataPreprocessor,
 )
-from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.ner_training.metrics.ner_metrics import convert_to_chunk
 from nerblackbox.modules.utils.util_functions import split_parameters
-from nerblackbox.modules.utils.env_variable import env_variable
+from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
 
 
 class NerModel(pl.LightningModule, ABC):
@@ -138,7 +134,7 @@ class NerModel(pl.LightningModule, ABC):
         batch_train_loss = outputs[0]
 
         # logging
-        self.write_metrics_for_tensorboard("train", {"all_loss": batch_train_loss})
+        self._write_metrics_for_tensorboard("train", {"all_loss": batch_train_loss})
 
         # debug
         if batch_idx == 0:
@@ -356,251 +352,54 @@ class NerModel(pl.LightningModule, ABC):
         """
         return _num_epochs * len(self.dataloader["train"])
 
-    ####################################################################################################################
-    # 2. VALIDATE / COMPUTE METRICS
-    ####################################################################################################################
-    def _validate_on_epoch(self, phase, outputs):
+    def _validate_on_epoch(self,
+                           phase: str,
+                           outputs: List[List[torch.tensor]]) -> Dict[str, float]:
         """
-        validate on all batches of one epoch, i.e. whole val or test dataset
-        --------------------------------------------------------------------
-        :param phase:   [str], 'val', 'test'
-        :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_tag_ids, batch_logits] for each batch
-        :return: [dict] w/ key '<phase>_loss' & value = mean batch loss [float]
+        Args:
+            phase:   [str], 'val', 'test'
+            outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
+
+        Returns:
+            [dict] w/ key '<phase>_loss' & value = mean batch loss [float]
         """
-        # to cpu/numpy
-        np_batch = {
-            "loss": [output[0].detach().cpu().numpy() for output in outputs],
-            "tag_ids": [
-                output[1].detach().cpu().numpy() for output in outputs
-            ],  # [batch_size, seq_length]
-            "logits": [
-                output[2].detach().cpu().numpy() for output in outputs
-            ],  # [batch_size, seq_length, num_tags]
-        }
-
-        # combine np_batch metrics to np_epoch metrics
-        np_epoch = {
-            "loss": np.stack(np_batch["loss"]).mean(),
-            "tag_ids": np.concatenate(
-                np_batch["tag_ids"]
-            ),  # shape: [epoch_size, seq_length]
-            "logits": np.concatenate(
-                np_batch["logits"]
-            ),  # shape: [epoch_size, seq_length, num_tags]
-        }
-
-        # epoch metrics
-        epoch_metrics, epoch_tags = self.compute_metrics(phase, np_epoch)
+        ner_model_evaluation = NerModelEvaluation(
+            current_epoch=self.current_epoch,
+            tag_list=self.tag_list,
+            dataset_tags=self.params.dataset_tags,
+            mlflow_client=self.mlflow_client,
+            default_logger=self.default_logger,
+            logged_metrics=self.logged_metrics,
+        )
+        epoch_metrics, epoch_tags, classification_report, loss = ner_model_evaluation.execute(phase, outputs)
 
         # tracked metrics & classification reports
-        self.add_epoch_metrics(
+        self._add_epoch_metrics(
             phase, self.current_epoch, epoch_metrics
         )  # attr: epoch_metrics
-        self.get_classification_report(
-            phase, self.current_epoch, epoch_tags
-        )  # attr: classification_reports
 
         # logging: tb
-        self.write_metrics_for_tensorboard(phase, epoch_metrics)
+        self._write_metrics_for_tensorboard(phase, epoch_metrics)
 
         # logging: mlflow
         if phase == "val":
             self.mlflow_client.log_metrics(self.current_epoch, epoch_metrics)
         self.mlflow_client.log_classification_report(
-            self.classification_reports[phase][self.current_epoch],
+            classification_report,
             overwrite=(phase == "val" and self.current_epoch == 0),
         )
         self.mlflow_client.finish_artifact_mlflow()
 
         # print
         self._print_metrics(
-            phase, epoch_metrics, self.classification_reports[phase][self.current_epoch]
+            phase, epoch_metrics, classification_report
         )
 
         self.default_logger.log_debug(f"--> {phase}: epoch done")
 
-        return {f"{phase}_loss": np_epoch["loss"]}
+        return {f"{phase}_loss": loss}
 
-    def compute_metrics(self, phase, _np_dict):
-        """
-        computes loss, acc, f1 scores for size/phase = batch/train or epoch/val-test
-        ----------------------------------------------------------------------------
-        :param phase:          [str], 'train', 'val', 'test'
-        :param _np_dict:       [dict] w/ key-value pairs:
-                                     'loss':     [np value]
-                                     'tag_ids':  [np array] of shape [batch_size, seq_length]
-                                     'logits'    [np array] of shape [batch_size, seq_length, num_tags]
-        :return: metrics       [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
-                 tags          [dict] w/ keys 'true', 'pred'      & values = [np array]
-        """
-        # batch / dataset
-        tag_ids = dict()
-        tag_ids["true"], tag_ids["pred"] = self._reduce_and_flatten(
-            _np_dict["tag_ids"], _np_dict["logits"]
-        )
-
-        tags = {
-            field: self._convert_tag_ids_to_tags(tag_ids[field])
-            for field in ["true", "pred"]
-        }
-        tags = self._get_rid_of_special_tag_occurrences(tags)
-
-        self.default_logger.log_debug("phase:", phase)
-        self.default_logger.log_debug(
-            "true:", np.shape(tags["true"]), list(set(tags["true"]))
-        )
-        self.default_logger.log_debug(
-            "pred:", np.shape(tags["pred"]), list(set(tags["pred"]))
-        )
-
-        if phase == "val":
-            for field in ["true", "pred"]:
-                np.save(f'{env_variable("DIR_RESULTS")}/{field}.npy', tags[field])
-
-        # batch / dataset metrics
-        metrics = {"all_loss": _np_dict["loss"]}
-        for tag_subset in [
-            "all",
-            "fil",
-            "chk",
-        ] + self.tag_list:  # self._get_filtered_tags():
-            metrics.update(
-                self._compute_metrics_for_tags_subset(
-                    tags, phase, tag_subset=tag_subset
-                )
-            )
-
-        return metrics, tags
-
-    @staticmethod
-    def _reduce_and_flatten(_np_tag_ids, _np_logits):
-        """
-        helper method
-        reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
-        ---------------------------------------------------------------
-        :param _np_tag_ids: [np array] of shape [batch_size, seq_length]
-        :param _np_logits:  [np array] of shape [batch_size, seq_length, num_tags]
-        :return: true_flat: [np array] of shape [batch_size * seq_length], _np_tag_ids               flattened
-                 pred_flat: [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
-        """
-        true_flat = _np_tag_ids.flatten()
-        pred_flat = np.argmax(_np_logits, axis=2).flatten()
-        return true_flat, pred_flat
-
-    def _convert_tag_ids_to_tags(self, _tag_ids):
-        """
-        helper method
-        convert tag_ids (int) to tags (str)
-        -----------------------------------
-        :param _tag_ids: [np array] of shape [batch_size * seq_length] with [int] elements
-        :return: _tags:  [np array] of shape [batch_size * seq_length] with [str] elements
-        """
-        return np.array([
-            self.tag_list[tag_id]
-            if tag_id >= 0
-            else "[S]"
-            for tag_id in _tag_ids
-        ])
-
-    @staticmethod
-    def _get_rid_of_special_tag_occurrences(_tags):
-        """
-        get rid of all elements where '[S]' occurs in true array
-        --------------------------------------------------------
-        :param _tags:      [dict] w/ keys = 'true', 'pred' and
-                                     values = [np array] of shape [batch_size * seq_length]
-        :return: _tags_new [dict] w/ keys = 'true', 'pred' and
-                                     values = [np array] of shape [batch_size * seq_length - # of pad occurrences]
-        """
-        pad_indices = np.where(_tags["true"] == "[S]")
-        return {key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]}
-
-    def _compute_metrics_for_tags_subset(self, _tags, _phase, tag_subset: str):
-        """
-        helper method
-        compute metrics for tags subset (e.g. 'all', 'fil')
-        ---------------------------------------------------
-        :param _tags:      [dict] w/ keys 'true', 'pred'      & values = [np array]
-        :param _phase:     [str], 'train', 'val'
-        :param tag_subset: [str], e.g. 'all', 'fil', 'PER'
-        :return: _metrics  [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
-        """
-        tag_list = self._get_filtered_tags(tag_subset)
-        if tag_subset in ["all", "fil", "chk"]:
-            tag_group = [tag_subset]
-        else:
-            tag_group = ["ind"]
-        if tag_subset == "chk":
-            level = "chunk"
-        else:
-            level = "token"
-
-        ner_metrics = NerMetrics(
-            _tags["true"],
-            _tags["pred"],
-            tag_list=tag_list,
-            level=level,
-            plain_tags=self.params.dataset_tags == "plain",
-        )
-        ner_metrics.compute(
-            self.logged_metrics.get_metrics(tag_group=tag_group, phase_group=[_phase])
-        )
-        results = ner_metrics.results_as_dict()
-
-        _metrics = dict()
-        # simple
-        for metric_type in self.logged_metrics.get_metrics(
-            tag_group=tag_group,
-            phase_group=[_phase],
-            micro_macro_group=["simple"],
-            exclude=["loss"],
-        ):
-            # if results[metric_type] is not None:
-            _metrics[f"{tag_subset}_{metric_type}"] = results[metric_type]
-
-        # micro
-        for metric_type in self.logged_metrics.get_metrics(
-            tag_group=tag_group, phase_group=[_phase], micro_macro_group=["micro"]
-        ):
-            # if results[f'{metric_type}_micro'] is not None:
-            if tag_group == ["ind"]:
-                _metrics[f"{tag_subset}_{metric_type}"] = results[
-                    f"{metric_type}_micro"
-                ]
-            else:
-                _metrics[f"{tag_subset}_{metric_type}_micro"] = results[
-                    f"{metric_type}_micro"
-                ]
-
-        # macro
-        for metric_type in self.logged_metrics.get_metrics(
-            tag_group=tag_group, phase_group=[_phase], micro_macro_group=["macro"]
-        ):
-            # if results[f'{metric_type}_macro'] is not None:
-            _metrics[f"{tag_subset}_{metric_type}_macro"] = results[
-                f"{metric_type}_macro"
-            ]
-
-        return _metrics
-
-    def _get_filtered_tags(self, _tag_subset):
-        """
-        helper method
-        get list of filtered tags corresponding to _tag_subset name
-        -----------------------------------------------------------
-        :param _tag_subset: [str], e.g. 'all', 'fil', 'PER'
-        :return: _filtered_tags: [list] of filtered tags [str]
-        """
-        if _tag_subset == "all":
-            return self.tag_list
-        elif _tag_subset in ["fil", "chk"]:
-            return [
-                tag for tag in self.tag_list if tag != "O"
-            ]
-        else:
-            return [_tag_subset]
-
-    def add_epoch_metrics(self, phase, epoch, _epoch_metrics):
+    def _add_epoch_metrics(self, phase, epoch, _epoch_metrics):
         """
         add _epoch_metrics to attribute/dict epoch_<phase>_metrics
         --------------------------------------------------------------
@@ -612,55 +411,7 @@ class NerModel(pl.LightningModule, ABC):
         """
         self.epoch_metrics[phase][epoch] = _epoch_metrics
 
-    def get_classification_report(self, phase, epoch, epoch_tags):
-        """
-        get token-based (sklearn) & chunk-based (seqeval) classification report
-        -----------------------------------------------------------------------
-        :param: epoch:                         [int]
-        :param: epoch_tags:                    [dict] w/ keys 'true', 'pred'      & values = [np array]
-        :changed attr: classification reports: [dict] w/ keys = epoch [int], values = classification report [str]
-        :return: -
-        """
-        warnings.filterwarnings("ignore")
-
-        self.classification_reports[phase][epoch] = ""
-
-        # token-based classification report
-        tag_list_filtered = self._get_filtered_tags("fil")
-        self.classification_reports[phase][
-            epoch
-        ] += f"\n>>> Phase: {phase} | Epoch: {epoch}"
-        self.classification_reports[phase][
-            epoch
-        ] += "\n--- token-based (sklearn) classification report on fil ---\n"
-        self.classification_reports[phase][epoch] += classification_report_sklearn(
-            epoch_tags["true"], epoch_tags["pred"], labels=tag_list_filtered
-        )
-
-        # chunk-based classification report
-        epoch_tags_chunk = dict()
-        for field in ["true", "pred"]:
-            epoch_tags_chunk[field] = convert_to_chunk(
-                epoch_tags[field], to_bio=self.params.dataset_tags == "plain"
-            )
-        self.default_logger.log_debug("> dataset_tags:", self.params.dataset_tags)
-        self.default_logger.log_debug(
-            "> epoch_tags_chunk[true]:", list(set(epoch_tags_chunk["true"]))
-        )
-        self.default_logger.log_debug(
-            "> epoch_tags_chunk[pred]:", list(set(epoch_tags_chunk["pred"]))
-        )
-
-        self.classification_reports[phase][
-            epoch
-        ] += "\n--- chunk-based (seqeval) classification report on fil ---\n"
-        self.classification_reports[phase][epoch] += classification_report_seqeval(
-            epoch_tags_chunk["true"], epoch_tags_chunk["pred"], suffix=False
-        )
-
-        warnings.resetwarnings()
-
-    def write_metrics_for_tensorboard(self, phase, metrics):
+    def _write_metrics_for_tensorboard(self, phase, metrics):
         """
         write metrics for tensorboard
         -----------------------------
@@ -685,14 +436,14 @@ class NerModel(pl.LightningModule, ABC):
     # 3. PRINT / LOG
     ####################################################################################################################
     def _debug_step_check(
-        self,
-        phase,
-        _batch,
-        _outputs,
-        _input_ids,
-        _attention_mask,
-        _segment_ids,
-        _tag_ids,
+            self,
+            phase,
+            _batch,
+            _outputs,
+            _input_ids,
+            _attention_mask,
+            _segment_ids,
+            _tag_ids,
     ):
         self.default_logger.log_debug(f"{phase.upper()} STEP CHECK")
         self.default_logger.log_debug(f"batch on gpu:   {_batch[0].is_cuda}")

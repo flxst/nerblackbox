@@ -1,5 +1,3 @@
-from typing import List
-
 from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import (
     BertDataset,
 )
@@ -15,9 +13,16 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example_to_
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
+from typing import List, Dict
+InputExamples = List[InputExample]
+
 
 class DataPreprocessor:
-    def __init__(self, tokenizer, do_lower_case, default_logger, max_seq_length=64):
+    def __init__(self,
+                 tokenizer,
+                 do_lower_case: bool,
+                 default_logger: 'DefaultLogger',
+                 max_seq_length: int = 64):
         """
         :param tokenizer:      [transformers Tokenizer]
         :param do_lower_case:  [bool] if True, make text data lowercase
@@ -29,14 +34,19 @@ class DataPreprocessor:
         self.default_logger = default_logger
         self.max_seq_length = max_seq_length
 
-    def get_input_examples_train(self, dataset_name, prune_ratio):
+    def get_input_examples_train(self,
+                                 dataset_name: str,
+                                 prune_ratio: Dict[str, float]) -> (Dict[str, InputExamples], List[str]):
         """
-        get input examples for TRAIN from csv files
-        -------------------------------------------
-        :param dataset_name:     [str], e.g. 'suc'
-        :param prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
-        :return: input_examples: [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
-        :return: tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+        - get input examples for TRAIN from csv files
+
+        Args:
+            dataset_name:     [str], e.g. 'suc'
+            prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
+
+        Returns:
+            input_examples: [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
+            tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         """
         if prune_ratio is None:
             prune_ratio = {"train": 1.0, "val": 1.0, "test": 1.0}
@@ -63,12 +73,16 @@ class DataPreprocessor:
             csv_reader.tag_list
         )
 
-    def get_input_examples_predict(self, examples):
+    def get_input_examples_predict(self,
+                                   examples: List[str]) -> Dict[str, InputExamples]:
         """
-        get input examples for PREDICT from input argument examples
-        -----------------------------------------------------------
-        :param examples:         [list] of [str]
-        :return: input_examples: [dict] w/ key = 'predict' & value = [list] of [InputExample]
+        - get input examples for PREDICT from input argument examples
+
+        Args:
+            examples:       [list] of [str]
+
+        Returns:
+            input_examples: [dict] w/ key = 'predict' & value = [list] of [InputExample]
         """
         # create input_examples
         if self.do_lower_case:
@@ -90,17 +104,22 @@ class DataPreprocessor:
 
         return input_examples
 
-    def to_dataloader(self, input_examples, tag_list, batch_size):
+    def to_dataloader(self,
+                      input_examples: Dict[str, InputExamples],
+                      tag_list: List[str],
+                      batch_size: int) -> Dict[str, DataLoader]:
         """
-        turn input_examples into dataloader
-        -----------------------------------
-        :param input_examples:
-        :param input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
-                                         values = [list] of [InputExample]
-        :param tag_list:         [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
-        :param batch_size:       [int]
-        :return: _dataloader:    [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
-                                           values = [torch Dataloader]
+        - turn input_examples into dataloader
+
+        Args:
+            input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                      values = [list] of [InputExample]
+            tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+            batch_size:     [int]
+
+        Returns:
+            _dataloader:    [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                      values = [torch Dataloader]
         """
         # input_example_to_tensors
         input_example_to_tensors = InputExampleToTensors(
