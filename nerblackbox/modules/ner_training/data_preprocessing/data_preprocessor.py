@@ -133,7 +133,7 @@ class DataPreprocessor:
         for phase in input_examples.keys():
             # dataloader
             data = BertDataset(
-                samples=input_examples[phase], transform=input_example_to_tensors
+                input_examples=input_examples[phase], transform=input_example_to_tensors
             )
 
             if phase == "train":

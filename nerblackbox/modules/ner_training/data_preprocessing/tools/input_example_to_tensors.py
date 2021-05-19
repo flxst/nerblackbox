@@ -32,14 +32,17 @@ class InputExampleToTensors:
 
     def __call__(self, input_example: InputExample) -> (torch.tensor, torch.tensor, torch.tensor, torch.tensor):
         """
-        transform input_example to tensors of length self.max_seq_length
-        ----------------------------------------------------------------
-        :param input_example: [InputExample], e.g. text = 'at arbetsförmedlingen'
-                                                   tags = '0 ORG'
-        :return: input_ids:      [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
-        :return: attention_mask: [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
-        :return: segment_ids:    [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
-        :return: tag_ids:        [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]
+        - transform input_example to tensors of length self.max_seq_length
+
+        Args:
+            input_example: [InputExample], e.g. text = 'at arbetsförmedlingen'
+                                                tags = '0 ORG'
+
+        Returns:
+            input_ids:      [torch tensor], e.g. [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
+            attention_mask: [torch tensor], e.g. [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
+            segment_ids:    [torch tensor], e.g. [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
+            tag_ids:        [torch tensor], e.g. [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]
         """
         ####################
         # A0. tokens_*, tags_*
