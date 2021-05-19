@@ -1,5 +1,6 @@
 import os
 from os.path import join
+import numpy as np
 import pytorch_lightning as pl
 from abc import ABC, abstractmethod
 import torch
@@ -367,12 +368,24 @@ class NerModel(pl.LightningModule, ABC):
             current_epoch=self.current_epoch,
             tag_list=self.tag_list,
             dataset_tags=self.params.dataset_tags,
-            mlflow_client=self.mlflow_client,
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )
-        epoch_metrics, epoch_tags, classification_report, loss = ner_model_evaluation.execute(phase, outputs)
+        epoch_metrics, classification_report, epoch_loss = ner_model_evaluation.execute(phase, outputs)
+        self._log_metrics_and_classification_report(phase, epoch_metrics, classification_report)
+        return {f"{phase}_loss": epoch_loss}
 
+    def _log_metrics_and_classification_report(self,
+                                               phase: str,
+                                               epoch_metrics: Dict[str, np.array],
+                                               classification_report: str) -> None:
+        """
+        Args:
+            phase:                 [str] 'val', 'test'
+            epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
+            classification_report: [str]
+            epoch_loss:            [float] mean of of all batch losses
+        """
         # tracked metrics & classification reports
         self._add_epoch_metrics(
             phase, self.current_epoch, epoch_metrics
@@ -396,8 +409,6 @@ class NerModel(pl.LightningModule, ABC):
         )
 
         self.default_logger.log_debug(f"--> {phase}: epoch done")
-
-        return {f"{phase}_loss": loss}
 
     def _add_epoch_metrics(self, phase, epoch, _epoch_metrics):
         """

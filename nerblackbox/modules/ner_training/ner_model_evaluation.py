@@ -17,14 +17,12 @@ class NerModelEvaluation:
                  current_epoch: int,
                  tag_list: List[str],
                  dataset_tags: List[str],
-                 mlflow_client,
                  default_logger,
                  logged_metrics,
                  ):
         self.current_epoch = current_epoch
         self.tag_list = tag_list
         self.dataset_tags = dataset_tags
-        self.mlflow_client = mlflow_client
         self.default_logger = default_logger
         self.logged_metrics = logged_metrics
 
@@ -33,7 +31,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def execute(self,
                 phase: str,
-                outputs: List[List[torch.tensor]]) -> (Dict[str, np.array], Dict[str, np.array], str, float):
+                outputs: List[List[torch.tensor]]) -> (Dict[str, np.array], str, float):
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
         
@@ -43,7 +41,6 @@ class NerModelEvaluation:
             
         Returns:
             epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
-            epoch_tags             [dict] w/ keys 'true', 'pred'                & values = [np array]
             classification_report: [str]
             epoch_loss:            [float] mean of of all batch losses
         """
@@ -58,7 +55,7 @@ class NerModelEvaluation:
             phase, self.current_epoch, epoch_tags
         )
 
-        return epoch_metrics, epoch_tags, classification_report, np_epoch["loss"]
+        return epoch_metrics, classification_report, np_epoch["loss"]
         
     @staticmethod
     def _convert_output_to_np_batch(outputs: List[List[torch.tensor]]) -> Dict[str, List[Union[int, float]]]:
