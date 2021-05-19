@@ -13,7 +13,7 @@ class TestNerMetrics:
     metrics_micro_macro = ["precision", "recall", "f1"]
     metrics = metrics_simple + metrics_micro_macro
 
-    path_csv = resource_filename("nerblackbox", "tests/test_ner_metrics.csv")
+    path_csv = resource_filename("nerblackbox", "tests/test_data/test_ner_metrics.csv")
     df = pd.read_csv(path_csv, sep=";")
 
     ####################################################################################################################

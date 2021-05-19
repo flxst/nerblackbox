@@ -12,6 +12,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example_to_
 )
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from pkg_resources import resource_filename
 
 from typing import List, Dict
 InputExamples = List[InputExample]
@@ -35,8 +36,8 @@ class DataPreprocessor:
         self.max_seq_length = max_seq_length
 
     def get_input_examples_train(self,
-                                 dataset_name: str,
-                                 prune_ratio: Dict[str, float]) -> (Dict[str, InputExamples], List[str]):
+                                 dataset_name: str = None,
+                                 prune_ratio: Dict[str, float] = None) -> (Dict[str, InputExamples], List[str]):
         """
         - get input examples for TRAIN from csv files
 
@@ -51,7 +52,10 @@ class DataPreprocessor:
         if prune_ratio is None:
             prune_ratio = {"train": 1.0, "val": 1.0, "test": 1.0}
 
-        dataset_path = get_dataset_path(dataset_name)
+        if dataset_name is None:
+            dataset_path = resource_filename("nerblackbox", "tests/test_data")
+        else:
+            dataset_path = get_dataset_path(dataset_name)
 
         # csv_reader
         csv_reader = CsvReader(
