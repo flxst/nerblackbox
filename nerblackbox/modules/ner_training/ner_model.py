@@ -384,7 +384,6 @@ class NerModel(pl.LightningModule, ABC):
             phase:                 [str] 'val', 'test'
             epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
             classification_report: [str]
-            epoch_loss:            [float] mean of of all batch losses
         """
         # tracked metrics & classification reports
         self._add_epoch_metrics(

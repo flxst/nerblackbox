@@ -44,8 +44,9 @@ class NerModelEvaluation:
             classification_report: [str]
             epoch_loss:            [float] mean of of all batch losses
         """
-        np_batch: Dict[str, List[Union[int, float]]] = self._convert_output_to_np_batch(outputs)
-        np_epoch: Dict[str, np.array] = self._combine_np_batch_to_np_epoch(np_batch)
+        print()
+        np_batch: Dict[str, List[np.array]] = self._convert_output_to_np_batch(outputs)
+        np_epoch: Dict[str, Union[np.number, np.array]] = self._combine_np_batch_to_np_epoch(np_batch)
 
         # epoch metrics
         epoch_metrics, epoch_tags = self._compute_metrics(phase, np_epoch)
@@ -58,7 +59,7 @@ class NerModelEvaluation:
         return epoch_metrics, classification_report, np_epoch["loss"]
         
     @staticmethod
-    def _convert_output_to_np_batch(outputs: List[List[torch.tensor]]) -> Dict[str, List[Union[int, float]]]:
+    def _convert_output_to_np_batch(outputs: List[List[torch.tensor]]) -> Dict[str, List[np.array]]:
         """
         - converts pytorch lightning output to np_batch dictionary
 
@@ -66,10 +67,10 @@ class NerModelEvaluation:
             outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
 
         Returns:
-            np_batch:     [dict] w/ key-value pairs:
-                                    'loss':     [np value]
-                                    'tag_ids':  [np array] of shape [batch_size, seq_length]
-                                    'logits'    [np array] of shape [batch_size, seq_length, num_tags]
+            np_batch: [dict] w/ key-value pairs:
+                                'loss':     [list] of <batch_size> x [1D np array]s of length <seq_length>
+                                'tag_ids':  [list] of <batch_size> x [1D np array]s of length <seq_length>
+                                'logits'    [list] of <batch_size> x [2D np array]s of size   <seq_length x num_tags>
         """
         return {
             "loss": [output[0].detach().cpu().numpy() for output in outputs],
@@ -83,22 +84,22 @@ class NerModelEvaluation:
 
     @staticmethod
     def _combine_np_batch_to_np_epoch(
-            np_batch: Dict[str, List[Union[int, float]]]
+            np_batch: Dict[str, List[np.array]]
     ) -> Dict[str, Union[np.number, np.array]]:
         """
         - combine np_batch to np_epoch
 
         Args:
-            np_batch:     [dict] w/ key-value pairs:
-                                    'loss':     [np value]
-                                    'tag_ids':  [np array] of shape [batch_size, seq_length]
-                                    'logits'    [np array] of shape [batch_size, seq_length, num_tags]
+            np_batch: [dict] w/ key-value pairs:
+                                'loss':     [list] of <batch_size> x [1D np array]s of length  <seq_length>
+                                'tag_ids':  [list] of <batch_size> x [1D np array]s of length  <seq_length>
+                                'logits'    [list] of <batch_size> x [2D np array]s of size   [<seq_length>, <num_tags>]
 
         Returns:
-            np_epoch:     [dict] w/ key-value pairs:
-                                    'loss':     [np value]
-                                    'tag_ids':  [np array] of shape [dataset_size, seq_length]
-                                    'logits'    [np array] of shape [dataset_size, seq_length, num_tags]
+            np_epoch: [dict] w/ key-value pairs:
+                                'loss':     [np value]
+                                'tag_ids':  [1D np array] of length      <batch_size> x <seq_length>
+                                'logits'    [2D np array] of size shape [<batch_size> x <seq_length>, <num_tags>]
         """
         return {
             "loss": np.stack(np_batch["loss"]).mean(),
@@ -121,10 +122,10 @@ class NerModelEvaluation:
 
         Args:
             phase:         [str], 'train', 'val', 'test'
-            _np_epoch:     [dict] w/ key-value pairs:
-                                    'loss':     [np value]
-                                    'tag_ids':  [np array] of shape [dataset_size, seq_length]
-                                    'logits'    [np array] of shape [dataset_size, seq_length, num_tags]
+            _np_epoch: [dict] w/ key-value pairs:
+                                 'loss':     [np value]
+                                 'tag_ids':  [1D np array] of length      <batch_size> x <seq_length>
+                                 'logits'    [2D np array] of size shape [<batch_size> x <seq_length>, <num_tags>]
 
         Returns:
             _epoch_metrics  [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
@@ -160,10 +161,12 @@ class NerModelEvaluation:
                               "all",
                               "fil",
                               "chk",
-                          ] + self.tag_list:  # self._get_filtered_tags():
+                          ] + self.tag_list:
             _epoch_metrics.update(
                 self._compute_metrics_for_tags_subset(
-                    tags, phase, tag_subset=tag_subset
+                    tags,
+                    phase,
+                    tag_subset=tag_subset
                 )
             )
 
@@ -240,14 +243,8 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         tag_list = self._get_filtered_tags(tag_subset)
-        if tag_subset in ["all", "fil", "chk"]:
-            tag_group = [tag_subset]
-        else:
-            tag_group = ["ind"]
-        if tag_subset == "chk":
-            level = "chunk"
-        else:
-            level = "token"
+        tag_group = [tag_subset] if tag_subset in ["all", "fil", "chk"] else ["ind"]
+        level = "chunk" if tag_subset == "chk" else "token"
 
         ner_metrics = NerMetrics(
             _tags["true"],

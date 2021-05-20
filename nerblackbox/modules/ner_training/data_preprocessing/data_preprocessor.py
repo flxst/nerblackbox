@@ -139,6 +139,7 @@ class DataPreprocessor:
 
             # dataloader
             data = BertDataset(encodings=encodings)  # data[j] = 4 torch tensors corresponding to EncodingKeys
+            self.default_logger.log_info(f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples")
 
             if phase == "train":
                 sampler = RandomSampler(data)
