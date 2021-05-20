@@ -164,7 +164,7 @@ class NerModelEvaluation:
                           ] + self.tag_list:
             _epoch_metrics.update(
                 self._compute_metrics_for_tags_subset(
-                    tags,
+                    _epoch_tags,
                     phase,
                     tag_subset=tag_subset
                 )
