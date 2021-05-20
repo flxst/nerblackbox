@@ -7,8 +7,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import (
     InputExample,
 )
-from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example_to_tensors import (
-    InputExampleToTensors,
+from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to_tensors import (
+    InputExamplesToTensors,
 )
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -126,7 +126,7 @@ class DataPreprocessor:
                                       values = [torch Dataloader]
         """
         # input_example_to_tensors
-        input_example_to_tensors = InputExampleToTensors(
+        input_examples_to_tensors = InputExamplesToTensors(
             self.tokenizer,
             max_seq_length=self.max_seq_length,
             tag_tuple=tuple(tag_list),
@@ -135,10 +135,10 @@ class DataPreprocessor:
 
         _dataloader = dict()
         for phase in input_examples.keys():
+            encodings = input_examples_to_tensors(input_examples[phase])
+
             # dataloader
-            data = BertDataset(
-                input_examples=input_examples[phase], transform=input_example_to_tensors
-            )
+            data = BertDataset(encodings=encodings)  # data[j] = 4 torch tensors corresponding to EncodingKeys
 
             if phase == "train":
                 sampler = RandomSampler(data)

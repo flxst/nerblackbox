@@ -1,0 +1,133 @@
+import torch
+import numpy as np
+from typing import List, Tuple
+from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import InputExample
+from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import Encodings, EncodingsKeys
+
+
+class InputExamplesToTensors:
+    """
+    Converts List[InputExample] to Encodings w/ keys = "input_ids", "attention_mask", "token_type_ids", "tag_ids"
+    """
+
+    def __init__(
+        self,
+        tokenizer,
+        max_seq_length: int = 128,
+        tag_tuple: tuple = ("O", "PER", "ORG"),
+        default_logger=None,
+    ):
+        """
+        :param tokenizer:      [BertTokenizer] used to tokenize to Wordpieces and transform to indices
+        :param max_seq_length: [int]
+        :param tag_tuple:      [tuple] of [str]
+        """
+        self.tokenizer = tokenizer
+        self.max_seq_length = max_seq_length
+        self.default_logger = default_logger
+
+        self.tag2id = {tag: i for i, tag in enumerate(tag_tuple)}
+        if self.default_logger:
+            self.default_logger.log_debug("> tag2id:", self.tag2id)
+
+    def __call__(self,
+                 input_examples: List[InputExample]) -> Encodings:
+        """
+        Args:
+            input_examples: List[InputExample], e.g. text = 'at arbetsförmedlingen'
+                                                     tags = '0 ORG'
+
+        Returns:
+            encodings: [Encodings] with
+            key = input_ids,      value = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]]
+            key = attention_mask, value = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]]
+            key = token_type_ids, value = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]]
+            key = tag_ids,        value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
+        """
+
+        # encodings_single
+        encodings_single = {key: list() for key in EncodingsKeys}
+        for input_example in input_examples:
+            _encodings = self._transform_input_example(input_example)
+            for key in encodings_single.keys():
+                encodings_single[key].append(_encodings[key])
+
+        # combine encodings_single -> encodings
+        encodings = {
+            key: torch.cat(encodings_single[key])
+            for key in encodings_single.keys()
+        }
+
+        return encodings
+
+    def _transform_input_example(self,
+                                 input_example: InputExample) -> Encodings:
+        """
+        - transform input_example to tensors of length self.max_seq_length
+
+        Args:
+            input_example: [InputExample], e.g. text = 'at arbetsförmedlingen'
+                                                tags = '0 ORG'
+
+        Returns:
+            encodings: [Encodings] with
+            key = input_ids,      value = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]]
+            key = attention_mask, value = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]]
+            key = token_type_ids, value = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]]
+            key = tag_ids,        value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
+        """
+        ####################
+        # A0. tokens_*, tags_*
+        ####################
+        tokens_split_into_words = input_example.text.split()
+        tags_split_into_words = input_example.tags.split()
+        assert len(tokens_split_into_words) == len(tags_split_into_words), \
+            f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)}"
+
+        encodings = self.tokenizer(
+            tokens_split_into_words,
+            padding='max_length',
+            truncation=True,
+            max_length=self.max_seq_length,
+            is_split_into_words=True,
+            return_offsets_mapping=True,
+            stride=0,
+            return_overflowing_tokens=True,
+        )
+
+        encodings["tag_ids"] = self._encode_tags(tags_split_into_words, encodings.offset_mapping)
+        keys = list(encodings.keys())
+        for key in keys:
+            if key in EncodingsKeys:
+                encodings[key] = torch.tensor(encodings[key])
+            else:
+                encodings.pop(key)
+
+        return encodings
+
+    ####################################################################################################################
+    # PRIVATE HELPER METHODS
+    ####################################################################################################################
+    def _encode_tags(self,
+                     _tags_split_into_words: List[str],
+                     all_offsets: List[List[Tuple[int, int]]]) -> List[List[int]]:
+
+        tag_ids_split_into_words: List[int] = [self.tag2id[tag] for tag in _tags_split_into_words]
+
+        index = 0
+        all_tag_ids = list()
+        for offsets in all_offsets:
+            # create an empty array of -100
+            arr_tag_ids: np.array = np.ones(len(offsets), dtype=int) * -100
+            arr_offsets: np.array = np.array(offsets)
+
+            # set labels whose first offset position is 0 and the second is not 0
+            nr_matches: int = len([elem for elem in arr_offsets if elem[0] == 0 and elem[1] != 0])
+            arr_tag_ids[(arr_offsets[:, 0] == 0) & (arr_offsets[:, 1] != 0)] = tag_ids_split_into_words[index: index+nr_matches]
+            index += nr_matches
+
+            # convert
+            tag_ids: List[int] = arr_tag_ids.tolist()
+            all_tag_ids.append(tag_ids)
+
+        return all_tag_ids
