@@ -29,37 +29,70 @@ tokenizer = AutoTokenizer.from_pretrained(
     use_fast=True,
 )
 
+csv_reader = CsvReader(
+    path=resource_filename("nerblackbox", "tests/test_data"),
+    tokenizer=tokenizer,
+    do_lower_case=False,
+    csv_file_separator="\t",
+    default_logger=None,
+)
+
+data_preprocessor = DataPreprocessor(
+    tokenizer=tokenizer,
+    do_lower_case=False,
+    default_logger=PseudoDefaultLogger(),
+    max_seq_length=4,
+)
+
 
 class TestCsvReaderAndDataProcessor:
-
-    csv_reader = CsvReader(
-        path=resource_filename("nerblackbox", "tests/test_data"),
-        tokenizer=tokenizer,
-        do_lower_case=False,
-        csv_file_separator="\t",
-        default_logger=None,
-    )
 
     ####################################################################################################################
     @pytest.mark.parametrize(
         "tag_list, "
-        "data",
+        "input_examples",
         [
             (
                     ["O", "PER", "ORG", "MISC"],
                     {
-                        "train": [InputExample(
-                            guid="",
-                            text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
-                            tags="O MISC O O O O O O O O")],
-                        "val": [InputExample(
-                            guid="",
-                            text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
-                            tags="O O O O O O O PER PER O")],
-                        "test": [InputExample(
-                            guid="",
-                            text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
-                            tags="ORG O O O O O O O O O O O O O O")],
+                        "train": [
+                            InputExample(
+                                guid="",
+                                text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
+                                tags="O MISC O O O O O O O O"
+                            ),
+                        ],
+                        "val": [
+                            InputExample(
+                                guid="",
+                                text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
+                                tags="O O O O O O O PER PER O"
+                            ),
+                        ],
+                        "test": [
+                            InputExample(
+                                guid="",
+                                text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
+                                tags="ORG O O O O O O O O O O O O O O"
+                            ),
+                        ],
+                        "predict": [
+                            InputExample(
+                                guid="",
+                                text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
+                                tags="O MISC O O O O O O O O"
+                            ),
+                            InputExample(
+                                guid="",
+                                text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
+                                tags="O O O O O O O PER PER O"
+                            ),
+                            InputExample(
+                                guid="",
+                                text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
+                                tags="ORG O O O O O O O O O O O O O O"
+                            ),
+                        ],
                     }
             ),
         ]
@@ -67,37 +100,55 @@ class TestCsvReaderAndDataProcessor:
     def tests(
             self,
             tag_list: List[str],
-            data: Dict[str, List[InputExample]],
+            input_examples: Dict[str, List[InputExample]],
     ) -> None:
 
         ##################################
         # 1. CsvReader
         ##################################
         for phase in ["train", "val", "test"]:
-            test_data = self.csv_reader.get_input_examples(phase)
-            assert len(test_data) == 1, f"ERROR! len(test_data) = {len(test_data)} should be 1."
-            assert test_data[0].text == data[phase][0].text, \
-                f"phase = {phase}: test_data_text = {test_data[0].text} != {data[phase][0].text}"
-            assert test_data[0].tags == data[phase][0].tags, \
-                f"phase = {phase}: test_data_tags = {test_data[0].tags} != {data[phase][0].tags}"
+            test_input_examples = csv_reader.get_input_examples(phase)
+            assert len(test_input_examples) == 1 or 2, \
+                f"ERROR! len(test_input_examples) = {len(test_input_examples)} should be 1 or 2."
+            assert test_input_examples[0].text == input_examples[phase][0].text, \
+                f"phase = {phase}: test_input_examples_text = {test_input_examples[0].text} != {input_examples[phase][0].text}"
+            assert test_input_examples[0].tags == input_examples[phase][0].tags, \
+                f"phase = {phase}: test_input_examples_tags = {test_input_examples[0].tags} != {input_examples[phase][0].tags}"
 
         ##################################
         # 2. DataProcessor
         ##################################
-        data_preprocessor = DataPreprocessor(
-            tokenizer=tokenizer,
-            do_lower_case=False,
-            default_logger=PseudoDefaultLogger(),
-            max_seq_length=4,
+        # a. get_input_examples_train
+        test_input_examples, test_tag_list = data_preprocessor.get_input_examples_train(
+            dataset_name=None,
+            prune_ratio={"train": 0.5, "val": None, "test": 1.0},  # None leads to 1.0, too.
         )
-        test_data, test_tag_list = data_preprocessor.get_input_examples_train(dataset_name=None, prune_ratio=None)
         assert set(test_tag_list) == set(tag_list), f"test_tag_list = {test_tag_list} != {tag_list}"
         for phase in ["train", "val", "test"]:
-            assert len(test_data[phase]) == 1, f"ERROR! len(test_data[{phase}]) = {len(test_data[phase])} should be 1."
-            assert test_data[phase][0].text == data[phase][0].text, \
-                f"phase = {phase}: test_data.text = {test_data[phase].text} != {data[phase][0].text}"
-            assert test_data[phase][0].tags == data[phase][0].tags, \
-                f"phase = {phase}: test_data.tags = {test_data[phase].tags} != {data[phase][0].tags}"
+            assert len(test_input_examples[phase]) == 1, \
+                f"ERROR! len(test_input_examples[{phase}]) = {len(test_input_examples[phase])} should be 1."
+            assert test_input_examples[phase][0].text == input_examples[phase][0].text, \
+                f"phase = {phase}: test_input_examples.text = {test_input_examples[phase].text} != {input_examples[phase][0].text}"
+            assert test_input_examples[phase][0].tags == input_examples[phase][0].tags, \
+                f"phase = {phase}: test_input_examples.tags = {test_input_examples[phase].tags} != {input_examples[phase][0].tags}"
+
+        # b. get_input_examples_predict
+        test_sentences = [elem.text for v in test_input_examples.values() for elem in v]  # retrieve example sentences
+        test_input_examples_predict = data_preprocessor.get_input_examples_predict(test_sentences)["predict"]
+        assert len(test_input_examples_predict) == len(input_examples["predict"]), \
+            f"len(test_input_examples_predict) = {len(test_input_examples_predict)} != {len(input_examples['predict'])}"
+        for (test_input_example_predict, true_input_example_predict) in zip(test_input_examples_predict, input_examples['predict']):
+            assert test_input_example_predict.text == true_input_example_predict.text, \
+                f"test_input_example_predict.text = {test_input_example_predict.text} != {true_input_example_predict.text}"
+            true_input_example_predict_tags = " ".join("O" for _ in range(len(true_input_example_predict.text.split())))
+            assert test_input_example_predict.tags == true_input_example_predict_tags, \
+                f"test_input_example_predict.tags = {test_input_example_predict.tags} != {true_input_example_predict_tags}"
+
+        # c. to_dataloader
+        dataloader = data_preprocessor.to_dataloader(input_examples, tag_list, batch_size=1)
+        for key in ["train", "val", "test", "predict"]:
+            assert key in dataloader.keys(), f"key = {key} not in dataloader.keys() = {dataloader.keys()}"
+            # TODO: further testing
 
 
 class TestInputExamplesToTensorsAndBertDataset:
@@ -236,6 +287,7 @@ class TestInputExamplesToTensorsAndBertDataset:
             tokenizer=tokenizer,
             max_seq_length=max_seq_length,
             tag_tuple=tuple(tag_tuple),
+            default_logger=PseudoDefaultLogger(),
         )
         encodings = input_examples_to_tensors(input_examples)
         input_tokens = [tokenizer.convert_ids_to_tokens(input_ids_single) for input_ids_single in encodings["input_ids"]]
@@ -267,6 +319,33 @@ class TestInputExamplesToTensorsAndBertDataset:
                     f"{string} = {data[j][i]} != {true[j]}"
 
 
+class TestMisc:
+
+    ####################################################################################################################
+    @pytest.mark.parametrize(
+        "tag_list, "
+        "returned_tag_list",
+        [
+            (
+                    ["O", "PER", "ORG", "MISC"],
+                    ["O", "PER", "ORG", "MISC"],
+            ),
+            (
+                    ["O", "B-PER", "B-ORG", "B-MISC"],
+                    ["O", "B-PER", "B-ORG", "B-MISC", "I-PER", "I-ORG", "I-MISC"],
+            ),
+        ]
+    )
+    def tests(
+            self,
+            tag_list: List[str],
+            returned_tag_list: List[str],
+    ) -> None:
+        test_returned_tag_list = data_preprocessor._ensure_completeness_in_case_of_bio_tags(tag_list=tag_list)
+        assert test_returned_tag_list == returned_tag_list, \
+            f"test_returned_tag_list = {test_returned_tag_list} != {returned_tag_list}"
+
+
 if __name__ == "__main__":
-    for test in [TestCsvReaderAndDataProcessor(), TestInputExamplesToTensorsAndBertDataset()]:
+    for test in [TestCsvReaderAndDataProcessor(), TestInputExamplesToTensorsAndBertDataset(), TestMisc()]:
         test.tests()

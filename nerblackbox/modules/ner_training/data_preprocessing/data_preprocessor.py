@@ -49,9 +49,6 @@ class DataPreprocessor:
             input_examples: [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
             tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         """
-        if prune_ratio is None:
-            prune_ratio = {"train": 1.0, "val": 1.0, "test": 1.0}
-
         if dataset_name is None:
             dataset_path = resource_filename("nerblackbox", "tests/test_data")
         else:
@@ -141,11 +138,12 @@ class DataPreprocessor:
             data = BertDataset(encodings=encodings)  # data[j] = 4 torch tensors corresponding to EncodingKeys
             self.default_logger.log_info(f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples")
 
+            assert phase in ["train", "val", "test", "predict"], f"ERROR! phase = {phase} unknown."
             if phase == "train":
                 sampler = RandomSampler(data)
             elif phase in ["val", "test"]:
                 sampler = SequentialSampler(data)
-            else:
+            else:  # if phase == "predict":
                 sampler = None
 
             _dataloader[phase] = DataLoader(
