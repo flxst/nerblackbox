@@ -136,7 +136,8 @@ class DataPreprocessor:
 
             # dataloader
             data = BertDataset(encodings=encodings)  # data[j] = 4 torch tensors corresponding to EncodingKeys
-            self.default_logger.log_info(f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples")
+            if self.default_logger:
+                self.default_logger.log_info(f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples")
 
             assert phase in ["train", "val", "test", "predict"], f"ERROR! phase = {phase} unknown."
             if phase == "train":
@@ -170,7 +171,8 @@ class DataPreprocessor:
             num_examples_old = len(list_of_examples)
             num_examples_new = int(ratio * float(num_examples_old))
             info = f"> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples"
-            self.default_logger.log_info(info)
+            if self.default_logger:
+                self.default_logger.log_info(info)
             return list_of_examples[:num_examples_new]
 
     @staticmethod
