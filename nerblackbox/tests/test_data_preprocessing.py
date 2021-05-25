@@ -21,11 +21,12 @@ from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor impor
 )
 from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import EncodingsKeys
 from nerblackbox.tests.utils import PseudoDefaultLogger
+from nerblackbox.modules.ner_training.ner_model import NEWLINE_TOKENS
 
 tokenizer = AutoTokenizer.from_pretrained(
     "af-ai-center/bert-base-swedish-uncased",
     do_lower_case=False,
-    additional_special_tokens=["[newline]", "[NEWLINE]"],
+    additional_special_tokens=NEWLINE_TOKENS,
     use_fast=True,
 )
 
@@ -166,20 +167,35 @@ class TestInputExamplesToTensorsAndBertDataset:
         [
             # 1. single example: no truncation
             (
-                ["arbetsförmedlingen ai-center finns i stockholm"],
-                ["ORG ORG O O LOC"],
+                    ["arbetsförmedlingen ai-center finns i stockholm"],
+                    ["ORG ORG O O LOC"],
+                    ("O", "ORG", "LOC"),
+                    12,
+                    torch.tensor([[101, 7093, 2842, 8126, 1011, 5410, 1121, 1045, 1305, 102, 0, 0]]),
+                    torch.tensor([[1]*10 + [0]*2]),
+                    torch.tensor([[0]*12]),
+                    torch.tensor([[-100, 1, -100, 1, -100, -100, 0, 0, 2, -100, -100, -100]]),
+                    [
+                        ["[CLS]", "arbetsförmedl", "##ingen", "ai", "-", "center", "finns", "i", "stockholm", "[SEP]"]
+                        + ["[PAD]"]*2
+                    ],
+            ),
+            # 2. single example: no truncation, [NEWLINE]
+            (
+                ["arbetsförmedlingen ai-center [NEWLINE] finns i stockholm"],
+                ["ORG ORG O O O LOC"],
                 ("O", "ORG", "LOC"),
                 12,
-                torch.tensor([[101, 7093, 2842, 8126, 1011, 5410, 1121, 1045, 1305, 102, 0, 0]]),
-                torch.tensor([[1]*10 + [0]*2]),
+                torch.tensor([[101, 7093, 2842, 8126, 1011, 5410, 30523, 1121, 1045, 1305, 102, 0]]),
+                torch.tensor([[1]*11 + [0]*1]),
                 torch.tensor([[0]*12]),
-                torch.tensor([[-100, 1, -100, 1, -100, -100, 0, 0, 2, -100, -100, -100]]),
+                torch.tensor([[-100, 1, -100, 1, -100, -100, 0, 0, 0, 2, -100, -100]]),
                 [
-                    ["[CLS]", "arbetsförmedl", "##ingen", "ai", "-", "center", "finns", "i", "stockholm", "[SEP]"]
-                    + ["[PAD]"]*2
+                    ["[CLS]", "arbetsförmedl", "##ingen", "ai", "-", "center", "[NEWLINE]", "finns", "i", "stockholm", "[SEP]"]
+                    + ["[PAD]"]*1
                 ],
             ),
-            # 2. single example: truncation
+            # 3. single example: truncation
             (
                     ["arbetsförmedlingen ai-center finns i stockholm"],
                     ["ORG ORG O O LOC"],
@@ -216,7 +232,7 @@ class TestInputExamplesToTensorsAndBertDataset:
                         ["[CLS]",             "i", "stockholm", "[SEP]"],
                     ]
             ),
-            # 3. two examples: truncation
+            # 4. two examples: truncation
             (
                     ["arbetsförmedlingen ai-center", "finns i stockholm"],
                     ["ORG ORG", "O O LOC"],

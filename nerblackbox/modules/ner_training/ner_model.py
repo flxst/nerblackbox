@@ -19,6 +19,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor impor
 from nerblackbox.modules.utils.util_functions import split_parameters
 from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
 
+NEWLINE_TOKENS = ["[newline]", "[NEWLINE]"]
+
 
 class NerModel(pl.LightningModule, ABC):
     def __init__(self, hparams):
@@ -85,7 +87,7 @@ class NerModel(pl.LightningModule, ABC):
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.pretrained_model_name,
             do_lower_case=False,
-            additional_special_tokens=["[newline]", "[NEWLINE]"],
+            additional_special_tokens=NEWLINE_TOKENS,
             use_fast=True,
         )  # do_lower_case needs to be False !!
 
