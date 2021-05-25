@@ -75,7 +75,8 @@ class NerModelPredict(NerModel):
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(
-            self.pretrained_model_name, num_labels=len(self.tag_list)
+            self.pretrained_model_name,
+            num_labels=len(self.tag_list),
         )
 
     ####################################################################################################################
