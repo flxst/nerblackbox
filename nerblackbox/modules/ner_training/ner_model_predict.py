@@ -78,6 +78,7 @@ class NerModelPredict(NerModel):
             self.pretrained_model_name,
             num_labels=len(self.tag_list),
         )
+        self.model.resize_token_embeddings(len(self.tokenizer))  # due to addtional_special_tokens = NEWLINE_TOKENS
 
     ####################################################################################################################
     # PREDICT
