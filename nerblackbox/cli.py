@@ -166,6 +166,20 @@ def predict(ctx, experiment_name: str, text_input: str):
     _run_nerblackbox_main(ctx.obj, kwargs)
 
 
+@nerbb.command(name="predict_proba")
+@click.pass_context
+@click.argument("experiment_name")
+@click.argument("text_input")
+def predict_proba(ctx, experiment_name: str, text_input: str):
+    """predict label probabilities for text_input using the best model of a single experiment."""
+    kwargs = {
+        "flag": "predict_proba",
+        "experiment_name": experiment_name,
+        "text_input": text_input,
+    }
+    _run_nerblackbox_main(ctx.obj, kwargs)
+
+
 @nerbb.command(name="run_experiment")
 @click.pass_context
 @click.argument("experiment_name")

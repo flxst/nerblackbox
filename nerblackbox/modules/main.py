@@ -172,6 +172,14 @@ class NerBlackBoxMain:
             return self.predict()
 
         ################################################################################################################
+        # predict
+        ################################################################################################################
+        elif self.flag == "predict_proba":
+            self._assert_flag_arg("experiment_name")
+            self._assert_flag_arg("text_input")
+            return self.predict_proba()
+
+        ################################################################################################################
         # clear
         ################################################################################################################
         elif self.flag == "clear_data":
@@ -365,6 +373,24 @@ class NerBlackBoxMain:
         )
         experiment_results = nerbb.main()
         predictions = experiment_results.best_model.predict(self.text_input)
+        if self.usage == "cli":
+            print(predictions[0].external)
+            return None
+        else:
+            return predictions
+
+    def predict_proba(self) -> Optional[List[Namespace]]:
+        """
+        :used attr: experiment_name [str], e.g. 'exp1'
+        :used attr: text_input      [str], e.g. 'this is some text that needs to be annotated'
+        :return: predictions [list] of [Namespace] with .internal [list] of (word, tag) tuples
+                                                   and  .external [list] of (word, tag) tuples
+        """
+        nerbb = NerBlackBoxMain(
+            "get_experiment_results", experiment_name=self.experiment_name, usage="api"
+        )
+        experiment_results = nerbb.main()
+        predictions = experiment_results.best_model.predict_proba(self.text_input)
         if self.usage == "cli":
             print(predictions[0].external)
             return None
