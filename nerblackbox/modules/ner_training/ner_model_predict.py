@@ -259,9 +259,7 @@ class NerModelPredict(NerModel):
         # predict tags on words between [CLS] and [SEP]
         output_word_predictions = list()
         for token, output_token_prediction in zip(tokens, output_token_predictions):
-            if token == "[SEP]":
-                break
-            if token != "[CLS]":
+            if token not in ["[CLS]", "[SEP]", "[PAD]"]:
                 if not token.startswith("##"):
                     output_word_predictions.append([token, output_token_prediction])
                 else:
