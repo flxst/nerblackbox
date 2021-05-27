@@ -203,9 +203,10 @@ class NerModelPredict(NerModel):
         ) = sample
 
         output = self.model(
-            input_ids, attention_mask, segment_ids, label_ids
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=segment_ids,
         )  # shape: [1 (=#examples), 1 (=#batch_size), seq_length, #tags]
-
         output_token_tensors = [
             output[0][0][i]  # .detach().numpy()
             for i in range(self._hparams.max_seq_length)
@@ -232,7 +233,7 @@ class NerModelPredict(NerModel):
         """
 
         probability_distributions = [
-            softmax(output_token_tensors[i])
+            softmax(output_token_tensors[i], dim=0)
             for i in range(self._hparams.max_seq_length)
         ]
 

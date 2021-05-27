@@ -121,7 +121,7 @@ class NerModel(pl.LightningModule, ABC):
                     ii) _tag_ids_prediction_logits: [torch tensor] of shape [batch_size, seq_length, vocabulary_size]
         """
         return self.model(
-            _input_ids,
+            input_ids=_input_ids,
             attention_mask=_attention_mask,
             token_type_ids=_segment_ids,
             labels=_tag_ids,
