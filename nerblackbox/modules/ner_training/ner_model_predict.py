@@ -310,15 +310,19 @@ class NerModelPredict(NerModel):
         char_start = 0
         for token, _ in example_word_predictions_external:
             if token != "[UNK]":
-                char_start = _example.index(token, char_start)
-                token_char_margins.append((char_start, char_start + len(token)))
-                char_start += len(token)
+                try:
+                    char_start = _example.index(token, char_start)
+                    token_char_margins.append((char_start, char_start + len(token)))
+                    char_start += len(token)
+                except ValueError:
+                    print(f"! token = {token} not found in example[{char_start}:]")
+                    token_char_margins.append((None, None))
             else:
                 token_char_margins.append((None, None))
 
         # 2. restore unknown tokens
         for i, (token, tag) in enumerate(example_word_predictions_external):
-            if token != "[UNK]":
+            if token_char_margins[i][0] is not None and token_char_margins[i][1] is not None:
                 _predictions_external.append(
                     {
                         "char_start": str(token_char_margins[i][0]),
@@ -334,11 +338,17 @@ class NerModelPredict(NerModel):
 
                 char_start_margin, char_end_margin = None, None
                 for k in range(1, 10):
-                    if token_char_margins[i-k][1] is not None:
+                    if i-k < 0:
+                        char_start_margin = 0
+                        break
+                    elif token_char_margins[i-k][1] is not None:
                         char_start_margin = token_char_margins[i-k][1]
                         break
                 for k in range(1, 10):
-                    if token_char_margins[i+k][0] is not None:
+                    if i+k >= len(token_char_margins):
+                        char_end_margin = len(_example)
+                        break
+                    elif token_char_margins[i+k][0] is not None:
                         char_end_margin = token_char_margins[i+k][0]
                         break
                 assert char_start_margin is not None, f"ERROR! could not find char_start_margin"
