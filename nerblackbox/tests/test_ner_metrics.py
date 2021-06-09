@@ -7,7 +7,7 @@ from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
 
 class TestNerMetrics:
 
-    labels = ["all", "fil", "A", "B", "O"]
+    labels = ["all", "fil", "A", "B", "C", "O"]
 
     metrics_simple = ["acc"]
     metrics_micro_macro = ["precision", "recall", "f1"]
@@ -59,7 +59,7 @@ class TestNerMetrics:
                 return _labels
 
         ner_metrics = NerMetrics(
-            true, pred, tag_list=get_tag_list(labels), level="token"
+            true, pred, tag_list=get_tag_list(labels), level="token", verbose=True,
         )
         ner_metrics.compute(self.metrics)
         ner_metrics_results = ner_metrics.results_as_dict()
@@ -101,6 +101,7 @@ class TestNerMetrics:
         elif _labels == "fil":
             for field in self.metrics_micro_macro:
                 if field in self.metrics:
+                    _metrics_extended.append(f"{field}_macro")
                     _metrics_extended.append(f"{field}_micro")
         else:
             _metrics_extended = self.metrics_micro_macro

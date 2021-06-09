@@ -85,6 +85,7 @@ class NerMetrics:
                  precision_micro [np array] for all examples
         """
         if self.level == "token":
+            # precision_macro
             try:
                 self.results.precision_macro = precision_sklearn(
                     self.true_flat,
@@ -97,6 +98,7 @@ class NerMetrics:
                     print(e)
                 self.results.precision_macro = self.failure_value
 
+            # precision_micro
             try:
                 self.results.precision_micro = precision_sklearn(
                     self.true_flat,
@@ -107,7 +109,7 @@ class NerMetrics:
             except UndefinedMetricWarning as e:
                 if self.verbose:
                     print(e)
-                self.results.precision_macro = self.failure_value
+                self.results.precision_micro = self.failure_value
         else:
             self.results.precision_micro = precision_seqeval(
                 self.true_flat_bio, self.pred_flat_bio, average="micro"
@@ -122,6 +124,7 @@ class NerMetrics:
         """
         if self.level == "token":
             try:
+                # recall_macro
                 self.results.recall_macro = recall_sklearn(
                     self.true_flat,
                     self.pred_flat,
@@ -131,8 +134,9 @@ class NerMetrics:
             except UndefinedMetricWarning as e:
                 if self.verbose:
                     print(e)
-                self.results.precision_macro = self.failure_value
+                self.results.recall_macro = self.failure_value
 
+            # recall_micro
             try:
                 self.results.recall_micro = recall_sklearn(
                     self.true_flat,
@@ -143,7 +147,7 @@ class NerMetrics:
             except UndefinedMetricWarning as e:
                 if self.verbose:
                     print(e)
-                self.results.precision_macro = self.failure_value
+                self.results.recall_micro = self.failure_value
         else:
             self.results.recall_micro = recall_seqeval(
                 self.true_flat_bio, self.pred_flat_bio, average="micro"
@@ -158,6 +162,7 @@ class NerMetrics:
         """
         if self.level == "token":
             try:
+                # f1_macro
                 _, _, self.results.f1_macro, _ = prf_sklearn(
                     self.true_flat,
                     self.pred_flat,
@@ -168,8 +173,9 @@ class NerMetrics:
             except UndefinedMetricWarning as e:
                 if self.verbose:
                     print(e)
-                self.results.precision_macro = self.failure_value
+                self.results.f1_macro = self.failure_value
 
+            # f1_micro
             try:
                 _, _, self.results.f1_micro, _ = prf_sklearn(
                     self.true_flat,
@@ -181,7 +187,7 @@ class NerMetrics:
             except UndefinedMetricWarning as e:
                 if self.verbose:
                     print(e)
-                self.results.precision_macro = self.failure_value
+                self.results.f1_micro = self.failure_value
         else:
             self.results.f1_micro = f1_seqeval(
                 self.true_flat_bio, self.pred_flat_bio, average="micro"
