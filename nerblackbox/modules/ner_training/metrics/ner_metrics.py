@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from dataclasses import asdict
+from typing import List
 
 from sklearn.metrics import accuracy_score as accuracy_sklearn
 from sklearn.metrics import precision_score as precision_sklearn
@@ -205,27 +206,48 @@ class Results:
     f1_macro: float = -1
 
 
-def convert_to_chunk(tag_list, to_bio=True):
+def convert_to_chunk(tag_list: List[str], to_bio=True) -> List[str]:
     """
     - get rid of special tokens
     - add bio prefixed to tags
-    ---------------------------
-    :param tag_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
-    :param to_bio:        [bool] whether to cast to bio labels
-    :return: bio_tag_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
+
+    Args:
+        tag_list:      e.g. ['O',   'ORG',   'ORG']
+        to_bio:        whether to cast to bio labels
+
+    Returns:
+        bio_tag_list:  e.g. ['O', 'B-ORG', 'I-ORG']
     """
+    clean_tag_list = get_rid_of_special_tokens(tag_list)
     if to_bio:
-        return add_bio_to_tag_list(get_rid_of_special_tokens(tag_list))
+        assert_plain_tags(clean_tag_list)
+        return add_bio_to_tag_list(clean_tag_list)
     else:
-        return get_rid_of_special_tokens(tag_list)
+        assert_bio_tags(clean_tag_list)
+        return clean_tag_list
 
 
-def add_bio_to_tag_list(tag_list):
+def assert_plain_tags(tag_list: List[str]) -> None:
+    for tag in tag_list:
+        if tag != "O" and (len(tag) > 2 and tag[1] == "-"):
+            raise Exception("ERROR! attempt to convert tags to bio format that already seem to have bio format.")
+
+
+def assert_bio_tags(tag_list: List[str]) -> None:
+    for tag in tag_list:
+        if tag != "O" and (len(tag) <= 2 or tag[1] != "-"):
+            raise Exception("ERROR! assuming tags to have bio format that seem to have plain format instead.")
+
+
+def add_bio_to_tag_list(tag_list: List[str]) -> List[str]:
     """
     adds bio prefixes to tags
-    ---------------------------
-    :param tag_list:      [list] of [str], e.g. ['O',   'ORG',   'ORG']
-    :return: bio_tag_list [list] of [str], e.g. ['O', 'B-ORG', 'I-ORG']
+
+    Args:
+        tag_list:     e.g. ['O',   'ORG',   'ORG']
+
+    Returns:
+        bio_tag_list: e.g. ['O', 'B-ORG', 'I-ORG']
     """
     return [
         _add_bio_to_tag(tag_list[i], previous=tag_list[i - 1] if i > 0 else None)
@@ -233,13 +255,16 @@ def add_bio_to_tag_list(tag_list):
     ]
 
 
-def _add_bio_to_tag(tag, previous):
+def _add_bio_to_tag(tag: str, previous: str) -> str:
     """
     add bio prefix to tag, depending on previous tag
-    ------------------------------------------------
-    :param tag:       [str], e.g. 'ORG'
-    :param previous:  [str], e.g. 'ORG'
-    :return: bio_tag: [str], e.g. 'I-ORG'
+
+    Args:
+        tag:      e.g. 'ORG'
+        previous: e.g. 'ORG'
+
+    Returns:
+        bio_tag:  e.g. 'I-ORG'
     """
     if tag == "O" or tag.startswith("["):
         return tag
@@ -251,12 +276,15 @@ def _add_bio_to_tag(tag, previous):
         return f"I-{tag}"
 
 
-def get_rid_of_special_tokens(tag_list):
+def get_rid_of_special_tokens(tag_list: List[str]) -> List[str]:
     """
     replace special tokens ('[CLS]', '[SEP]', '[PAD]') by 'O'
-    ---------------------------------------------------------
-    :param tag_list:           [list] of [str], e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
-    :return: cleaned_tag_list: [list] of [str], e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
+
+    Args:
+        tag_list:         e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
+
+    Returns:
+        cleaned_tag_list: e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
     """
 
     return [tag if not tag.startswith("[") else "O" for tag in tag_list]

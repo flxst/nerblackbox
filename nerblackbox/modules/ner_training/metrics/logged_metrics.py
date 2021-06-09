@@ -1,27 +1,26 @@
+
+from typing import List
+
+
 class LoggedMetrics:
-    def __init__(self, logged_metrics=None):
-        """
-        :param logged_metrics: [list] of [tuples] w/ (metric, phase_list, tags_list, micro_macro_list),
-                                                  e.g. [('precision', ['val'], ['all', 'fil'], ['micro', 'macro']),..]
-        """
-        if logged_metrics is None:
-            self.logged_metrics = [
-                ("loss", ["train", "val", "test"], ["all"], ["simple"]),
-                ("acc", ["train", "val", "test"], ["all"], ["simple"]),
-                (
-                    "precision",
-                    ["val", "test"],
-                    ["all", "fil"],
-                    ["micro", "macro"],
-                ),
-                ("precision", ["val", "test"], ["chk", "ind"], ["micro"]),
-                ("recall", ["val", "test"], ["all", "fil"], ["micro", "macro"]),
-                ("recall", ["val", "test"], ["chk", "ind"], ["micro"]),
-                ("f1", ["val", "test"], ["all", "fil"], ["micro", "macro"]),
-                ("f1", ["val", "test"], ["chk", "ind"], ["micro"]),
-            ]
-        else:
-            self.logged_metrics = logged_metrics
+
+    logged_metrics = [
+        ("loss", ["train", "val", "test"], ["all"], ["simple"]),
+        ("acc", ["train", "val", "test"], ["all"], ["simple"]),
+        (
+            "precision",
+            ["val", "test"],
+            ["all", "fil"],
+            ["micro", "macro"],
+        ),
+        ("precision", ["val", "test"], ["chk", "ind"], ["micro"]),
+        ("recall", ["val", "test"], ["all", "fil"], ["micro", "macro"]),
+        ("recall", ["val", "test"], ["chk", "ind"], ["micro"]),
+        ("f1", ["val", "test"], ["all", "fil"], ["micro", "macro"]),
+        ("f1", ["val", "test"], ["chk", "ind"], ["micro"]),
+    ]
+
+    def __init__(self):
         for metric, phase_list, tags_list, micro_macro_list in self.logged_metrics:
             assert isinstance(metric, str)
             assert isinstance(phase_list, list)
@@ -30,11 +29,11 @@ class LoggedMetrics:
 
     def get_metrics(
         self,
-        tag_group: list = None,
-        phase_group: list = None,
-        micro_macro_group: list = None,
-        exclude: list = None,
-    ):
+        tag_group: List[str] = None,
+        phase_group: List[str] = None,
+        micro_macro_group: List[str] = None,
+        exclude: List[str] = None,
+    ) -> List[str]:
         """
         get metrics, filtered
         ---------------------
@@ -73,14 +72,15 @@ class LoggedMetrics:
 
         return list(set(filtered_metrics))
 
-    def as_flat_list(self):
+    @classmethod
+    def as_flat_list(cls):
         """
         return logged_metrics as flat list
         ----------------------------------
         :return: [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', 'fil_precision_micro', ..]
         """
         flat_list = list()
-        for metric, _, tags_list, micro_macro_list in self.logged_metrics:
+        for metric, _, tags_list, micro_macro_list in cls.logged_metrics:
             for tags in tags_list:
                 if micro_macro_list == ["simple"]:
                     flat_list.append(f"{tags}_{metric}")
