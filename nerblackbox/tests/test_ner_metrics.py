@@ -3,51 +3,77 @@ import pandas as pd
 import pytest
 from pkg_resources import resource_filename
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
+from typing import List
 
 
 class TestNerMetrics:
-
-    labels = ["all", "fil", "A", "B", "C", "O"]
 
     metrics_simple = ["acc"]
     metrics_micro_macro = ["precision", "recall", "f1"]
     metrics = metrics_simple + metrics_micro_macro
 
-    path_csv = resource_filename("nerblackbox", "tests/test_data/test_ner_metrics.csv")
-    df = pd.read_csv(path_csv, sep=";")
+    df = {
+        level: pd.read_csv(
+            resource_filename("nerblackbox", f"tests/test_data/test_ner_metrics_{level}.csv"),
+            sep=";")
+        for level in ["token", "chunk"]
+    }
+    level, labels, micro, macro = None, None, None, None
+
+    def test_predictions_from_csv_token(self):
+        self.level = "token"
+        self.labels = ["all", "fil", "A", "B", "C", "O"]
+        self.micro = True
+        self.macro = True
+        self._test_predictions_from_csv()
+
+    def test_predictions_from_csv_chunk(self):
+        self.level = "chunk"
+        self.labels = ["fil"]
+        self.micro = True
+        self.macro = False
+        self._test_predictions_from_csv()
 
     ####################################################################################################################
     # TEST #############################################################################################################
     ####################################################################################################################
-    def test_predictions_from_csv(self):
+    def _test_predictions_from_csv(self) -> None:
         """
         test true against pred values for all rows and labels
-        -----------------------------------------------------
-        :return: -
         """
-        nr_rows = len(self.df)
-        true = self._seq2array(self.df["sequence"].iloc[0])
+        nr_rows = len(self.df[self.level])
+        true = self._seq2array(self.df[self.level]["sequence"].iloc[0])
 
         for row in range(nr_rows):
-            pred = self._seq2array(self.df["sequence"].iloc[row])
+            pred = self._seq2array(self.df[self.level]["sequence"].iloc[row])
             tested_columns = list()
             for labels in self.labels:
                 _tested_columns = self._single_row_and_label_category_test(
-                    true, pred, row=row, labels=labels
+                    true,
+                    pred,
+                    row=row,
+                    labels=labels
                 )
                 tested_columns.extend(_tested_columns)
 
-            assert set(tested_columns) == set(self.df.columns[2:])
+            assert set(tested_columns) == set(self.df[self.level].columns[2:])
 
-    def _single_row_and_label_category_test(self, true, pred, row, labels):
+    def _single_row_and_label_category_test(self,
+                                            true: np.array,
+                                            pred: np.array,
+                                            row: int,
+                                            labels: str) -> List[str]:
         """
         test true against pred values for single row in csv and specific labels
-        -----------------------------------------------------------------------
-        :param true:   [np array] with true values, e.g. [A, A, O, O, B]
-        :param pred:   [np array] with pred values, e.g. [A, A, A, O, B]
-        :param row:    [int], e.g. 2
-        :param labels: [str], e.g. 'all', 'A', 'B'
-        :return: tested_metrics [list] of [str] w/ labels_metrics, e.g. ['all-precision', 'B-recall', ..]
+
+        Args:
+            true:   true values, e.g. [A, A, O, O, B]
+            pred:   pred values, e.g. [A, A, A, O, B]
+            row:    e.g. 2
+            labels: e.g. 'all', 'A', 'B'
+
+        Returns:
+            tested_metrics: labels_metrics, e.g. ['all-precision', 'B-recall', ..]
         """
 
         def get_tag_list(_labels):
@@ -59,7 +85,12 @@ class TestNerMetrics:
                 return _labels
 
         ner_metrics = NerMetrics(
-            true, pred, tag_list=get_tag_list(labels), level="token", verbose=True,
+            true,
+            pred,
+            tag_list=get_tag_list(labels),
+            level=self.level,
+            plain_tags=True,
+            verbose=True,
         )
         ner_metrics.compute(self.metrics)
         ner_metrics_results = ner_metrics.results_as_dict()
@@ -73,7 +104,7 @@ class TestNerMetrics:
                 self._extend_metric(labels, metric)
             ]
             assert ner_metrics_results_metric == self._pytest_approx(
-                self.df[labels_metric][row]
+                self.df[self.level][labels_metric][row]
             ), f"pred_{row}, {labels_metric}"
 
             _tested_metrics.append(labels_metric)
@@ -97,12 +128,15 @@ class TestNerMetrics:
                     _metrics_extended.append(field)
             for field in self.metrics_micro_macro:
                 if field in self.metrics:
-                    _metrics_extended.append(f"{field}_macro")
+                    if self.macro:
+                        _metrics_extended.append(f"{field}_macro")
         elif _labels == "fil":
             for field in self.metrics_micro_macro:
                 if field in self.metrics:
-                    _metrics_extended.append(f"{field}_macro")
-                    _metrics_extended.append(f"{field}_micro")
+                    if self.macro:
+                        _metrics_extended.append(f"{field}_macro")
+                    if self.micro:
+                        _metrics_extended.append(f"{field}_micro")
         else:
             _metrics_extended = self.metrics_micro_macro
         return _metrics_extended
@@ -145,4 +179,5 @@ class TestNerMetrics:
 
 if __name__ == "__main__":
     test_ner_metrics = TestNerMetrics()
-    test_ner_metrics.test_predictions_from_csv()
+    test_ner_metrics.test_predictions_from_csv_token()
+    test_ner_metrics.test_predictions_from_csv_chunk()
