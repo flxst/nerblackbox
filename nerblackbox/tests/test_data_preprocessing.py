@@ -305,7 +305,7 @@ class TestInputExamplesToTensorsAndBertDataset:
             tag_tuple=tuple(tag_tuple),
             default_logger=PseudoDefaultLogger(),
         )
-        encodings = input_examples_to_tensors(input_examples)
+        encodings = input_examples_to_tensors(input_examples, predict=False)
         input_tokens = [tokenizer.convert_ids_to_tokens(input_ids_single) for input_ids_single in encodings["input_ids"]]
 
         for (string, true) in zip(

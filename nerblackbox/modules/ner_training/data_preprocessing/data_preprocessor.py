@@ -132,7 +132,8 @@ class DataPreprocessor:
 
         _dataloader = dict()
         for phase in input_examples.keys():
-            encodings = input_examples_to_tensors(input_examples[phase], predict=phase == "predict")
+            encodings = input_examples_to_tensors(input_examples[phase],
+                                                  predict=phase == "predict")
 
             # dataloader
             data = BertDataset(encodings=encodings)  # data[j] = 4 torch tensors corresponding to EncodingKeys
