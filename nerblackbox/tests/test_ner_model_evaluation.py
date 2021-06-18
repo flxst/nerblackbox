@@ -80,7 +80,7 @@ class TestNerModelEvaluation:
     )
     def test_convert_and_combine(
             self,
-            outputs: List[List[torch.tensor]],
+            outputs: List[List[torch.Tensor]],
             np_batch: Dict[str, List[np.array]],
             np_epoch: Dict[str, Union[np.number, np.array]],
     ) -> None:
@@ -158,15 +158,14 @@ class TestNerModelEvaluation:
         "tags_new",
         [
             (
-                    {
-                        "true": np.array(["[S]", "PER", "ORG", "[S]"]),
-                        "pred": np.array(["PER", "ORG",   "O",   "O"]),
-                    },
-                    {
-                        "true": np.array(["PER", "ORG"]),
-                        "pred": np.array(["ORG",   "O"]),
-                    },
-
+                {
+                    "true": np.array(["[S]", "PER", "ORG", "[S]"]),
+                    "pred": np.array(["PER", "ORG",   "O",   "O"]),
+                },
+                {
+                    "true": np.array(["PER", "ORG"]),
+                    "pred": np.array(["ORG",   "O"]),
+                },
             ),
         ]
     )
@@ -194,9 +193,9 @@ class TestNerModelEvaluation:
         ]
     )
     def test_get_filtered_tags(
-            self,
-            _tag_subset: str,
-            _filtered_tags: List[str],
+        self,
+        _tag_subset: str,
+        _filtered_tags: List[str],
     ) -> None:
         test_filtered_tags = self.ner_model_evaluation._get_filtered_tags(_tag_subset)
         assert test_filtered_tags == _filtered_tags, f"test_filtered_tags = {test_filtered_tags} != {_filtered_tags}"

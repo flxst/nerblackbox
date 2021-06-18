@@ -21,7 +21,7 @@ class BertDataset(Dataset):
     def __len__(self) -> int:
         return self.encodings["tag_ids"].shape[0]
 
-    def __getitem__(self, index: int) -> Tuple[torch.tensor, ...]:
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, ...]:
         """
         Args:
             index: [int]

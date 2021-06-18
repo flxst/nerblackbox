@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import InputExample
 from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import Encodings, EncodingsKeys
 
@@ -49,7 +49,7 @@ class InputExamplesToTensors:
         """
 
         # encodings_single
-        encodings_single = {key: list() for key in EncodingsKeys}
+        encodings_single: Dict[str, List[Any]] = {key: list() for key in EncodingsKeys}
         for input_example in input_examples:
             _encodings = self._transform_input_example(input_example, predict)
             for key in encodings_single.keys():

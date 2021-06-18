@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
 from nerblackbox.modules.ner_training.metrics.ner_metrics import convert_to_chunk
@@ -31,7 +31,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def execute(self,
                 phase: str,
-                outputs: List[List[torch.tensor]]) -> (Dict[str, np.array], str, float):
+                outputs: List[List[torch.Tensor]]) -> Tuple[Dict[str, np.array], str, float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
         
@@ -59,7 +59,7 @@ class NerModelEvaluation:
         return epoch_metrics, classification_report, np_epoch["loss"]
         
     @staticmethod
-    def _convert_output_to_np_batch(outputs: List[List[torch.tensor]]) -> Dict[str, List[np.array]]:
+    def _convert_output_to_np_batch(outputs: List[List[torch.Tensor]]) -> Dict[str, List[np.array]]:
         """
         - converts pytorch lightning output to np_batch dictionary
 
@@ -116,7 +116,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def _compute_metrics(self,
                          phase: str,
-                         _np_epoch: Dict[str, Union[np.number, np.array]]) -> (Dict[str, np.array], Dict[str, np.array]):
+                         _np_epoch: Dict[str, Union[np.number, np.array]]) -> Tuple[Dict[str, np.array], Dict[str, np.array]]:
         """
         - compute loss, acc, f1 scores for size/phase = batch/train or epoch/val-test
 
@@ -173,7 +173,7 @@ class NerModelEvaluation:
         return _epoch_metrics, _epoch_tags
 
     @staticmethod
-    def _reduce_and_flatten(_np_tag_ids: np.array, _np_logits: np.array) -> (np.array, np.array):
+    def _reduce_and_flatten(_np_tag_ids: np.array, _np_logits: np.array) -> Tuple[np.array, np.array]:
         """
         helper method for _compute_metrics()
         reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)

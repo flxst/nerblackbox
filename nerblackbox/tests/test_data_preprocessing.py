@@ -54,47 +54,47 @@ class TestCsvReaderAndDataProcessor:
         "input_examples",
         [
             (
-                    ["O", "PER", "ORG", "MISC"],
-                    {
-                        "train": [
-                            InputExample(
-                                guid="",
-                                text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
-                                tags="O MISC O O O O O O O O"
-                            ),
-                        ],
-                        "val": [
-                            InputExample(
-                                guid="",
-                                text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
-                                tags="O O O O O O O PER PER O"
-                            ),
-                        ],
-                        "test": [
-                            InputExample(
-                                guid="",
-                                text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
-                                tags="ORG O O O O O O O O O O O O O O"
-                            ),
-                        ],
-                        "predict": [
-                            InputExample(
-                                guid="",
-                                text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
-                                tags="O MISC O O O O O O O O"
-                            ),
-                            InputExample(
-                                guid="",
-                                text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
-                                tags="O O O O O O O PER PER O"
-                            ),
-                            InputExample(
-                                guid="",
-                                text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
-                                tags="ORG O O O O O O O O O O O O O O"
-                            ),
-                        ],
-                    }
+                ["O", "PER", "ORG", "MISC"],
+                {
+                    "train": [
+                        InputExample(
+                            guid="",
+                            text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
+                            tags="O MISC O O O O O O O O"
+                        ),
+                    ],
+                    "val": [
+                        InputExample(
+                            guid="",
+                            text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
+                            tags="O O O O O O O PER PER O"
+                        ),
+                    ],
+                    "test": [
+                        InputExample(
+                            guid="",
+                            text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
+                            tags="ORG O O O O O O O O O O O O O O"
+                        ),
+                    ],
+                    "predict": [
+                        InputExample(
+                            guid="",
+                            text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
+                            tags="O MISC O O O O O O O O"
+                        ),
+                        InputExample(
+                            guid="",
+                            text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
+                            tags="O O O O O O O PER PER O"
+                        ),
+                        InputExample(
+                            guid="",
+                            text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
+                            tags="ORG O O O O O O O O O O O O O O"
+                        ),
+                    ],
+                }
             ),
         ]
     )
@@ -121,8 +121,8 @@ class TestCsvReaderAndDataProcessor:
         ##################################
         # a. get_input_examples_train
         test_input_examples, test_tag_list = data_preprocessor.get_input_examples_train(
+            prune_ratio={"train": 0.5, "val": 1.0, "test": 1.0},
             dataset_name=None,
-            prune_ratio={"train": 0.5, "val": None, "test": 1.0},  # None leads to 1.0, too.
         )
         assert set(test_tag_list) == set(tag_list), f"test_tag_list = {test_tag_list} != {tag_list}"
         for phase in ["train", "val", "test"]:
@@ -167,18 +167,18 @@ class TestInputExamplesToTensorsAndBertDataset:
         [
             # 1. single example: no truncation
             (
-                    ["arbetsförmedlingen ai-center finns i stockholm"],
-                    ["ORG ORG O O LOC"],
-                    ("O", "ORG", "LOC"),
-                    12,
-                    torch.tensor([[101, 7093, 2842, 8126, 1011, 5410, 1121, 1045, 1305, 102, 0, 0]]),
-                    torch.tensor([[1]*10 + [0]*2]),
-                    torch.tensor([[0]*12]),
-                    torch.tensor([[-100, 1, -100, 1, -100, -100, 0, 0, 2, -100, -100, -100]]),
-                    [
-                        ["[CLS]", "arbetsförmedl", "##ingen", "ai", "-", "center", "finns", "i", "stockholm", "[SEP]"]
-                        + ["[PAD]"]*2
-                    ],
+                ["arbetsförmedlingen ai-center finns i stockholm"],
+                ["ORG ORG O O LOC"],
+                ("O", "ORG", "LOC"),
+                12,
+                torch.tensor([[101, 7093, 2842, 8126, 1011, 5410, 1121, 1045, 1305, 102, 0, 0]]),
+                torch.tensor([[1]*10 + [0]*2]),
+                torch.tensor([[0]*12]),
+                torch.tensor([[-100, 1, -100, 1, -100, -100, 0, 0, 2, -100, -100, -100]]),
+                [
+                    ["[CLS]", "arbetsförmedl", "##ingen", "ai", "-", "center", "finns", "i", "stockholm", "[SEP]"]
+                    + ["[PAD]"]*2
+                ],
             ),
             # 2. single example: no truncation, [NEWLINE]
             (
@@ -197,82 +197,82 @@ class TestInputExamplesToTensorsAndBertDataset:
             ),
             # 3. single example: truncation
             (
-                    ["arbetsförmedlingen ai-center finns i stockholm"],
-                    ["ORG ORG O O LOC"],
-                    ("O", "ORG", "LOC"),
-                    4,
-                    torch.tensor([
-                        [101, 7093, 2842, 102],
-                        [101, 8126, 1011, 102],
-                        [101, 5410, 1121, 102],
-                        [101, 1045, 1305, 102],
-                    ]),
-                    torch.tensor([
-                        [1] * 4,
-                        [1] * 4,
-                        [1] * 4,
-                        [1] * 4,
-                    ]),
-                    torch.tensor([
-                        [0] * 4,
-                        [0] * 4,
-                        [0] * 4,
-                        [0] * 4,
-                    ]),
-                    torch.tensor([
-                        [-100, 1, -100, -100],
-                        [-100, 1, -100, -100],
-                        [-100, -100, 0, -100],
-                        [-100, 0,    2, -100],
-                    ]),
-                    [
-                        ["[CLS]", "arbetsförmedl",   "##ingen", "[SEP]"],
-                        ["[CLS]",            "ai",         "-", "[SEP]"],
-                        ["[CLS]",        "center",     "finns", "[SEP]"],
-                        ["[CLS]",             "i", "stockholm", "[SEP]"],
-                    ]
+                ["arbetsförmedlingen ai-center finns i stockholm"],
+                ["ORG ORG O O LOC"],
+                ("O", "ORG", "LOC"),
+                4,
+                torch.tensor([
+                    [101, 7093, 2842, 102],
+                    [101, 8126, 1011, 102],
+                    [101, 5410, 1121, 102],
+                    [101, 1045, 1305, 102],
+                ]),
+                torch.tensor([
+                    [1] * 4,
+                    [1] * 4,
+                    [1] * 4,
+                    [1] * 4,
+                ]),
+                torch.tensor([
+                    [0] * 4,
+                    [0] * 4,
+                    [0] * 4,
+                    [0] * 4,
+                ]),
+                torch.tensor([
+                    [-100, 1, -100, -100],
+                    [-100, 1, -100, -100],
+                    [-100, -100, 0, -100],
+                    [-100, 0,    2, -100],
+                ]),
+                [
+                    ["[CLS]", "arbetsförmedl",   "##ingen", "[SEP]"],
+                    ["[CLS]",            "ai",         "-", "[SEP]"],
+                    ["[CLS]",        "center",     "finns", "[SEP]"],
+                    ["[CLS]",             "i", "stockholm", "[SEP]"],
+                ]
             ),
             # 4. two examples: truncation
             (
-                    ["arbetsförmedlingen ai-center", "finns i stockholm"],
-                    ["ORG ORG", "O O LOC"],
-                    ("O", "ORG", "LOC"),
-                    4,
-                    torch.tensor([
-                        [101, 7093, 2842, 102],
-                        [101, 8126, 1011, 102],
-                        [101, 5410,  102,   0],
-                        [101, 1121, 1045, 102],
-                        [101, 1305,  102,   0],
+                ["arbetsförmedlingen ai-center", "finns i stockholm"],
+                ["ORG ORG", "O O LOC"],
+                ("O", "ORG", "LOC"),
+                4,
+                torch.tensor([
+                    [101, 7093, 2842, 102],
+                    [101, 8126, 1011, 102],
+                    [101, 5410,  102,   0],
+                    [101, 1121, 1045, 102],
+                    [101, 1305,  102,   0],
+                ]),
+                torch.tensor([
+                    [1] * 4,
+                    [1] * 4,
+                    [1] * 3 + [0],
+                    [1] * 4,
+                    [1] * 3 + [0],
                     ]),
-                    torch.tensor([
-                        [1] * 4,
-                        [1] * 4,
-                        [1] * 3 + [0],
-                        [1] * 4,
-                        [1] * 3 + [0],
-                        ]),
-                    torch.tensor([
-                        [0] * 4,
-                        [0] * 4,
-                        [0] * 4,
-                        [0] * 4,
-                        [0] * 4,
-                        ]),
-                    torch.tensor([
-                        [-100,    1, -100, -100],
-                        [-100,    1, -100, -100],
-                        [-100, -100, -100, -100],
-                        [-100,    0,    0, -100],
-                        [-100,    2, -100, -100],
+                torch.tensor([
+                    [0] * 4,
+                    [0] * 4,
+                    [0] * 4,
+                    [0] * 4,
+                    [0] * 4,
                     ]),
-                    [
-                        ["[CLS]", "arbetsförmedl", "##ingen", "[SEP]"],
-                        ["[CLS]", "ai", "-", "[SEP]"],
-                        ["[CLS]", "center", "[SEP]", "[PAD]"],
-                        ["[CLS]", "finns", "i", "[SEP]"],
-                        ["[CLS]", "stockholm", "[SEP]", "[PAD]"],
-                    ]
+                torch.tensor([
+                    [-100,    1, -100, -100],
+                    [-100,    1, -100, -100],
+                    [-100, -100, -100, -100],
+                    [-100,    0,    0, -100],
+                    [-100,    2, -100, -100],
+                ]),
+                [
+                    ["[CLS]", "arbetsförmedl", "##ingen", "[SEP]"],
+                    ["[CLS]", "ai", "-", "[SEP]"],
+                    ["[CLS]", "center", "[SEP]", "[PAD]"],
+                    ["[CLS]", "finns", "i", "[SEP]"],
+                    ["[CLS]", "stockholm", "[SEP]", "[PAD]"],
+                ]
             ),
         ]
     )
@@ -282,11 +282,11 @@ class TestInputExamplesToTensorsAndBertDataset:
             labels: List[str],
             tag_tuple: List[str],
             max_seq_length: int,
-            true_input_ids: torch.tensor,
-            true_attention_mask: torch.tensor,
-            true_token_type_ids: torch.tensor,
-            true_tag_ids: torch.tensor,
-            true_input_tokens: torch.tensor,
+            true_input_ids: torch.Tensor,
+            true_attention_mask: torch.Tensor,
+            true_token_type_ids: torch.Tensor,
+            true_tag_ids: torch.Tensor,
+            true_input_tokens: torch.Tensor,
     ) -> None:
 
         ##################################
@@ -343,12 +343,12 @@ class TestMisc:
         "returned_tag_list",
         [
             (
-                    ["O", "PER", "ORG", "MISC"],
-                    ["O", "PER", "ORG", "MISC"],
+                ["O", "PER", "ORG", "MISC"],
+                ["O", "PER", "ORG", "MISC"],
             ),
             (
-                    ["O", "B-PER", "B-ORG", "B-MISC"],
-                    ["O", "B-PER", "B-ORG", "B-MISC", "I-PER", "I-ORG", "I-MISC"],
+                ["O", "B-PER", "B-ORG", "B-MISC"],
+                ["O", "B-PER", "B-ORG", "B-MISC", "I-PER", "I-ORG", "I-MISC"],
             ),
         ]
     )
@@ -363,5 +363,6 @@ class TestMisc:
 
 
 if __name__ == "__main__":
-    for test in [TestCsvReaderAndDataProcessor(), TestInputExamplesToTensorsAndBertDataset(), TestMisc()]:
-        test.tests()
+    TestCsvReaderAndDataProcessor().tests()
+    TestInputExamplesToTensorsAndBertDataset().tests()
+    TestMisc().tests()

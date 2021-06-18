@@ -357,7 +357,7 @@ class NerModel(pl.LightningModule, ABC):
 
     def _validate_on_epoch(self,
                            phase: str,
-                           outputs: List[List[torch.tensor]]) -> Dict[str, float]:
+                           outputs: List[List[torch.Tensor]]) -> Dict[str, float]:
         """
         Args:
             phase:   [str], 'val', 'test'

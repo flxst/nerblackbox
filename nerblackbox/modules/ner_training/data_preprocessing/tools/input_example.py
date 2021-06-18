@@ -1,5 +1,3 @@
-from typing import Optional
-
 
 class InputExample:
     """
@@ -9,7 +7,7 @@ class InputExample:
     def __init__(self,
                  guid: str,
                  text: str,
-                 tags: Optional[str] = None):
+                 tags: str = ""):
         """
         :param guid: [str] unique id for input example
         :param text: [str] raw (untokenized) text of first sequence.

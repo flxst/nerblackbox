@@ -82,12 +82,12 @@ class NerModelTrain(NerModel):
         """
         # input_examples & tag_list
         input_examples, self.tag_list = self.data_preprocessor.get_input_examples_train(
-            dataset_name=self.params.dataset_name,
             prune_ratio={
                 "train": self.params.prune_ratio_train,
                 "val": self.params.prune_ratio_val,
                 "test": self.params.prune_ratio_test,
             },
+            dataset_name=self.params.dataset_name,
         )
         self.default_logger.log_debug("> self.tag_list:", self.tag_list)
         self.hparams.tag_list = json.dumps(

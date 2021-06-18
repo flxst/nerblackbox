@@ -10,11 +10,12 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example imp
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to_tensors import (
     InputExamplesToTensors,
 )
+from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
 from pkg_resources import resource_filename
 
-from typing import List, Dict
+from typing import List, Dict, Tuple, Optional, Any
 InputExamples = List[InputExample]
 
 
@@ -22,7 +23,7 @@ class DataPreprocessor:
     def __init__(self,
                  tokenizer,
                  do_lower_case: bool,
-                 default_logger: 'DefaultLogger',
+                 default_logger: PseudoDefaultLogger,
                  max_seq_length: int = 64):
         """
         :param tokenizer:      [transformers Tokenizer]
@@ -36,8 +37,8 @@ class DataPreprocessor:
         self.max_seq_length = max_seq_length
 
     def get_input_examples_train(self,
-                                 dataset_name: str = None,
-                                 prune_ratio: Dict[str, float] = None) -> (Dict[str, InputExamples], List[str]):
+                                 prune_ratio: Dict[str, float],
+                                 dataset_name: Optional[str] = None) -> Tuple[Dict[str, InputExamples], List[str]]:
         """
         - get input examples for TRAIN from csv files
 
@@ -141,6 +142,7 @@ class DataPreprocessor:
                 self.default_logger.log_info(f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples")
 
             assert phase in ["train", "val", "test", "predict"], f"ERROR! phase = {phase} unknown."
+            sampler: Optional[Sampler]
             if phase == "train":
                 sampler = RandomSampler(data)
             elif phase in ["val", "test"]:
@@ -157,7 +159,7 @@ class DataPreprocessor:
     ####################################################################################################################
     # HELPER
     ####################################################################################################################
-    def _prune_examples(self, list_of_examples, phase, ratio=None):
+    def _prune_examples(self, list_of_examples: List[Any], phase: str, ratio: float):
         """
         prunes list_of_examples by taking only the first examples
         ---------------------------------------------------------
@@ -166,7 +168,7 @@ class DataPreprocessor:
         :param (Optional) ratio: [float], e.g. 0.5
         :return: [list], e.g. of [InputExample]
         """
-        if ratio is None:
+        if ratio == 1.0:
             return list_of_examples
         else:
             num_examples_old = len(list_of_examples)

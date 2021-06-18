@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dataclasses import asdict
-from typing import List
+from typing import List, Optional
 
 from sklearn.metrics import accuracy_score as accuracy_sklearn
 from sklearn.metrics import precision_score as precision_sklearn
@@ -255,7 +255,7 @@ def add_bio_to_tag_list(tag_list: List[str]) -> List[str]:
     ]
 
 
-def _add_bio_to_tag(tag: str, previous: str) -> str:
+def _add_bio_to_tag(tag: str, previous: Optional[str] = None) -> str:
     """
     add bio prefix to tag, depending on previous tag
 

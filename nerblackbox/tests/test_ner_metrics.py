@@ -21,7 +21,10 @@ class TestNerMetricsTable:
             sep=";")
         for level in ["token", "chunk"]
     }
-    level, labels, micro, macro = None, None, None, None
+    level: str
+    labels: List[str]
+    micro: bool
+    macro: bool
 
     def test_predictions_from_csv_token(self):
         self.level = "token"

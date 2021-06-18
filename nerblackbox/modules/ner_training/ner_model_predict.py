@@ -272,7 +272,7 @@ class NerModelPredict(NerModel):
             example_word_predictions   [list] of [str] or [prob dist]
         """
         # predict tags on words between [CLS] and [SEP]
-        example_word_predictions = {
+        example_word_predictions: Dict[str, List[Any]] = {
             "internal": list(),
             "external": list(),
         }
@@ -307,7 +307,7 @@ class NerModelPredict(NerModel):
         _predictions_external = list()
 
         # 1. get margins of known tokens
-        token_char_margins = list()
+        token_char_margins: List[Tuple[Any, ...]] = list()
         char_start = 0
         for token, _ in example_word_predictions_external:
             if token != "[UNK]":
