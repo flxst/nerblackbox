@@ -446,6 +446,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#predict_proba" class="md-nav__link">
+    predict_proba
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#run_experiment" class="md-nav__link">
     run_experiment
   </a>
@@ -662,6 +669,11 @@ needs to be called exactly once before any other CLI/API commands of the package
 <p>predict labels for text_input using the best model of a single experiment.</p>
 <p>Usage:</p>
 <div class="highlight"><pre><span></span><code>nerbb predict [OPTIONS] EXPERIMENT_NAME TEXT_INPUT
+</code></pre></div>
+<h3 id="predict_proba">predict_proba</h3>
+<p>predict label probabilities for text_input using the best model of a single experiment.</p>
+<p>Usage:</p>
+<div class="highlight"><pre><span></span><code>nerbb predict_proba [OPTIONS] EXPERIMENT_NAME TEXT_INPUT
 </code></pre></div>
 <h3 id="run_experiment">run_experiment</h3>
 <p>run a single experiment.</p>
