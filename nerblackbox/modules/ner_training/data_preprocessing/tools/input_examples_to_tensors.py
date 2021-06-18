@@ -1,8 +1,13 @@
 import torch
 import numpy as np
 from typing import List, Tuple, Dict, Any
-from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import InputExample
-from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import Encodings, EncodingsKeys
+from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import (
+    InputExample,
+)
+from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
+    Encodings,
+    EncodingsKeys,
+)
 
 
 class InputExamplesToTensors:
@@ -30,9 +35,7 @@ class InputExamplesToTensors:
         if self.default_logger:
             self.default_logger.log_debug("> tag2id:", self.tag2id)
 
-    def __call__(self,
-                 input_examples: List[InputExample],
-                 predict: bool) -> Encodings:
+    def __call__(self, input_examples: List[InputExample], predict: bool) -> Encodings:
         """
         Args:
             input_examples: List[InputExample] with e.g. text = 'at arbetsförmedlingen'
@@ -57,15 +60,14 @@ class InputExamplesToTensors:
 
         # combine encodings_single -> encodings
         encodings = {
-            key: torch.cat(encodings_single[key])
-            for key in encodings_single.keys()
+            key: torch.cat(encodings_single[key]) for key in encodings_single.keys()
         }
 
         return encodings
 
-    def _transform_input_example(self,
-                                 input_example: InputExample,
-                                 predict: bool) -> Encodings:
+    def _transform_input_example(
+        self, input_example: InputExample, predict: bool
+    ) -> Encodings:
         """
         - transform input_example to tensors of length self.max_seq_length
 
@@ -87,12 +89,13 @@ class InputExamplesToTensors:
         ####################
         tokens_split_into_words = input_example.text.split()
         tags_split_into_words = input_example.tags.split()
-        assert len(tokens_split_into_words) == len(tags_split_into_words), \
-            f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)}"
+        assert len(tokens_split_into_words) == len(
+            tags_split_into_words
+        ), f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)}"
 
         encodings = self.tokenizer(
             tokens_split_into_words,
-            padding='max_length',
+            padding="max_length",
             truncation=True,
             max_length=self.max_seq_length,
             is_split_into_words=True,
@@ -101,7 +104,9 @@ class InputExamplesToTensors:
             return_overflowing_tokens=True,
         )
 
-        encodings["tag_ids"] = self._encode_tags(tags_split_into_words, encodings.offset_mapping, predict)
+        encodings["tag_ids"] = self._encode_tags(
+            tags_split_into_words, encodings.offset_mapping, predict
+        )
         keys = list(encodings.keys())
         for key in keys:
             if key in EncodingsKeys:
@@ -114,10 +119,12 @@ class InputExamplesToTensors:
     ####################################################################################################################
     # PRIVATE HELPER METHODS
     ####################################################################################################################
-    def _encode_tags(self,
-                     _tags_split_into_words: List[str],
-                     all_offsets: List[List[Tuple[int, int]]],
-                     predict: bool) -> List[List[int]]:
+    def _encode_tags(
+        self,
+        _tags_split_into_words: List[str],
+        all_offsets: List[List[Tuple[int, int]]],
+        predict: bool,
+    ) -> List[List[int]]:
         """
         Args:
             _tags_split_into_words: ['at arbetsförmedlingen']
@@ -129,7 +136,9 @@ class InputExamplesToTensors:
             all_tag_ids: [chunk_tag_ids] with chunk_tag_ids = e.g. [-100, 3, -100, 4, 5, -100, ..]
         """
 
-        tag_ids_split_into_words: List[int] = [self.tag2id[tag] for tag in _tags_split_into_words]
+        tag_ids_split_into_words: List[int] = [
+            self.tag2id[tag] for tag in _tags_split_into_words
+        ]
 
         tag_id_special = 0 if predict else -100
 
@@ -141,8 +150,12 @@ class InputExamplesToTensors:
             arr_offsets: np.array = np.array(offsets)
 
             # set labels whose first offset position is 0 and the second is not 0
-            nr_matches: int = len([elem for elem in arr_offsets if elem[0] == 0 and elem[1] != 0])
-            arr_tag_ids[(arr_offsets[:, 0] == 0) & (arr_offsets[:, 1] != 0)] = tag_ids_split_into_words[index: index+nr_matches]
+            nr_matches: int = len(
+                [elem for elem in arr_offsets if elem[0] == 0 and elem[1] != 0]
+            )
+            arr_tag_ids[
+                (arr_offsets[:, 0] == 0) & (arr_offsets[:, 1] != 0)
+            ] = tag_ids_split_into_words[index : index + nr_matches]
             index += nr_matches
 
             # convert

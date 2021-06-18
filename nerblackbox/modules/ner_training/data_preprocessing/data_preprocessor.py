@@ -16,15 +16,18 @@ from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampl
 from pkg_resources import resource_filename
 
 from typing import List, Dict, Tuple, Optional, Any
+
 InputExamples = List[InputExample]
 
 
 class DataPreprocessor:
-    def __init__(self,
-                 tokenizer,
-                 do_lower_case: bool,
-                 default_logger: PseudoDefaultLogger,
-                 max_seq_length: int = 64):
+    def __init__(
+        self,
+        tokenizer,
+        do_lower_case: bool,
+        default_logger: PseudoDefaultLogger,
+        max_seq_length: int = 64,
+    ):
         """
         :param tokenizer:      [transformers Tokenizer]
         :param do_lower_case:  [bool] if True, make text data lowercase
@@ -36,9 +39,9 @@ class DataPreprocessor:
         self.default_logger = default_logger
         self.max_seq_length = max_seq_length
 
-    def get_input_examples_train(self,
-                                 prune_ratio: Dict[str, float],
-                                 dataset_name: Optional[str] = None) -> Tuple[Dict[str, InputExamples], List[str]]:
+    def get_input_examples_train(
+        self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None
+    ) -> Tuple[Dict[str, InputExamples], List[str]]:
         """
         - get input examples for TRAIN from csv files
 
@@ -75,8 +78,9 @@ class DataPreprocessor:
             csv_reader.tag_list
         )
 
-    def get_input_examples_predict(self,
-                                   examples: List[str]) -> Dict[str, InputExamples]:
+    def get_input_examples_predict(
+        self, examples: List[str]
+    ) -> Dict[str, InputExamples]:
         """
         - get input examples for PREDICT from input argument examples
 
@@ -106,10 +110,12 @@ class DataPreprocessor:
 
         return input_examples
 
-    def to_dataloader(self,
-                      input_examples: Dict[str, InputExamples],
-                      tag_list: List[str],
-                      batch_size: int) -> Dict[str, DataLoader]:
+    def to_dataloader(
+        self,
+        input_examples: Dict[str, InputExamples],
+        tag_list: List[str],
+        batch_size: int,
+    ) -> Dict[str, DataLoader]:
         """
         - turn input_examples into dataloader
 
@@ -133,15 +139,25 @@ class DataPreprocessor:
 
         _dataloader = dict()
         for phase in input_examples.keys():
-            encodings = input_examples_to_tensors(input_examples[phase],
-                                                  predict=phase == "predict")
+            encodings = input_examples_to_tensors(
+                input_examples[phase], predict=phase == "predict"
+            )
 
             # dataloader
-            data = BertDataset(encodings=encodings)  # data[j] = 4 torch tensors corresponding to EncodingKeys
+            data = BertDataset(
+                encodings=encodings
+            )  # data[j] = 4 torch tensors corresponding to EncodingKeys
             if self.default_logger:
-                self.default_logger.log_info(f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples")
+                self.default_logger.log_info(
+                    f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples"
+                )
 
-            assert phase in ["train", "val", "test", "predict"], f"ERROR! phase = {phase} unknown."
+            assert phase in [
+                "train",
+                "val",
+                "test",
+                "predict",
+            ], f"ERROR! phase = {phase} unknown."
             sampler: Optional[Sampler]
             if phase == "train":
                 sampler = RandomSampler(data)

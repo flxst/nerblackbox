@@ -230,13 +230,17 @@ def convert_to_chunk(tag_list: List[str], to_bio=True) -> List[str]:
 def assert_plain_tags(tag_list: List[str]) -> None:
     for tag in tag_list:
         if tag != "O" and (len(tag) > 2 and tag[1] == "-"):
-            raise Exception("ERROR! attempt to convert tags to bio format that already seem to have bio format.")
+            raise Exception(
+                "ERROR! attempt to convert tags to bio format that already seem to have bio format."
+            )
 
 
 def assert_bio_tags(tag_list: List[str]) -> None:
     for tag in tag_list:
         if tag != "O" and (len(tag) <= 2 or tag[1] != "-"):
-            raise Exception("ERROR! assuming tags to have bio format that seem to have plain format instead.")
+            raise Exception(
+                "ERROR! assuming tags to have bio format that seem to have plain format instead."
+            )
 
 
 def add_bio_to_tag_list(tag_list: List[str]) -> List[str]:

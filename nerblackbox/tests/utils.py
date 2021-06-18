@@ -1,6 +1,4 @@
-
 class PseudoDefaultLogger:
-
     def __init__(self):
         pass
 

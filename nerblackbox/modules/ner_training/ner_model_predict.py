@@ -80,7 +80,9 @@ class NerModelPredict(NerModel):
             num_labels=len(self.tag_list),
             return_dict=False,
         )
-        self.model.resize_token_embeddings(len(self.tokenizer))  # due to addtional_special_tokens = NEWLINE_TOKENS
+        self.model.resize_token_embeddings(
+            len(self.tokenizer)
+        )  # due to addtional_special_tokens = NEWLINE_TOKENS
 
     ####################################################################################################################
     # PREDICT
@@ -125,30 +127,22 @@ class NerModelPredict(NerModel):
         if isinstance(examples, str):
             examples = [examples]
 
-        predictions = (
-            list()
-        )
+        predictions = list()
         for example in examples:
             predict_dataloader = self._get_predict_dataloader([example])
 
             if self.data_preprocessor.do_lower_case:
                 example = example.lower()
 
-            example_tokens = (
-                list()
-            )
-            example_token_predictions = (
-                list()
-            )
+            example_tokens = list()
+            example_token_predictions = list()
             ######################################
             # 1 example, individual chunks, tokens
             ######################################
             for sample in predict_dataloader:
                 token_tensors, tokens = self._predict_on_tokens(sample)
                 if proba is False:
-                    token_predictions = self._turn_tensors_into_tags(
-                        token_tensors
-                    )
+                    token_predictions = self._turn_tensors_into_tags(token_tensors)
                 else:
                     token_predictions = (
                         self._turn_tensors_into_tag_probability_distributions(
@@ -165,8 +159,9 @@ class NerModelPredict(NerModel):
                 example_tokens, example_token_predictions
             )
 
-            example_word_predictions["external"] = self._restore_unknown_tokens(example_word_predictions["external"],
-                                                                                example)
+            example_word_predictions["external"] = self._restore_unknown_tokens(
+                example_word_predictions["external"], example
+            )
 
             prediction = self._namespace_prediction(
                 example_word_predictions,
@@ -261,8 +256,9 @@ class NerModelPredict(NerModel):
         return tag_probability_distribution
 
     @staticmethod
-    def _get_tags_on_words_between_special_tokens(tokens: List[str],
-                                                  example_token_predictions: List[Any]):
+    def _get_tags_on_words_between_special_tokens(
+        tokens: List[str], example_token_predictions: List[Any]
+    ):
         """
         Args:
             tokens:                    [list] of [str]
@@ -278,21 +274,29 @@ class NerModelPredict(NerModel):
         }
         for token, example_token_prediction in zip(tokens, example_token_predictions):
             if token not in ["[CLS]", "[SEP]", "[PAD]"]:
-                example_word_predictions["internal"].append([token, example_token_prediction])
+                example_word_predictions["internal"].append(
+                    [token, example_token_prediction]
+                )
                 if not token.startswith("##"):
-                    example_word_predictions["external"].append([token, example_token_prediction])
+                    example_word_predictions["external"].append(
+                        [token, example_token_prediction]
+                    )
                 else:
                     example_word_predictions["external"][-1][0] += token.strip("##")
 
         for field in ["internal", "external"]:
-            example_word_predictions[field] = [tuple(elem) for elem in example_word_predictions[field]]
+            example_word_predictions[field] = [
+                tuple(elem) for elem in example_word_predictions[field]
+            ]
 
         return example_word_predictions
 
     @staticmethod
-    def _restore_unknown_tokens(example_word_predictions_external: List[Tuple[str, str]],
-                                _example: str,
-                                verbose: bool = True) -> List[Dict[str, str]]:
+    def _restore_unknown_tokens(
+        example_word_predictions_external: List[Tuple[str, str]],
+        _example: str,
+        verbose: bool = True,
+    ) -> List[Dict[str, str]]:
         """
         - replace "[UNK]" tokens by the original token
         - enrich tokens with char_start & char_end
@@ -323,7 +327,10 @@ class NerModelPredict(NerModel):
 
         # 2. restore unknown tokens
         for i, (token, tag) in enumerate(example_word_predictions_external):
-            if token_char_margins[i][0] is not None and token_char_margins[i][1] is not None:
+            if (
+                token_char_margins[i][0] is not None
+                and token_char_margins[i][1] is not None
+            ):
                 _predictions_external.append(
                     {
                         "char_start": str(token_char_margins[i][0]),
@@ -334,37 +341,43 @@ class NerModelPredict(NerModel):
                 )
             else:
                 for j in range(2):
-                    assert token_char_margins[i][j] is None, \
-                        f"ERROR! token_char_margin[{i}][{j}] is not None for token = {token}"
+                    assert (
+                        token_char_margins[i][j] is None
+                    ), f"ERROR! token_char_margin[{i}][{j}] is not None for token = {token}"
 
                 char_start_margin, char_end_margin = None, None
                 for k in range(1, 10):
-                    if i-k < 0:
+                    if i - k < 0:
                         char_start_margin = 0
                         break
-                    elif token_char_margins[i-k][1] is not None:
-                        char_start_margin = token_char_margins[i-k][1]
+                    elif token_char_margins[i - k][1] is not None:
+                        char_start_margin = token_char_margins[i - k][1]
                         break
                 for k in range(1, 10):
-                    if i+k >= len(token_char_margins):
+                    if i + k >= len(token_char_margins):
                         char_end_margin = len(_example)
                         break
-                    elif token_char_margins[i+k][0] is not None:
-                        char_end_margin = token_char_margins[i+k][0]
+                    elif token_char_margins[i + k][0] is not None:
+                        char_end_margin = token_char_margins[i + k][0]
                         break
-                assert char_start_margin is not None, f"ERROR! could not find char_start_margin"
-                assert char_end_margin is not None, f"ERROR! could not find char_end_margin"
+                assert (
+                    char_start_margin is not None
+                ), f"ERROR! could not find char_start_margin"
+                assert (
+                    char_end_margin is not None
+                ), f"ERROR! could not find char_end_margin"
 
-                new_token = _example[char_start_margin: char_end_margin].strip()
+                new_token = _example[char_start_margin:char_end_margin].strip()
 
                 if len(new_token):
                     char_start = _example.index(new_token, char_start_margin)
                     char_end = char_start + len(new_token)
                     if verbose:
-                        print(f"! restored unknown token = {new_token} between "
-                              f"char_start = {char_start_margin}, "
-                              f"char_end = {char_end_margin}"
-                              )
+                        print(
+                            f"! restored unknown token = {new_token} between "
+                            f"char_start = {char_start_margin}, "
+                            f"char_end = {char_end_margin}"
+                        )
                     _predictions_external.append(
                         {
                             "char_start": str(char_start),
@@ -374,10 +387,11 @@ class NerModelPredict(NerModel):
                         }
                     )
                 else:
-                    print(f"! dropped unknown empty token between "
-                          f"char_start = {char_start_margin}, "
-                          f"char_end = {char_end_margin}"
-                          )
+                    print(
+                        f"! dropped unknown empty token between "
+                        f"char_start = {char_start_margin}, "
+                        f"char_end = {char_end_margin}"
+                    )
 
         return _predictions_external
 
@@ -389,7 +403,5 @@ class NerModelPredict(NerModel):
         :return: prediction              [Namespace] w/ attributes = 'internal' | 'external'
                                                      & values = [list] of [tuples] (word, tag / tag prob dist)
         """
-        prediction = Namespace(
-            **example_word_predictions
-        )
+        prediction = Namespace(**example_word_predictions)
         return prediction

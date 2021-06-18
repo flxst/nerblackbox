@@ -1,4 +1,3 @@
-
 import pytest
 from typing import List
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
@@ -9,11 +8,7 @@ class TestLoggedMetrics:
     logged_metrics = LoggedMetrics()
 
     @pytest.mark.parametrize(
-        "tag_group, "
-        "phase_group, "
-        "micro_macro_group, "
-        "exclude, "
-        "metrics",
+        "tag_group, " "phase_group, " "micro_macro_group, " "exclude, " "metrics",
         [
             (
                 ["all"],
@@ -37,18 +32,18 @@ class TestLoggedMetrics:
                 ["f1", "precision", "recall"],
             ),
             (
-                    ["ind"],
-                    ["val"],
-                    ["micro"],
-                    None,
-                    ["f1", "precision", "recall"],
+                ["ind"],
+                ["val"],
+                ["micro"],
+                None,
+                ["f1", "precision", "recall"],
             ),
             (
-                    ["ind"],
-                    ["val"],
-                    ["macro"],
-                    None,
-                    [],
+                ["ind"],
+                ["val"],
+                ["macro"],
+                None,
+                [],
             ),
             (
                 None,
@@ -57,14 +52,16 @@ class TestLoggedMetrics:
                 None,
                 ["loss", "precision", "acc", "recall", "f1"],
             ),
-        ]
+        ],
     )
-    def test_get_metrics(self,
-                         tag_group: List[str],
-                         phase_group: List[str],
-                         micro_macro_group: List[str],
-                         exclude: List[str],
-                         metrics: List[str]):
+    def test_get_metrics(
+        self,
+        tag_group: List[str],
+        phase_group: List[str],
+        micro_macro_group: List[str],
+        exclude: List[str],
+        metrics: List[str],
+    ):
 
         test_metrics = self.logged_metrics.get_metrics(
             tag_group=tag_group,
@@ -105,11 +102,8 @@ class TestLoggedMetrics:
                     "ind_f1_micro",
                 ]
             )
-        ]
+        ],
     )
-    def test_as_flat_list(self,
-                          metrics_flat_list: List[str]):
+    def test_as_flat_list(self, metrics_flat_list: List[str]):
         test_metrics_flat_list = self.logged_metrics.as_flat_list()
         assert set(test_metrics_flat_list) == set(metrics_flat_list), f"ERROR! 2"
-
-

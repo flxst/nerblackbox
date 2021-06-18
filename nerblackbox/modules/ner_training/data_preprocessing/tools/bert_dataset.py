@@ -1,7 +1,10 @@
 import torch
 from torch.utils.data import Dataset
 from typing import Tuple
-from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import Encodings, EncodingsKeys
+from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
+    Encodings,
+    EncodingsKeys,
+)
 
 
 class BertDataset(Dataset):

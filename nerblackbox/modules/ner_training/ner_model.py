@@ -73,7 +73,9 @@ class NerModel(pl.LightningModule, ABC):
         # 1. pretrained model name
         try:
             # use transformers model
-            AutoTokenizer.from_pretrained(self.params.pretrained_model_name, use_fast=False)
+            AutoTokenizer.from_pretrained(
+                self.params.pretrained_model_name, use_fast=False
+            )
             self.pretrained_model_name = self.params.pretrained_model_name
         except ValueError:
             # use local model
@@ -355,9 +357,9 @@ class NerModel(pl.LightningModule, ABC):
         """
         return _num_epochs * len(self.dataloader["train"])
 
-    def _validate_on_epoch(self,
-                           phase: str,
-                           outputs: List[List[torch.Tensor]]) -> Dict[str, float]:
+    def _validate_on_epoch(
+        self, phase: str, outputs: List[List[torch.Tensor]]
+    ) -> Dict[str, float]:
         """
         Args:
             phase:   [str], 'val', 'test'
@@ -373,14 +375,17 @@ class NerModel(pl.LightningModule, ABC):
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )
-        epoch_metrics, classification_report, epoch_loss = ner_model_evaluation.execute(phase, outputs)
-        self._log_metrics_and_classification_report(phase, epoch_metrics, classification_report)
+        epoch_metrics, classification_report, epoch_loss = ner_model_evaluation.execute(
+            phase, outputs
+        )
+        self._log_metrics_and_classification_report(
+            phase, epoch_metrics, classification_report
+        )
         return {f"{phase}_loss": epoch_loss}
 
-    def _log_metrics_and_classification_report(self,
-                                               phase: str,
-                                               epoch_metrics: Dict[str, np.array],
-                                               classification_report: str) -> None:
+    def _log_metrics_and_classification_report(
+        self, phase: str, epoch_metrics: Dict[str, np.array], classification_report: str
+    ) -> None:
         """
         Args:
             phase:                 [str] 'val', 'test'
@@ -405,9 +410,7 @@ class NerModel(pl.LightningModule, ABC):
         self.mlflow_client.finish_artifact_mlflow()
 
         # print
-        self._print_metrics(
-            phase, epoch_metrics, classification_report
-        )
+        self._print_metrics(phase, epoch_metrics, classification_report)
 
         self.default_logger.log_debug(f"--> {phase}: epoch done")
 
@@ -448,14 +451,14 @@ class NerModel(pl.LightningModule, ABC):
     # 3. PRINT / LOG
     ####################################################################################################################
     def _debug_step_check(
-            self,
-            phase,
-            _batch,
-            _outputs,
-            _input_ids,
-            _attention_mask,
-            _segment_ids,
-            _tag_ids,
+        self,
+        phase,
+        _batch,
+        _outputs,
+        _input_ids,
+        _attention_mask,
+        _segment_ids,
+        _tag_ids,
     ):
         self.default_logger.log_debug(f"{phase.upper()} STEP CHECK")
         self.default_logger.log_debug(f"batch on gpu:   {_batch[0].is_cuda}")

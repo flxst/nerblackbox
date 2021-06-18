@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from pkg_resources import resource_filename
-from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics, get_rid_of_special_tokens, convert_to_chunk
+from nerblackbox.modules.ner_training.metrics.ner_metrics import (
+    NerMetrics,
+    get_rid_of_special_tokens,
+    convert_to_chunk,
+)
 from typing import List
 
 
@@ -17,8 +21,11 @@ class TestNerMetricsTable:
 
     df = {
         level: pd.read_csv(
-            resource_filename("nerblackbox", f"tests/test_data/test_ner_metrics_{level}.csv"),
-            sep=";")
+            resource_filename(
+                "nerblackbox", f"tests/test_data/test_ner_metrics_{level}.csv"
+            ),
+            sep=";",
+        )
         for level in ["token", "chunk"]
     }
     level: str
@@ -55,20 +62,15 @@ class TestNerMetricsTable:
             tested_columns = list()
             for labels in self.labels:
                 _tested_columns = self._single_row_and_label_category_test(
-                    true,
-                    pred,
-                    row=row,
-                    labels=labels
+                    true, pred, row=row, labels=labels
                 )
                 tested_columns.extend(_tested_columns)
 
             assert set(tested_columns) == set(self.df[self.level].columns[2:])
 
-    def _single_row_and_label_category_test(self,
-                                            true: np.array,
-                                            pred: np.array,
-                                            row: int,
-                                            labels: str) -> List[str]:
+    def _single_row_and_label_category_test(
+        self, true: np.array, pred: np.array, row: int, labels: str
+    ) -> List[str]:
         """
         test true against pred values for single row in csv and specific labels
 
@@ -187,10 +189,8 @@ class TestNerMetricsTable:
 ########################################################################################################################
 ########################################################################################################################
 class TestNerMetrics:
-
     @pytest.mark.parametrize(
-        "input_sequence, "
-        "output_sequence",
+        "input_sequence, " "output_sequence",
         [
             (
                 ["A", "A", "O", "O", "B"],
@@ -204,48 +204,49 @@ class TestNerMetrics:
                 ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
                 ["O", "A", "A", "O", "O", "O", "B", "O"],
             ),
-        ]
+        ],
     )
-    def test_get_rid_of_special_tokens(self,
-                                       input_sequence: List[str],
-                                       output_sequence: List[str]):
+    def test_get_rid_of_special_tokens(
+        self, input_sequence: List[str], output_sequence: List[str]
+    ):
         test_output_sequence = get_rid_of_special_tokens(input_sequence)
-        assert test_output_sequence == output_sequence, f"{test_output_sequence} != {output_sequence}"
+        assert (
+            test_output_sequence == output_sequence
+        ), f"{test_output_sequence} != {output_sequence}"
 
     @pytest.mark.parametrize(
-        "input_sequence, "
-        "to_bio, "
-        "output_sequence",
+        "input_sequence, " "to_bio, " "output_sequence",
         [
             (
-                    ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
-                    True,
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
+                True,
+                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
             (
-                    ["[CLS]", "B-A", "I-A", "[UNK]", "O", "O", "B-B", "[SEP]"],
-                    False,
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                ["[CLS]", "B-A", "I-A", "[UNK]", "O", "O", "B-B", "[SEP]"],
+                False,
+                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
             (
-                    ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
-                    False,
-                    None,
+                ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
+                False,
+                None,
             ),
             (
-                    ["[CLS]", "B-A", "I-A", "[UNK]", "O", "O", "B-B", "[SEP]"],
-                    True,
-                    None,
+                ["[CLS]", "B-A", "I-A", "[UNK]", "O", "O", "B-B", "[SEP]"],
+                True,
+                None,
             ),
-        ]
+        ],
     )
-    def test_convert_to_chunk(self,
-                              input_sequence: List[str],
-                              to_bio: bool,
-                              output_sequence: List[str]):
+    def test_convert_to_chunk(
+        self, input_sequence: List[str], to_bio: bool, output_sequence: List[str]
+    ):
         if output_sequence is not None:
             test_output_sequence = convert_to_chunk(input_sequence, to_bio)
-            assert test_output_sequence == output_sequence, f"{test_output_sequence} != {output_sequence}"
+            assert (
+                test_output_sequence == output_sequence
+            ), f"{test_output_sequence} != {output_sequence}"
         else:
             with pytest.raises(Exception):
                 convert_to_chunk(input_sequence, to_bio)

@@ -60,9 +60,7 @@ class CsvReader:
             self.default_logger.log_debug(
                 f"> tag list found in data: {self.tag_list_found}"
             )
-            self.default_logger.log_debug(
-                f"> tag list complete:      {self.tag_list}"
-            )
+            self.default_logger.log_debug(f"> tag list complete:      {self.tag_list}")
 
     ####################################################################################################################
     # PUBLIC METHODS

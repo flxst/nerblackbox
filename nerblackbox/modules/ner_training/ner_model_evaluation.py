@@ -1,4 +1,3 @@
-
 import warnings
 import numpy as np
 import torch
@@ -12,14 +11,14 @@ from nerblackbox.modules.utils.env_variable import env_variable
 
 
 class NerModelEvaluation:
-
-    def __init__(self,
-                 current_epoch: int,
-                 tag_list: List[str],
-                 dataset_tags: List[str],
-                 default_logger,
-                 logged_metrics,
-                 ):
+    def __init__(
+        self,
+        current_epoch: int,
+        tag_list: List[str],
+        dataset_tags: List[str],
+        default_logger,
+        logged_metrics,
+    ):
         self.current_epoch = current_epoch
         self.tag_list = tag_list
         self.dataset_tags = dataset_tags
@@ -29,16 +28,16 @@ class NerModelEvaluation:
     ####################################################################################################################
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
-    def execute(self,
-                phase: str,
-                outputs: List[List[torch.Tensor]]) -> Tuple[Dict[str, np.array], str, float]:
+    def execute(
+        self, phase: str, outputs: List[List[torch.Tensor]]
+    ) -> Tuple[Dict[str, np.array], str, float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
-        
+
         Args:
             phase:   [str], 'val', 'test'
             outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
-            
+
         Returns:
             epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
             classification_report: [str]
@@ -46,7 +45,9 @@ class NerModelEvaluation:
         """
         print()
         np_batch: Dict[str, List[np.array]] = self._convert_output_to_np_batch(outputs)
-        np_epoch: Dict[str, Union[np.number, np.array]] = self._combine_np_batch_to_np_epoch(np_batch)
+        np_epoch: Dict[
+            str, Union[np.number, np.array]
+        ] = self._combine_np_batch_to_np_epoch(np_batch)
 
         # epoch metrics
         epoch_metrics, epoch_tags = self._compute_metrics(phase, np_epoch)
@@ -57,9 +58,11 @@ class NerModelEvaluation:
         )
 
         return epoch_metrics, classification_report, np_epoch["loss"]
-        
+
     @staticmethod
-    def _convert_output_to_np_batch(outputs: List[List[torch.Tensor]]) -> Dict[str, List[np.array]]:
+    def _convert_output_to_np_batch(
+        outputs: List[List[torch.Tensor]],
+    ) -> Dict[str, List[np.array]]:
         """
         - converts pytorch lightning output to np_batch dictionary
 
@@ -84,7 +87,7 @@ class NerModelEvaluation:
 
     @staticmethod
     def _combine_np_batch_to_np_epoch(
-            np_batch: Dict[str, List[np.array]]
+        np_batch: Dict[str, List[np.array]]
     ) -> Dict[str, Union[np.number, np.array]]:
         """
         - combine np_batch to np_epoch
@@ -114,9 +117,9 @@ class NerModelEvaluation:
     ####################################################################################################################
     # 1. COMPUTE METRICS ###############################################################################################
     ####################################################################################################################
-    def _compute_metrics(self,
-                         phase: str,
-                         _np_epoch: Dict[str, Union[np.number, np.array]]) -> Tuple[Dict[str, np.array], Dict[str, np.array]]:
+    def _compute_metrics(
+        self, phase: str, _np_epoch: Dict[str, Union[np.number, np.array]]
+    ) -> Tuple[Dict[str, np.array], Dict[str, np.array]]:
         """
         - compute loss, acc, f1 scores for size/phase = batch/train or epoch/val-test
 
@@ -158,22 +161,22 @@ class NerModelEvaluation:
         # batch / dataset metrics
         _epoch_metrics = {"all_loss": _np_epoch["loss"]}
         for tag_subset in [
-                              "all",
-                              "fil",
-                              "chk",
-                          ] + self.tag_list:
+            "all",
+            "fil",
+            "chk",
+        ] + self.tag_list:
             _epoch_metrics.update(
                 self._compute_metrics_for_tags_subset(
-                    _epoch_tags,
-                    phase,
-                    tag_subset=tag_subset
+                    _epoch_tags, phase, tag_subset=tag_subset
                 )
             )
 
         return _epoch_metrics, _epoch_tags
 
     @staticmethod
-    def _reduce_and_flatten(_np_tag_ids: np.array, _np_logits: np.array) -> Tuple[np.array, np.array]:
+    def _reduce_and_flatten(
+        _np_tag_ids: np.array, _np_logits: np.array
+    ) -> Tuple[np.array, np.array]:
         """
         helper method for _compute_metrics()
         reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
@@ -190,8 +193,7 @@ class NerModelEvaluation:
         pred_flat = np.argmax(_np_logits, axis=2).flatten()
         return true_flat, pred_flat
 
-    def _convert_tag_ids_to_tags(self,
-                                 _tag_ids: np.array) -> np.array:
+    def _convert_tag_ids_to_tags(self, _tag_ids: np.array) -> np.array:
         """
         helper method for _compute_metrics()
         convert tag_ids (int) to tags (str)
@@ -202,15 +204,14 @@ class NerModelEvaluation:
         Returns:
             _tags:    [np array] of shape [batch_size * seq_length] with [str] elements
         """
-        return np.array([
-            self.tag_list[tag_id]
-            if tag_id >= 0
-            else "[S]"
-            for tag_id in _tag_ids
-        ])
+        return np.array(
+            [self.tag_list[tag_id] if tag_id >= 0 else "[S]" for tag_id in _tag_ids]
+        )
 
     @staticmethod
-    def _get_rid_of_special_tag_occurrences(_tags: Dict[str, np.array]) -> Dict[str, np.array]:
+    def _get_rid_of_special_tag_occurrences(
+        _tags: Dict[str, np.array]
+    ) -> Dict[str, np.array]:
         """
         helper method for _compute_metrics()
         get rid of all elements where '[S]' occurs in true array
@@ -226,10 +227,9 @@ class NerModelEvaluation:
         pad_indices = np.where(_tags["true"] == "[S]")
         return {key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]}
 
-    def _compute_metrics_for_tags_subset(self,
-                                         _tags: Dict[str, np.array],
-                                         _phase: str,
-                                         tag_subset: str) -> Dict[str, float]:
+    def _compute_metrics_for_tags_subset(
+        self, _tags: Dict[str, np.array], _phase: str, tag_subset: str
+    ) -> Dict[str, float]:
         """
         helper method for _compute_metrics()
         compute metrics for tags subset (e.g. 'all', 'fil')
@@ -261,17 +261,17 @@ class NerModelEvaluation:
         _metrics = dict()
         # simple
         for metric_type in self.logged_metrics.get_metrics(
-                tag_group=tag_group,
-                phase_group=[_phase],
-                micro_macro_group=["simple"],
-                exclude=["loss"],
+            tag_group=tag_group,
+            phase_group=[_phase],
+            micro_macro_group=["simple"],
+            exclude=["loss"],
         ):
             # if results[metric_type] is not None:
             _metrics[f"{tag_subset}_{metric_type}"] = results[metric_type]
 
         # micro
         for metric_type in self.logged_metrics.get_metrics(
-                tag_group=tag_group, phase_group=[_phase], micro_macro_group=["micro"]
+            tag_group=tag_group, phase_group=[_phase], micro_macro_group=["micro"]
         ):
             # if results[f'{metric_type}_micro'] is not None:
             if tag_group == ["ind"]:
@@ -285,7 +285,7 @@ class NerModelEvaluation:
 
         # macro
         for metric_type in self.logged_metrics.get_metrics(
-                tag_group=tag_group, phase_group=[_phase], micro_macro_group=["macro"]
+            tag_group=tag_group, phase_group=[_phase], micro_macro_group=["macro"]
         ):
             # if results[f'{metric_type}_macro'] is not None:
             _metrics[f"{tag_subset}_{metric_type}_macro"] = results[
@@ -294,8 +294,7 @@ class NerModelEvaluation:
 
         return _metrics
 
-    def _get_filtered_tags(self,
-                           _tag_subset: str) -> List[str]:
+    def _get_filtered_tags(self, _tag_subset: str) -> List[str]:
         """
         helper method for _compute_metrics()
         get list of filtered tags corresponding to _tag_subset name
@@ -309,19 +308,16 @@ class NerModelEvaluation:
         if _tag_subset == "all":
             return self.tag_list
         elif _tag_subset in ["fil", "chk"]:
-            return [
-                tag for tag in self.tag_list if tag != "O"
-            ]
+            return [tag for tag in self.tag_list if tag != "O"]
         else:
             return [_tag_subset]
 
     ####################################################################################################################
     # 2. CLASSIFICATION REPORT #########################################################################################
     ####################################################################################################################
-    def _get_classification_report(self,
-                                   phase: str,
-                                   epoch: int,
-                                   epoch_tags: Dict[str, np.array]) -> str:
+    def _get_classification_report(
+        self, phase: str, epoch: int, epoch_tags: Dict[str, np.array]
+    ) -> str:
         """
         - get token-based (sklearn) & chunk-based (seqeval) classification report
 
@@ -339,7 +335,9 @@ class NerModelEvaluation:
         tag_list_filtered = self._get_filtered_tags("fil")
         classification_report: str = ""
         classification_report += f"\n>>> Phase: {phase} | Epoch: {epoch}"
-        classification_report += "\n--- token-based (sklearn) classification report on fil ---\n"
+        classification_report += (
+            "\n--- token-based (sklearn) classification report on fil ---\n"
+        )
         classification_report += classification_report_sklearn(
             epoch_tags["true"], epoch_tags["pred"], labels=tag_list_filtered
         )
@@ -358,7 +356,9 @@ class NerModelEvaluation:
             "> epoch_tags_chunk[pred]:", list(set(epoch_tags_chunk["pred"]))
         )
 
-        classification_report += "\n--- chunk-based (seqeval) classification report on fil ---\n"
+        classification_report += (
+            "\n--- chunk-based (seqeval) classification report on fil ---\n"
+        )
         classification_report += classification_report_seqeval(
             epoch_tags_chunk["true"], epoch_tags_chunk["pred"], suffix=False
         )
