@@ -1,6 +1,19 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.10 (2021-06-18)
+#### Added
+- special [NEWLINE] token can be used in input data
+- CLI command "predict_proba"
+
+#### Changed
+- long input samples are automatically sliced before sent to model
+- NerModelPredict: unknown tokens are restored (in external mode) 
+
+#### Fixed
+- NerModelPredict for local pretrained models
+- NerModelEvaluation
+
 ## 0.0.9 (2021-04-05)
 #### Added
 - Swedish datasets (SIC & SUC 3.0)
