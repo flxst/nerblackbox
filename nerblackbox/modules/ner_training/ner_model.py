@@ -73,7 +73,7 @@ class NerModel(pl.LightningModule, ABC):
         # 1. pretrained model name
         try:
             # use transformers model
-            AutoTokenizer.from_pretrained(self.params.pretrained_model_name)
+            AutoTokenizer.from_pretrained(self.params.pretrained_model_name, use_fast=False)
             self.pretrained_model_name = self.params.pretrained_model_name
         except ValueError:
             # use local model

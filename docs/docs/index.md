@@ -81,6 +81,6 @@ See [Guide](guide/getting_started) for more details.
 * Multiple Identical Runs
 * Language Agnosticism
 
-Based on: [Hugging Face Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/), [MLfflow](https://mlflow.org/docs/latest/index.html)
+Based on: [Hugging Face Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/), [MLflow](https://mlflow.org/docs/latest/index.html)
 
 -----------
