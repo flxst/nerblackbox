@@ -13,8 +13,11 @@ A python package to fine-tune transformer-based language models for Named Entity
     :alt: PyPI - Python Version
 
 .. image:: https://travis-ci.org/af-ai-center/nerblackbox.svg?branch=master
-    :target: https://travis-ci.org/af-ai-center/nerblackbox
+    :target: https://travis-ci.com/github/af-ai-center/nerblackbox
     :alt: Travis CI
+
+.. image:: https://coveralls.io/repos/github/af-ai-center/nerblackbox/badge.svg?branch=master
+    :target: https://coveralls.io/github/af-ai-center/nerblackbox?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
