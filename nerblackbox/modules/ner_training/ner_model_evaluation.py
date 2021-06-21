@@ -247,7 +247,8 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         tag_list = self._get_filtered_tags(tag_subset)
-        tag_group = [tag_subset] if tag_subset in ["all", "fil", "chk"] else ["ind"]
+        required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "chk"] else ["ind"]
+        required_phases = [_phase]
         level = "chunk" if tag_subset == "chk" else "token"
 
         ner_metrics = NerMetrics(
@@ -258,16 +259,17 @@ class NerModelEvaluation:
             plain_tags=self.annotation_scheme == "plain",
         )
         ner_metrics.compute(
-            self.logged_metrics.get_metrics(tag_group=tag_group, phase_group=[_phase])
+            self.logged_metrics.get_metrics(required_tag_groups=required_tag_groups,
+                                            required_phases=required_phases)
         )
         results = ner_metrics.results_as_dict()
 
         _metrics = dict()
         # simple
         for metric_type in self.logged_metrics.get_metrics(
-            tag_group=tag_group,
-            phase_group=[_phase],
-            micro_macro_group=["simple"],
+            required_tag_groups=required_tag_groups,
+            required_phases=required_phases,
+            required_averaging_groups=["simple"],
             exclude=["loss"],
         ):
             # if results[metric_type] is not None:
@@ -275,10 +277,12 @@ class NerModelEvaluation:
 
         # micro
         for metric_type in self.logged_metrics.get_metrics(
-            tag_group=tag_group, phase_group=[_phase], micro_macro_group=["micro"]
+            required_tag_groups=required_tag_groups,
+            required_phases=required_phases,
+            required_averaging_groups=["micro"]
         ):
             # if results[f'{metric_type}_micro'] is not None:
-            if tag_group == ["ind"]:
+            if required_tag_groups == ["ind"]:
                 _metrics[f"{tag_subset}_{metric_type}"] = results[
                     f"{metric_type}_micro"
                 ]
@@ -289,7 +293,7 @@ class NerModelEvaluation:
 
         # macro
         for metric_type in self.logged_metrics.get_metrics(
-            tag_group=tag_group, phase_group=[_phase], micro_macro_group=["macro"]
+            required_tag_groups=required_tag_groups, required_phases=required_phases, required_averaging_groups=["macro"]
         ):
             # if results[f'{metric_type}_macro'] is not None:
             _metrics[f"{tag_subset}_{metric_type}_macro"] = results[

@@ -2,7 +2,10 @@ from typing import List
 
 
 class LoggedMetrics:
-
+    # metric,                 str: "loss", "acc", "precision", "recall", "f1"
+    # phases,           List[str]: subset of ["train", "val", "test"]
+    # tag_groups,       List[str]: subset of ["all", "fil", "chk", "ind"]
+    # averaging_groups: List[str]: subset of ["simple", "micro", "macro"]
     logged_metrics = [
         ("loss", ["train", "val", "test"], ["all"], ["simple"]),
         ("acc", ["train", "val", "test"], ["all"], ["simple"]),
@@ -19,48 +22,65 @@ class LoggedMetrics:
         ("f1", ["val", "test"], ["chk", "ind"], ["micro"]),
     ]
 
+    @classmethod
+    def as_flat_list(cls):
+        """
+        return logged_metrics as flat list
+        ----------------------------------
+        :return: [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', 'fil_precision_micro', ..]
+        """
+        flat_list = list()
+        for metric, _, tag_groups, averaging_groups in cls.logged_metrics:
+            for tag_group in tag_groups:
+                if averaging_groups == ["simple"]:
+                    flat_list.append(f"{tag_group}_{metric}")
+                else:
+                    for averaging_group in averaging_groups:
+                        flat_list.append(f"{tag_group}_{metric}_{averaging_group}")
+        return flat_list
+
     def __init__(self):
-        for metric, phase_list, tags_list, micro_macro_list in self.logged_metrics:
+        for metric, phases, tag_groups, averaging_groups in self.logged_metrics:
             assert isinstance(metric, str)
-            assert isinstance(phase_list, list)
-            assert isinstance(tags_list, list)
-            assert isinstance(micro_macro_list, list)
+            assert isinstance(phases, list)
+            assert isinstance(tag_groups, list)
+            assert isinstance(averaging_groups, list)
 
     def get_metrics(
         self,
-        tag_group: List[str] = None,
-        phase_group: List[str] = None,
-        micro_macro_group: List[str] = None,
+        required_tag_groups: List[str] = None,
+        required_phases: List[str] = None,
+        required_averaging_groups: List[str] = None,
         exclude: List[str] = None,
     ) -> List[str]:
         """
         get metrics, filtered
         ---------------------
-        :param tag_group:          [list] of tags that are required, e.g. ['all']
-        :param phase_group:        [list] of phases that are required, e.g. ['train']
-        :param micro_macro_group:  [list] simple/micro/macro that is required, e.g. ['micro', 'macro']
-        :param exclude:            [list] of metrics to exclude, e.g. ['loss']
-        :return: filtered_metrics: [list] of [str], e.g. ['precision', 'recall']
+        :param required_tag_groups:       [list] of tag_groups that are required, e.g. ['all']
+        :param required_phases:           [list] of phases that are required, e.g. ['train']
+        :param required_averaging_groups: [list] averaging groups that are required, e.g. ['micro', 'macro']
+        :param exclude:                   [list] of metrics to exclude, e.g. ['loss']
+        :return: filtered_metrics:        [list] of [str], e.g. ['precision', 'recall']
         """
         filtered_metrics = list()
-        for metric, phase_list, tags_list, micro_macro_list in self.logged_metrics:
+        for metric, phases, tag_groups, averaging_groups in self.logged_metrics:
             add_metric_1 = (
                 True
-                if tag_group is None
-                else all([tag in tags_list for tag in tag_group])
+                if required_tag_groups is None
+                else all([required_tag_group in tag_groups for required_tag_group in required_tag_groups])
             )
             add_metric_2 = (
                 True
-                if phase_group is None
-                else all([phase in phase_list for phase in phase_group])
+                if required_phases is None
+                else all([required_phase in phases for required_phase in required_phases])
             )
             add_metric_3 = (
                 True
-                if micro_macro_group is None
+                if required_averaging_groups is None
                 else all(
                     [
-                        micro_macro in micro_macro_list
-                        for micro_macro in micro_macro_group
+                        required_averaging_group in averaging_groups
+                        for required_averaging_group in required_averaging_groups
                     ]
                 )
             )
@@ -70,20 +90,3 @@ class LoggedMetrics:
                 filtered_metrics.append(metric)
 
         return list(set(filtered_metrics))
-
-    @classmethod
-    def as_flat_list(cls):
-        """
-        return logged_metrics as flat list
-        ----------------------------------
-        :return: [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', 'fil_precision_micro', ..]
-        """
-        flat_list = list()
-        for metric, _, tags_list, micro_macro_list in cls.logged_metrics:
-            for tags in tags_list:
-                if micro_macro_list == ["simple"]:
-                    flat_list.append(f"{tags}_{metric}")
-                else:
-                    for style in micro_macro_list:
-                        flat_list.append(f"{tags}_{metric}_{style}")
-        return flat_list

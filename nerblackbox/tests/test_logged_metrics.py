@@ -8,7 +8,7 @@ class TestLoggedMetrics:
     logged_metrics = LoggedMetrics()
 
     @pytest.mark.parametrize(
-        "tag_group, " "phase_group, " "micro_macro_group, " "exclude, " "metrics",
+        "required_tag_groups, " "required_phases, " "required_averaging_groups, " "exclude, " "metrics",
         [
             (
                 ["all"],
@@ -56,17 +56,17 @@ class TestLoggedMetrics:
     )
     def test_get_metrics(
         self,
-        tag_group: List[str],
-        phase_group: List[str],
-        micro_macro_group: List[str],
+        required_tag_groups: List[str],
+        required_phases: List[str],
+        required_averaging_groups: List[str],
         exclude: List[str],
         metrics: List[str],
     ):
 
         test_metrics = self.logged_metrics.get_metrics(
-            tag_group=tag_group,
-            phase_group=phase_group,
-            micro_macro_group=micro_macro_group,
+            required_tag_groups=required_tag_groups,
+            required_phases=required_phases,
+            required_averaging_groups=required_averaging_groups,
             exclude=exclude,
         )
         assert set(test_metrics) == set(metrics), f"ERROR!"
