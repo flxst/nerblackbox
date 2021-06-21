@@ -371,7 +371,7 @@ class NerModel(pl.LightningModule, ABC):
         ner_model_evaluation = NerModelEvaluation(
             current_epoch=self.current_epoch,
             tag_list=self.tag_list,
-            dataset_tags=self.params.dataset_tags,
+            annotation_scheme=self.params.dataset_tags,
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )

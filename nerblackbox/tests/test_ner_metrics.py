@@ -7,6 +7,7 @@ from nerblackbox.modules.ner_training.metrics.ner_metrics import (
     get_rid_of_special_tokens,
     convert_to_chunk,
 )
+from nerblackbox.tests.test_utils import pytest_approx
 from typing import List
 
 
@@ -111,7 +112,7 @@ class TestNerMetricsTable:
             ner_metrics_results_metric = ner_metrics_results[
                 self._extend_metric(labels, metric)
             ]
-            assert ner_metrics_results_metric == self._pytest_approx(
+            assert ner_metrics_results_metric == pytest_approx(
                 self.df[self.level][labels_metric][row]
             ), f"pred_{row}, {labels_metric}"
 
@@ -172,17 +173,6 @@ class TestNerMetricsTable:
         :return:                  [np array], e.g. np.array(['A', 'A', 'O', 'O', 'B'])
         """
         return np.array(_str.strip("[").strip("]").replace(" ", "").split(","))
-
-    @staticmethod
-    def _pytest_approx(number):
-        """
-        get acceptable pytest range for number
-        --------------------------------------
-        :param number: [float], e.g. 0.82
-        :return: pytest range, e.g. 0.82 +- 0.01
-        """
-        test_precision = 0.01
-        return pytest.approx(number, abs=test_precision)
 
 
 ########################################################################################################################

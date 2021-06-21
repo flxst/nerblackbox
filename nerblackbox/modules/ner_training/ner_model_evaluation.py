@@ -15,13 +15,21 @@ class NerModelEvaluation:
         self,
         current_epoch: int,
         tag_list: List[str],
-        dataset_tags: List[str],
+        annotation_scheme: str,
         default_logger,
         logged_metrics,
     ):
+        """
+        Args:
+            current_epoch:     e.g. 1
+            tag_list:          e.g. ["O", "PER", "ORG"]
+            annotation_scheme: e.g. "plain", "BIO"
+            default_logger:
+            logged_metrics:
+        """
         self.current_epoch = current_epoch
         self.tag_list = tag_list
-        self.dataset_tags = dataset_tags
+        self.annotation_scheme = annotation_scheme
         self.default_logger = default_logger
         self.logged_metrics = logged_metrics
 
@@ -128,7 +136,7 @@ class NerModelEvaluation:
             _np_epoch: [dict] w/ key-value pairs:
                                  'loss':     [np value]
                                  'tag_ids':  [1D np array] of length      <batch_size> x <seq_length>
-                                 'logits'    [2D np array] of size shape [<batch_size> x <seq_length>, <num_tags>]
+                                 'logits':   [2D np array] of size shape [<batch_size> x <seq_length>, <num_tags>]
 
         Returns:
             _epoch_metrics  [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
@@ -153,10 +161,6 @@ class NerModelEvaluation:
         self.default_logger.log_debug(
             "pred:", np.shape(tags["pred"]), list(set(tags["pred"]))
         )
-
-        if phase == "val":
-            for field in ["true", "pred"]:
-                np.save(f'{env_variable("DIR_RESULTS")}/{field}.npy', tags[field])
 
         # batch / dataset metrics
         _epoch_metrics = {"all_loss": _np_epoch["loss"]}
@@ -190,7 +194,7 @@ class NerModelEvaluation:
             pred_flat: [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
         """
         true_flat = _np_tag_ids.flatten()
-        pred_flat = np.argmax(_np_logits, axis=2).flatten()
+        pred_flat = np.argmax(_np_logits, axis=-1).flatten()
         return true_flat, pred_flat
 
     def _convert_tag_ids_to_tags(self, _tag_ids: np.array) -> np.array:
@@ -205,7 +209,7 @@ class NerModelEvaluation:
             _tags:    [np array] of shape [batch_size * seq_length] with [str] elements
         """
         return np.array(
-            [self.tag_list[tag_id] if tag_id >= 0 else "[S]" for tag_id in _tag_ids]
+            [self.tag_list[int(tag_id)] if tag_id >= 0 else "[S]" for tag_id in _tag_ids]
         )
 
     @staticmethod
@@ -251,7 +255,7 @@ class NerModelEvaluation:
             _tags["pred"],
             tag_list=tag_list,
             level=level,
-            plain_tags=self.dataset_tags == "plain",
+            plain_tags=self.annotation_scheme == "plain",
         )
         ner_metrics.compute(
             self.logged_metrics.get_metrics(tag_group=tag_group, phase_group=[_phase])
@@ -346,9 +350,9 @@ class NerModelEvaluation:
         epoch_tags_chunk = dict()
         for field in ["true", "pred"]:
             epoch_tags_chunk[field] = convert_to_chunk(
-                epoch_tags[field], to_bio=self.dataset_tags == "plain"
+                epoch_tags[field], to_bio=self.annotation_scheme == "plain"
             )
-        self.default_logger.log_debug("> dataset_tags:", self.dataset_tags)
+        self.default_logger.log_debug("> annotation_scheme:", self.annotation_scheme)
         self.default_logger.log_debug(
             "> epoch_tags_chunk[true]:", list(set(epoch_tags_chunk["true"]))
         )
