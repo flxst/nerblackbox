@@ -29,7 +29,7 @@ class NerMetrics:
         :param true_flat: [np array] of shape [batch_size * seq_length]
         :param pred_flat: [np array] of shape [batch_size * seq_length]
         :param tag_list:  [optional, list] of [str] labels to take into account for metrics
-        :param level:     [optional, str] 'token' or 'chunk'
+        :param level:     [optional, str] 'token' or 'entity'
         :param verbose:   [optional, bool] if True, show verbose output
         """
         self.true_flat = true_flat
@@ -41,7 +41,8 @@ class NerMetrics:
         self.results = Results()
         self.failure_value = -1
 
-        if self.level == "chunk":
+        assert self.level in ["token", "entity"], f"ERROR! level = {self.level} unknown."
+        if self.level == "entity":
             self.true_flat_bio = convert_to_chunk(self.true_flat, to_bio=plain_tags)
             self.pred_flat_bio = convert_to_chunk(self.pred_flat, to_bio=plain_tags)
 

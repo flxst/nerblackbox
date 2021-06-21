@@ -488,31 +488,31 @@ class NerModel(pl.LightningModule, ABC):
             f"--- Epoch #{self.current_epoch} {phase.ljust(5).upper()} ----"
         )
         self.default_logger.log_info(
-            "all loss:         {:.2f}".format(_metrics["all_loss"])
+            "token  all loss:         {:.2f}".format(_metrics["token_all_loss"])
         )
         self.default_logger.log_info(
-            "all acc:          {:.2f}".format(_metrics["all_acc"])
+            "token  all acc:          {:.2f}".format(_metrics["token_all_acc"])
         )
         self.default_logger.log_debug(
-            "all f1 (micro):   {:.2f}".format(_metrics["all_f1_micro"])
+            "token  all f1 (micro):   {:.2f}".format(_metrics["token_all_f1_micro"])
         )
         self.default_logger.log_debug(
-            "all f1 (macro):   {:.2f}".format(_metrics["all_f1_macro"])
+            "token  all f1 (macro):   {:.2f}".format(_metrics["token_all_f1_macro"])
         )
         self.default_logger.log_info(
-            "all  f1 (micro):   {:.2f}".format(_metrics["all_f1_micro"])
+            "token  all f1 (micro):   {:.2f}".format(_metrics["token_all_f1_micro"])
         )
         self.default_logger.log_debug(
-            "all  f1 (macro):   {:.2f}".format(_metrics["all_f1_macro"])
+            "token  all f1 (macro):   {:.2f}".format(_metrics["token_all_f1_macro"])
         )
         self.default_logger.log_info(
-            "fil  f1 (micro):   {:.2f}".format(_metrics["fil_f1_micro"])
+            "token  fil f1 (micro):   {:.2f}".format(_metrics["token_fil_f1_micro"])
         )
         self.default_logger.log_debug(
-            "fil  f1 (macro):   {:.2f}".format(_metrics["fil_f1_macro"])
+            "token  fil f1 (macro):   {:.2f}".format(_metrics["token_fil_f1_macro"])
         )
         self.default_logger.log_info(
-            "chk  f1 (micro):   {:.2f}".format(_metrics["chk_f1_micro"])
+            "entity chk f1 (micro):   {:.2f}".format(_metrics["entity_chk_f1_micro"])
         )
         self.default_logger.log_info(f"-----------------------")
         if _classification_reports is not None:

@@ -8,11 +8,12 @@ class TestLoggedMetrics:
     logged_metrics = LoggedMetrics()
 
     @pytest.mark.parametrize(
-        "required_tag_groups, " "required_phases, " "required_averaging_groups, " "exclude, " "metrics",
+        "required_tag_groups, " "required_phases, " "required_levels, " "required_averaging_groups, " "exclude, " "metrics",
         [
             (
                 ["all"],
                 ["train"],
+                None,
                 None,
                 None,
                 ["loss", "acc"],
@@ -20,6 +21,7 @@ class TestLoggedMetrics:
             (
                 ["all"],
                 ["train"],
+                None,
                 None,
                 ["acc"],
                 ["loss"],
@@ -29,11 +31,13 @@ class TestLoggedMetrics:
                 ["val"],
                 None,
                 None,
+                None,
                 ["f1", "precision", "recall"],
             ),
             (
                 ["ind"],
                 ["val"],
+                None,
                 ["micro"],
                 None,
                 ["f1", "precision", "recall"],
@@ -41,11 +45,21 @@ class TestLoggedMetrics:
             (
                 ["ind"],
                 ["val"],
+                None,
                 ["macro"],
                 None,
                 [],
             ),
             (
+                None,
+                None,
+                ["entity"],
+                None,
+                None,
+                ["precision", "recall", "f1"],
+            ),
+            (
+                None,
                 None,
                 None,
                 None,
@@ -58,6 +72,7 @@ class TestLoggedMetrics:
         self,
         required_tag_groups: List[str],
         required_phases: List[str],
+        required_levels: List[str],
         required_averaging_groups: List[str],
         exclude: List[str],
         metrics: List[str],
@@ -66,6 +81,7 @@ class TestLoggedMetrics:
         test_metrics = self.logged_metrics.get_metrics(
             required_tag_groups=required_tag_groups,
             required_phases=required_phases,
+            required_levels=required_levels,
             required_averaging_groups=required_averaging_groups,
             exclude=exclude,
         )
@@ -76,30 +92,30 @@ class TestLoggedMetrics:
         [
             (
                 [
-                    "all_loss",
-                    "all_acc",
+                    "token_all_loss",
+                    "token_all_acc",
                     #
-                    "all_precision_micro",
-                    "all_precision_macro",
-                    "all_recall_micro",
-                    "all_recall_macro",
-                    "all_f1_micro",
-                    "all_f1_macro",
+                    "token_all_precision_micro",
+                    "token_all_precision_macro",
+                    "token_all_recall_micro",
+                    "token_all_recall_macro",
+                    "token_all_f1_micro",
+                    "token_all_f1_macro",
                     #
-                    "fil_precision_micro",
-                    "fil_precision_macro",
-                    "fil_recall_micro",
-                    "fil_recall_macro",
-                    "fil_f1_micro",
-                    "fil_f1_macro",
+                    "token_fil_precision_micro",
+                    "token_fil_precision_macro",
+                    "token_fil_recall_micro",
+                    "token_fil_recall_macro",
+                    "token_fil_f1_micro",
+                    "token_fil_f1_macro",
                     #
-                    "chk_precision_micro",
-                    "chk_recall_micro",
-                    "chk_f1_micro",
+                    "entity_chk_precision_micro",
+                    "entity_chk_recall_micro",
+                    "entity_chk_f1_micro",
                     #
-                    "ind_precision_micro",
-                    "ind_recall_micro",
-                    "ind_f1_micro",
+                    "token_ind_precision_micro",
+                    "token_ind_recall_micro",
+                    "token_ind_f1_micro",
                 ]
             )
         ],

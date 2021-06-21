@@ -27,7 +27,7 @@ class TestNerMetricsTable:
             ),
             sep=";",
         )
-        for level in ["token", "chunk"]
+        for level in ["token", "entity"]
     }
     level: str
     labels: List[str]
@@ -41,8 +41,8 @@ class TestNerMetricsTable:
         self.macro = True
         self._test_predictions_from_csv()
 
-    def test_predictions_from_csv_chunk(self):
-        self.level = "chunk"
+    def test_predictions_from_csv_entity(self):
+        self.level = "entity"
         self.labels = ["fil"]
         self.micro = True
         self.macro = False
@@ -245,7 +245,7 @@ class TestNerMetrics:
 if __name__ == "__main__":
     test_ner_metrics_table = TestNerMetricsTable()
     test_ner_metrics_table.test_predictions_from_csv_token()
-    test_ner_metrics_table.test_predictions_from_csv_chunk()
+    test_ner_metrics_table.test_predictions_from_csv_entity()
 
     test_ner_metrics = TestNerMetrics()
     test_ner_metrics.test_get_rid_of_special_tokens()

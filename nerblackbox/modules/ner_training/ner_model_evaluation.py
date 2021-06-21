@@ -163,7 +163,7 @@ class NerModelEvaluation:
         )
 
         # batch / dataset metrics
-        _epoch_metrics = {"all_loss": _np_epoch["loss"]}
+        _epoch_metrics = {"token_all_loss": _np_epoch["loss"]}
         for tag_subset in [
             "all",
             "fil",
@@ -249,56 +249,68 @@ class NerModelEvaluation:
         tag_list = self._get_filtered_tags(tag_subset)
         required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "chk"] else ["ind"]
         required_phases = [_phase]
-        level = "chunk" if tag_subset == "chk" else "token"
-
-        ner_metrics = NerMetrics(
-            _tags["true"],
-            _tags["pred"],
-            tag_list=tag_list,
-            level=level,
-            plain_tags=self.annotation_scheme == "plain",
-        )
-        ner_metrics.compute(
-            self.logged_metrics.get_metrics(required_tag_groups=required_tag_groups,
-                                            required_phases=required_phases)
-        )
-        results = ner_metrics.results_as_dict()
+        levels = ["token", "entity"]
+        # level = "chunk" if tag_subset == "chk" else "token"
 
         _metrics = dict()
-        # simple
-        for metric_type in self.logged_metrics.get_metrics(
-            required_tag_groups=required_tag_groups,
-            required_phases=required_phases,
-            required_averaging_groups=["simple"],
-            exclude=["loss"],
-        ):
-            # if results[metric_type] is not None:
-            _metrics[f"{tag_subset}_{metric_type}"] = results[metric_type]
+        for level in levels:
+            required_levels = [level]
+            metrics_to_compute = self.logged_metrics.get_metrics(required_tag_groups=required_tag_groups,
+                                                                 required_phases=required_phases,
+                                                                 required_levels=required_levels)
 
-        # micro
-        for metric_type in self.logged_metrics.get_metrics(
-            required_tag_groups=required_tag_groups,
-            required_phases=required_phases,
-            required_averaging_groups=["micro"]
-        ):
-            # if results[f'{metric_type}_micro'] is not None:
-            if required_tag_groups == ["ind"]:
-                _metrics[f"{tag_subset}_{metric_type}"] = results[
-                    f"{metric_type}_micro"
-                ]
+            if len(metrics_to_compute):
+                ner_metrics = NerMetrics(
+                    _tags["true"],
+                    _tags["pred"],
+                    tag_list=tag_list,
+                    level=level,
+                    plain_tags=self.annotation_scheme == "plain",
+                )
+                ner_metrics.compute(metrics_to_compute)
+                results = ner_metrics.results_as_dict()
             else:
-                _metrics[f"{tag_subset}_{metric_type}_micro"] = results[
-                    f"{metric_type}_micro"
-                ]
+                results = dict()
 
-        # macro
-        for metric_type in self.logged_metrics.get_metrics(
-            required_tag_groups=required_tag_groups, required_phases=required_phases, required_averaging_groups=["macro"]
-        ):
-            # if results[f'{metric_type}_macro'] is not None:
-            _metrics[f"{tag_subset}_{metric_type}_macro"] = results[
-                f"{metric_type}_macro"
-            ]
+            # simple
+            for metric_type in self.logged_metrics.get_metrics(
+                required_tag_groups=required_tag_groups,
+                required_phases=required_phases,
+                required_levels=required_levels,
+                required_averaging_groups=["simple"],
+                exclude=["loss"],
+            ):
+                # if results[metric_type] is not None:
+                _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[metric_type]
+
+            # micro
+            for metric_type in self.logged_metrics.get_metrics(
+                required_tag_groups=required_tag_groups,
+                required_phases=required_phases,
+                required_levels=required_levels,
+                required_averaging_groups=["micro"]
+            ):
+                # if results[f'{metric_type}_micro'] is not None:
+                if required_tag_groups == ["ind"]:
+                    _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[
+                        f"{metric_type}_micro"
+                    ]
+                else:
+                    _metrics[f"{level}_{tag_subset}_{metric_type}_micro"] = results[
+                        f"{metric_type}_micro"
+                    ]
+
+            # macro
+            for metric_type in self.logged_metrics.get_metrics(
+                required_tag_groups=required_tag_groups,
+                required_phases=required_phases,
+                required_levels=required_levels,
+                required_averaging_groups=["macro"]
+            ):
+                # if results[f'{metric_type}_macro'] is not None:
+                _metrics[f"{level}_{tag_subset}_{metric_type}_macro"] = results[
+                    f"{metric_type}_macro"
+                ]
 
         return _metrics
 
