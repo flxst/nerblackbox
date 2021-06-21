@@ -167,7 +167,6 @@ class NerModelEvaluation:
         for tag_subset in [
             "all",
             "fil",
-            "chk",
         ] + self.tag_list:
             _epoch_metrics.update(
                 self._compute_metrics_for_tags_subset(
@@ -247,10 +246,9 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         tag_list = self._get_filtered_tags(tag_subset)
-        required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "chk"] else ["ind"]
+        required_tag_groups = [tag_subset] if tag_subset in ["all", "fil"] else ["ind"]
         required_phases = [_phase]
         levels = ["token", "entity"]
-        # level = "chunk" if tag_subset == "chk" else "token"
 
         _metrics = dict()
         for level in levels:
@@ -327,7 +325,7 @@ class NerModelEvaluation:
         """
         if _tag_subset == "all":
             return self.tag_list
-        elif _tag_subset in ["fil", "chk"]:
+        elif _tag_subset == "fil":
             return [tag for tag in self.tag_list if tag != "O"]
         else:
             return [_tag_subset]
@@ -377,7 +375,7 @@ class NerModelEvaluation:
         )
 
         classification_report += (
-            "\n--- chunk-based (seqeval) classification report on fil ---\n"
+            "\n--- entity-based (seqeval) classification report on fil ---\n"
         )
         classification_report += classification_report_seqeval(
             epoch_tags_chunk["true"], epoch_tags_chunk["pred"], suffix=False

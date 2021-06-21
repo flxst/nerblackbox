@@ -512,7 +512,7 @@ class NerModel(pl.LightningModule, ABC):
             "token  fil f1 (macro):   {:.2f}".format(_metrics["token_fil_f1_macro"])
         )
         self.default_logger.log_info(
-            "entity chk f1 (micro):   {:.2f}".format(_metrics["entity_chk_f1_micro"])
+            "entity fil f1 (micro):   {:.2f}".format(_metrics["entity_fil_f1_micro"])
         )
         self.default_logger.log_info(f"-----------------------")
         if _classification_reports is not None:

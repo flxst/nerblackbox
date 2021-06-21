@@ -213,7 +213,7 @@ def logging_end(
 
     _model_stopped.mlflow_client.log_metric("epoch_best", epoch_best)
     _model_stopped.mlflow_client.log_metric("epoch_stopped", epoch_stopped)
-    for metric in ("token_all_f1_micro", "token_fil_f1_micro", "entity_chk_f1_micro"):
+    for metric in ("token_all_f1_micro", "token_fil_f1_micro", "entity_fil_f1_micro"):
         _model_stopped.mlflow_client.log_metric(
             f"epoch_stopped_val_{metric}",
             _model_stopped.epoch_metrics["val"][epoch_stopped][metric],
@@ -243,7 +243,7 @@ def _tb_logger_stopped_epoch(
     _epoch_stopped,
     _model_stopped,
     _model_best,
-    metrics=("token_all_f1_micro", "token_fil_f1_micro", "entity_chk_f1_micro"),
+    metrics=("token_all_f1_micro", "token_fil_f1_micro", "entity_fil_f1_micro"),
 ):
     """
     log hparams and metrics for stopped epoch

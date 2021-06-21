@@ -92,6 +92,10 @@ class TestLoggedMetrics:
         [
             (
                 [
+                    "entity_fil_precision_micro",
+                    "entity_fil_recall_micro",
+                    "entity_fil_f1_micro",
+                    #
                     "token_all_loss",
                     "token_all_acc",
                     #
@@ -108,10 +112,6 @@ class TestLoggedMetrics:
                     "token_fil_recall_macro",
                     "token_fil_f1_micro",
                     "token_fil_f1_macro",
-                    #
-                    "entity_chk_precision_micro",
-                    "entity_chk_recall_micro",
-                    "entity_chk_f1_micro",
                     #
                     "token_ind_precision_micro",
                     "token_ind_recall_micro",

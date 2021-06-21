@@ -6,7 +6,7 @@ class LoggedMetrics:
     # metric,                 str: "loss", "acc", "precision", "recall", "f1"
     # phases,           List[str]: subset of ["train", "val", "test"]
     # levels,           List[str]: subset of ["token", "entity"]
-    # tag_groups,       List[str]: subset of ["all", "fil", "chk", "ind"]
+    # tag_groups,       List[str]: subset of ["all", "fil", "ind"]
     # averaging_groups: List[str]: subset of ["simple", "micro", "macro"]
     logged_metrics = [
         ("loss", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
@@ -19,13 +19,13 @@ class LoggedMetrics:
             ["micro", "macro"],
         ),
         ("precision", ["val", "test"], ["ind"], ["token"], ["micro"]),
-        ("precision", ["val", "test"], ["chk"], ["entity"], ["micro"]),
+        ("precision", ["val", "test"], ["fil"], ["entity"], ["micro"]),
         ("recall", ["val", "test"], ["all", "fil"], ["token"], ["micro", "macro"]),
         ("recall", ["val", "test"], ["ind"], ["token"], ["micro"]),
-        ("recall", ["val", "test"], ["chk"], ["entity"], ["micro"]),
+        ("recall", ["val", "test"], ["fil"], ["entity"], ["micro"]),
         ("f1", ["val", "test"], ["all", "fil"], ["token"], ["micro", "macro"]),
         ("f1", ["val", "test"], ["ind"], ["token"], ["micro"]),
-        ("f1", ["val", "test"], ["chk"], ["entity"], ["micro"]),
+        ("f1", ["val", "test"], ["fil"], ["entity"], ["micro"]),
     ]
 
     @classmethod
