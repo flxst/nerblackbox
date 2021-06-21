@@ -378,7 +378,7 @@ class NerModelEvaluation:
             "\n--- entity-based (seqeval) classification report on fil ---\n"
         )
         classification_report += classification_report_seqeval(
-            epoch_tags_chunk["true"], epoch_tags_chunk["pred"], suffix=False
+            [epoch_tags_chunk["true"]], [epoch_tags_chunk["pred"]], suffix=False
         )
 
         warnings.resetwarnings()

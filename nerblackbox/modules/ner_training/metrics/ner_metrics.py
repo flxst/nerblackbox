@@ -114,7 +114,7 @@ class NerMetrics:
                 self.results.precision_micro = self.failure_value
         else:
             self.results.precision_micro = precision_seqeval(
-                self.true_flat_bio, self.pred_flat_bio, average="micro"
+                [self.true_flat_bio], [self.pred_flat_bio], average="micro"
             )
 
     def recall(self):
@@ -152,7 +152,7 @@ class NerMetrics:
                 self.results.recall_micro = self.failure_value
         else:
             self.results.recall_micro = recall_seqeval(
-                self.true_flat_bio, self.pred_flat_bio, average="micro"
+                [self.true_flat_bio], [self.pred_flat_bio], average="micro"
             )
 
     def f1_score(self):
@@ -192,7 +192,7 @@ class NerMetrics:
                 self.results.f1_micro = self.failure_value
         else:
             self.results.f1_micro = f1_seqeval(
-                self.true_flat_bio, self.pred_flat_bio, average="micro"
+                [self.true_flat_bio], [self.pred_flat_bio], average="micro"
             )
 
 
