@@ -93,8 +93,11 @@ class TestLoggedMetrics:
             (
                 [
                     "entity_fil_precision_micro",
+                    "entity_fil_precision_macro",
                     "entity_fil_recall_micro",
+                    "entity_fil_recall_macro",
                     "entity_fil_f1_micro",
+                    "entity_fil_f1_macro",
                     #
                     "entity_ind_precision_micro",
                     "entity_ind_recall_micro",

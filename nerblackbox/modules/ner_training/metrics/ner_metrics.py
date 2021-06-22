@@ -116,6 +116,16 @@ class NerMetrics:
                     print(e)
                 self.results.precision_micro = self.failure_value
         elif self.level == "entity":
+            # precision_macro
+            try:
+                self.results.precision_macro = precision_seqeval(
+                    [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                )
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.precision_macro = self.failure_value
+
             # precision_micro
             if self.tag_index is None:
                 try:
@@ -182,6 +192,16 @@ class NerMetrics:
                     print(e)
                 self.results.recall_micro = self.failure_value
         elif self.level == "entity":
+            # recall_macro
+            try:
+                self.results.recall_macro = recall_seqeval(
+                    [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                )
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                self.results.recall_macro = self.failure_value
+
             # recall_micro
             if self.tag_index is None:
                 try:
@@ -250,9 +270,22 @@ class NerMetrics:
                     print(e)
                 self.results.f1_micro = self.failure_value
         elif self.level == "entity":
-            # f1_micro
             self.precision()
             self.recall()
+
+            # f1_macro
+            if self.results.precision_macro == self.failure_value or \
+                    self.results.recall_macro == self.failure_value:
+                self.results.f1_macro = self.failure_value
+            else:
+                if self.tag_index is None:
+                    self.results.f1_macro = f1_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                    )
+                else:
+                    self.results.f1_macro = self.failure_value
+
+            # f1_micro
             if self.results.precision_micro == self.failure_value or \
                     self.results.recall_micro == self.failure_value:
                 self.results.f1_micro = self.failure_value

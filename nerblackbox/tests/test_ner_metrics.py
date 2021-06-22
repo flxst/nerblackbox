@@ -45,7 +45,7 @@ class TestNerMetricsTable:
         self.level = "entity"
         self.labels = ["fil", "A", "B", "C"]
         self.micro = True
-        self.macro = False
+        self.macro = True
         self._test_predictions_from_csv()
 
     ####################################################################################################################

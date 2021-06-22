@@ -11,24 +11,21 @@ class LoggedMetrics:
     logged_metrics = [
         ("loss", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
         ("acc", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
-        (
-            "precision",
-            ["val", "test"],
-            ["all", "fil"],
-            ["token"],
-            ["micro", "macro"],
-        ),
-        ("precision", ["val", "test"], ["O"], ["token"], ["micro"]),
+
+        ("precision", ["val", "test"], ["all"], ["token"], ["micro", "macro"]),
+        ("precision", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("precision", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
-        ("precision", ["val", "test"], ["fil"], ["entity"], ["micro"]),
-        ("recall", ["val", "test"], ["all", "fil"], ["token"], ["micro", "macro"]),
-        ("recall", ["val", "test"], ["O"], ["token"], ["micro"]),
+        ("precision", ["val", "test"], ["O"], ["token"], ["micro"]),
+
+        ("recall", ["val", "test"], ["all"], ["token"], ["micro", "macro"]),
+        ("recall", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("recall", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
-        ("recall", ["val", "test"], ["fil"], ["entity"], ["micro"]),
-        ("f1", ["val", "test"], ["all", "fil"], ["token"], ["micro", "macro"]),
-        ("f1", ["val", "test"], ["O"], ["token"], ["micro"]),
+        ("recall", ["val", "test"], ["O"], ["token"], ["micro"]),
+
+        ("f1", ["val", "test"], ["all"], ["token"], ["micro", "macro"]),
+        ("f1", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("f1", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
-        ("f1", ["val", "test"], ["fil"], ["entity"], ["micro"]),
+        ("f1", ["val", "test"], ["O"], ["token"], ["micro"]),
     ]
 
     @classmethod
