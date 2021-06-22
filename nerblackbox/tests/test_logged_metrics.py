@@ -15,7 +15,7 @@ class TestLoggedMetrics:
                 ["train"],
                 None,
                 None,
-                None,
+                ["numberofclasses"],
                 ["loss", "acc"],
             ),
             (
@@ -23,7 +23,7 @@ class TestLoggedMetrics:
                 ["train"],
                 None,
                 None,
-                ["acc"],
+                ["numberofclasses", "acc"],
                 ["loss"],
             ),
             (
@@ -31,23 +31,23 @@ class TestLoggedMetrics:
                 ["val"],
                 None,
                 None,
-                None,
-                ["f1", "precision", "recall"],
+                ["numberofclasses"],
+                ["precision", "recall", "f1"],
             ),
             (
                 ["ind"],
                 ["val"],
                 None,
                 ["micro"],
-                None,
-                ["f1", "precision", "recall"],
+                ["numberofclasses"],
+                ["precision", "recall", "f1"],
             ),
             (
                 ["ind"],
                 ["val"],
                 None,
                 ["macro"],
-                None,
+                ["numberofclasses"],
                 [],
             ),
             (
@@ -55,7 +55,7 @@ class TestLoggedMetrics:
                 None,
                 ["entity"],
                 None,
-                None,
+                ["numberofclasses"],
                 ["precision", "recall", "f1"],
             ),
             (
@@ -63,8 +63,24 @@ class TestLoggedMetrics:
                 None,
                 None,
                 None,
+                ["numberofclasses"],
+                ["loss", "acc", "precision", "recall", "f1"],
+            ),
+            (
                 None,
-                ["loss", "precision", "acc", "recall", "f1"],
+                None,
+                None,
+                None,
+                None,
+                ["loss", "acc", "precision", "recall", "f1", "numberofclasses"],
+            ),
+            (
+                None,
+                None,
+                ["entity"],
+                ["macro"],
+                None,
+                ["precision", "recall", "f1", "numberofclasses"],
             ),
         ],
     )
@@ -92,6 +108,7 @@ class TestLoggedMetrics:
         [
             (
                 [
+                    "entity_fil_numberofclasses_macro",
                     "entity_fil_precision_micro",
                     "entity_fil_precision_macro",
                     "entity_fil_recall_micro",
@@ -113,6 +130,7 @@ class TestLoggedMetrics:
                     "token_all_f1_micro",
                     "token_all_f1_macro",
                     #
+                    "token_fil_numberofclasses_macro",
                     "token_fil_precision_micro",
                     "token_fil_precision_macro",
                     "token_fil_recall_micro",

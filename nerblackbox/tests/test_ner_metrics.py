@@ -18,6 +18,7 @@ class TestNerMetricsTable:
 
     metrics_simple = ["acc"]
     metrics_micro_macro = ["precision", "recall", "f1"]
+    metrics_special = ["numberofclasses_macro"]
     metrics = metrics_simple + metrics_micro_macro
 
     df = {
@@ -153,6 +154,8 @@ class TestNerMetricsTable:
                         _metrics_extended.append(f"{field}_macro")
                     if self.micro:
                         _metrics_extended.append(f"{field}_micro")
+            for field in self.metrics_special:
+                _metrics_extended.append(f"{field}")
         else:
             _metrics_extended = self.metrics_micro_macro
         return _metrics_extended

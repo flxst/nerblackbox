@@ -276,9 +276,8 @@ class NerModelEvaluation:
                 required_phases=required_phases,
                 required_levels=required_levels,
                 required_averaging_groups=["simple"],
-                exclude=["loss"],
+                exclude=["numberofclasses", "loss"],
             ):
-                # if results[metric_type] is not None:
                 _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[metric_type]
 
             # micro
@@ -286,9 +285,9 @@ class NerModelEvaluation:
                 required_tag_groups=required_tag_groups,
                 required_phases=required_phases,
                 required_levels=required_levels,
-                required_averaging_groups=["micro"]
+                required_averaging_groups=["micro"],
+                exclude=["numberofclasses"],
             ):
-                # if results[f'{metric_type}_micro'] is not None:
                 if required_tag_groups in [["O"], ["ind"]]:
                     _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[
                         f"{metric_type}_micro"
@@ -303,9 +302,8 @@ class NerModelEvaluation:
                 required_tag_groups=required_tag_groups,
                 required_phases=required_phases,
                 required_levels=required_levels,
-                required_averaging_groups=["macro"]
+                required_averaging_groups=["macro"],
             ):
-                # if results[f'{metric_type}_macro'] is not None:
                 _metrics[f"{level}_{tag_subset}_{metric_type}_macro"] = results[
                     f"{metric_type}_macro"
                 ]

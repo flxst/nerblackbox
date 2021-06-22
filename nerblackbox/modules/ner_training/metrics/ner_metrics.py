@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from dataclasses import asdict
 from typing import List, Optional, Tuple
 
+import numpy as np
 from sklearn.metrics import accuracy_score as accuracy_sklearn
 from sklearn.metrics import precision_score as precision_sklearn
 from sklearn.metrics import recall_score as recall_sklearn
@@ -85,50 +86,59 @@ class NerMetrics:
     def precision(self):
         """
         computes precision (macro/micro) of predictions (_pred_flat) w.r.t. ground truth (_true_flat)
-        -----------------------------------------------------------------------------------------------
-        :return: precision_macro [np array] for each class, then averaged
-                 precision_micro [np array] for all examples
+
+        Returns:
+            precision_micro [np array] for all examples
+            precision_macro [np array] for each class, then averaged
         """
+        self._compute_well_defined_classes()
         if self.level == "token":
-            self.results.precision_macro = self._token_evaluation(evaluation_function=precision_sklearn,
-                                                                  average="macro")
             self.results.precision_micro = self._token_evaluation(evaluation_function=precision_sklearn,
                                                                   average="micro")
+            self.results.precision_macro = self._token_evaluation(evaluation_function=precision_sklearn,
+                                                                  average="macro")
 
         elif self.level == "entity":
-            self.results.precision_macro = self._entity_evaluation_macro(evaluation_function=precision_seqeval)
             self.results.precision_micro = self._entity_evaluation_micro(evaluation_function=precision_seqeval)
+            self.results.precision_macro = self._entity_evaluation_macro(evaluation_function=precision_seqeval,
+                                                                         restrict_macro=True)
 
     def recall(self):
         """
         computes recall (macro/micro) of predictions (_pred_flat) w.r.t. ground truth (_true_flat)
-        -----------------------------------------------------------------------------------------------
-        :return: recall_macro [np array] for each class, then averaged
-                 recall_micro [np array] for all examples
+
+        Returns:
+            recall_micro [np array] for all examples
+            recall_macro [np array] for each class, then averaged
         """
+        self._compute_well_defined_classes()
         if self.level == "token":
-            self.results.recall_macro = self._token_evaluation(evaluation_function=recall_sklearn,
-                                                               average="macro")
             self.results.recall_micro = self._token_evaluation(evaluation_function=recall_sklearn,
                                                                average="micro")
+            self.results.recall_macro = self._token_evaluation(evaluation_function=recall_sklearn,
+                                                               average="macro")
         elif self.level == "entity":
-            self.results.recall_macro = self._entity_evaluation_macro(evaluation_function=recall_seqeval)
             self.results.recall_micro = self._entity_evaluation_micro(evaluation_function=recall_seqeval)
+            self.results.recall_macro = self._entity_evaluation_macro(evaluation_function=recall_seqeval,
+                                                                      restrict_macro=True)
 
     def f1_score(self):
         """
         computes f1 score (macro/micro) of predictions (_pred_flat) w.r.t. ground truth (_true_flat)
-        -----------------------------------------------------------------------------------------------
-        :return: f1_score_macro [np array] for each class, then averaged
-                 f1_score_micro [np array] for all examples
+
+        Returns:
+            f1_score_micro [np array] for all examples
+            f1_score_macro [np array] for each class, then averaged
         """
+        self._compute_well_defined_classes()
         if self.level == "token":
-            self.results.f1_macro = self._token_evaluation(evaluation_function=prf_sklearn,
-                                                           average="macro")
             self.results.f1_micro = self._token_evaluation(evaluation_function=prf_sklearn,
                                                            average="micro")
+            self.results.f1_macro = self._token_evaluation(evaluation_function=prf_sklearn,
+                                                           average="macro")
         elif self.level == "entity":
-            self.results.f1_macro, self.results.f1_micro = self._entity_evaluation_f1(evaluation_function=f1_seqeval)
+            self.results.f1_micro, self.results.f1_macro = self._entity_evaluation_f1(evaluation_function=f1_seqeval,
+                                                                                      restrict_macro=True)
 
     def _token_evaluation(self, evaluation_function: callable, average: str) -> float:
         """
@@ -161,30 +171,6 @@ class NerMetrics:
                     average=average,
                     warn_for=("precision", "recall", "f-score"),
                 )
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            metric = self.failure_value
-
-        return metric
-
-    def _entity_evaluation_macro(self, evaluation_function: callable) -> float:
-        """
-        compute precision/recall macro average on entity level
-
-        Args:
-            evaluation_function: precision_seqeval, recall_seqeval
-
-        Returns:
-            metric: precision/recall on entity level, 'macro' averaged
-        """
-        assert evaluation_function in [precision_seqeval, recall_seqeval], \
-            f"evaluation function = {evaluation_function} unknown / not allowed."
-
-        try:
-            metric = evaluation_function(
-                [self.true_flat_bio], [self.pred_flat_bio], average="macro"
-            )
         except UndefinedMetricWarning as e:
             if self.verbose:
                 print(e)
@@ -238,34 +224,108 @@ class NerMetrics:
 
         return metric
 
-    def _entity_evaluation_f1(self, evaluation_function: callable) -> Tuple[float, float]:
+    def _compute_well_defined_classes(self) -> None:
+        """
+        Created Attributes:
+            results.classindices_macro: list of indices of well-defined classes in terms of precision, recall, f1
+            results.numberofclasses_macro: number of well-defined classes in terms of precision, recall, f1
+        """
+        def _get_index_list(evaluation_function: callable, true_array, pred_array):
+            try:
+                metric_list = evaluation_function(
+                    true_array, pred_array, average=None, zero_division="warn",
+                )
+                index_list = [i for i in range(len(metric_list))]
+            except UndefinedMetricWarning:
+                metric_list_all = evaluation_function(
+                    true_array, pred_array, average=None, zero_division=0
+                )
+
+                index_list = list()
+                for index, metric_elem in enumerate(metric_list_all):
+                    if metric_elem != 0:
+                        index_list.append(index)
+                    else:
+                        metric_elem_alt = evaluation_function(
+                            true_array, pred_array, average=None, zero_division=1
+                        )[index]
+                        if metric_elem_alt != 1:
+                            index_list.append(index)
+
+            return index_list
+
+        if self.level == "token":
+            index_list_precision = _get_index_list(evaluation_function=precision_sklearn,
+                                                   true_array=self.true_flat,
+                                                   pred_array=self.pred_flat)
+            index_list_recall = _get_index_list(evaluation_function=recall_sklearn,
+                                                true_array=self.true_flat,
+                                                pred_array=self.pred_flat)
+        else:
+            index_list_precision = _get_index_list(evaluation_function=precision_seqeval,
+                                                   true_array=[self.true_flat_bio],
+                                                   pred_array=[self.pred_flat_bio])
+            index_list_recall = _get_index_list(evaluation_function=recall_seqeval,
+                                                true_array=[self.true_flat_bio],
+                                                pred_array=[self.pred_flat_bio])
+
+        self.results.classindices_macro = tuple([index for index in index_list_precision if index in index_list_recall])
+        if self.level == "token":
+            self.results.numberofclasses_macro = len(self.results.classindices_macro) - 1  # disregard "O" label
+        else:
+            self.results.numberofclasses_macro = len(self.results.classindices_macro)
+
+    def _entity_evaluation_macro(self, evaluation_function: callable, restrict_macro: bool = True) -> float:
+        """
+        compute precision/recall macro average on entity level
+
+        Args:
+            evaluation_function: precision_seqeval, recall_seqeval
+            restrict_macro: if True,  compute macro-average only on well-defined labels
+                            if False, compute macro-average on all labels (replacing the ill-defined ones by 0)
+
+        Returns:
+            metric: precision/recall on entity level, 'macro' averaged on well-defined classes
+        """
+        assert evaluation_function in [precision_seqeval, recall_seqeval], \
+            f"evaluation function = {evaluation_function} unknown / not allowed."
+
+        if restrict_macro:
+            metric_list = evaluation_function(
+                [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division=0
+            )
+            metric_list_filtered = [metric_list[index] for index in self.results.classindices_macro]
+            metric = np.average(metric_list_filtered) if len(metric_list_filtered) else self.failure_value
+        else:
+            try:
+                metric = evaluation_function(
+                    [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                )
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                metric = self.failure_value
+
+        return metric
+
+    def _entity_evaluation_f1(self, evaluation_function: callable, restrict_macro: bool = True) -> Tuple[float, float]:
         """
         compute f1 micro or macro average on entity level
 
         Args:
             evaluation_function: f1_seqeval
+            restrict_macro: if True,  compute macro-average only on well-defined labels
+                            if False, compute macro-average on all labels (replacing the ill-defined ones by 0)
 
         Returns:
-            f1_macro: f1 on entity level, 'macro' averaged
-            f1_micro: f1 on entity level, 'macro' averaged
+            f1_micro: f1 on entity level, 'micro' averaged
+            f1_macro: f1 on entity level, 'macro' averaged on well-defined classes
         """
         assert evaluation_function in [f1_seqeval], \
             f"evaluation function = {evaluation_function} unknown / not allowed."
 
         self.precision()
         self.recall()
-
-        # f1_macro
-        if self.results.precision_macro == self.failure_value or \
-                self.results.recall_macro == self.failure_value:
-            f1_macro = self.failure_value
-        else:
-            if self.tag_index is None:  # "fil"
-                f1_macro = evaluation_function(
-                    [self.true_flat_bio], [self.pred_flat_bio], average="macro"
-                )
-            else:  # "ind"
-                f1_macro = self.failure_value
 
         # f1_micro
         if self.results.precision_micro == self.failure_value or \
@@ -281,7 +341,26 @@ class NerMetrics:
                     [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division="warn",
                 )[self.tag_index]
 
-        return f1_macro, f1_micro
+        # f1_macro
+        if self.results.precision_macro == self.failure_value or \
+                self.results.recall_macro == self.failure_value:
+            f1_macro = self.failure_value
+        else:
+            if self.tag_index is None:  # "fil"
+                if restrict_macro:
+                    metric_list = evaluation_function(
+                        [self.true_flat_bio], [self.pred_flat_bio], average=None,
+                    )
+                    metric_list_filtered = [metric_list[index] for index in self.results.classindices_macro]
+                    f1_macro = np.average(metric_list_filtered)
+                else:
+                    f1_macro = evaluation_function(
+                        [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                    )
+            else:  # "ind"
+                f1_macro = self.failure_value
+
+        return f1_micro, f1_macro
 
 
 @dataclass
@@ -293,6 +372,8 @@ class Results:
     recall_macro: float = -1
     f1_micro: float = -1
     f1_macro: float = -1
+    classindices_macro: Tuple[float] = ()
+    numberofclasses_macro: float = -1
 
 
 def convert_to_chunk(tag_list: List[str], to_bio=True) -> List[str]:

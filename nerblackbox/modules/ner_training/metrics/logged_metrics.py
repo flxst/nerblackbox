@@ -26,6 +26,8 @@ class LoggedMetrics:
         ("f1", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("f1", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
         ("f1", ["val", "test"], ["O"], ["token"], ["micro"]),
+
+        ("numberofclasses", ["val", "test"], ["fil"], ["token", "entity"], ["macro"]),  # special
     ]
 
     @classmethod
