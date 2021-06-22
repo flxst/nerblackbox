@@ -21,6 +21,7 @@ class NerMetrics:
         true_flat,
         pred_flat,
         tag_list=None,
+        tag_index=None,
         level="token",
         plain_tags=False,
         verbose=False,
@@ -28,13 +29,15 @@ class NerMetrics:
         """
         :param true_flat: [np array] of shape [batch_size * seq_length]
         :param pred_flat: [np array] of shape [batch_size * seq_length]
-        :param tag_list:  [optional, list] of [str] labels to take into account for metrics
+        :param tag_list:  [optional, list] of [str] labels to take into account for metrics -> if level = 'token'
+        :param tag_index: [optional, int]            index to take into account for metrics -> if level = 'entity'
         :param level:     [optional, str] 'token' or 'entity'
         :param verbose:   [optional, bool] if True, show verbose output
         """
         self.true_flat = true_flat
         self.pred_flat = pred_flat
         self.tag_list = tag_list
+        self.tag_index = tag_index
         self.level = level
         self.verbose = verbose
 
@@ -112,10 +115,38 @@ class NerMetrics:
                 if self.verbose:
                     print(e)
                 self.results.precision_micro = self.failure_value
-        else:
-            self.results.precision_micro = precision_seqeval(
-                [self.true_flat_bio], [self.pred_flat_bio], average="micro"
-            )
+        elif self.level == "entity":
+            # precision_micro
+            if self.tag_index is None:
+                try:
+                    self.results.precision_micro = precision_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average="micro"
+                    )
+                except UndefinedMetricWarning as e:
+                    if self.verbose:
+                        print(e)
+                    self.results.precision_micro = self.failure_value
+            else:
+                try:
+                    self.results.precision_micro = precision_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division="warn"
+                    )[self.tag_index]
+                except UndefinedMetricWarning:
+                    try:
+                        self.results.precision_micro = precision_seqeval(
+                            [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division=0
+                        )[self.tag_index]
+                    except IndexError:
+                        self.results.precision_micro = self.failure_value
+
+                    if self.results.precision_micro == 0:
+                        self.results.precision_micro = precision_seqeval(
+                            [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division=1
+                        )[self.tag_index]
+                        if self.results.precision_micro == 1:
+                            self.results.precision_micro = self.failure_value
+                except IndexError:
+                    self.results.precision_micro = self.failure_value
 
     def recall(self):
         """
@@ -150,10 +181,38 @@ class NerMetrics:
                 if self.verbose:
                     print(e)
                 self.results.recall_micro = self.failure_value
-        else:
-            self.results.recall_micro = recall_seqeval(
-                [self.true_flat_bio], [self.pred_flat_bio], average="micro"
-            )
+        elif self.level == "entity":
+            # recall_micro
+            if self.tag_index is None:
+                try:
+                    self.results.recall_micro = recall_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average="micro"
+                    )
+                except UndefinedMetricWarning as e:
+                    if self.verbose:
+                        print(e)
+                    self.results.recall_micro = self.failure_value
+            else:
+                try:
+                    self.results.recall_micro = recall_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division="warn",
+                    )[self.tag_index]
+                except UndefinedMetricWarning:
+                    try:
+                        self.results.recall_micro = recall_seqeval(
+                            [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division=0
+                        )[self.tag_index]
+                    except IndexError:
+                        self.results.precision_micro = self.failure_value
+
+                    if self.results.recall_micro == 0:
+                        self.results.recall_micro = recall_seqeval(
+                            [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division=1
+                        )[self.tag_index]
+                        if self.results.recall_micro == 1:
+                            self.results.recall_micro = self.failure_value
+                except IndexError:
+                    self.results.precision_micro = self.failure_value
 
     def f1_score(self):
         """
@@ -190,10 +249,22 @@ class NerMetrics:
                 if self.verbose:
                     print(e)
                 self.results.f1_micro = self.failure_value
-        else:
-            self.results.f1_micro = f1_seqeval(
-                [self.true_flat_bio], [self.pred_flat_bio], average="micro"
-            )
+        elif self.level == "entity":
+            # f1_micro
+            self.precision()
+            self.recall()
+            if self.results.precision_micro == self.failure_value or \
+                    self.results.recall_micro == self.failure_value:
+                self.results.f1_micro = self.failure_value
+            else:
+                if self.tag_index is None:
+                    self.results.f1_micro = f1_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average="micro"
+                    )
+                else:
+                    self.results.f1_micro = f1_seqeval(
+                        [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division="warn",
+                    )[self.tag_index]
 
 
 @dataclass

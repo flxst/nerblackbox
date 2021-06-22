@@ -43,7 +43,7 @@ class TestNerMetricsTable:
 
     def test_predictions_from_csv_entity(self):
         self.level = "entity"
-        self.labels = ["fil"]
+        self.labels = ["fil", "A", "B", "C"]
         self.micro = True
         self.macro = False
         self._test_predictions_from_csv()
@@ -86,17 +86,24 @@ class TestNerMetricsTable:
         """
 
         def get_tag_list(_labels):
-            if labels == "all":
+            if _labels == "all":
                 return None
-            elif labels == "fil":
+            elif _labels == "fil":
                 return ["A", "B"]
             else:
                 return _labels
 
+        def get_tag_index(_labels):
+            if _labels == "fil":
+                return None
+            else:
+                return ["A", "B", "C"].index(_labels)
+
         ner_metrics = NerMetrics(
             true,
             pred,
-            tag_list=get_tag_list(labels),
+            tag_list=get_tag_list(labels) if self.level == "token" else None,
+            tag_index=get_tag_index(labels) if self.level == "entity" else None,
             level=self.level,
             plain_tags=True,
             verbose=True,
@@ -114,7 +121,7 @@ class TestNerMetricsTable:
             ]
             assert ner_metrics_results_metric == pytest_approx(
                 self.df[self.level][labels_metric][row]
-            ), f"pred_{row}, {labels_metric}"
+            ), f"{self.level}: pred_{row}, {labels_metric}"
 
             _tested_metrics.append(labels_metric)
 

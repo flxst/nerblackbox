@@ -3,11 +3,10 @@ import numpy as np
 import torch
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
-from typing import List, Dict, Union, Tuple
+from typing import List, Dict, Union, Tuple, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
 from nerblackbox.modules.ner_training.metrics.ner_metrics import convert_to_chunk
-from nerblackbox.modules.utils.env_variable import env_variable
 
 
 class NerModelEvaluation:
@@ -245,8 +244,8 @@ class NerModelEvaluation:
         Returns:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
-        tag_list = self._get_filtered_tags(tag_subset)
-        required_tag_groups = [tag_subset] if tag_subset in ["all", "fil"] else ["ind"]
+        tag_list, tag_list_indices = self._get_filtered_tags(tag_subset)
+        required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "O"] else ["ind"]
         required_phases = [_phase]
         levels = ["token", "entity"]
 
@@ -261,7 +260,8 @@ class NerModelEvaluation:
                 ner_metrics = NerMetrics(
                     _tags["true"],
                     _tags["pred"],
-                    tag_list=tag_list,
+                    tag_list=tag_list if level == "token" else None,
+                    tag_index=tag_list_indices if level == "entity" else None,
                     level=level,
                     plain_tags=self.annotation_scheme == "plain",
                 )
@@ -289,7 +289,7 @@ class NerModelEvaluation:
                 required_averaging_groups=["micro"]
             ):
                 # if results[f'{metric_type}_micro'] is not None:
-                if required_tag_groups == ["ind"]:
+                if required_tag_groups in [["O"], ["ind"]]:
                     _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[
                         f"{metric_type}_micro"
                     ]
@@ -312,7 +312,7 @@ class NerModelEvaluation:
 
         return _metrics
 
-    def _get_filtered_tags(self, _tag_subset: str) -> List[str]:
+    def _get_filtered_tags(self, _tag_subset: str) -> Tuple[List[str], Optional[int]]:
         """
         helper method for _compute_metrics()
         get list of filtered tags corresponding to _tag_subset name
@@ -321,14 +321,24 @@ class NerModelEvaluation:
             _tag_subset: [str], e.g. 'all', 'fil', 'PER'
 
         Returns:
-            _filtered_tags: [list] of filtered tags [str]
+            _filtered_tags:       list of filtered tags
+            _filtered_tags_index: filtered tags index in case of single _filtered_tag, ignoring "O"
         """
         if _tag_subset == "all":
-            return self.tag_list
+            _filtered_tags = self.tag_list
+            _filtered_tags_index = None
         elif _tag_subset == "fil":
-            return [tag for tag in self.tag_list if tag != "O"]
+            _filtered_tags = [tag for tag in self.tag_list if tag != "O"]
+            _filtered_tags_index = None
         else:
-            return [_tag_subset]
+            _filtered_tags = [_tag_subset]
+            _filtered_tags_index_list = [self.tag_list.index(_tag_subset)]
+            assert len(_filtered_tags_index_list) == 1
+            _filtered_tags_index = _filtered_tags_index_list[0]
+            if _tag_subset != "O":
+                _filtered_tags_index -= 1
+
+        return _filtered_tags, _filtered_tags_index
 
     ####################################################################################################################
     # 2. CLASSIFICATION REPORT #########################################################################################
@@ -350,7 +360,7 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         # token-based classification report
-        tag_list_filtered = self._get_filtered_tags("fil")
+        tag_list_filtered, _ = self._get_filtered_tags("fil")
         classification_report: str = ""
         classification_report += f"\n>>> Phase: {phase} | Epoch: {epoch}"
         classification_report += (

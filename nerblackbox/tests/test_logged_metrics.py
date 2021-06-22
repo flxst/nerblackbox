@@ -85,7 +85,7 @@ class TestLoggedMetrics:
             required_averaging_groups=required_averaging_groups,
             exclude=exclude,
         )
-        assert set(test_metrics) == set(metrics), f"ERROR!"
+        assert set(test_metrics) == set(metrics), f"test_metrics = {test_metrics} != {metrics}"
 
     @pytest.mark.parametrize(
         "metrics_flat_list",
@@ -95,6 +95,10 @@ class TestLoggedMetrics:
                     "entity_fil_precision_micro",
                     "entity_fil_recall_micro",
                     "entity_fil_f1_micro",
+                    #
+                    "entity_ind_precision_micro",
+                    "entity_ind_recall_micro",
+                    "entity_ind_f1_micro",
                     #
                     "token_all_loss",
                     "token_all_acc",
@@ -116,10 +120,15 @@ class TestLoggedMetrics:
                     "token_ind_precision_micro",
                     "token_ind_recall_micro",
                     "token_ind_f1_micro",
+                    #
+                    "token_O_precision_micro",
+                    "token_O_recall_micro",
+                    "token_O_f1_micro",
                 ]
             )
         ],
     )
     def test_as_flat_list(self, metrics_flat_list: List[str]):
         test_metrics_flat_list = self.logged_metrics.as_flat_list()
-        assert set(test_metrics_flat_list) == set(metrics_flat_list), f"ERROR! 2"
+        assert set(test_metrics_flat_list) == set(metrics_flat_list), \
+            f"test_metrics_flat_list = {test_metrics_flat_list} != {metrics_flat_list}"

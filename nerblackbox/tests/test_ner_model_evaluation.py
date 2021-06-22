@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import torch
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.tests.utils import PseudoDefaultLogger
@@ -183,24 +183,28 @@ class TestNerModelEvaluation:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "_tag_subset, " "_filtered_tags",
+        "_tag_subset, " "_filtered_tags, " "_filtered_tags_index",
         [
-            ("all", ["O", "PER", "ORG"]),
-            ("fil", ["PER", "ORG"]),
-            ("O", ["O"]),
-            ("PER", ["PER"]),
-            ("ORG", ["ORG"]),
+            ("all", ["O", "PER", "ORG"], None),
+            ("fil", ["PER", "ORG"], None),
+            ("O", ["O"], 0),
+            ("PER", ["PER"], 0),
+            ("ORG", ["ORG"], 1),
         ],
     )
     def test_get_filtered_tags(
         self,
         _tag_subset: str,
         _filtered_tags: List[str],
+        _filtered_tags_index: Optional[int],
     ) -> None:
-        test_filtered_tags = self.ner_model_evaluation._get_filtered_tags(_tag_subset)
+        test_filtered_tags, test_filtered_tags_index = self.ner_model_evaluation._get_filtered_tags(_tag_subset)
         assert (
             test_filtered_tags == _filtered_tags
         ), f"test_filtered_tags = {test_filtered_tags} != {_filtered_tags}"
+        assert (
+            test_filtered_tags_index == _filtered_tags_index
+        ), f"test_filtered_tags_index = {test_filtered_tags_index} != {_filtered_tags_index}"
 
     ####################################################################################################################
     @pytest.mark.parametrize(
@@ -221,12 +225,28 @@ class TestNerModelEvaluation:
                     "token_fil_f1_micro": 1.0,
                     "token_fil_f1_macro": 1.0,
                     "entity_fil_recall_micro": 1.0,
-                    "entity_fil_recall_macro": 1.0,
+                    # "entity_fil_recall_macro": 1.0,
                     "entity_fil_precision_micro": 1.0,
-                    "entity_fil_precision_macro": 1.0,
+                    # "entity_fil_precision_macro": 1.0,
                     "entity_fil_f1_micro": 1.0,
-                    "entity_fil_f1_macro": 1.0,
+                    # "entity_fil_f1_macro": 1.0,
                 },
+            ),
+            (
+                    {
+                        "true": np.array(["O", "PER", "ORG", "PER"]),
+                        "pred": np.array(["O", "PER", "ORG", "PER"]),
+                    },
+                    "val",
+                    "PER",
+                    {
+                        "token_PER_recall": 1.0,
+                        "token_PER_precision": 1.0,
+                        "token_PER_f1": 1.0,
+                        "entity_PER_recall": 1.0,
+                        "entity_PER_precision": 1.0,
+                        "entity_PER_f1": 1.0,
+                    },
             ),
         ],
     )
@@ -240,7 +260,13 @@ class TestNerModelEvaluation:
         test_metrics = self.ner_model_evaluation._compute_metrics_for_tags_subset(
             _tags, _phase, tag_subset
         )
-        for k, v in test_metrics.items():
+
+        a = set(list(test_metrics.keys()))
+        b = set(list(metrics.keys()))
+        assert len(a.difference(b)) == 0, a.difference(b)
+        assert len(b.difference(a)) == 0, b.difference(a)
+
+        for k in list(set(list(test_metrics.keys()) + list(metrics.keys()))):
             assert (
                 test_metrics[k] == metrics[k]
             ), f"test_metrics[{k}] = {test_metrics[k]} != {metrics[k]}"
@@ -268,6 +294,12 @@ class TestNerModelEvaluation:
                     "entity_fil_precision_micro": 0.0,
                     "entity_fil_recall_micro": 0.0,
                     "entity_fil_f1_micro": 0.0,
+                    "entity_PER_precision": 0.0,
+                    "entity_PER_recall": 0.0,
+                    "entity_PER_f1": 0.0,
+                    "entity_ORG_precision": -1.0,
+                    "entity_ORG_recall": 0.0,
+                    "entity_ORG_f1": -1.0,
                     "token_all_loss": 2.0,
                     "token_all_acc": 0.75,
                     "token_all_precision_micro": 0.75,
@@ -309,6 +341,12 @@ class TestNerModelEvaluation:
         test_epoch_metrics, test_epoch_tags = self.ner_model_evaluation._compute_metrics(
             phase, np_epoch
         )
+
+        a = set(list(test_epoch_metrics.keys()))
+        b = set(list(epoch_metrics.keys()))
+        assert len(a.difference(b)) == 0, a.difference(b)
+        assert len(b.difference(a)) == 0, b.difference(a)
+
         for k in list(set(list(test_epoch_tags.keys()) + list(epoch_tags.keys()))):
             assert np.array_equal(test_epoch_tags[k], epoch_tags[k]), \
                 f"key = {k}: test_epoch_tags = {test_epoch_tags[k]} != {epoch_tags[k]}"
@@ -339,6 +377,12 @@ class TestNerModelEvaluation:
                     "entity_fil_precision_micro": 0.0,
                     "entity_fil_recall_micro": 0.0,
                     "entity_fil_f1_micro": 0.0,
+                    "entity_PER_precision": 0.0,
+                    "entity_PER_recall": 0.0,
+                    "entity_PER_f1": 0.0,
+                    "entity_ORG_precision": -1.0,
+                    "entity_ORG_recall": 0.0,
+                    "entity_ORG_f1": -1.0,
                     "token_all_loss": 2.0,
                     "token_all_acc": 0.75,
                     "token_all_precision_micro": 0.75,
@@ -375,6 +419,12 @@ class TestNerModelEvaluation:
             epoch_loss: float,
     ) -> None:
         test_epoch_metrics, _, test_epoch_loss = self.ner_model_evaluation.execute(phase, outputs)
+
+        a = set(list(test_epoch_metrics.keys()))
+        b = set(list(epoch_metrics.keys()))
+        assert len(a.difference(b)) == 0, a.difference(b)
+        assert len(b.difference(a)) == 0, b.difference(a)
+
         for k in list(set(list(test_epoch_metrics.keys()) + list(epoch_metrics.keys()))):
             assert test_epoch_metrics[k] == pytest_approx(epoch_metrics[k]), \
                 f"key = {k}: test_epoch_metrics = {test_epoch_metrics[k]} != {epoch_metrics[k]}"
