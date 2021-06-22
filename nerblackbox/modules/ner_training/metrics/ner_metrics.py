@@ -205,7 +205,7 @@ class NerMetrics:
         assert evaluation_function in [precision_seqeval, recall_seqeval], \
             f"evaluation function = {evaluation_function} unknown / not allowed."
 
-        if self.tag_index is None:
+        if self.tag_index is None:  # "fil"
             try:
                 metric = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average="micro"
@@ -214,7 +214,7 @@ class NerMetrics:
                 if self.verbose:
                     print(e)
                 metric = self.failure_value
-        else:
+        else:  # "ind"
             try:
                 metric = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division="warn",
@@ -260,11 +260,11 @@ class NerMetrics:
                 self.results.recall_macro == self.failure_value:
             f1_macro = self.failure_value
         else:
-            if self.tag_index is None:
-                f1_macro = f1_seqeval(
+            if self.tag_index is None:  # "fil"
+                f1_macro = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average="macro"
                 )
-            else:
+            else:  # "ind"
                 f1_macro = self.failure_value
 
         # f1_micro
@@ -272,12 +272,12 @@ class NerMetrics:
                 self.results.recall_micro == self.failure_value:
             f1_micro = self.failure_value
         else:
-            if self.tag_index is None:
-                f1_micro = f1_seqeval(
+            if self.tag_index is None:  # "fil"
+                f1_micro = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average="micro"
                 )
-            else:
-                f1_micro = f1_seqeval(
+            else:  # "ind"
+                f1_micro = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average=None, zero_division="warn",
                 )[self.tag_index]
 
