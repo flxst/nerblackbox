@@ -17,6 +17,10 @@ from seqeval.metrics import f1_score as f1_seqeval
 
 
 class NerMetrics:
+    """
+    On the token  level, the tags are evaluated in the given annotation scheme (e.g. plain, BIO)
+    On the entity level, the tags are evaluated in the BIO scheme (after converting if needed)
+    """
     def __init__(
         self,
         true_flat,
