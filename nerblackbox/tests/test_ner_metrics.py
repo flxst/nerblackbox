@@ -4,8 +4,7 @@ import pytest
 from pkg_resources import resource_filename
 from nerblackbox.modules.ner_training.metrics.ner_metrics import (
     NerMetrics,
-    get_rid_of_special_tokens,
-    convert_to_chunk,
+    convert2bio,
 )
 from nerblackbox.tests.test_utils import pytest_approx
 from typing import List
@@ -190,66 +189,41 @@ class TestNerMetricsTable:
 ########################################################################################################################
 class TestNerMetrics:
     @pytest.mark.parametrize(
-        "input_sequence, " "output_sequence",
+        "input_sequence, " "convert_to_bio, " "output_sequence",
         [
             (
-                ["A", "A", "O", "O", "B"],
-                ["A", "A", "O", "O", "B"],
-            ),
-            (
-                ["[CLS]", "A", "A", "O", "O", "B", "[SEP]"],
-                ["O", "A", "A", "O", "O", "B", "O"],
-            ),
-            (
-                ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
                 ["O", "A", "A", "O", "O", "O", "B", "O"],
-            ),
-        ],
-    )
-    def test_get_rid_of_special_tokens(
-        self, input_sequence: List[str], output_sequence: List[str]
-    ):
-        test_output_sequence = get_rid_of_special_tokens(input_sequence)
-        assert (
-            test_output_sequence == output_sequence
-        ), f"{test_output_sequence} != {output_sequence}"
-
-    @pytest.mark.parametrize(
-        "input_sequence, " "to_bio, " "output_sequence",
-        [
-            (
-                ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
                 True,
                 ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
             (
-                ["[CLS]", "B-A", "I-A", "[UNK]", "O", "O", "B-B", "[SEP]"],
+                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
                 False,
                 ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
             (
-                ["[CLS]", "A", "A", "[UNK]", "O", "O", "B", "[SEP]"],
+                ["O", "A", "A", "O", "O", "O", "B", "O"],
                 False,
                 None,
             ),
             (
-                ["[CLS]", "B-A", "I-A", "[UNK]", "O", "O", "B-B", "[SEP]"],
+                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
                 True,
                 None,
             ),
         ],
     )
-    def test_convert_to_chunk(
-        self, input_sequence: List[str], to_bio: bool, output_sequence: List[str]
+    def test_convert2bio(
+        self, input_sequence: List[str], convert_to_bio: bool, output_sequence: List[str]
     ):
         if output_sequence is not None:
-            test_output_sequence = convert_to_chunk(input_sequence, to_bio)
+            test_output_sequence = convert2bio(input_sequence, convert_to_bio)
             assert (
                 test_output_sequence == output_sequence
             ), f"{test_output_sequence} != {output_sequence}"
         else:
             with pytest.raises(Exception):
-                convert_to_chunk(input_sequence, to_bio)
+                convert2bio(input_sequence, convert_to_bio)
 
 
 if __name__ == "__main__":
@@ -258,5 +232,4 @@ if __name__ == "__main__":
     test_ner_metrics_table.test_predictions_from_csv_entity()
 
     test_ner_metrics = TestNerMetrics()
-    test_ner_metrics.test_get_rid_of_special_tokens()
-    test_ner_metrics.test_convert_to_chunk()
+    test_ner_metrics.test_convert2bio()

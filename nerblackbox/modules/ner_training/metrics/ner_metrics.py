@@ -47,8 +47,8 @@ class NerMetrics:
 
         assert self.level in ["token", "entity"], f"ERROR! level = {self.level} unknown."
         if self.level == "entity":
-            self.true_flat_bio = convert_to_chunk(self.true_flat, to_bio=plain_tags)
-            self.pred_flat_bio = convert_to_chunk(self.pred_flat, to_bio=plain_tags)
+            self.true_flat_bio = convert2bio(self.true_flat, convert_to_bio=plain_tags)
+            self.pred_flat_bio = convert2bio(self.pred_flat, convert_to_bio=plain_tags)
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -376,28 +376,26 @@ class Results:
     numberofclasses_macro: float = -1
 
 
-def convert_to_chunk(tag_list: List[str], to_bio=True) -> List[str]:
+def convert2bio(tag_list: List[str], convert_to_bio=True) -> List[str]:
     """
-    - get rid of special tokens
-    - add bio prefixed to tags
+    - add bio prefixes if tag_list is in plain annotation scheme
 
     Args:
-        tag_list:      e.g. ['O',   'ORG',   'ORG']
-        to_bio:        whether to cast to bio labels
+        tag_list:       e.g. ['O',   'ORG',   'ORG']
+        convert_to_bio: whether to cast to bio labels
 
     Returns:
         bio_tag_list:  e.g. ['O', 'B-ORG', 'I-ORG']
     """
-    clean_tag_list = get_rid_of_special_tokens(tag_list)
-    if to_bio:
-        assert_plain_tags(clean_tag_list)
-        return add_bio_to_tag_list(clean_tag_list)
+    if convert_to_bio:
+        _assert_plain_tags(tag_list)
+        return _convert_tags_plain2bio(tag_list)
     else:
-        assert_bio_tags(clean_tag_list)
-        return clean_tag_list
+        _assert_bio_tags(tag_list)
+        return tag_list
 
 
-def assert_plain_tags(tag_list: List[str]) -> None:
+def _assert_plain_tags(tag_list: List[str]) -> None:
     for tag in tag_list:
         if tag != "O" and (len(tag) > 2 and tag[1] == "-"):
             raise Exception(
@@ -405,7 +403,7 @@ def assert_plain_tags(tag_list: List[str]) -> None:
             )
 
 
-def assert_bio_tags(tag_list: List[str]) -> None:
+def _assert_bio_tags(tag_list: List[str]) -> None:
     for tag in tag_list:
         if tag != "O" and (len(tag) <= 2 or tag[1] != "-"):
             raise Exception(
@@ -413,9 +411,9 @@ def assert_bio_tags(tag_list: List[str]) -> None:
             )
 
 
-def add_bio_to_tag_list(tag_list: List[str]) -> List[str]:
+def _convert_tags_plain2bio(tag_list: List[str]) -> List[str]:
     """
-    adds bio prefixes to tags
+    adds bio prefixes to plain tags
 
     Args:
         tag_list:     e.g. ['O',   'ORG',   'ORG']
@@ -424,14 +422,14 @@ def add_bio_to_tag_list(tag_list: List[str]) -> List[str]:
         bio_tag_list: e.g. ['O', 'B-ORG', 'I-ORG']
     """
     return [
-        _add_bio_to_tag(tag_list[i], previous=tag_list[i - 1] if i > 0 else None)
+        _convert_tag_plain2bio(tag_list[i], previous=tag_list[i - 1] if i > 0 else None)
         for i in range(len(tag_list))
     ]
 
 
-def _add_bio_to_tag(tag: str, previous: Optional[str] = None) -> str:
+def _convert_tag_plain2bio(tag: str, previous: Optional[str] = None) -> str:
     """
-    add bio prefix to tag, depending on previous tag
+    add bio prefix to plain tag, depending on previous tag
 
     Args:
         tag:      e.g. 'ORG'
@@ -448,17 +446,3 @@ def _add_bio_to_tag(tag: str, previous: Optional[str] = None) -> str:
         return f"B-{tag}"
     else:
         return f"I-{tag}"
-
-
-def get_rid_of_special_tokens(tag_list: List[str]) -> List[str]:
-    """
-    replace special tokens ('[CLS]', '[SEP]', '[PAD]') by 'O'
-
-    Args:
-        tag_list:         e.g. ['[CLS]', 'O', 'ORG', 'ORG', '[SEP]']
-
-    Returns:
-        cleaned_tag_list: e.g. [    'O', 'O', 'ORG', 'ORG',     'O']
-    """
-
-    return [tag if not tag.startswith("[") else "O" for tag in tag_list]

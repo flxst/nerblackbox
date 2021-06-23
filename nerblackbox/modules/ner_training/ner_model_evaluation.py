@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report as classification_report_sklea
 from typing import List, Dict, Union, Tuple, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.ner_training.metrics.ner_metrics import convert_to_chunk
+from nerblackbox.modules.ner_training.metrics.ner_metrics import convert2bio
 
 
 class NerModelEvaluation:
@@ -199,6 +199,7 @@ class NerModelEvaluation:
         """
         helper method for _compute_metrics()
         convert tag_ids (int) to tags (str)
+        special tags [*] have tag_id = -100 and are converted to [S]
 
         Args:
             _tag_ids: [np array] of shape [batch_size * seq_length] with [int] elements
@@ -371,8 +372,8 @@ class NerModelEvaluation:
         # chunk-based classification report
         epoch_tags_chunk = dict()
         for field in ["true", "pred"]:
-            epoch_tags_chunk[field] = convert_to_chunk(
-                epoch_tags[field], to_bio=self.annotation_scheme == "plain"
+            epoch_tags_chunk[field] = convert2bio(
+                epoch_tags[field], convert_to_bio=self.annotation_scheme == "plain"
             )
         self.default_logger.log_debug("> annotation_scheme:", self.annotation_scheme)
         self.default_logger.log_debug(
