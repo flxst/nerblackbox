@@ -94,8 +94,8 @@ class NerModelPredict(NerModel):
             examples: e.g. ["example 1", "example 2"]
 
         Returns:
-            predictions: with .internal [list] of (word, tag) tuples \
-                         and  .external [list] of (word, tag) tuples
+            predictions: with .internal = [list] of (word, tag) tuples \
+                         and  .external = [list] of [dict] w/ keys = char_start, char_end, word, tag
         """
         return self._predict(examples, proba=False)
 
@@ -105,8 +105,8 @@ class NerModelPredict(NerModel):
         Args:
             examples: e.g. ["example 1", "example 2"]
         Returns:
-            predictions: with .internal [list] of (word, proba_dist) tuples \
-                         and  .external [list] of (word, proba_dist) tuples \
+            predictions: with .internal = [list] of (word, proba_dist) tuples
+                         and  .external = [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
         return self._predict(examples, proba=True)
@@ -121,8 +121,9 @@ class NerModelPredict(NerModel):
             proba: predict probabilities instead of labels
 
         Returns:
-            predictions: with .internal [list] of (word, tag / proba_dist) tuples
-                         and  .external [list] of dict w/ keys = char_start, char_end, word, tag / proba_dist
+            predictions: with .internal = [list] of (word, tag/proba_dist) tuples
+                         and  .external = [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
+                         where proba_dist = [dict] that maps self.tag_list to probabilities
         """
         if isinstance(examples, str):
             examples = [examples]

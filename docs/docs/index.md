@@ -53,7 +53,7 @@ pip install nerblackbox
         ```
 
 
-- and use either the [`Command Line Interface (CLI)`](api_documentation/cli) or the [`Python API`](api_documentation/python_api/overview) for fine-tuning and model application:
+- and use either the [`CLI (Command Line Interface)`](cli/cli) or the [`Python API`](python_api/overview) for fine-tuning and model application:
 
     !!! note "fine-tuning and model application"
         === "CLI"

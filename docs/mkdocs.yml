@@ -30,11 +30,11 @@ nav:
       - 'guide/getting_started.md'
       - 'guide/custom_experiments.md'
       - 'guide/datasets_and_models.md'
-    - API Documentation:
-      - Command Line Interface: 'api_documentation/cli.md'
-      - Python API:
-        - Overview: 'api_documentation/python_api/overview.md'
-        - 'api_documentation/python_api/nerblackbox.md'
-        - 'api_documentation/python_api/experiment_results.md'
-        - 'api_documentation/python_api/experiments_results.md'
-        - 'api_documentation/python_api/ner_model_predict.md'
+    - CLI:
+      - Overview: 'cli/cli.md'
+    - Python API:
+      - Overview: 'python_api/overview.md'
+      - 'python_api/nerblackbox.md'
+      - 'python_api/experiment_results.md'
+      - 'python_api/experiments_results.md'
+      - 'python_api/ner_model_predict.md'

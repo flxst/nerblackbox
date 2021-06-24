@@ -1,4 +1,4 @@
-# Command Line Interface
+# CLI (Command Line Interface)
 
 ::: mkdocs-click 
     :module: nerblackbox.cli

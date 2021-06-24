@@ -1,6 +1,6 @@
 # Getting Started
 
-Use either the [`Command Line Interface (CLI)`](../../api_documentation/cli) or the [`Python API`](../../api_documentation/python_api/overview).
+Use either the [`CLI (Command Line Interface)`](../../cli/cli) or the [`Python API`](../../python_api/overview).
 
 ??? note "basic usage"
     === "CLI"
@@ -102,7 +102,7 @@ Once an experiment is finished, one can inspect the main results or detailed res
         experiment_results = nerbb.get_experiment_results("<experiment_name>")
         ```
 
-    Python: see [ExperimentResults](../../api_documentation/python_api/experiment_results) for details on how to use ``experiment_results``
+    Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results``
 
 ??? note "get detailed results & run histories using either mlflow or tensorboard"
   
@@ -130,7 +130,7 @@ Once an experiment is finished, one can inspect the main results or detailed res
         experiment_results.best_model.predict(<text_input>)
         ```
 
-    Python: see [NerModelPredict](../../api_documentation/python_api/ner_model_predict) for details on how to use ``experiments_results.best_model``
+    Python: see [NerModelPredict](../../python_api/ner_model_predict) for details on how to use ``experiments_results.best_model``
 
 -----------
 ## 3. Experiments Overview
@@ -157,7 +157,7 @@ Once one or more experiments have been run, the following commands can be used t
         experiments_results = nerbb.get_experiments_results()
         ```
 
-    Python: see [ExperimentsResults](../../api_documentation/python_api/experiments_results) for details on how to use ``experiments_results``
+    Python: see [ExperimentsResults](../../python_api/experiments_results) for details on how to use ``experiments_results``
 
 -----------
 ## 4. Next Steps
