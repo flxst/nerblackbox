@@ -16,8 +16,8 @@ class NerModelPredict(NerModel):
 
     @classmethod
     def load_from_checkpoint(
-        cls,
-        checkpoint_path: str,
+            cls,
+            checkpoint_path: str,
     ) -> "NerModelPredict":
         """load model in inference mode from checkpoint_path
 
@@ -87,42 +87,73 @@ class NerModelPredict(NerModel):
     ####################################################################################################################
     # PREDICT
     ####################################################################################################################
-    def predict(self, examples: Union[str, List[str]]) -> List[Namespace]:
-        """predict tags
+    def predict(self, examples: Union[str, List[str]], level: str = "entity") -> List[List[Dict[str, str]]]:
+        """predict tags for examples.
+
+        Examples:
+            ```
+            predict(["arbetsförmedlingen finns i stockholm"], level = "entity")
+            # [
+            #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "ORG"},
+            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
+            # ]
+            ```
+            ```
+            predict(["arbetsförmedlingen finns i stockholm"], level = "token")
+            # [
+            #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "B-ORG"},
+            #     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "O"},
+            #     {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "B-LOC"},
+            # ]
+            ```
 
         Args:
-            examples: e.g. ["example 1", "example 2"]
+            examples:    e.g. ["example 1", "example 2"]
+            level:       "entity" or "token"
 
         Returns:
-            predictions: with .internal = [list] of (word, tag) tuples \
-                         and  .external = [list] of [dict] w/ keys = char_start, char_end, word, tag
+            predictions: [list] of predictions for the different examples.
+                         each list contains a [list] of [dict] w/ keys = char_start, char_end, word, tag
         """
-        return self._predict(examples, proba=False)
+        return self._predict(examples, level, proba=False)
 
-    def predict_proba(self, examples: Union[str, List[str]]) -> List[Namespace]:
+    def predict_proba(self, examples: Union[str, List[str]]) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict probabilities for tags
 
+        Examples:
+            ```
+            predict_proba(["arbetsförmedlingen finns i stockholm"])
+            # [
+            #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "proba_dist: {"O": 0.21, "B-ORG": 0.56, ..}},
+            #     {"char_start": "19", "char_end": "24", "token": "finns", "proba_dist: {"O": 0.87, "B-ORG": 0.02, ..}},
+            #     {"char_start": "25", "char_end": "26", "token": "i", "proba_dist: {"O": 0.95, "B-ORG": 0.01, ..}},
+            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "proba_dist: {"O": 0.14, "B-ORG": 0.22, ..}},
+            # ]
+            ```
+
         Args:
-            examples: e.g. ["example 1", "example 2"]
+            examples:    e.g. ["example 1", "example 2"]
+
         Returns:
-            predictions: with .internal = [list] of (word, proba_dist) tuples
-                         and  .external = [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
+            predictions: [list] of probability predictions for different examples.
+                         each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
-        return self._predict(examples, proba=True)
+        return self._predict(examples, level="token", proba=True)
 
     def _predict(
-        self, examples: Union[str, List[str]], proba: bool = False
-    ) -> List[Namespace]:
+            self, examples: Union[str, List[str]], level: str = "entity", proba: bool = False
+    ) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict tags or probabilities for tags
 
         Args:
-            examples: e.g. ["example 1", "example 2"]
-            proba: predict probabilities instead of labels
+            examples:    e.g. ["example 1", "example 2"]
+            level:       "entity" or "token"
+            proba:       if True, predict probabilities instead of labels
 
         Returns:
-            predictions: with .internal = [list] of (word, tag/proba_dist) tuples
-                         and  .external = [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
+            predictions: [list] of [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
         if isinstance(examples, str):
@@ -156,33 +187,25 @@ class NerModelPredict(NerModel):
             ######################################
             # 1 example, merged chunks, tokens -> words
             ######################################
-            _example_word_predictions = {
-                "internal": List[Tuple[str, Any]],
-                "external": List[Tuple[str, Any]],
-            }
-            example_word_predictions = {
-                "internal": List[Tuple[str, Any]],
-                "external": List[Dict[str, Any]],
-            }
-
-            _example_word_predictions = get_tags_on_words_between_special_tokens(
+            _example_word_predictions: List[Tuple[Union[str, Any], ...]] = get_tags_on_words_between_special_tokens(
                 example_tokens, example_token_predictions
             )
 
-            example_word_predictions["internal"] = _example_word_predictions["internal"]
-            example_word_predictions["external"] = restore_unknown_tokens(
-                _example_word_predictions["external"], example
+            example_word_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
+                _example_word_predictions, example
             )
 
-            example_word_predictions["external"] = restore_annotation_scheme_consistency(
-                example_word_predictions["external"]
-            )
+            if level == "entity":
+                example_word_predictions = restore_annotation_scheme_consistency(
+                    example_word_predictions
+                )
 
-            prediction = namespace_prediction(
-                example_word_predictions,
-            )
+                assert proba is False, f"ERROR! level = entity not allowed if proba = {proba}"
+                example_word_predictions = merge_tokens_to_entities(
+                    example_word_predictions, example
+                )
 
-            predictions.append(prediction)
+            predictions.append(example_word_predictions)
 
         ######################################
         # all examples, merged chunks, words
@@ -275,56 +298,48 @@ class NerModelPredict(NerModel):
 ########################################################################################################################
 ########################################################################################################################
 def get_tags_on_words_between_special_tokens(
-    tokens: List[str], example_token_predictions: List[Any]
-) -> Dict[str, List[Tuple[Union[str, Any], Union[str, Any]]]]:
+        tokens: List[str], example_token_predictions: List[Any]
+) -> List[Tuple[Union[str, Any], ...]]:
     """
     Args:
         tokens:                     [list] of [str]
         example_token_predictions:  [list] of [str] or [prob dist]
 
     Returns:
-        example_word_predictions:   [dict] w/ keys = "internal", "external" and
-                                              values = [list] of Tuple[str, str or prob dist]
+        example_word_predictions:   [list] of Tuple[str, str or prob dist]
     """
     # predict tags on words between [CLS] and [SEP]
-    example_word_predictions = {
-        "internal": list(),
-        "external": list(),
-    }
+    example_word_predictions = list()
     for token, example_token_prediction in zip(tokens, example_token_predictions):
         if token not in ["[CLS]", "[SEP]", "[PAD]"]:
-            example_word_predictions["internal"].append(
-                [token, example_token_prediction]
-            )
             if not token.startswith("##"):
-                example_word_predictions["external"].append(
+                example_word_predictions.append(
                     [token, example_token_prediction]
                 )
             else:
-                example_word_predictions["external"][-1][0] += token.strip("##")
+                example_word_predictions[-1][0] += token.strip("##")
 
-    for field in ["internal", "external"]:
-        example_word_predictions[field] = [tuple(elem) for elem in example_word_predictions[field]]
+    example_word_predictions = [tuple(elem) for elem in example_word_predictions]
 
     return example_word_predictions
 
 
 def restore_unknown_tokens(
-    example_word_predictions_external: List[Tuple[Union[str, Any], ...]],
-    _example: str,
-    verbose: bool = True,
-) -> List[Dict[str, Any]]:
+        example_word_predictions: List[Tuple[Union[str, Any], ...]],
+        _example: str,
+        verbose: bool = True,
+) -> List[Dict[str, Union[str, Dict]]]:
     """
     - replace "[UNK]" tokens by the original token
     - enrich tokens with char_start & char_end
 
     Args:
-        example_word_predictions_external: e.g. [('example', 'O'), ('of', 'O), ('author', 'PERSON'), ..]
+        example_word_predictions: e.g. [('example', 'O'), ('of', 'O), ('author', 'PERSON'), ..]
         _example: 'example of author'
         verbose:
 
     Returns:
-        example_word_predictions_external: e.g. [
+        example_word_predictions: e.g. [
             {"char_start": "0", "char_end": "7", "token": "example", "tag": "O"},
             ..
         ]
@@ -334,7 +349,7 @@ def restore_unknown_tokens(
     # 1. get margins of known tokens
     token_char_margins: List[Tuple[Any, ...]] = list()
     char_start = 0
-    for token, _ in example_word_predictions_external:
+    for token, _ in example_word_predictions:
         if token != "[UNK]":
             try:
                 char_start = _example.index(token, char_start)
@@ -356,10 +371,10 @@ def restore_unknown_tokens(
                 char_start = max(char_start, char_start_new)
 
     # 2. restore unknown tokens
-    for i, (token, tag) in enumerate(example_word_predictions_external):
+    for i, (token, tag) in enumerate(example_word_predictions):
         if (
-            token_char_margins[i][0] is not None
-            and token_char_margins[i][1] is not None
+                token_char_margins[i][0] is not None
+                and token_char_margins[i][1] is not None
         ):
             _predictions_external.append(
                 {
@@ -372,7 +387,7 @@ def restore_unknown_tokens(
         else:
             for j in range(2):
                 assert (
-                    token_char_margins[i][j] is None
+                        token_char_margins[i][j] is None
                 ), f"ERROR! token_char_margin[{i}][{j}] is not None for token = {token}"
 
             char_start_margin, char_end_margin = None, None
@@ -391,10 +406,10 @@ def restore_unknown_tokens(
                     char_end_margin = token_char_margins[i + k][0]
                     break
             assert (
-                char_start_margin is not None
+                    char_start_margin is not None
             ), f"ERROR! could not find char_start_margin"
             assert (
-                char_end_margin is not None
+                    char_end_margin is not None
             ), f"ERROR! could not find char_end_margin"
 
             new_token = _example[char_start_margin:char_end_margin].strip()
@@ -427,49 +442,106 @@ def restore_unknown_tokens(
 
 
 def restore_annotation_scheme_consistency(
-        example_word_predictions_external: List[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
+        example_word_predictions: List[Dict[str, Union[str, Dict]]],
+) -> List[Dict[str, Union[str, Dict]]]:
     """
     restore annotation scheme consistency in case of BIO tags
     plain tags are not modified
 
     Args:
-        example_word_predictions_external: e.g. [
+        example_word_predictions: e.g. [
             {"char_start": "0", "char_end": "7", "token": "example", "tag": "I-TAG"},
             ..
         ]
 
     Returns:
-        example_word_predictions_external: e.g. [
+        example_word_predictions: e.g. [
             {"char_start": "0", "char_end": "7", "token": "example", "tag": "B-TAG"},
             ..
         ]
     """
-    example_word_predictions_external_restored = list()
-    for i in range(len(example_word_predictions_external)):
-        current_tag = example_word_predictions_external[i]["tag"]
+    example_word_predictions_restored = list()
+    for i in range(len(example_word_predictions)):
+        current_tag = example_word_predictions[i]["tag"]
 
         if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
-            example_word_predictions_external_restored.append(example_word_predictions_external[i])
+            example_word_predictions_restored.append(example_word_predictions[i])
         else:
             assert current_tag.startswith("I-"), f"ERROR! current tag = {current_tag} expected to be of the form I-*"
-            previous_tag = example_word_predictions_external[i - 1]["tag"] if i > 0 else None
+            previous_tag = example_word_predictions[i - 1]["tag"] if i > 0 else None
             if previous_tag in [current_tag, current_tag.replace("I-", "B-")]:
-                example_word_predictions_external_restored.append(example_word_predictions_external[i])
+                example_word_predictions_restored.append(example_word_predictions[i])
             else:
-                example_word_prediction_external_restored = example_word_predictions_external[i]
+                example_word_prediction_external_restored = example_word_predictions[i]
                 example_word_prediction_external_restored["tag"] = current_tag.replace("I-", "B-")
-                example_word_predictions_external_restored.append(example_word_prediction_external_restored)
+                example_word_predictions_restored.append(example_word_prediction_external_restored)
 
-    return example_word_predictions_external_restored
+    return example_word_predictions_restored
 
 
-def namespace_prediction(example_word_predictions):
+def merge_tokens_to_entities(
+        example_word_predictions: List[Dict[str, Union[str, Dict]]],
+        example: str,
+) -> List[Dict[str, Union[str, Dict]]]:
     """
-    :param example_word_predictions   [dict] w/ keys = "internal", "external"
-                                               & values = [list] of [str] or [prob dist]
-    :return: prediction              [Namespace] w/ attributes = 'internal' | 'external'
-                                                 & values = [list] of [tuples] (word, tag / tag prob dist)
+    merge token predictions that belong together (B-* & I-*)
+    discard tokens with tag 'O'
+
+    Args:
+        example_word_predictions: e.g. [
+            {"char_start": "0", "char_end": "7", "token": "example", "tag": "B-TAG"},
+            {"char_start": "8", "char_end": "16", "token": "sentence", "tag": "I-TAG"},
+            {"char_start": "17", "char_end": "18", "token": ".", "tag": "O"},
+            ..
+        ]
+        example: str
+
+    Returns:
+        example_word_predictions: e.g. [
+            {"char_start": "0", "char_end": "16", "token": "example", "tag": "TAG"},
+            ..
+        ]
     """
-    prediction = Namespace(**example_word_predictions)
-    return prediction
+    merged_ner_tags = list()
+    count = {
+        "o_tags": 0,
+        "replace": 0,
+        "merge": 0,
+    }
+    for i in range(len(example_word_predictions)):
+        current_tag = example_word_predictions[i]["tag"]
+        if current_tag == "O":
+            # merged_ner_tag = example_word_predictions[i]
+            count["o_tags"] += 1
+            # merged_ner_tags.append(merged_ner_tag)
+        elif current_tag.startswith("B-"):
+            n_tags = 0
+            for n in range(i + 1, len(example_word_predictions)):
+                next_tag = example_word_predictions[n]["tag"]
+                # next_token_start = example_word_predictions[n].token_start
+                # previous_token_end = example_word_predictions[n - 1].token_end
+                if next_tag.startswith("I-") and \
+                        next_tag == current_tag.replace("B-", "I-"):  # and previous_token_end == next_token_start:
+                    n_tags += 1
+                else:
+                    break
+
+            merged_ner_tag = example_word_predictions[i]
+            merged_ner_tag["tag"] = merged_ner_tag["tag"].split("-")[-1]
+            if n_tags > 0:
+                merged_ner_tag["char_end"] = example_word_predictions[i + n_tags]["char_end"]
+                # merged_ner_tag.token_end = example_word_predictions[i + n_tags]["token_end"]
+                merged_ner_tag["token"] = example[int(merged_ner_tag["char_start"]): int(merged_ner_tag["char_end"])]
+                count["merge"] += 1 + n_tags
+            else:
+                count["replace"] += 1
+            merged_ner_tags.append(merged_ner_tag)
+
+    assert count["merge"] + count["replace"] + count["o_tags"] == len(example_word_predictions), \
+        f"{count} -> {sum(count.values())} != {len(example_word_predictions)}"
+
+    example_word_predictions = merged_ner_tags
+    print(f"> merged {len(example_word_predictions)} BIO-tags "
+          f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}).\n")
+
+    return example_word_predictions
