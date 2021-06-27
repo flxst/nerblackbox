@@ -87,19 +87,28 @@ class NerModelPredict(NerModel):
     ####################################################################################################################
     # PREDICT
     ####################################################################################################################
-    def predict(self, input_texts: Union[str, List[str]], level: str = "entity") -> List[List[Dict[str, str]]]:
+    def predict(self, input_texts: Union[str, List[str]], level: str = "entity", autocorrect: bool = True) -> List[List[Dict[str, str]]]:
         """predict tags for input texts. output on entity or word level.
 
         Examples:
             ```
-            predict(["arbetsförmedlingen finns i stockholm"], level = "entity")
+            predict(["arbetsförmedlingen finns i stockholm"], level="entity")
             # [
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "ORG"},
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
             # ]
             ```
             ```
-            predict(["arbetsförmedlingen finns i stockholm"], level = "word")
+            predict(["arbetsförmedlingen finns i stockholm"], level="word", autocorrect=False)
+            # [
+            #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "I-ORG"},
+            #     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "O"},
+            #     {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "B-LOC"},
+            # ]
+            ```
+            ```
+            predict(["arbetsförmedlingen finns i stockholm"], level="word", autocorrect=True)
             # [
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "B-ORG"},
             #     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "O"},
@@ -111,12 +120,13 @@ class NerModelPredict(NerModel):
         Args:
             input_texts:   e.g. ["example 1", "example 2"]
             level:         "entity" or "word"
+            autocorrect:   if True, autocorrect annotation scheme (e.g. B- and I- tags). needs to be True if level == "entity".
 
         Returns:
             predictions: [list] of predictions for the different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, tag
         """
-        return self._predict(input_texts, level, proba=False)
+        return self._predict(input_texts, level, autocorrect, proba=False)
 
     def predict_proba(self, input_texts: Union[str, List[str]]) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict probability distributions for input texts. output on word level.
@@ -140,24 +150,33 @@ class NerModelPredict(NerModel):
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
-        return self._predict(input_texts, level="word", proba=True)
+        return self._predict(input_texts, level="word", autocorrect=False, proba=True)
 
     def _predict(
-            self, input_texts: Union[str, List[str]], level: str = "entity", proba: bool = False
+            self, input_texts: Union[str, List[str]], level: str = "entity", autocorrect: bool = True, proba: bool = False
     ) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict tags or probabilities for tags
 
         Args:
             input_texts:  e.g. ["example 1", "example 2"]
             level:        "entity" or "word"
-            proba:        if True, predict probabilities instead of labels
+            autocorrect:  if True, autocorrect annotation scheme (e.g. B- and I- tags). needs to be True if level == "entity".
+            proba:        if True, predict probabilities instead of labels (on word level)
 
         Returns:
             predictions: [list] of [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
-        assert (level == "entity" and proba is False) or (level == "word"), \
-            f"ERROR! model prediction not possible for level = {level} and proba = {proba}."
+        # --- check input arguments ---
+        assert level in ["entity", "word"], \
+            f"ERROR! model prediction level = {level} unknown, needs to be entity or word."
+        if level == "entity":
+            assert autocorrect is True, f"ERROR! level = entity requires autocorrect = True."
+        if proba:
+            assert level == "word" and autocorrect is False, \
+                f"ERROR! probability predictions require level = word and autocorrect = False. " \
+                f"level = {level} and autocorrect = {autocorrect} not possible."
+        # ------------------------------
 
         if isinstance(input_texts, str):
             input_texts = [input_texts]
@@ -198,11 +217,12 @@ class NerModelPredict(NerModel):
                 _input_text_word_predictions, input_text
             )
 
-            if level == "entity":
+            if autocorrect:
                 input_text_word_predictions = restore_annotation_scheme_consistency(
                     input_text_word_predictions
                 )
 
+            if level == "entity":
                 assert proba is False, f"ERROR! level = entity not allowed if proba = {proba}"
                 input_text_word_predictions = merge_tokens_to_entities(
                     input_text_word_predictions, input_text
