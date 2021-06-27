@@ -87,8 +87,8 @@ class NerModelPredict(NerModel):
     ####################################################################################################################
     # PREDICT
     ####################################################################################################################
-    def predict(self, examples: Union[str, List[str]], level: str = "entity") -> List[List[Dict[str, str]]]:
-        """predict tags for examples.
+    def predict(self, input_texts: Union[str, List[str]], level: str = "entity") -> List[List[Dict[str, str]]]:
+        """predict tags for input texts. output on entity or word level.
 
         Examples:
             ```
@@ -99,7 +99,7 @@ class NerModelPredict(NerModel):
             # ]
             ```
             ```
-            predict(["arbetsförmedlingen finns i stockholm"], level = "token")
+            predict(["arbetsförmedlingen finns i stockholm"], level = "word")
             # [
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "B-ORG"},
             #     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "O"},
@@ -109,17 +109,17 @@ class NerModelPredict(NerModel):
             ```
 
         Args:
-            examples:    e.g. ["example 1", "example 2"]
-            level:       "entity" or "token"
+            input_texts:   e.g. ["example 1", "example 2"]
+            level:         "entity" or "word"
 
         Returns:
             predictions: [list] of predictions for the different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, tag
         """
-        return self._predict(examples, level, proba=False)
+        return self._predict(input_texts, level, proba=False)
 
-    def predict_proba(self, examples: Union[str, List[str]]) -> List[List[Dict[str, Union[str, Dict]]]]:
-        """predict probabilities for tags
+    def predict_proba(self, input_texts: Union[str, List[str]]) -> List[List[Dict[str, Union[str, Dict]]]]:
+        """predict probability distributions for input texts. output on word level.
 
         Examples:
             ```
@@ -133,43 +133,46 @@ class NerModelPredict(NerModel):
             ```
 
         Args:
-            examples:    e.g. ["example 1", "example 2"]
+            input_texts:   e.g. ["example 1", "example 2"]
 
         Returns:
             predictions: [list] of probability predictions for different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
-        return self._predict(examples, level="token", proba=True)
+        return self._predict(input_texts, level="word", proba=True)
 
     def _predict(
-            self, examples: Union[str, List[str]], level: str = "entity", proba: bool = False
+            self, input_texts: Union[str, List[str]], level: str = "entity", proba: bool = False
     ) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict tags or probabilities for tags
 
         Args:
-            examples:    e.g. ["example 1", "example 2"]
-            level:       "entity" or "token"
-            proba:       if True, predict probabilities instead of labels
+            input_texts:  e.g. ["example 1", "example 2"]
+            level:        "entity" or "word"
+            proba:        if True, predict probabilities instead of labels
 
         Returns:
             predictions: [list] of [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
-        if isinstance(examples, str):
-            examples = [examples]
+        assert (level == "entity" and proba is False) or (level == "word"), \
+            f"ERROR! model prediction not possible for level = {level} and proba = {proba}."
+
+        if isinstance(input_texts, str):
+            input_texts = [input_texts]
 
         predictions = list()
-        for example in examples:
-            predict_dataloader = self._get_predict_dataloader([example])
+        for input_text in input_texts:
+            predict_dataloader = self._get_predict_dataloader([input_text])
 
             if self.data_preprocessor.do_lower_case:
-                example = example.lower()
+                input_text = input_text.lower()
 
-            example_tokens = list()
-            example_token_predictions = list()
+            input_text_tokens = list()
+            input_text_token_predictions = list()
             ######################################
-            # 1 example, individual chunks, tokens
+            # 1 input_text, individual chunks, tokens
             ######################################
             for sample in predict_dataloader:
                 token_tensors, tokens = self._predict_on_tokens(sample)
@@ -181,34 +184,34 @@ class NerModelPredict(NerModel):
                             token_tensors
                         )
                     )
-                example_tokens.extend(tokens)
-                example_token_predictions.extend(token_predictions)
+                input_text_tokens.extend(tokens)
+                input_text_token_predictions.extend(token_predictions)
 
             ######################################
-            # 1 example, merged chunks, tokens -> words
+            # 1 input_text, merged chunks, tokens -> words
             ######################################
-            _example_word_predictions: List[Tuple[Union[str, Any], ...]] = get_tags_on_words_between_special_tokens(
-                example_tokens, example_token_predictions
+            _input_text_word_predictions: List[Tuple[Union[str, Any], ...]] = get_tags_on_words_between_special_tokens(
+                input_text_tokens, input_text_token_predictions
             )
 
-            example_word_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
-                _example_word_predictions, example
+            input_text_word_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
+                _input_text_word_predictions, input_text
             )
 
             if level == "entity":
-                example_word_predictions = restore_annotation_scheme_consistency(
-                    example_word_predictions
+                input_text_word_predictions = restore_annotation_scheme_consistency(
+                    input_text_word_predictions
                 )
 
                 assert proba is False, f"ERROR! level = entity not allowed if proba = {proba}"
-                example_word_predictions = merge_tokens_to_entities(
-                    example_word_predictions, example
+                input_text_word_predictions = merge_tokens_to_entities(
+                    input_text_word_predictions, input_text
                 )
 
-            predictions.append(example_word_predictions)
+            predictions.append(input_text_word_predictions)
 
         ######################################
-        # all examples, merged chunks, words
+        # all input_texts, merged chunks, words
         ######################################
         return predictions
 
