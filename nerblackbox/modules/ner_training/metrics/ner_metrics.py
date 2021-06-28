@@ -51,8 +51,8 @@ class NerMetrics:
 
         assert self.level in ["token", "entity"], f"ERROR! level = {self.level} unknown."
         if self.level == "entity":
-            self.true_flat_bio = convert2bio(self.true_flat, convert_to_bio=plain_tags)
-            self.pred_flat_bio = convert2bio(self.pred_flat, convert_to_bio=plain_tags)
+            self.true_flat_bio: List[str] = convert2bio(self.true_flat, convert_to_bio=plain_tags)
+            self.pred_flat_bio: List[str] = convert2bio(self.pred_flat, convert_to_bio=plain_tags)
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -396,7 +396,7 @@ def convert2bio(tag_list: List[str], convert_to_bio=True) -> List[str]:
         return _convert_tags_plain2bio(tag_list)
     else:
         _assert_bio_tags(tag_list)
-        return tag_list
+        return list(tag_list)
 
 
 def _assert_plain_tags(tag_list: List[str]) -> None:
