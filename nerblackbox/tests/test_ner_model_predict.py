@@ -177,6 +177,20 @@ class TestNerModelPredictStatic:
             ),
             (
                 [
+                    {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "B-ORG"},
+                    {"char_start": "19", "char_end": "24", "token": "finns", "tag": "I-PER"},
+                    {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                    {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "I-PER"},
+                ],
+                [
+                    {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "B-ORG"},
+                    {"char_start": "19", "char_end": "24", "token": "finns", "tag": "B-PER"},
+                    {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                    {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "B-PER"},
+                ],
+            ),
+            (
+                [
                     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "I-ORG"},
                     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "I-PER"},
                     {"char_start": "25", "char_end": "26", "token": "i", "tag": "I-PER"},

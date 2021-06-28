@@ -362,12 +362,12 @@ def restore_unknown_tokens(
         verbose:
 
     Returns:
-        example_word_predictions: e.g. [
+        example_word_predictions_restored: e.g. [
             {"char_start": "0", "char_end": "7", "token": "example", "tag": "O"},
             ..
         ]
     """
-    _predictions_external = list()
+    example_word_predictions_restored = list()
 
     # 1. get margins of known tokens
     token_char_margins: List[Tuple[Any, ...]] = list()
@@ -399,7 +399,7 @@ def restore_unknown_tokens(
                 token_char_margins[i][0] is not None
                 and token_char_margins[i][1] is not None
         ):
-            _predictions_external.append(
+            example_word_predictions_restored.append(
                 {
                     "char_start": str(token_char_margins[i][0]),
                     "char_end": str(token_char_margins[i][1]),
@@ -446,7 +446,7 @@ def restore_unknown_tokens(
                         f"char_start = {char_start_margin}, "
                         f"char_end = {char_end_margin}"
                     )
-                _predictions_external.append(
+                example_word_predictions_restored.append(
                     {
                         "char_start": str(char_start),
                         "char_end": str(char_end),
@@ -461,7 +461,7 @@ def restore_unknown_tokens(
                     f"char_end = {char_end_margin}"
                 )
 
-    return _predictions_external
+    return example_word_predictions_restored
 
 
 def restore_annotation_scheme_consistency(
@@ -478,26 +478,29 @@ def restore_annotation_scheme_consistency(
         ]
 
     Returns:
-        example_word_predictions: e.g. [
+        example_word_predictions_restored: e.g. [
             {"char_start": "0", "char_end": "7", "token": "example", "tag": "B-TAG"},
             ..
         ]
     """
-    example_word_predictions_restored = list()
+    example_word_predictions_restored: List[Dict[str, str]] = list()
     for i in range(len(example_word_predictions)):
+        example_word_prediction_restored = example_word_predictions[i]
         current_tag = example_word_predictions[i]["tag"]
 
         if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
-            example_word_predictions_restored.append(example_word_predictions[i])
-        else:
-            assert current_tag.startswith("I-"), f"ERROR! current tag = {current_tag} expected to be of the form I-*"
+            example_word_predictions_restored.append(example_word_prediction_restored)
+        elif current_tag.startswith("I-"):
             previous_tag = example_word_predictions[i - 1]["tag"] if i > 0 else None
-            if previous_tag in [current_tag, current_tag.replace("I-", "B-")]:
-                example_word_predictions_restored.append(example_word_predictions[i])
-            else:
-                example_word_prediction_external_restored = example_word_predictions[i]
-                example_word_prediction_external_restored["tag"] = current_tag.replace("I-", "B-")
-                example_word_predictions_restored.append(example_word_prediction_external_restored)
+
+            if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
+                example_word_prediction_restored["tag"] = current_tag.replace("I-", "B-")
+
+            example_word_predictions_restored.append(example_word_prediction_restored)
+        else:
+            raise Exception(f"ERROR! current tag = {current_tag} expected to be of the form I-*")
+
+    assert len(example_word_predictions_restored) == len(example_word_predictions), f"ERROR!"
 
     return example_word_predictions_restored
 
@@ -520,7 +523,7 @@ def merge_tokens_to_entities(
         example: str
 
     Returns:
-        example_word_predictions: e.g. [
+        example_word_predictions_merged: e.g. [
             {"char_start": "0", "char_end": "16", "token": "example", "tag": "TAG"},
             ..
         ]
@@ -563,8 +566,8 @@ def merge_tokens_to_entities(
     assert count["merge"] + count["replace"] + count["o_tags"] == len(example_word_predictions), \
         f"{count} -> {sum(count.values())} != {len(example_word_predictions)}"
 
-    example_word_predictions = merged_ner_tags
-    print(f"> merged {len(example_word_predictions)} BIO-tags "
+    example_word_predictions_merged = merged_ner_tags
+    print(f"> merged {len(example_word_predictions_merged)} BIO-tags "
           f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}).\n")
 
-    return example_word_predictions
+    return example_word_predictions_merged
