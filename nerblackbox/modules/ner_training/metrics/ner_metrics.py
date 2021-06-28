@@ -68,12 +68,15 @@ class NerMetrics:
 
         if "acc" in _metrics:
             self.accuracy()
-        if "precision" in _metrics:
-            self.precision()
-        if "recall" in _metrics:
-            self.recall()
-        if "f1" in _metrics:
-            self.f1_score()
+
+        if "precision" in _metrics or "recall" in _metrics or "f1" in _metrics:
+            self._compute_well_defined_classes()
+            if "precision" in _metrics or "f1" in _metrics:
+                self.precision()
+            if "recall" in _metrics or "f1" in _metrics:
+                self.recall()
+            if "f1" in _metrics:
+                self.f1_score()
 
         warnings.resetwarnings()
 
@@ -95,7 +98,6 @@ class NerMetrics:
             precision_micro [np array] for all examples
             precision_macro [np array] for each class, then averaged
         """
-        self._compute_well_defined_classes()
         if self.level == "token":
             self.results.precision_micro = self._token_evaluation(evaluation_function=precision_sklearn,
                                                                   average="micro")
@@ -115,7 +117,6 @@ class NerMetrics:
             recall_micro [np array] for all examples
             recall_macro [np array] for each class, then averaged
         """
-        self._compute_well_defined_classes()
         if self.level == "token":
             self.results.recall_micro = self._token_evaluation(evaluation_function=recall_sklearn,
                                                                average="micro")
@@ -134,7 +135,6 @@ class NerMetrics:
             f1_score_micro [np array] for all examples
             f1_score_macro [np array] for each class, then averaged
         """
-        self._compute_well_defined_classes()
         if self.level == "token":
             self.results.f1_micro = self._token_evaluation(evaluation_function=prf_sklearn,
                                                            average="micro")
@@ -328,8 +328,9 @@ class NerMetrics:
         assert evaluation_function in [f1_seqeval], \
             f"evaluation function = {evaluation_function} unknown / not allowed."
 
-        self.precision()
-        self.recall()
+        # ensure that precision and recall have been called:
+        # self.precision()
+        # self.recall()
 
         # f1_micro
         if self.results.precision_micro == self.failure_value or \
