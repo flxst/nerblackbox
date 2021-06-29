@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
-from typing import List, Dict, Union, Tuple, Optional
+from typing import List, Dict, Union, Tuple, Any, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
 from nerblackbox.modules.ner_training.metrics.ner_metrics import convert2bio
@@ -36,8 +36,8 @@ class NerModelEvaluation:
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
     def execute(
-        self, phase: str, outputs: List[List[torch.Tensor]]
-    ) -> Tuple[Dict[str, np.array], str, float]:
+        self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
+    ) -> Tuple[Dict[str, np.array], Optional[str], float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
 
@@ -60,15 +60,18 @@ class NerModelEvaluation:
         epoch_metrics, epoch_tags = self._compute_metrics(phase, np_epoch)
 
         # classification report
-        classification_report = self._get_classification_report(
-            phase, self.current_epoch, epoch_tags
-        )
+        if phase == "test":
+            classification_report = self._get_classification_report(
+                phase, self.current_epoch, epoch_tags
+            )
+        else:
+            classification_report = None
 
         return epoch_metrics, classification_report, np_epoch["loss"]
 
     @staticmethod
     def _convert_output_to_np_batch(
-        outputs: List[List[torch.Tensor]],
+        outputs: List[Union[torch.Tensor, Dict[str, Any]]],
     ) -> Dict[str, List[np.array]]:
         """
         - converts pytorch lightning output to np_batch dictionary

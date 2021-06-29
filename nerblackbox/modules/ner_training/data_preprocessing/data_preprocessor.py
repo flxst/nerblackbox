@@ -167,7 +167,8 @@ class DataPreprocessor:
                 sampler = None
 
             _dataloader[phase] = DataLoader(
-                data, sampler=sampler, batch_size=batch_size
+                data, sampler=sampler, batch_size=batch_size, num_workers=0,  # num_workers=1, pin_memory=True
+                # see https://pytorch-lightning.readthedocs.io/en/stable/benchmarking/performance.html
             )
 
         return _dataloader

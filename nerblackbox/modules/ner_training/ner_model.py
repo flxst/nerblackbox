@@ -4,7 +4,10 @@ import numpy as np
 import pytorch_lightning as pl
 from abc import ABC, abstractmethod
 import torch
-from typing import List, Dict
+from torch.optim.optimizer import Optimizer
+from typing import List, Dict, Optional, Callable, Union, Any
+import time
+from omegaconf import OmegaConf
 
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
@@ -23,15 +26,15 @@ NEWLINE_TOKENS = ["[newline]", "[NEWLINE]"]
 
 
 class NerModel(pl.LightningModule, ABC):
-    def __init__(self, hparams):
+    def __init__(self, hparams: OmegaConf):
         """
-        :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__()
-        self.hparams = hparams
+        self.save_hyperparameters(hparams)
 
         # split up hparams
-        self.params, self._hparams, self.log_dirs, self.experiment = split_parameters(
+        self.params, self.hyperparameters, self.log_dirs, self.experiment = split_parameters(
             hparams
         )
 
@@ -97,7 +100,7 @@ class NerModel(pl.LightningModule, ABC):
         self.data_preprocessor = DataPreprocessor(
             tokenizer=self.tokenizer,
             do_lower_case=self.params.uncased,  # can be True !!
-            max_seq_length=self._hparams.max_seq_length,
+            max_seq_length=self.hyperparameters.max_seq_length,
             default_logger=self.default_logger,
         )
 
@@ -158,10 +161,19 @@ class NerModel(pl.LightningModule, ABC):
         return self.optimizer
 
     def optimizer_step(
-        self, current_epoch, batch_nb, optimizer, optimizer_i, second_order_closure=None
-    ):
+        self,
+        epoch: int = None,
+        batch_idx: int = None,
+        optimizer: Optimizer = None,
+        optimizer_idx: int = None,
+        optimizer_closure: Optional[Callable] = None,
+        on_tpu: bool = None,
+        using_native_amp: bool = None,
+        using_lbfgs: bool = None,
+    ) -> None:
+
         # update params
-        optimizer.step()
+        optimizer.step(closure=optimizer_closure)
         optimizer.zero_grad()
 
         # update learning rate
@@ -309,7 +321,7 @@ class NerModel(pl.LightningModule, ABC):
         ]:
             raise Exception(f"lr_schedule = {_lr_schedule} not implemented.")
 
-        num_training_steps = self._get_steps(self._hparams.max_epochs)
+        num_training_steps = self._get_steps(self.hyperparameters.max_epochs)
         num_warmup_steps = self._get_steps(_lr_warmup_epochs)
 
         scheduler_params = {
@@ -358,7 +370,7 @@ class NerModel(pl.LightningModule, ABC):
         return _num_epochs * len(self.dataloader["train"])
 
     def _validate_on_epoch(
-        self, phase: str, outputs: List[List[torch.Tensor]]
+        self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
     ) -> Dict[str, float]:
         """
         Args:
@@ -381,10 +393,12 @@ class NerModel(pl.LightningModule, ABC):
         self._log_metrics_and_classification_report(
             phase, epoch_metrics, classification_report
         )
+        self.log(f"{phase}_loss", epoch_loss)  # for early stopping callback
+
         return {f"{phase}_loss": epoch_loss}
 
     def _log_metrics_and_classification_report(
-        self, phase: str, epoch_metrics: Dict[str, np.array], classification_report: str
+        self, phase: str, epoch_metrics: Dict[str, np.array], classification_report: Optional[str]
     ) -> None:
         """
         Args:
@@ -401,13 +415,14 @@ class NerModel(pl.LightningModule, ABC):
         self._write_metrics_for_tensorboard(phase, epoch_metrics)
 
         # logging: mlflow
-        if phase == "val":
+        if phase == "test":
             self.mlflow_client.log_metrics(self.current_epoch, epoch_metrics)
-        self.mlflow_client.log_classification_report(
-            classification_report,
-            overwrite=(phase == "val" and self.current_epoch == 0),
-        )
-        self.mlflow_client.finish_artifact_mlflow()
+            if classification_report is not None:
+                self.mlflow_client.log_classification_report(
+                    classification_report,
+                    overwrite=True,
+                )
+            self.mlflow_client.finish_artifact_mlflow()
 
         # print
         self._print_metrics(phase, epoch_metrics, classification_report)
@@ -436,7 +451,7 @@ class NerModel(pl.LightningModule, ABC):
         """
         # tb_logs: all
         tb_logs = {
-            f'{phase}/{k.split("_", 1)[0].replace("+", "P")}/{k.split("_", 1)[1]}': v
+            f'{phase}/{k.split("_", 1)[0]}/{k.split("_", 1)[1]}': v
             for k, v in metrics.items()
         }
 
@@ -476,7 +491,7 @@ class NerModel(pl.LightningModule, ABC):
             f"tag_ids        shape|1st row: {_tag_ids.shape} | {_tag_ids[0]}"
         )
 
-    def _print_metrics(self, phase, _metrics, _classification_reports=None):
+    def _print_metrics(self, phase, _metrics, _classification_reports: Optional[str]):
         """
         :param phase:         [str] 'train' or 'val'
         :param _metrics:
@@ -493,23 +508,11 @@ class NerModel(pl.LightningModule, ABC):
         self.default_logger.log_info(
             "token  all acc:          {:.2f}".format(_metrics["token_all_acc"])
         )
-        self.default_logger.log_debug(
-            "token  all f1 (micro):   {:.2f}".format(_metrics["token_all_f1_micro"])
-        )
-        self.default_logger.log_debug(
-            "token  all f1 (macro):   {:.2f}".format(_metrics["token_all_f1_macro"])
-        )
         self.default_logger.log_info(
             "token  all f1 (micro):   {:.2f}".format(_metrics["token_all_f1_micro"])
-        )
-        self.default_logger.log_debug(
-            "token  all f1 (macro):   {:.2f}".format(_metrics["token_all_f1_macro"])
         )
         self.default_logger.log_info(
             "token  fil f1 (micro):   {:.2f}".format(_metrics["token_fil_f1_micro"])
-        )
-        self.default_logger.log_debug(
-            "token  fil f1 (macro):   {:.2f}".format(_metrics["token_fil_f1_macro"])
         )
         self.default_logger.log_info(
             "entity fil f1 (micro):   {:.2f}".format(_metrics["entity_fil_f1_micro"])

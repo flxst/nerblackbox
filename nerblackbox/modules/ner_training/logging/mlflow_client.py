@@ -73,9 +73,8 @@ class MLflowClient:
         :param: _epoch_val_metrics  [dict] w/ keys 'loss', 'acc', 'f1' & values = [np array]
         :return: -
         """
-        mlflow.log_metric("epoch", _epoch)
         for metric in _epoch_val_metrics.keys():
-            _metric = metric.replace("[", "_").replace("]", "_").replace("+", "P")
+            _metric = metric.replace("[", "_").replace("]", "_")
             mlflow.log_metric(_metric, _epoch_val_metrics[metric])
 
     def log_classification_report(self, _classification_report, overwrite=False):

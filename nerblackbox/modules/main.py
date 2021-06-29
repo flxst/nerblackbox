@@ -361,7 +361,7 @@ class NerBlackBoxMain:
                 }
             )
 
-    def predict(self) -> Optional[List[Namespace]]:
+    def predict(self) -> Optional[List[List[Dict[str, str]]]]:
         """
         :used attr: experiment_name [str], e.g. 'exp1'
         :used attr: text_input      [str], e.g. 'this is some text that needs to be annotated'
@@ -374,7 +374,7 @@ class NerBlackBoxMain:
         experiment_results = nerbb.main()
         predictions = experiment_results.best_model.predict(self.text_input)
         if self.usage == "cli":
-            print(predictions[0].external)
+            print(predictions[0])
             return None
         else:
             return predictions
@@ -551,12 +551,12 @@ class NerBlackBoxMain:
             _df_best_single_run = _single_runs.iloc[0, :]
             best_single_run_id = _df_best_single_run[("info", "run_id")]
             best_single_run_name_nr = _df_best_single_run[("info", "run_name_nr")]
-            best_single_run_epoch_best = _df_best_single_run[("metrics", "epoch_best")]
-            best_single_run_epoch_best_val_chk_f1_micro = _df_best_single_run[
-                ("metrics", "epoch_best_val_chk_f1_micro")
+            best_single_run_epoch_best = _df_best_single_run[("metrics", "epoch_best".upper())]
+            best_single_run_epoch_best_val_entity_fil_f1_micro = _df_best_single_run[
+                ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
             ]
-            best_single_run_epoch_best_test_chk_f1_micro = _df_best_single_run[
-                ("metrics", "epoch_best_test_chk_f1_micro")
+            best_single_run_epoch_best_test_entity_fil_f1_micro = _df_best_single_run[
+                ("metrics", "epoch_best_test_entity_fil_f1_micro".upper())
             ]
 
             checkpoint = join(
@@ -571,8 +571,8 @@ class NerBlackBoxMain:
                 "experiment_name": experiment_name,
                 "run_id": best_single_run_id,
                 "run_name_nr": best_single_run_name_nr,
-                "epoch_best_val_chk_f1_micro": best_single_run_epoch_best_val_chk_f1_micro,
-                "epoch_best_test_chk_f1_micro": best_single_run_epoch_best_test_chk_f1_micro,
+                "epoch_best_val_entity_fil_f1_micro": best_single_run_epoch_best_val_entity_fil_f1_micro,
+                "epoch_best_test_entity_fil_f1_micro": best_single_run_epoch_best_test_entity_fil_f1_micro,
                 "checkpoint": checkpoint if isfile(checkpoint) else None,
             }
         else:
@@ -582,27 +582,27 @@ class NerBlackBoxMain:
         if _experiment is not None and _average_runs is not None:
             _df_best_average_run = _average_runs.iloc[0, :]
             best_average_run_name = _df_best_average_run[("info", "run_name")]
-            best_average_run_epoch_best_val_chk_f1_micro = _df_best_average_run[
-                ("metrics", "epoch_best_val_chk_f1_micro")
+            best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
+                ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
             ]
-            d_best_average_run_epoch_best_val_chk_f1_micro = _df_best_average_run[
-                ("metrics", "d_epoch_best_val_chk_f1_micro")
+            d_best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
+                ("metrics", "d_epoch_best_val_entity_fil_f1_micro".upper())
             ]
-            best_average_run_epoch_best_test_chk_f1_micro = _df_best_average_run[
-                ("metrics", "epoch_best_test_chk_f1_micro")
+            best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
+                ("metrics", "epoch_best_test_entity_fil_f1_micro".upper())
             ]
-            d_best_average_run_epoch_best_test_chk_f1_micro = _df_best_average_run[
-                ("metrics", "d_epoch_best_test_chk_f1_micro")
+            d_best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
+                ("metrics", "d_epoch_best_test_entity_fil_f1_micro".upper())
             ]
 
             _best_average_run = {
                 "experiment_id": experiment_id,
                 "experiment_name": experiment_name,
                 "run_name": best_average_run_name,
-                "epoch_best_val_chk_f1_micro": best_average_run_epoch_best_val_chk_f1_micro,
-                "d_epoch_best_val_chk_f1_micro": d_best_average_run_epoch_best_val_chk_f1_micro,
-                "epoch_best_test_chk_f1_micro": best_average_run_epoch_best_test_chk_f1_micro,
-                "d_epoch_best_test_chk_f1_micro": d_best_average_run_epoch_best_test_chk_f1_micro,
+                "epoch_best_val_entity_fil_f1_micro".upper(): best_average_run_epoch_best_val_entity_fil_f1_micro,
+                "d_epoch_best_val_entity_fil_f1_micro".upper(): d_best_average_run_epoch_best_val_entity_fil_f1_micro,
+                "epoch_best_test_entity_fil_f1_micro".upper(): best_average_run_epoch_best_test_entity_fil_f1_micro,
+                "d_epoch_best_test_entity_fil_f1_micro".upper(): d_best_average_run_epoch_best_test_entity_fil_f1_micro,
             }
         else:
             _best_average_run = dict()
@@ -649,10 +649,10 @@ class NerBlackBoxMain:
         :return: _average_runs: [pandas DataFrame] overview on average run parameters & results
         """
         fields_metrics = [
-            "epoch_best",
-            "epoch_stopped",
-            "epoch_best_val_chk_f1_micro",
-            "epoch_best_test_chk_f1_micro",
+            "epoch_best".upper(),
+            "epoch_stopped".upper(),
+            "epoch_best_val_entity_fil_f1_micro".upper(),
+            "epoch_best_test_entity_fil_f1_micro".upper(),
         ]
 
         ###########################################
@@ -701,7 +701,7 @@ class NerBlackBoxMain:
                             parameters_runs[("metrics", k)] = [-1]
 
         _experiment = pd.DataFrame(parameters_experiment, index=["experiment"]).T
-        for k in ["epoch_best", "epoch_stopped"]:
+        for k in ["epoch_best".upper(), "epoch_stopped".upper()]:
             try:
                 parameters_runs[("metrics", k)] = [
                     int(elem) for elem in parameters_runs[("metrics", k)]
@@ -725,10 +725,10 @@ class NerBlackBoxMain:
                 {
                     k: list()
                     for k in [
-                        ("metrics", "epoch_best_val_chk_f1_micro"),
-                        ("metrics", "d_epoch_best_val_chk_f1_micro"),
-                        ("metrics", "epoch_best_test_chk_f1_micro"),
-                        ("metrics", "d_epoch_best_test_chk_f1_micro"),
+                        ("metrics", "epoch_best_val_entity_fil_f1_micro".upper()),
+                        ("metrics", "d_epoch_best_val_entity_fil_f1_micro".upper()),
+                        ("metrics", "epoch_best_test_entity_fil_f1_micro".upper()),
+                        ("metrics", "d_epoch_best_test_entity_fil_f1_micro".upper()),
                     ]
                 }
             )
@@ -749,7 +749,7 @@ class NerBlackBoxMain:
 
             def get_mean_and_dmean(_parameters_runs, phase):
                 values = [
-                    _parameters_runs[("metrics", f"epoch_best_{phase}_chk_f1_micro")][
+                    _parameters_runs[("metrics", f"epoch_best_{phase}_entity_fil_f1_micro".upper())][
                         idx
                     ]
                     for idx in indices[run_name]
@@ -775,10 +775,10 @@ class NerBlackBoxMain:
                 val_mean, val_dmean = get_mean_and_dmean(_parameters_runs, "val")
                 test_mean, test_dmean = get_mean_and_dmean(_parameters_runs, "test")
                 metrics = {
-                    "epoch_best_val_chk_f1_micro": val_mean,
-                    "d_epoch_best_val_chk_f1_micro": val_dmean,
-                    "epoch_best_test_chk_f1_micro": test_mean,
-                    "d_epoch_best_test_chk_f1_micro": test_dmean,
+                    "epoch_best_val_entity_fil_f1_micro".upper(): val_mean,
+                    "d_epoch_best_val_entity_fil_f1_micro".upper(): val_dmean,
+                    "epoch_best_test_entity_fil_f1_micro".upper(): test_mean,
+                    "d_epoch_best_test_entity_fil_f1_micro".upper(): test_dmean,
                 }
                 for k in metrics.keys():
                     key = ("metrics", k)
@@ -789,7 +789,7 @@ class NerBlackBoxMain:
         ###########################################
         # sort & return
         ###########################################
-        by = ("metrics", "epoch_best_val_chk_f1_micro")
+        by = ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
         try:
             _single_runs = pd.DataFrame(parameters_runs).sort_values(
                 by=by, ascending=False

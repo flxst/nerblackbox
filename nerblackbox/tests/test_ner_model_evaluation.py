@@ -215,7 +215,7 @@ class TestNerModelEvaluation:
                     "true": np.array(["O", "PER", "ORG", "PER"]),
                     "pred": np.array(["O", "PER", "ORG", "PER"]),
                 },
-                "val",
+                "test",
                 "fil",
                 {
                     "entity_fil_numberofclasses_macro": 2,
@@ -239,7 +239,7 @@ class TestNerModelEvaluation:
                         "true": np.array(["O", "PER", "ORG", "PER"]),
                         "pred": np.array(["O", "PER", "ORG", "PER"]),
                     },
-                    "val",
+                    "test",
                     "PER",
                     {
                         "entity_PER_recall": 1.0,
@@ -278,7 +278,7 @@ class TestNerModelEvaluation:
         "phase, " "np_epoch, " "epoch_metrics, " "epoch_tags",
         [
             (
-                "val",
+                "test",
                 {
                     "loss": 2.0,
                     "tag_ids": np.array([0, 1, 2, 0], dtype=np.float32),
@@ -367,7 +367,7 @@ class TestNerModelEvaluation:
         "phase, " "outputs, " "epoch_metrics, " "epoch_loss",
         [
             (
-                "val",
+                "test",
                 [
                     [
                         torch.tensor([1.0, 2.0]),

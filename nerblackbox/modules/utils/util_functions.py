@@ -3,6 +3,7 @@ import numpy as np
 from os.path import join
 from argparse import Namespace
 import pkg_resources
+from omegaconf import OmegaConf
 
 from nerblackbox.modules.utils.env_variable import env_variable
 
@@ -98,7 +99,7 @@ def unify_parameters(_params, _hparams, _log_dirs, _experiment):
     :param _hparams:            [Namespace] with keys = 'batch_size', 'max_seq_length', ..
     :param _log_dirs:           [Namespace] with keys = 'mlflow', 'tensorboard', ..
     :param _experiment:         [bool]
-    :return: _lightning_hparams [Namespace] with keys = all keys from input namespaces + 'experiment'
+    :return: _lightning_hparams [OmegaConf] with keys = all keys from input namespaces + 'experiment'
     """
     _dict = dict()
     _dict.update(vars(_params))
@@ -109,7 +110,8 @@ def unify_parameters(_params, _hparams, _log_dirs, _experiment):
     _lightning_hparams.device = (
         _lightning_hparams.device.type
     )  # needs to be a string (not torch.device) for logging
-    return _lightning_hparams
+
+    return OmegaConf.create(vars(_lightning_hparams))
 
 
 def split_parameters(_lightning_hparams):
@@ -128,17 +130,17 @@ def split_parameters(_lightning_hparams):
     _params = Namespace(
         **{
             k: v
-            for k, v in vars(_lightning_hparams).items()
+            for k, v in _lightning_hparams.items()
             if k in keys_general + keys_params
         }
     )
     _hparams = Namespace(
-        **{k: v for k, v in vars(_lightning_hparams).items() if k in keys_hparams}
+        **{k: v for k, v in _lightning_hparams.items() if k in keys_hparams}
     )
     _log_dirs = Namespace(
-        **{k: v for k, v in vars(_lightning_hparams).items() if k in keys_log_dirs}
+        **{k: v for k, v in _lightning_hparams.items() if k in keys_log_dirs}
     )
-    _experiment = vars(_lightning_hparams).get("experiment")
+    _experiment = _lightning_hparams.get("experiment")
     return _params, _hparams, _log_dirs, _experiment
 
 

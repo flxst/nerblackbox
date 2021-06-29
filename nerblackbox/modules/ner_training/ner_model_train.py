@@ -1,6 +1,7 @@
 import json
 
 from transformers import AutoModelForTokenClassification
+from omegaconf import OmegaConf
 
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
@@ -9,9 +10,9 @@ from nerblackbox.modules.ner_training.ner_model import NerModel
 
 
 class NerModelTrain(NerModel):
-    def __init__(self, hparams):
+    def __init__(self, hparams: OmegaConf):
         """
-        :param hparams: [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__(hparams)
 

@@ -9,25 +9,31 @@ class LoggedMetrics:
     # tag_groups,       List[str]: subset of ["all", "fil", "ind"]
     # averaging_groups: List[str]: subset of ["simple", "micro", "macro"]
     logged_metrics = [
+        # GENERAL
         ("loss", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
         ("acc", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
 
-        ("precision", ["val", "test"], ["all"], ["token"], ["micro", "macro"]),
-        ("precision", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
-        ("precision", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
-        ("precision", ["val", "test"], ["O"], ["token"], ["micro"]),
+        # VAL
+        ("f1", ["val"], ["all"], ["token"], ["micro"]),
+        ("f1", ["val"], ["fil"], ["token", "entity"], ["micro"]),
 
-        ("recall", ["val", "test"], ["all"], ["token"], ["micro", "macro"]),
-        ("recall", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
-        ("recall", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
-        ("recall", ["val", "test"], ["O"], ["token"], ["micro"]),
+        # TEST
+        ("precision", ["test"], ["all"], ["token"], ["micro", "macro"]),
+        ("precision", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
+        ("precision", ["test"], ["ind"], ["token", "entity"], ["micro"]),
+        ("precision", ["test"], ["O"], ["token"], ["micro"]),
 
-        ("f1", ["val", "test"], ["all"], ["token"], ["micro", "macro"]),
-        ("f1", ["val", "test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
-        ("f1", ["val", "test"], ["ind"], ["token", "entity"], ["micro"]),
-        ("f1", ["val", "test"], ["O"], ["token"], ["micro"]),
+        ("recall", ["test"], ["all"], ["token"], ["micro", "macro"]),
+        ("recall", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
+        ("recall", ["test"], ["ind"], ["token", "entity"], ["micro"]),
+        ("recall", ["test"], ["O"], ["token"], ["micro"]),
 
-        ("numberofclasses", ["val", "test"], ["fil"], ["token", "entity"], ["macro"]),  # special
+        ("f1", ["test"], ["all"], ["token"], ["micro", "macro"]),
+        ("f1", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
+        ("f1", ["test"], ["ind"], ["token", "entity"], ["micro"]),
+        ("f1", ["test"], ["O"], ["token"], ["micro"]),
+
+        ("numberofclasses", ["test"], ["fil"], ["token", "entity"], ["macro"]),  # special
     ]
 
     @classmethod

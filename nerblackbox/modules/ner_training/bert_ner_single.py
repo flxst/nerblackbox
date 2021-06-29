@@ -4,8 +4,8 @@ import os
 from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from nerblackbox.modules.ner_training.ner_model_train import (
     NerModelTrain,
@@ -34,6 +34,7 @@ def main(params, hparams, log_dirs, experiment: bool):
     default_logger.clear()
 
     print_run_information(params, hparams, default_logger)
+
     lightning_hparams = unify_parameters(params, hparams, log_dirs, experiment)
 
     tb_logger = logging_start(params, log_dirs)
@@ -48,24 +49,21 @@ def main(params, hparams, log_dirs, experiment: bool):
             precision=16 if (params.fp16 and params.device.type == "cuda") else 32,
             amp_level="O1",
             logger=tb_logger,
-            checkpoint_callback=callbacks["checkpoint"],
-            early_stop_callback=callbacks["early_stop"],
+            callbacks=callbacks,
         )
         trainer.fit(model)
-        trainer.test()
-
         callback_info = get_callback_info(callbacks, params, hparams)
 
-        # use best checkpoint
+        default_logger.log_info("--- LOAD BEST CHECKPOINT FOR TESTING AND DETAILED RESULTS ---")
         model_best = NerModelTrain.load_from_checkpoint(
             checkpoint_path=callback_info["checkpoint_best"]
         )
-        best_trainer = Trainer(
+        trainer_best = Trainer(
             gpus=torch.cuda.device_count() if params.device.type == "cuda" else None,
             precision=16 if (params.fp16 and params.device.type == "cuda") else 32,
             logger=tb_logger,
         )
-        best_trainer.test(model_best)
+        trainer_best.test(model_best)
 
         # logging end
         logging_end(
@@ -137,21 +135,22 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :param _params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param _hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :param _log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
-    :return: _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
+    :return: _callbacks: [list] w/ [pytorch lightning callback]
     """
     early_stopping_params = {
         k: vars(_hparams)[k] for k in ["monitor", "min_delta", "patience", "mode"]
     }
-    model_checkpoint_filepath = join(
-        _get_model_checkpoint_directory(_params), "{epoch}"
-    )
+    model_checkpoint_filepath = _get_model_checkpoint_directory(_params)
 
-    _callbacks = {
-        "checkpoint": ModelCheckpoint(
-            filepath=model_checkpoint_filepath, verbose=True
-        ),  # if _params.checkpoints else None,
-        "early_stop": EarlyStopping(**early_stopping_params, verbose=True),
-    }
+    _callbacks = [
+        ModelCheckpoint(
+            dirpath=model_checkpoint_filepath,
+            filename="{epoch}",
+            monitor="val_loss",
+            verbose=True
+        ),
+        EarlyStopping(**early_stopping_params, verbose=True),
+    ]
     return _callbacks
 
 
@@ -162,12 +161,13 @@ def get_callback_info(_callbacks, _params, _hparams):
     :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     """
-    checkpoint_best = list(_callbacks["checkpoint"].best_k_models.keys())[0]
+    checkpoint_best = list(_callbacks[0].best_k_models.keys())[0]
+
     callback_info = dict()
     callback_info["epoch_best"] = checkpoint2epoch(checkpoint_best)
     callback_info["epoch_stopped"] = (
-        _callbacks["early_stop"].stopped_epoch
-        if _callbacks["early_stop"].stopped_epoch
+        _callbacks[1].stopped_epoch
+        if _callbacks[1].stopped_epoch
         else _hparams.max_epochs - 1
     )
     callback_info["checkpoint_best"] = join(
@@ -211,23 +211,17 @@ def logging_end(
     _logger.log_info(f"epoch_best: {epoch_best}")
     _logger.log_info(f"epoch_stopped: {epoch_stopped}")
 
-    _model_stopped.mlflow_client.log_metric("epoch_best", epoch_best)
-    _model_stopped.mlflow_client.log_metric("epoch_stopped", epoch_stopped)
-    for metric in ("token_all_f1_micro", "token_fil_f1_micro", "entity_fil_f1_micro"):
+    _model_stopped.mlflow_client.log_metric("EPOCH_BEST", epoch_best)
+    _model_stopped.mlflow_client.log_metric("EPOCH_STOPPED", epoch_stopped)
+
+    for metric in ("token_fil_f1_micro", "entity_fil_f1_micro"):
         _model_stopped.mlflow_client.log_metric(
-            f"epoch_stopped_val_{metric}",
-            _model_stopped.epoch_metrics["val"][epoch_stopped][metric],
-        )
-        _model_stopped.mlflow_client.log_metric(
-            f"epoch_stopped_test_{metric}",
-            _model_stopped.epoch_metrics["test"][epoch_stopped][metric],
-        )
-        _model_stopped.mlflow_client.log_metric(
-            f"epoch_best_val_{metric}",
+            f"epoch_best_val_{metric}".upper(),
             _model_stopped.epoch_metrics["val"][epoch_best][metric],
         )
         _model_stopped.mlflow_client.log_metric(
-            f"epoch_best_test_{metric}", _model_best.epoch_metrics["test"][0][metric]
+            f"epoch_best_test_{metric}".upper(),
+            _model_best.epoch_metrics["test"][0][metric]
         )
 
     _model_stopped.mlflow_client.finish_artifact_logger()  # mlflow
@@ -243,7 +237,7 @@ def _tb_logger_stopped_epoch(
     _epoch_stopped,
     _model_stopped,
     _model_best,
-    metrics=("token_all_f1_micro", "token_fil_f1_micro", "entity_fil_f1_micro"),
+    metrics=("token_fil_f1_micro", "entity_fil_f1_micro"),
 ):
     """
     log hparams and metrics for stopped epoch
@@ -264,29 +258,8 @@ def _tb_logger_stopped_epoch(
     hparams_dict["hparam/train/epoch_stopped"] = _epoch_stopped
 
     # val/test
-    hparams_stopped_val = {
-        f'hparam/val/epoch_stopped_{_epoch_stopped}/{metric.replace("+", "P")}': _model_stopped.epoch_metrics[
-            "val"
-        ][
-            _epoch_stopped
-        ][
-            metric
-        ]
-        for metric in metrics
-    }
-    hparams_stopped_test = {
-        f'hparam/test/epoch_stopped_{_epoch_stopped}/{metric.replace("+", "P")}': _model_stopped.epoch_metrics[
-            "test"
-        ][
-            _epoch_stopped
-        ][
-            metric
-        ]
-        for metric in metrics
-    }
-
     hparams_best_val = {
-        f'hparam/val/epoch_best_{_epoch_best}/{metric.replace("+", "P")}': _model_stopped.epoch_metrics[
+        f'hparam/val/epoch_best_{_epoch_best}/{metric}': _model_stopped.epoch_metrics[
             "val"
         ][
             _epoch_best
@@ -297,7 +270,7 @@ def _tb_logger_stopped_epoch(
     }
 
     hparams_best_test = {
-        f'hparam/test/epoch_best_{_epoch_best}/{metric.replace("+", "P")}': _model_best.epoch_metrics[
+        f'hparam/test/epoch_best_{_epoch_best}/{metric}': _model_best.epoch_metrics[
             "test"
         ][
             0
@@ -307,8 +280,6 @@ def _tb_logger_stopped_epoch(
         for metric in metrics
     }
 
-    hparams_dict.update(hparams_stopped_val)
-    hparams_dict.update(hparams_stopped_test)
     hparams_dict.update(hparams_best_val)
     hparams_dict.update(hparams_best_test)
 
