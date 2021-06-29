@@ -571,8 +571,8 @@ class NerBlackBoxMain:
                 "experiment_name": experiment_name,
                 "run_id": best_single_run_id,
                 "run_name_nr": best_single_run_name_nr,
-                "epoch_best_val_entity_fil_f1_micro": best_single_run_epoch_best_val_entity_fil_f1_micro,
-                "epoch_best_test_entity_fil_f1_micro": best_single_run_epoch_best_test_entity_fil_f1_micro,
+                "epoch_best_val_entity_fil_f1_micro".upper(): best_single_run_epoch_best_val_entity_fil_f1_micro,
+                "epoch_best_test_entity_fil_f1_micro".upper(): best_single_run_epoch_best_test_entity_fil_f1_micro,
                 "checkpoint": checkpoint if isfile(checkpoint) else None,
             }
         else:
