@@ -251,10 +251,17 @@ class NerModelEvaluation:
         tag_list, tag_list_indices = self._get_filtered_tags(tag_subset)
         required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "O"] else ["ind"]
         required_phases = [_phase]
-        levels = ["token", "entity"]
+
+        if tag_subset.startswith("B-") or "-" not in tag_subset:
+            levels = ["token", "entity"]
+        else:
+            levels = ["token"]
 
         _metrics = dict()
         for level in levels:
+            # for BIO tags & entity
+            tag_subset_plain = tag_subset.replace("B-", "") if level == "entity" else tag_subset
+
             required_levels = [level]
             metrics_to_compute = self.logged_metrics.get_metrics(required_tag_groups=required_tag_groups,
                                                                  required_phases=required_phases,
@@ -293,7 +300,7 @@ class NerModelEvaluation:
                 exclude=["numberofclasses"],
             ):
                 if required_tag_groups in [["O"], ["ind"]]:
-                    _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[
+                    _metrics[f"{level}_{tag_subset_plain}_{metric_type}"] = results[
                         f"{metric_type}_micro"
                     ]
                 else:
@@ -308,7 +315,7 @@ class NerModelEvaluation:
                 required_levels=required_levels,
                 required_averaging_groups=["macro"],
             ):
-                _metrics[f"{level}_{tag_subset}_{metric_type}_macro"] = results[
+                _metrics[f"{level}_{tag_subset_plain}_{metric_type}_macro"] = results[
                     f"{metric_type}_macro"
                 ]
 

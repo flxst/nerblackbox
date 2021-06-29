@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import torch
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Optional, Any
 from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.tests.utils import PseudoDefaultLogger
@@ -14,6 +14,13 @@ class TestNerModelEvaluation:
         current_epoch=2,
         tag_list=["O", "PER", "ORG"],
         annotation_scheme="plain",
+        default_logger=PseudoDefaultLogger(),
+        logged_metrics=LoggedMetrics(),
+    )
+    ner_model_evaluation_bio = NerModelEvaluation(
+        current_epoch=2,
+        tag_list=["O", "B-PER", "I-PER", "B-ORG", "I-ORG"],
+        annotation_scheme="iob",
         default_logger=PseudoDefaultLogger(),
         logged_metrics=LoggedMetrics(),
     )
@@ -69,7 +76,7 @@ class TestNerModelEvaluation:
     )
     def test_convert_and_combine(
         self,
-        outputs: List[List[torch.Tensor]],
+        outputs: List[Union[torch.Tensor, Dict[str, Any]]],
         np_batch: Dict[str, List[np.array]],
         np_epoch: Dict[str, Union[np.number, np.array]],
     ) -> None:
@@ -208,9 +215,10 @@ class TestNerModelEvaluation:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "_tags, " "_phase, " "tag_subset, " "metrics",
+        "annotation_scheme, " "_tags, " "_phase, " "tag_subset, " "metrics",
         [
             (
+                "plain",
                 {
                     "true": np.array(["O", "PER", "ORG", "PER"]),
                     "pred": np.array(["O", "PER", "ORG", "PER"]),
@@ -235,6 +243,7 @@ class TestNerModelEvaluation:
                 },
             ),
             (
+                    "plain",
                     {
                         "true": np.array(["O", "PER", "ORG", "PER"]),
                         "pred": np.array(["O", "PER", "ORG", "PER"]),
@@ -250,18 +259,59 @@ class TestNerModelEvaluation:
                         "token_PER_f1": 1.0,
                     },
             ),
+            (
+                    "bio",
+                    {
+                        "true": np.array(["O", "B-PER", "I-PER", "O", "B-PER"]),
+                        "pred": np.array(["O", "B-PER", "I-PER", "I-PER", "B-PER"]),
+                    },
+                    "test",
+                    "B-PER",
+                    {
+                        "entity_PER_recall": 0.5,
+                        "entity_PER_precision": 0.5,
+                        "entity_PER_f1": 0.5,
+                        "token_B-PER_recall": 1.0,
+                        "token_B-PER_precision": 1.0,
+                        "token_B-PER_f1": 1.0,
+                    },
+            ),
+            (
+                    "bio",
+                    {
+                        "true": np.array(["O", "B-PER", "I-PER", "O", "B-PER"]),
+                        "pred": np.array(["O", "B-PER", "I-PER", "I-PER", "B-PER"]),
+                    },
+                    "test",
+                    "I-PER",
+                    {
+                        "token_I-PER_recall": 1.0,
+                        "token_I-PER_precision": 0.5,
+                        "token_I-PER_f1": 0.66,
+                    },
+
+            )
         ],
     )
     def test_compute_metrics_for_tags_subset(
         self,
+        annotation_scheme: str,
         _tags: Dict[str, np.array],
         _phase: str,
         tag_subset: str,
         metrics: Dict[str, float],
     ) -> None:
-        test_metrics = self.ner_model_evaluation._compute_metrics_for_tags_subset(
-            _tags, _phase, tag_subset
-        )
+        if annotation_scheme == "plain":
+            test_metrics = self.ner_model_evaluation._compute_metrics_for_tags_subset(
+                _tags, _phase, tag_subset
+            )
+        elif annotation_scheme == "bio":
+            print(_tags, _phase, tag_subset)
+            test_metrics = self.ner_model_evaluation_bio._compute_metrics_for_tags_subset(
+                _tags, _phase, tag_subset
+            )
+        else:
+            raise Exception(f"annotation_scheme = {annotation_scheme} unknonw.")
 
         a = set(list(test_metrics.keys()))
         b = set(list(metrics.keys()))
@@ -270,7 +320,7 @@ class TestNerModelEvaluation:
 
         for k in list(set(list(test_metrics.keys()) + list(metrics.keys()))):
             assert (
-                test_metrics[k] == metrics[k]
+                test_metrics[k] == pytest_approx(metrics[k])
             ), f"test_metrics[{k}] = {test_metrics[k]} != {metrics[k]}"
 
     ####################################################################################################################
@@ -426,7 +476,7 @@ class TestNerModelEvaluation:
     def test_execute(
             self,
             phase: str,
-            outputs: List[List[torch.Tensor]],
+            outputs: List[Union[torch.Tensor, Dict[str, Any]]],
             epoch_metrics: Dict[str, np.array],
             epoch_loss: float,
     ) -> None:
