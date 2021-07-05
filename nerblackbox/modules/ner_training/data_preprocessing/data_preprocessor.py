@@ -13,6 +13,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
+import pandas as pd
 from pkg_resources import resource_filename
 
 from typing import List, Dict, Tuple, Optional, Any
@@ -50,8 +51,8 @@ class DataPreprocessor:
             prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
 
         Returns:
-            input_examples: [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
-            tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+            input_examples:   [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
+            tag_list_ordered: [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
         """
         if dataset_name is None:
             dataset_path = resource_filename("nerblackbox", "tests/test_data")
@@ -74,9 +75,12 @@ class DataPreprocessor:
                 input_examples_all, phase, ratio=prune_ratio[phase]
             )
 
-        return input_examples, self._ensure_completeness_in_case_of_bio_tags(
+        tag_list = self._ensure_completeness_in_case_of_bio_tags(
             csv_reader.tag_list
         )
+        tag_list_ordered = order_tag_list(tag_list)
+
+        return input_examples, tag_list_ordered
 
     def get_input_examples_predict(
         self, examples: List[str]
@@ -209,3 +213,12 @@ class DataPreprocessor:
             if i_tag not in tag_list:
                 tag_list.append(i_tag)
         return tag_list
+
+
+def order_tag_list(tag_list: List[str]) -> List[str]:
+    return ["O"] + sorted([elem for elem in tag_list if elem != "O"])
+
+
+def convert_tag_list_bio2plain(tag_list_bio: List[str]) -> List[str]:
+    tag_list_bio_without_o = [elem for elem in tag_list_bio if elem != "O"]
+    return ["O"] + sorted(pd.Series(tag_list_bio_without_o).map(lambda x: x.split("-")[-1]).drop_duplicates().tolist())

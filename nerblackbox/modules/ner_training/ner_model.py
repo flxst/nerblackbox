@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 import torch
 from torch.optim.optimizer import Optimizer
 from typing import List, Dict, Optional, Callable, Union, Any
-import time
 from omegaconf import OmegaConf
 
 from transformers import AdamW
@@ -383,7 +382,7 @@ class NerModel(pl.LightningModule, ABC):
         ner_model_evaluation = NerModelEvaluation(
             current_epoch=self.current_epoch,
             tag_list=self.tag_list,
-            annotation_scheme=self.params.dataset_tags,
+            annotation_scheme=self.params.dataset_tags if self.params.dataset_tags != "iob" else "bio",  # TODO: clean
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )

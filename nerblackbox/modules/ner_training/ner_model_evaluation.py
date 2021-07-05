@@ -6,7 +6,9 @@ from sklearn.metrics import classification_report as classification_report_sklea
 from typing import List, Dict, Union, Tuple, Any, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.ner_training.metrics.ner_metrics import convert2bio
+from nerblackbox.modules.ner_training.metrics.ner_metrics import convert2bio, convert2plain
+from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import \
+    order_tag_list, convert_tag_list_bio2plain
 
 
 class NerModelEvaluation:
@@ -22,12 +24,13 @@ class NerModelEvaluation:
         Args:
             current_epoch:     e.g. 1
             tag_list:          e.g. ["O", "PER", "ORG"]
-            annotation_scheme: e.g. "plain", "BIO"
+            annotation_scheme: e.g. "plain", "bio"
             default_logger:
             logged_metrics:
         """
         self.current_epoch = current_epoch
-        self.tag_list = tag_list
+        self.tag_list = order_tag_list(tag_list)
+        self.tag_list_plain = convert_tag_list_bio2plain(tag_list)
         self.annotation_scheme = annotation_scheme
         self.default_logger = default_logger
         self.logged_metrics = logged_metrics
@@ -169,7 +172,7 @@ class NerModelEvaluation:
         for tag_subset in [
             "all",
             "fil",
-        ] + self.tag_list:
+        ] + self.tag_list_plain:
             _epoch_metrics.update(
                 self._compute_metrics_for_tags_subset(
                     _epoch_tags, phase, tag_subset=tag_subset
@@ -248,20 +251,22 @@ class NerModelEvaluation:
         Returns:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
-        tag_list, tag_list_indices = self._get_filtered_tags(tag_subset)
+        _tags_plain = {
+            field: convert2plain(_tags[field], convert_to_plain=self.annotation_scheme != "plain")
+            for field in ["true", "pred"]
+        }
+
+        tag_list, tag_list_indices = self._get_filtered_tags(tag_subset, _tags_plain)
         required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "O"] else ["ind"]
         required_phases = [_phase]
 
-        if tag_subset.startswith("B-") or "-" not in tag_subset:
-            levels = ["token", "entity"]
-        else:
+        if tag_subset == "O":
             levels = ["token"]
+        else:
+            levels = ["token", "entity"]
 
         _metrics = dict()
         for level in levels:
-            # for BIO tags & entity
-            tag_subset_plain = tag_subset.replace("B-", "") if level == "entity" else tag_subset
-
             required_levels = [level]
             metrics_to_compute = self.logged_metrics.get_metrics(required_tag_groups=required_tag_groups,
                                                                  required_phases=required_phases,
@@ -269,12 +274,12 @@ class NerModelEvaluation:
 
             if len(metrics_to_compute):
                 ner_metrics = NerMetrics(
-                    _tags["true"],
-                    _tags["pred"],
+                    _tags["true"] if level == "entity" else _tags_plain["true"],
+                    _tags["pred"] if level == "entity" else _tags_plain["pred"],
                     tag_list=tag_list if level == "token" else None,
                     tag_index=tag_list_indices if level == "entity" else None,
                     level=level,
-                    plain_tags=self.annotation_scheme == "plain",
+                    plain_tags=self.annotation_scheme == "plain" if level == "entity" else True,
                 )
                 ner_metrics.compute(metrics_to_compute)
                 results = ner_metrics.results_as_dict()
@@ -300,7 +305,7 @@ class NerModelEvaluation:
                 exclude=["numberofclasses"],
             ):
                 if required_tag_groups in [["O"], ["ind"]]:
-                    _metrics[f"{level}_{tag_subset_plain}_{metric_type}"] = results[
+                    _metrics[f"{level}_{tag_subset}_{metric_type}"] = results[
                         f"{metric_type}_micro"
                     ]
                 else:
@@ -315,37 +320,46 @@ class NerModelEvaluation:
                 required_levels=required_levels,
                 required_averaging_groups=["macro"],
             ):
-                _metrics[f"{level}_{tag_subset_plain}_{metric_type}_macro"] = results[
+                _metrics[f"{level}_{tag_subset}_{metric_type}_macro"] = results[
                     f"{metric_type}_macro"
                 ]
 
         return _metrics
 
-    def _get_filtered_tags(self, _tag_subset: str) -> Tuple[List[str], Optional[int]]:
+    def _get_filtered_tags(self, _tag_subset: str, _tags_plain: Optional[Dict[str, np.array]] = None) -> Tuple[List[str], Optional[int]]:
         """
         helper method for _compute_metrics()
         get list of filtered tags corresponding to _tag_subset name
 
         Args:
             _tag_subset: [str], e.g. 'all', 'fil', 'PER'
+            _tags_plain: [dict] w/ keys 'true', 'pred'      & values = [np array]
 
         Returns:
             _filtered_tags:       list of filtered tags
             _filtered_tags_index: filtered tags index in case of single _filtered_tag, ignoring "O"
         """
         if _tag_subset == "all":
-            _filtered_tags = self.tag_list
+            _filtered_tags = self.tag_list_plain
             _filtered_tags_index = None
         elif _tag_subset == "fil":
-            _filtered_tags = [tag for tag in self.tag_list if tag != "O"]
+            _filtered_tags = [tag for tag in self.tag_list_plain if tag != "O"]
             _filtered_tags_index = None
         else:
+            assert _tags_plain is not None, f"ERROR! need to provide _tags_plain"
+            tag_list_plain_filtered = [
+                elem
+                for elem in self.tag_list_plain
+                if (elem in _tags_plain["true"] or elem in _tags_plain["pred"]) and elem != "O"
+            ]
             _filtered_tags = [_tag_subset]
-            _filtered_tags_index_list = [self.tag_list.index(_tag_subset)]
-            assert len(_filtered_tags_index_list) == 1
-            _filtered_tags_index = _filtered_tags_index_list[0]
-            if _tag_subset != "O":
-                _filtered_tags_index -= 1
+
+            try:
+                _filtered_tags_index_list = [tag_list_plain_filtered.index(_tag_subset)]
+                assert len(_filtered_tags_index_list) == 1
+                _filtered_tags_index = _filtered_tags_index_list[0]
+            except ValueError:
+                _filtered_tags_index = None
 
         return _filtered_tags, _filtered_tags_index
 

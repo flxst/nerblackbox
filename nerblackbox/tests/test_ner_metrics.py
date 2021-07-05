@@ -5,6 +5,7 @@ from pkg_resources import resource_filename
 from nerblackbox.modules.ner_training.metrics.ner_metrics import (
     NerMetrics,
     convert2bio,
+    convert2plain,
 )
 from nerblackbox.tests.test_utils import pytest_approx
 from typing import List
@@ -225,6 +226,38 @@ class TestNerMetrics:
             with pytest.raises(Exception):
                 convert2bio(input_sequence, convert_to_bio)
 
+    @pytest.mark.parametrize(
+        "input_sequence, " "convert_to_plain, " "output_sequence",
+        [
+            (
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    True,
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+            ),
+            (
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    False,
+                    None,
+            ),
+            (
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+                    False,
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+            ),
+        ],
+    )
+    def test_convert2plain(
+            self, input_sequence: List[str], convert_to_plain: bool, output_sequence: List[str]
+    ):
+        if output_sequence is not None:
+            test_output_sequence = convert2plain(input_sequence, convert_to_plain)
+            assert (
+                    test_output_sequence == output_sequence
+            ), f"{test_output_sequence} != {output_sequence}"
+        else:
+            with pytest.raises(Exception):
+                convert2plain(input_sequence, convert_to_plain)
+
 
 if __name__ == "__main__":
     test_ner_metrics_table = TestNerMetricsTable()
@@ -233,3 +266,4 @@ if __name__ == "__main__":
 
     test_ner_metrics = TestNerMetrics()
     test_ner_metrics.test_convert2bio()
+    test_ner_metrics.test_convert2plain()
