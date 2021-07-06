@@ -77,17 +77,17 @@ class MLflowClient:
             _metric = metric.replace("[", "_").replace("]", "_")
             mlflow.log_metric(_metric, _epoch_val_metrics[metric])
 
-    def log_classification_report(self, _classification_report, overwrite=False):
+    def log_artifact(self, _artifact: str, overwrite=False):
         """
-        log classification report
+        log artifact (e.g. confusion_matrix, classification report)
         ------------------------------------------------------------------------------------
-        :param: _classification_report: [str]
+        :param: artifact: [str]
         :param: overwrite: [bool] if True, overwrite existing artifact, else append
         :return: -
         """
         if overwrite:
             self._clear_artifact()
-        self._log_artifact(_classification_report)
+        self._log_artifact(_artifact)
 
     @staticmethod
     def log_time(_time):

@@ -386,24 +386,32 @@ class NerModel(pl.LightningModule, ABC):
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )
-        epoch_metrics, classification_report, epoch_loss = ner_model_evaluation.execute(
+        epoch_metrics, classification_report, confusion_matrix, epoch_loss = ner_model_evaluation.execute(
             phase, outputs
         )
-        self._log_metrics_and_classification_report(
-            phase, epoch_metrics, classification_report
+        self._log_metrics_confusion_matrix_classification_report(
+            phase,
+            epoch_metrics,
+            confusion_matrix,
+            classification_report,
         )
         self.log(f"{phase}_loss", epoch_loss)  # for early stopping callback
 
         return {f"{phase}_loss": epoch_loss}
 
-    def _log_metrics_and_classification_report(
-        self, phase: str, epoch_metrics: Dict[str, np.array], classification_report: Optional[str]
+    def _log_metrics_confusion_matrix_classification_report(
+        self,
+        phase: str,
+        epoch_metrics: Dict[str, np.array],
+        confusion_matrix: Optional[str] = "",
+        classification_report: Optional[str] = "",
     ) -> None:
         """
         Args:
-            phase:                 [str] 'val', 'test'
-            epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
-            classification_report: [str]
+            phase:                  'val', 'test'
+            epoch_metrics           keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
+            confusion_matrix:
+            classification_report:
         """
         # tracked metrics & classification reports
         self._add_epoch_metrics(
@@ -416,11 +424,18 @@ class NerModel(pl.LightningModule, ABC):
         # logging: mlflow
         if phase == "test":
             self.mlflow_client.log_metrics(self.current_epoch, epoch_metrics)
-            if classification_report is not None:
-                self.mlflow_client.log_classification_report(
-                    classification_report,
+
+            if confusion_matrix is not None:
+                self.mlflow_client.log_artifact(
+                    confusion_matrix,
                     overwrite=True,
                 )
+            if classification_report is not None:
+                self.mlflow_client.log_artifact(
+                    classification_report,
+                    overwrite=False,
+                )
+
             self.mlflow_client.finish_artifact_mlflow()
 
         # print

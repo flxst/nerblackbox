@@ -1,8 +1,10 @@
 import warnings
 import numpy as np
+import pandas as pd
 import torch
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
+from sklearn.metrics import confusion_matrix as confusion_matrix_sklearn
 from typing import List, Dict, Union, Tuple, Any, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
@@ -40,7 +42,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def execute(
         self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
-    ) -> Tuple[Dict[str, np.array], Optional[str], float]:
+    ) -> Tuple[Dict[str, np.array], Optional[str], Optional[np.array], float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
 
@@ -51,6 +53,7 @@ class NerModelEvaluation:
         Returns:
             epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
             classification_report: [str]
+            confusion_matrix:      [ndarray] of shape (n_classes, n_classes)
             epoch_loss:            [float] mean of of all batch losses
         """
         print()
@@ -64,13 +67,17 @@ class NerModelEvaluation:
 
         # classification report
         if phase == "test":
+            confusion_matrix = self._get_confusion_matrix_str(
+                epoch_tags, phase=phase, epoch=self.current_epoch,
+            )
             classification_report = self._get_classification_report(
-                phase, self.current_epoch, epoch_tags
+                epoch_tags, phase=None, epoch=None,
             )
         else:
             classification_report = None
+            confusion_matrix = None
 
-        return epoch_metrics, classification_report, np_epoch["loss"]
+        return epoch_metrics, classification_report, confusion_matrix, np_epoch["loss"]
 
     @staticmethod
     def _convert_output_to_np_batch(
@@ -367,15 +374,15 @@ class NerModelEvaluation:
     # 2. CLASSIFICATION REPORT #########################################################################################
     ####################################################################################################################
     def _get_classification_report(
-        self, phase: str, epoch: int, epoch_tags: Dict[str, np.array]
+        self, epoch_tags: Dict[str, np.array], phase: Optional[str] = None, epoch: Optional[int] = None,
     ) -> str:
         """
         - get token-based (sklearn) & chunk-based (seqeval) classification report
 
         Args:
+            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [np array]
             phase:          [str], 'train', 'val', 'test'
             epoch:          [int]
-            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [np array]
 
         Returns:
             classification_report: [str]
@@ -385,7 +392,8 @@ class NerModelEvaluation:
         # token-based classification report
         tag_list_filtered, _ = self._get_filtered_tags("fil")
         classification_report: str = ""
-        classification_report += f"\n>>> Phase: {phase} | Epoch: {epoch}"
+        if phase is not None and epoch is not None:
+            classification_report += f"\n>>> Phase: {phase} | Epoch: {epoch}"
         classification_report += (
             "\n--- token-based (sklearn) classification report on fil ---\n"
         )
@@ -417,3 +425,35 @@ class NerModelEvaluation:
         warnings.resetwarnings()
 
         return classification_report
+
+    def _get_confusion_matrix_str(
+            self, epoch_tags: Dict[str, np.array], phase: Optional[str] = None, epoch: Optional[int] = None,
+    ) -> str:
+        """
+        - get token-based (sklearn) confusion matrix
+
+        Args:
+            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [np array]
+            phase:          [str], 'train', 'val', 'test'
+            epoch:          [int]
+
+        Returns:
+            confusion_matrix_str:  [str] with confusion matrix as pd dataframe
+        """
+        warnings.filterwarnings("ignore")
+
+        # token-based classification report
+        tag_list_filtered, _ = self._get_filtered_tags("fil")
+        confusion_matrix = confusion_matrix_sklearn(epoch_tags["true"], epoch_tags["pred"], labels=self.tag_list_plain)
+
+        df_confusion_matrix = pd.DataFrame(confusion_matrix)
+        df_confusion_matrix.columns = self.tag_list_plain
+        df_confusion_matrix.index = self.tag_list_plain
+
+        confusion_matrix_str: str = ""
+        if phase is not None and epoch is not None:
+            confusion_matrix_str += f"\n>>> Phase: {phase} | Epoch: {epoch}\n"
+        confusion_matrix_str += "\n--- token-based (sklearn) confusion matrix on all ---\n" + \
+                                f"{df_confusion_matrix.to_string()}"
+
+        return confusion_matrix_str
