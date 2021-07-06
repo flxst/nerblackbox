@@ -389,16 +389,21 @@ class NerModelEvaluation:
         """
         warnings.filterwarnings("ignore")
 
-        # token-based classification report
+        epoch_tags_plain = {
+            field: convert2plain(epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain")
+            for field in ["true", "pred"]
+        }
+
+        # token-based classification report, plain tags
         tag_list_filtered, _ = self._get_filtered_tags("fil")
         classification_report: str = ""
         if phase is not None and epoch is not None:
             classification_report += f"\n>>> Phase: {phase} | Epoch: {epoch}"
         classification_report += (
-            "\n--- token-based (sklearn) classification report on fil ---\n"
+            "\n--- token-based, plain tag (sklearn) classification report on fil ---\n"
         )
         classification_report += classification_report_sklearn(
-            epoch_tags["true"], epoch_tags["pred"], labels=tag_list_filtered
+            epoch_tags_plain["true"], epoch_tags_plain["pred"], labels=tag_list_filtered
         )
 
         # chunk-based classification report
@@ -442,9 +447,18 @@ class NerModelEvaluation:
         """
         warnings.filterwarnings("ignore")
 
-        # token-based classification report
+        epoch_tags_plain = {
+            field: convert2plain(epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain")
+            for field in ["true", "pred"]
+        }
+
+        # token-based classification report, plain tags
         tag_list_filtered, _ = self._get_filtered_tags("fil")
-        confusion_matrix = confusion_matrix_sklearn(epoch_tags["true"], epoch_tags["pred"], labels=self.tag_list_plain)
+        confusion_matrix = confusion_matrix_sklearn(
+            epoch_tags_plain["true"],
+            epoch_tags_plain["pred"],
+            labels=self.tag_list_plain
+        )
 
         df_confusion_matrix = pd.DataFrame(confusion_matrix)
         df_confusion_matrix.columns = self.tag_list_plain
@@ -453,7 +467,8 @@ class NerModelEvaluation:
         confusion_matrix_str: str = ""
         if phase is not None and epoch is not None:
             confusion_matrix_str += f"\n>>> Phase: {phase} | Epoch: {epoch}\n"
-        confusion_matrix_str += "\n--- token-based (sklearn) confusion matrix on all ---\n" + \
+        confusion_matrix_str += "\n--- token-based, plain tag (sklearn) confusion matrix on all ---" + \
+                                "\n... rows = ground truth | columns = predictions\n" + \
                                 f"{df_confusion_matrix.to_string()}"
 
         return confusion_matrix_str
