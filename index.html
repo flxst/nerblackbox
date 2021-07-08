@@ -185,8 +185,24 @@
   
   
     <li class="md-tabs__item">
-      <a href="api_documentation/cli/" class="md-tabs__link">
-        API Documentation
+      <a href="cli/cli/" class="md-tabs__link">
+        CLI
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="python_api/overview/" class="md-tabs__link">
+        Python API
       </a>
     </li>
   
@@ -301,6 +317,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    Citation
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -392,13 +415,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
       
       <label class="md-nav__link" for="nav-3">
-        API Documentation
+        CLI
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="API Documentation" data-md-level="1">
+      <nav class="md-nav" aria-label="CLI" data-md-level="1">
         <label class="md-nav__title" for="nav-3">
           <span class="md-nav__icon md-icon"></span>
-          API Documentation
+          CLI
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -408,14 +431,24 @@
   
   
     <li class="md-nav__item">
-      <a href="api_documentation/cli/" class="md-nav__link">
-        Command Line Interface
+      <a href="cli/cli/" class="md-nav__link">
+        Overview
       </a>
     </li>
   
 
           
-            
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+
   
   
   
@@ -423,14 +456,14 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-2" type="checkbox" id="nav-3-2" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
       
-      <label class="md-nav__link" for="nav-3-2">
+      <label class="md-nav__link" for="nav-4">
         Python API
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Python API" data-md-level="2">
-        <label class="md-nav__title" for="nav-3-2">
+      <nav class="md-nav" aria-label="Python API" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
           <span class="md-nav__icon md-icon"></span>
           Python API
         </label>
@@ -442,7 +475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api_documentation/python_api/overview/" class="md-nav__link">
+      <a href="python_api/overview/" class="md-nav__link">
         Overview
       </a>
     </li>
@@ -454,7 +487,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api_documentation/python_api/nerblackbox/" class="md-nav__link">
+      <a href="python_api/nerblackbox/" class="md-nav__link">
         NerBlackBox
       </a>
     </li>
@@ -466,7 +499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api_documentation/python_api/experiment_results/" class="md-nav__link">
+      <a href="python_api/experiment_results/" class="md-nav__link">
         ExperimentResults
       </a>
     </li>
@@ -478,7 +511,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api_documentation/python_api/experiments_results/" class="md-nav__link">
+      <a href="python_api/experiments_results/" class="md-nav__link">
         ExperimentsResults
       </a>
     </li>
@@ -490,15 +523,9 @@
   
   
     <li class="md-nav__item">
-      <a href="api_documentation/python_api/ner_model_predict/" class="md-nav__link">
+      <a href="python_api/ner_model_predict/" class="md-nav__link">
         NerModelPredict
       </a>
-    </li>
-  
-
-          
-        </ul>
-      </nav>
     </li>
   
 
@@ -523,8 +550,8 @@
                 
                 
                 <h1 id="overview">Overview</h1>
-<p><strong>nerblackbox</strong> - a python package to fine-tune transformer-based language models for Named Entity Recognition (NER).</p>
-<p>Latest version: 0.0.10</p>
+<p><strong>nerblackbox</strong> - a python package to fine-tune transformer-based language models for named entity recognition (NER).</p>
+<p>Latest version: 0.0.11</p>
 <hr />
 <h2 id="resources">Resources</h2>
 <ul>
@@ -567,7 +594,7 @@ pretrained_model_name = af-ai-center/bert-base-swedish-uncased
 </div>
 </li>
 <li>
-<p>and use either the <a href="api_documentation/cli"><code>Command Line Interface (CLI)</code></a> or the <a href="api_documentation/python_api/overview"><code>Python API</code></a> for fine-tuning and model application:</p>
+<p>and use either the <a href="cli/cli"><code>CLI (Command Line Interface)</code></a> or the <a href="python_api/overview"><code>Python API</code></a> for fine-tuning and model application:</p>
 <div class="admonition note">
 <p class="admonition-title">fine-tuning and model application</p>
 <div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">CLI</label><div class="tabbed-content">
@@ -598,6 +625,15 @@ nerbb predict my_experiment annotera den här texten  <span class="c1"># apply b
 <li>Language Agnosticism</li>
 </ul>
 <p>Based on: <a href="https://huggingface.co/transformers/">Hugging Face Transformers</a>, <a href="https://www.pytorchlightning.ai/">PyTorch Lightning</a>, <a href="https://mlflow.org/docs/latest/index.html">MLflow</a></p>
+<hr />
+<h2 id="citation">Citation</h2>
+<div class="highlight"><pre><span></span><code>@misc<span class="nb">{</span>nerblackbox,
+  author = <span class="nb">{</span>Stollenwerk, Felix<span class="nb">}</span>,
+  title  = <span class="nb">{</span>nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition<span class="nb">}</span>,
+  year   = <span class="nb">{</span>2021<span class="nb">}</span>,
+  url    = <span class="nb">{</span>https://github.com/af-ai-center/nerblackbox<span class="nb">}</span>,
+<span class="nb">}</span>
+</code></pre></div>
 <hr />
                 
               

@@ -185,8 +185,24 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../api_documentation/cli/" class="md-tabs__link">
-        API Documentation
+      <a href="../../cli/cli/" class="md-tabs__link">
+        CLI
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../python_api/overview/" class="md-tabs__link">
+        Python API
       </a>
     </li>
   
@@ -421,13 +437,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
       
       <label class="md-nav__link" for="nav-3">
-        API Documentation
+        CLI
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="API Documentation" data-md-level="1">
+      <nav class="md-nav" aria-label="CLI" data-md-level="1">
         <label class="md-nav__title" for="nav-3">
           <span class="md-nav__icon md-icon"></span>
-          API Documentation
+          CLI
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -437,14 +453,24 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/cli/" class="md-nav__link">
-        Command Line Interface
+      <a href="../../cli/cli/" class="md-nav__link">
+        Overview
       </a>
     </li>
   
 
           
-            
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+
   
   
   
@@ -452,14 +478,14 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-2" type="checkbox" id="nav-3-2" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" >
       
-      <label class="md-nav__link" for="nav-3-2">
+      <label class="md-nav__link" for="nav-4">
         Python API
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Python API" data-md-level="2">
-        <label class="md-nav__title" for="nav-3-2">
+      <nav class="md-nav" aria-label="Python API" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
           <span class="md-nav__icon md-icon"></span>
           Python API
         </label>
@@ -471,7 +497,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/overview/" class="md-nav__link">
+      <a href="../../python_api/overview/" class="md-nav__link">
         Overview
       </a>
     </li>
@@ -483,7 +509,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/nerblackbox/" class="md-nav__link">
+      <a href="../../python_api/nerblackbox/" class="md-nav__link">
         NerBlackBox
       </a>
     </li>
@@ -495,7 +521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/experiment_results/" class="md-nav__link">
+      <a href="../../python_api/experiment_results/" class="md-nav__link">
         ExperimentResults
       </a>
     </li>
@@ -507,7 +533,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/experiments_results/" class="md-nav__link">
+      <a href="../../python_api/experiments_results/" class="md-nav__link">
         ExperimentsResults
       </a>
     </li>
@@ -519,15 +545,9 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/ner_model_predict/" class="md-nav__link">
+      <a href="../../python_api/ner_model_predict/" class="md-nav__link">
         NerModelPredict
       </a>
-    </li>
-  
-
-          
-        </ul>
-      </nav>
     </li>
   
 
@@ -552,7 +572,7 @@
                 
                 
                 <h1 id="getting-started">Getting Started</h1>
-<p>Use either the <a href="../../api_documentation/cli"><code>Command Line Interface (CLI)</code></a> or the <a href="../../api_documentation/python_api/overview"><code>Python API</code></a>.</p>
+<p>Use either the <a href="../../cli/cli"><code>CLI (Command Line Interface)</code></a> or the <a href="../../python_api/overview"><code>Python API</code></a>.</p>
 <details class="note"><summary>basic usage</summary><div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb --help
 </code></pre></div>
@@ -635,7 +655,7 @@ One can view an experiment configuration as follows:</p>
 </code></pre></div>
 </div>
 </div>
-<p>Python: see <a href="../../api_documentation/python_api/experiment_results">ExperimentResults</a> for details on how to use <code>experiment_results</code></p>
+<p>Python: see <a href="../../python_api/experiment_results">ExperimentResults</a> for details on how to use <code>experiment_results</code></p>
 </details>
 <details class="note"><summary>get detailed results &amp; run histories using either mlflow or tensorboard</summary><div class="tabbed-set" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><label for="__tabbed_6_1">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb mlflow       <span class="c1"># + enter http://localhost:5000 in your browser</span>
@@ -660,7 +680,7 @@ nerbb predict &lt;experiment_name&gt; &lt;text_input&gt;
 </code></pre></div>
 </div>
 </div>
-<p>Python: see <a href="../../api_documentation/python_api/ner_model_predict">NerModelPredict</a> for details on how to use <code>experiments_results.best_model</code></p>
+<p>Python: see <a href="../../python_api/ner_model_predict">NerModelPredict</a> for details on how to use <code>experiments_results.best_model</code></p>
 </details>
 <hr />
 <h2 id="3-experiments-overview">3. Experiments Overview</h2>
@@ -684,7 +704,7 @@ nerbb predict &lt;experiment_name&gt; &lt;text_input&gt;
 </code></pre></div>
 </div>
 </div>
-<p>Python: see <a href="../../api_documentation/python_api/experiments_results">ExperimentsResults</a> for details on how to use <code>experiments_results</code></p>
+<p>Python: see <a href="../../python_api/experiments_results">ExperimentsResults</a> for details on how to use <code>experiments_results</code></p>
 </details>
 <hr />
 <h2 id="4-next-steps">4. Next Steps</h2>

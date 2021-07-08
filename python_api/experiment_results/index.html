@@ -14,7 +14,7 @@
     
     
       
-        <title>Overview - nerblackbox</title>
+        <title>ExperimentResults - nerblackbox</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#overview" class="md-skip">
+        <a href="#experimentresults" class="md-skip">
           Skip to content
         </a>
       
@@ -96,7 +96,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              Overview
+              ExperimentResults
             
           </span>
         </div>
@@ -183,8 +183,26 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../api_documentation/cli/" class="md-tabs__link">
-        API Documentation
+      <a href="../../cli/cli/" class="md-tabs__link">
+        CLI
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../overview/" class="md-tabs__link md-tabs__link--active">
+        Python API
       </a>
     </li>
   
@@ -324,13 +342,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
       
       <label class="md-nav__link" for="nav-3">
-        API Documentation
+        CLI
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="API Documentation" data-md-level="1">
+      <nav class="md-nav" aria-label="CLI" data-md-level="1">
         <label class="md-nav__title" for="nav-3">
           <span class="md-nav__icon md-icon"></span>
-          API Documentation
+          CLI
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -340,29 +358,41 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/cli/" class="md-nav__link">
-        Command Line Interface
+      <a href="../../cli/cli/" class="md-nav__link">
+        Overview
       </a>
     </li>
   
 
           
-            
+        </ul>
+      </nav>
+    </li>
   
+
+    
+      
+      
+      
+
+
   
   
     
-    <li class="md-nav__item md-nav__item--nested">
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-2" type="checkbox" id="nav-3-2" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
       
-      <label class="md-nav__link" for="nav-3-2">
+      <label class="md-nav__link" for="nav-4">
         Python API
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Python API" data-md-level="2">
-        <label class="md-nav__title" for="nav-3-2">
+      <nav class="md-nav" aria-label="Python API" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
           <span class="md-nav__icon md-icon"></span>
           Python API
         </label>
@@ -374,7 +404,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         Overview
       </a>
     </li>
@@ -386,7 +416,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/nerblackbox/" class="md-nav__link">
+      <a href="../nerblackbox/" class="md-nav__link">
         NerBlackBox
       </a>
     </li>
@@ -396,11 +426,49 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/experiment_results/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          ExperimentResults
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         ExperimentResults
       </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.modules.experiment_results.ExperimentResults.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -410,7 +478,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/experiments_results/" class="md-nav__link">
+      <a href="../experiments_results/" class="md-nav__link">
         ExperimentsResults
       </a>
     </li>
@@ -422,15 +490,9 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api_documentation/python_api/ner_model_predict/" class="md-nav__link">
+      <a href="../ner_model_predict/" class="md-nav__link">
         NerModelPredict
       </a>
-    </li>
-  
-
-          
-        </ul>
-      </nav>
     </li>
   
 
@@ -454,14 +516,88 @@
               
                 
                 
-                <h1 id="overview">Overview</h1>
-<ul>
-<li>Data -&gt; Data preprocessing -&gt; Training -&gt; Inference</li>
-</ul>
-<p><img alt="overview_diagram" src="../../images/inside_nerblackbox_overview.png" /></p>
-<ul>
-<li>Features: ..</li>
-</ul>
+                <h1 id="experimentresults">ExperimentResults</h1>
+<div class="doc doc-object doc-class">
+<div class="doc doc-contents first">
+<p>class that contains results of a single experiment.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h2 class="doc doc-heading" id="nerblackbox.modules.experiment_results.ExperimentResults.__init__">
+
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">single_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_single_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_average_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+      </h2>
+<div class="doc doc-contents ">
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>experiment</code></td>
+<td><code>Optional[pandas.core.frame.DataFrame]</code></td>
+<td>
+<p>overview on experiment parameters</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>single_runs</code></td>
+<td><code>Optional[pandas.core.frame.DataFrame]</code></td>
+<td>
+<p>overview on run parameters &amp; single  results</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>average_runs</code></td>
+<td><code>Optional[pandas.core.frame.DataFrame]</code></td>
+<td>
+<p>overview on run parameters &amp; average results</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>best_single_run</code></td>
+<td><code>Optional[Dict]</code></td>
+<td>
+<p>overview on best run parameters &amp; single results</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>best_average_run</code></td>
+<td><code>Optional[Dict]</code></td>
+<td>
+<p>overview on best run parameters &amp; average results</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>best_model</code></td>
+<td><code>Optional[nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict]</code></td>
+<td>
+<p>best model</p>
+</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
                 
               
               
@@ -476,6 +612,41 @@
       
         
 <footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../nerblackbox/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                NerBlackBox
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../experiments_results/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                ExperimentsResults
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
