@@ -567,6 +567,33 @@ class TestNerModelPredictStatic:
                     },
                 ],
             ),
+            (
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "8",
+                        "token": "annotera",
+                        "tag": "O",
+                    },
+                    {"char_start": "9", "char_end": "12", "token": "den", "tag": "ORG"},
+                    {"char_start": "13", "char_end": "16", "token": "här", "tag": "O"},
+                    {
+                        "char_start": "17",
+                        "char_end": "23",
+                        "token": "texten",
+                        "tag": "O",
+                    },
+                ],
+                "annotera den här texten",
+                [
+                    {
+                        "char_start": "9",
+                        "char_end": "12",
+                        "token": "den",
+                        "tag": "ORG",
+                    },
+                ],
+            ),
         ],
     )
     def test_merge_tokens_to_entities(

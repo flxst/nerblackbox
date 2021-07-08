@@ -8,6 +8,13 @@ from omegaconf import OmegaConf
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
 
+from transformers import logging
+
+# TODO: this suppresses warnings (https://github.com/huggingface/transformers/issues/5421), root problem should be fixed
+logging.set_verbosity_error()
+
+VERBOSE = False
+
 
 class NerModelPredict(NerModel):
     """
@@ -550,6 +557,7 @@ def merge_tokens_to_entities(
         "o_tags": 0,
         "replace": 0,
         "merge": 0,
+        "unmodified": 0,
     }
     for i in range(len(example_word_predictions)):
         current_tag = example_word_predictions[i]["tag"]
@@ -558,7 +566,7 @@ def merge_tokens_to_entities(
             # merged_ner_tag = example_word_predictions[i]
             count["o_tags"] += 1
             # merged_ner_tags.append(merged_ner_tag)
-        elif current_tag.startswith("B-"):
+        elif current_tag.startswith("B-"):  # BIO scheme
             n_tags = 0
             for n in range(i + 1, len(example_word_predictions)):
                 next_tag = example_word_predictions[n]["tag"]
@@ -596,16 +604,36 @@ def merge_tokens_to_entities(
             else:
                 count["replace"] += 1
             merged_ner_tags.append(merged_ner_tag)
+        elif "-" not in current_tag:  # plain scheme
+            count["unmodified"] += 1
+            merged_ner_tag = example_word_predictions[i]
+            merged_ner_tags.append(merged_ner_tag)
 
-    assert count["merge"] + count["replace"] + count["o_tags"] == len(
+    assert count["merge"] + count["replace"] + count["o_tags"] + count[
+        "unmodified"
+    ] == len(
         example_word_predictions
-    ), f"{count} -> {sum(count.values())} != {len(example_word_predictions)}"
+    ), f"{count} -> {sum(count.values())} != {len(example_word_predictions)} | {example_word_predictions}"
+
+    if count["merge"] > 0 or count["replace"] > 0:
+        assert (
+            count["unmodified"] == 0
+        ), f"{count} -> if merge or replaced are > 0, unmodified should be == 0."
+
+    if count["unmodified"] > 0:
+        assert (
+            count["merge"] == 0
+        ), f"{count} -> if unmodified is > 0, merge should be == 0."
+        assert (
+            count["replace"] == 0
+        ), f"{count} -> if unmodified is > 0, replace should be == 0."
 
     example_word_predictions_merged = merged_ner_tags
-    print(
-        f"> merged {len(example_word_predictions_merged)} BIO-tags "
-        f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}).\n"
-    )
+    if VERBOSE:
+        print(
+            f"> merged {len(example_word_predictions_merged)} BIO-tags "
+            f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}, unmodified: {count['unmodified']}).\n"
+        )
 
     return example_word_predictions_merged
 
