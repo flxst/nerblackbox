@@ -452,8 +452,7 @@ class NerModelEvaluation:
             for field in ["true", "pred"]
         }
 
-        # token-based classification report, plain tags
-        tag_list_filtered, _ = self._get_filtered_tags("fil")
+        # token-based confusion matrix, plain tags
         confusion_matrix = confusion_matrix_sklearn(
             epoch_tags_plain["true"],
             epoch_tags_plain["pred"],

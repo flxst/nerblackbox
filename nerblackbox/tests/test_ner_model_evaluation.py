@@ -594,7 +594,7 @@ class TestNerModelEvaluation:
             epoch_metrics: Dict[str, np.array],
             epoch_loss: float,
     ) -> None:
-        test_epoch_metrics, _, test_epoch_loss = self.ner_model_evaluation.execute(phase, outputs)
+        test_epoch_metrics, _, _, test_epoch_loss = self.ner_model_evaluation.execute(phase, outputs)
 
         a = set(list(test_epoch_metrics.keys()))
         b = set(list(epoch_metrics.keys()))
