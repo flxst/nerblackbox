@@ -8,7 +8,12 @@ class TestLoggedMetrics:
     logged_metrics = LoggedMetrics()
 
     @pytest.mark.parametrize(
-        "required_tag_groups, " "required_phases, " "required_levels, " "required_averaging_groups, " "exclude, " "metrics",
+        "required_tag_groups, "
+        "required_phases, "
+        "required_levels, "
+        "required_averaging_groups, "
+        "exclude, "
+        "metrics",
         [
             (
                 ["all"],
@@ -109,7 +114,9 @@ class TestLoggedMetrics:
             required_averaging_groups=required_averaging_groups,
             exclude=exclude,
         )
-        assert set(test_metrics) == set(metrics), f"test_metrics = {test_metrics} != {metrics}"
+        assert set(test_metrics) == set(
+            metrics
+        ), f"test_metrics = {test_metrics} != {metrics}"
 
     @pytest.mark.parametrize(
         "metrics_flat_list",
@@ -159,5 +166,6 @@ class TestLoggedMetrics:
     )
     def test_as_flat_list(self, metrics_flat_list: List[str]):
         test_metrics_flat_list = self.logged_metrics.as_flat_list()
-        assert set(test_metrics_flat_list) == set(metrics_flat_list), \
-            f"test_metrics_flat_list = {test_metrics_flat_list} != {metrics_flat_list}"
+        assert set(test_metrics_flat_list) == set(
+            metrics_flat_list
+        ), f"test_metrics_flat_list = {test_metrics_flat_list} != {metrics_flat_list}"

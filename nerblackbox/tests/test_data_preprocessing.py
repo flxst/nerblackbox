@@ -16,7 +16,9 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset impo
     BertDataset,
 )
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
-    DataPreprocessor, order_tag_list, convert_tag_list_bio2plain
+    DataPreprocessor,
+    order_tag_list,
+    convert_tag_list_bio2plain,
 )
 from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     EncodingsKeys,
@@ -182,7 +184,6 @@ class TestCsvReaderAndDataProcessor:
 ########################################################################################################################
 ########################################################################################################################
 class TestInputExamplesToTensorsAndBertDataset:
-
     @pytest.mark.parametrize(
         "texts, "
         "labels, "
@@ -480,27 +481,27 @@ class TestMisc:
         "tag_list, " "tag_list_ordered",
         [
             (
-                    ["O", "PER", "ORG", "MISC"],
-                    ["O", "MISC", "ORG", "PER"],
+                ["O", "PER", "ORG", "MISC"],
+                ["O", "MISC", "ORG", "PER"],
             ),
             (
-                    ["PER", "ORG", "O", "MISC"],
-                    ["O", "MISC", "ORG", "PER"],
+                ["PER", "ORG", "O", "MISC"],
+                ["O", "MISC", "ORG", "PER"],
             ),
             (
-                    ["O", "B-PER", "I-MISC", "B-ORG", "I-PER", "B-MISC", "I-ORG"],
-                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+                ["O", "B-PER", "I-MISC", "B-ORG", "I-PER", "B-MISC", "I-ORG"],
+                ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
             ),
         ],
     )
     def test_order_tag_list(
-            self,
-            tag_list: List[str],
-            tag_list_ordered: List[str],
+        self,
+        tag_list: List[str],
+        tag_list_ordered: List[str],
     ) -> None:
         test_tag_list_ordered = order_tag_list(tag_list)
         assert (
-                test_tag_list_ordered == tag_list_ordered
+            test_tag_list_ordered == tag_list_ordered
         ), f"test_tag_list_ordered = {test_tag_list_ordered} != {tag_list_ordered}"
 
     ####################################################################################################################
@@ -508,23 +509,23 @@ class TestMisc:
         "tag_list_bio, " "tag_list",
         [
             (
-                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
-                    ["O", "MISC", "ORG", "PER"],
+                ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+                ["O", "MISC", "ORG", "PER"],
             ),
             (  # if applied to plain tag_list, nothing happens
-                    ["O", "MISC", "ORG", "PER"],
-                    ["O", "MISC", "ORG", "PER"],
+                ["O", "MISC", "ORG", "PER"],
+                ["O", "MISC", "ORG", "PER"],
             ),
         ],
     )
     def test_convert_tag_list_bio2plain(
-            self,
-            tag_list_bio: List[str],
-            tag_list: List[str],
+        self,
+        tag_list_bio: List[str],
+        tag_list: List[str],
     ) -> None:
         test_tag_list = convert_tag_list_bio2plain(tag_list_bio)
         assert (
-                test_tag_list == tag_list
+            test_tag_list == tag_list
         ), f"test_tag_list_ordered = {test_tag_list} != {tag_list}"
 
 

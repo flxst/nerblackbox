@@ -215,7 +215,10 @@ class TestNerMetrics:
         ],
     )
     def test_convert2bio(
-        self, input_sequence: List[str], convert_to_bio: bool, output_sequence: List[str]
+        self,
+        input_sequence: List[str],
+        convert_to_bio: bool,
+        output_sequence: List[str],
     ):
         if output_sequence is not None:
             test_output_sequence = convert2bio(input_sequence, convert_to_bio)
@@ -230,29 +233,32 @@ class TestNerMetrics:
         "input_sequence, " "convert_to_plain, " "output_sequence",
         [
             (
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    True,
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                True,
+                ["O", "A", "A", "O", "O", "O", "B", "O"],
             ),
             (
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    False,
-                    None,
+                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                False,
+                None,
             ),
             (
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
-                    False,
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+                ["O", "A", "A", "O", "O", "O", "B", "O"],
+                False,
+                ["O", "A", "A", "O", "O", "O", "B", "O"],
             ),
         ],
     )
     def test_convert2plain(
-            self, input_sequence: List[str], convert_to_plain: bool, output_sequence: List[str]
+        self,
+        input_sequence: List[str],
+        convert_to_plain: bool,
+        output_sequence: List[str],
     ):
         if output_sequence is not None:
             test_output_sequence = convert2plain(input_sequence, convert_to_plain)
             assert (
-                    test_output_sequence == output_sequence
+                test_output_sequence == output_sequence
             ), f"{test_output_sequence} != {output_sequence}"
         else:
             with pytest.raises(Exception):

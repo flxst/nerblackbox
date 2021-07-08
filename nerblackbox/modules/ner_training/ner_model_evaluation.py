@@ -8,9 +8,14 @@ from sklearn.metrics import confusion_matrix as confusion_matrix_sklearn
 from typing import List, Dict, Union, Tuple, Any, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.ner_training.metrics.ner_metrics import convert2bio, convert2plain
-from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import \
-    order_tag_list, convert_tag_list_bio2plain
+from nerblackbox.modules.ner_training.metrics.ner_metrics import (
+    convert2bio,
+    convert2plain,
+)
+from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
+    order_tag_list,
+    convert_tag_list_bio2plain,
+)
 
 
 class NerModelEvaluation:
@@ -68,10 +73,14 @@ class NerModelEvaluation:
         # classification report
         if phase == "test":
             confusion_matrix = self._get_confusion_matrix_str(
-                epoch_tags, phase=phase, epoch=self.current_epoch,
+                epoch_tags,
+                phase=phase,
+                epoch=self.current_epoch,
             )
             classification_report = self._get_classification_report(
-                epoch_tags, phase=None, epoch=None,
+                epoch_tags,
+                phase=None,
+                epoch=None,
             )
         else:
             classification_report = ""
@@ -221,7 +230,10 @@ class NerModelEvaluation:
             _tags:    [np array] of shape [batch_size * seq_length] with [str] elements
         """
         return np.array(
-            [self.tag_list[int(tag_id)] if tag_id >= 0 else "[S]" for tag_id in _tag_ids]
+            [
+                self.tag_list[int(tag_id)] if tag_id >= 0 else "[S]"
+                for tag_id in _tag_ids
+            ]
         )
 
     @staticmethod
@@ -259,12 +271,16 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         _tags_plain = {
-            field: convert2plain(_tags[field], convert_to_plain=self.annotation_scheme != "plain")
+            field: convert2plain(
+                _tags[field], convert_to_plain=self.annotation_scheme != "plain"
+            )
             for field in ["true", "pred"]
         }
 
         tag_list, tag_list_indices = self._get_filtered_tags(tag_subset, _tags_plain)
-        required_tag_groups = [tag_subset] if tag_subset in ["all", "fil", "O"] else ["ind"]
+        required_tag_groups = (
+            [tag_subset] if tag_subset in ["all", "fil", "O"] else ["ind"]
+        )
         required_phases = [_phase]
 
         if tag_subset == "O":
@@ -275,9 +291,11 @@ class NerModelEvaluation:
         _metrics = dict()
         for level in levels:
             required_levels = [level]
-            metrics_to_compute = self.logged_metrics.get_metrics(required_tag_groups=required_tag_groups,
-                                                                 required_phases=required_phases,
-                                                                 required_levels=required_levels)
+            metrics_to_compute = self.logged_metrics.get_metrics(
+                required_tag_groups=required_tag_groups,
+                required_phases=required_phases,
+                required_levels=required_levels,
+            )
 
             if len(metrics_to_compute):
                 ner_metrics = NerMetrics(
@@ -286,7 +304,9 @@ class NerModelEvaluation:
                     tag_list=tag_list if level == "token" else None,
                     tag_index=tag_list_indices if level == "entity" else None,
                     level=level,
-                    plain_tags=self.annotation_scheme == "plain" if level == "entity" else True,
+                    plain_tags=self.annotation_scheme == "plain"
+                    if level == "entity"
+                    else True,
                 )
                 ner_metrics.compute(metrics_to_compute)
                 results = ner_metrics.results_as_dict()
@@ -333,7 +353,9 @@ class NerModelEvaluation:
 
         return _metrics
 
-    def _get_filtered_tags(self, _tag_subset: str, _tags_plain: Optional[Dict[str, np.array]] = None) -> Tuple[List[str], Optional[int]]:
+    def _get_filtered_tags(
+        self, _tag_subset: str, _tags_plain: Optional[Dict[str, np.array]] = None
+    ) -> Tuple[List[str], Optional[int]]:
         """
         helper method for _compute_metrics()
         get list of filtered tags corresponding to _tag_subset name
@@ -357,7 +379,8 @@ class NerModelEvaluation:
             tag_list_plain_filtered = [
                 elem
                 for elem in self.tag_list_plain
-                if (elem in _tags_plain["true"] or elem in _tags_plain["pred"]) and elem != "O"
+                if (elem in _tags_plain["true"] or elem in _tags_plain["pred"])
+                and elem != "O"
             ]
             _filtered_tags = [_tag_subset]
 
@@ -374,7 +397,10 @@ class NerModelEvaluation:
     # 2. CLASSIFICATION REPORT #########################################################################################
     ####################################################################################################################
     def _get_classification_report(
-        self, epoch_tags: Dict[str, np.array], phase: Optional[str] = None, epoch: Optional[int] = None,
+        self,
+        epoch_tags: Dict[str, np.array],
+        phase: Optional[str] = None,
+        epoch: Optional[int] = None,
     ) -> str:
         """
         - get token-based (sklearn) & chunk-based (seqeval) classification report
@@ -390,7 +416,9 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: convert2plain(epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain")
+            field: convert2plain(
+                epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain"
+            )
             for field in ["true", "pred"]
         }
 
@@ -432,7 +460,10 @@ class NerModelEvaluation:
         return classification_report
 
     def _get_confusion_matrix_str(
-            self, epoch_tags: Dict[str, np.array], phase: Optional[str] = None, epoch: Optional[int] = None,
+        self,
+        epoch_tags: Dict[str, np.array],
+        phase: Optional[str] = None,
+        epoch: Optional[int] = None,
     ) -> str:
         """
         - get token-based (sklearn) confusion matrix
@@ -448,7 +479,9 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: convert2plain(epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain")
+            field: convert2plain(
+                epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain"
+            )
             for field in ["true", "pred"]
         }
 
@@ -456,7 +489,7 @@ class NerModelEvaluation:
         confusion_matrix = confusion_matrix_sklearn(
             epoch_tags_plain["true"],
             epoch_tags_plain["pred"],
-            labels=self.tag_list_plain
+            labels=self.tag_list_plain,
         )
 
         df_confusion_matrix = pd.DataFrame(confusion_matrix)
@@ -466,8 +499,10 @@ class NerModelEvaluation:
         confusion_matrix_str: str = ""
         if phase is not None and epoch is not None:
             confusion_matrix_str += f"\n>>> Phase: {phase} | Epoch: {epoch}\n"
-        confusion_matrix_str += "\n--- token-based, plain tag (sklearn) confusion matrix on all ---" + \
-                                "\n... rows = ground truth | columns = predictions\n" + \
-                                f"{df_confusion_matrix.to_string()}"
+        confusion_matrix_str += (
+            "\n--- token-based, plain tag (sklearn) confusion matrix on all ---"
+            + "\n... rows = ground truth | columns = predictions\n"
+            + f"{df_confusion_matrix.to_string()}"
+        )
 
         return confusion_matrix_str

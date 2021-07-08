@@ -37,9 +37,12 @@ class NerModel(pl.LightningModule, ABC):
         self.save_hyperparameters(hparams)
 
         # split up hparams
-        self.params, self.hyperparameters, self.log_dirs, self.experiment = split_parameters(
-            hparams
-        )
+        (
+            self.params,
+            self.hyperparameters,
+            self.log_dirs,
+            self.experiment,
+        ) = split_parameters(hparams)
 
         # preparations
         self._preparations()
@@ -311,7 +314,9 @@ class NerModel(pl.LightningModule, ABC):
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
 
-    def _create_scheduler(self, _lr_warmup_epochs, _lr_schedule, _lr_num_cycles=None) -> LambdaLR:
+    def _create_scheduler(
+        self, _lr_warmup_epochs, _lr_schedule, _lr_num_cycles=None
+    ) -> LambdaLR:
         """
         create scheduler with warmup
         ----------------------------
@@ -390,13 +395,18 @@ class NerModel(pl.LightningModule, ABC):
         ner_model_evaluation = NerModelEvaluation(
             current_epoch=self.current_epoch,
             tag_list=self.tag_list,
-            annotation_scheme=self.params.dataset_tags if self.params.dataset_tags != "iob" else "bio",  # TODO: clean
+            annotation_scheme=self.params.dataset_tags
+            if self.params.dataset_tags != "iob"
+            else "bio",  # TODO: clean
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )
-        epoch_metrics, classification_report, confusion_matrix, epoch_loss = ner_model_evaluation.execute(
-            phase, outputs
-        )
+        (
+            epoch_metrics,
+            classification_report,
+            confusion_matrix,
+            epoch_loss,
+        ) = ner_model_evaluation.execute(phase, outputs)
         self._log_metrics_confusion_matrix_classification_report(
             phase,
             epoch_metrics,

@@ -113,15 +113,17 @@ class TestNerModelEvaluation:
                 np.array([0, 0, 1, 1]),
             ),
             (
-                    np.array([0, 1, 1, 1]),
-                    np.array([
+                np.array([0, 1, 1, 1]),
+                np.array(
+                    [
                         [9.0, 1.2, 3.3],
                         [0.7, 0.6, 5.6],
                         [0.9, 2.1, 3.3],
                         [7.0, 6.0, 6.5],
-                    ]),
-                    np.array([0, 1, 1, 1], dtype=int),
-                    np.array([0, 2, 2, 0], dtype=int),
+                    ]
+                ),
+                np.array([0, 1, 1, 1], dtype=int),
+                np.array([0, 2, 2, 0], dtype=int),
             ),
         ],
     )
@@ -135,8 +137,12 @@ class TestNerModelEvaluation:
         test_true_flat, test_pred_flat = self.ner_model_evaluation._reduce_and_flatten(
             _np_tag_ids, _np_logits
         )
-        assert np.array_equal(test_true_flat, true_flat), f"true_flat: test = {test_true_flat} != {true_flat} = true"
-        assert np.array_equal(test_pred_flat, pred_flat), f"pred_flat: test = {test_true_flat} != {pred_flat} = true"
+        assert np.array_equal(
+            test_true_flat, true_flat
+        ), f"true_flat: test = {test_true_flat} != {true_flat} = true"
+        assert np.array_equal(
+            test_pred_flat, pred_flat
+        ), f"pred_flat: test = {test_true_flat} != {pred_flat} = true"
 
     ####################################################################################################################
     @pytest.mark.parametrize(
@@ -185,20 +191,56 @@ class TestNerModelEvaluation:
             _tags
         )
         for k in tags_new.keys():
-            assert np.array_equal(test_tags_new[k], tags_new[k]), \
-                f"key = {k}: test = {test_tags_new[k]} != {tags_new[k]} = true"
+            assert np.array_equal(
+                test_tags_new[k], tags_new[k]
+            ), f"key = {k}: test = {test_tags_new[k]} != {tags_new[k]} = true"
 
     ####################################################################################################################
     @pytest.mark.parametrize(
         "_tags_plain, " "_tag_subset, " "_filtered_tags, " "_filtered_tags_index",
         [
-            ({"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])}, "all", ["O", "ORG", "PER"], None),
-            ({"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])}, "fil", ["ORG", "PER"], None),
-            ({"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])}, "O", ["O"], None),
-            ({"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])}, "PER", ["PER"], 1),
-            ({"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])}, "ORG", ["ORG"], 0),
-            ({"true": np.array(["ORG"]), "pred": np.array([])}, "all", ["O", "ORG", "PER"], None),
-            ({"true": np.array(["ORG"]), "pred": np.array([])}, "fil", ["ORG", "PER"], None),
+            (
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                "all",
+                ["O", "ORG", "PER"],
+                None,
+            ),
+            (
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                "fil",
+                ["ORG", "PER"],
+                None,
+            ),
+            (
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                "O",
+                ["O"],
+                None,
+            ),
+            (
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                "PER",
+                ["PER"],
+                1,
+            ),
+            (
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                "ORG",
+                ["ORG"],
+                0,
+            ),
+            (
+                {"true": np.array(["ORG"]), "pred": np.array([])},
+                "all",
+                ["O", "ORG", "PER"],
+                None,
+            ),
+            (
+                {"true": np.array(["ORG"]), "pred": np.array([])},
+                "fil",
+                ["ORG", "PER"],
+                None,
+            ),
             ({"true": np.array(["ORG"]), "pred": np.array([])}, "O", ["O"], None),
             ({"true": np.array(["ORG"]), "pred": np.array([])}, "PER", ["PER"], None),
             ({"true": np.array(["ORG"]), "pred": np.array([])}, "ORG", ["ORG"], 0),
@@ -213,7 +255,10 @@ class TestNerModelEvaluation:
         _filtered_tags: List[str],
         _filtered_tags_index: Optional[int],
     ) -> None:
-        test_filtered_tags, test_filtered_tags_index = self.ner_model_evaluation._get_filtered_tags(_tag_subset, _tags_plain)
+        (
+            test_filtered_tags,
+            test_filtered_tags_index,
+        ) = self.ner_model_evaluation._get_filtered_tags(_tag_subset, _tags_plain)
 
         assert (
             test_filtered_tags == _filtered_tags
@@ -252,89 +297,89 @@ class TestNerModelEvaluation:
                 },
             ),
             (
-                    "plain",
-                    {
-                        "true": np.array(["O", "PER", "ORG", "PER"]),
-                        "pred": np.array(["O", "PER", "ORG", "PER"]),
-                    },
-                    "test",
-                    "PER",
-                    {
-                        "entity_PER_recall": 1.0,
-                        "entity_PER_precision": 1.0,
-                        "entity_PER_f1": 1.0,
-                        "token_PER_recall": 1.0,
-                        "token_PER_precision": 1.0,
-                        "token_PER_f1": 1.0,
-                    },
+                "plain",
+                {
+                    "true": np.array(["O", "PER", "ORG", "PER"]),
+                    "pred": np.array(["O", "PER", "ORG", "PER"]),
+                },
+                "test",
+                "PER",
+                {
+                    "entity_PER_recall": 1.0,
+                    "entity_PER_precision": 1.0,
+                    "entity_PER_f1": 1.0,
+                    "token_PER_recall": 1.0,
+                    "token_PER_precision": 1.0,
+                    "token_PER_f1": 1.0,
+                },
             ),
             (
-                    "bio",
-                    {
-                        "true": np.array(["O", "B-PER", "I-PER", "O", "B-PER"]),
-                        "pred": np.array(["O", "B-PER", "I-PER", "I-PER", "B-PER"]),
-                    },
-                    "test",
-                    "PER",
-                    {
-                        "entity_PER_recall": 0.5,
-                        "entity_PER_precision": 0.5,
-                        "entity_PER_f1": 0.5,
-                        "token_PER_recall": 1.0,
-                        "token_PER_precision": 0.75,
-                        "token_PER_f1": 0.86,
-                    },
+                "bio",
+                {
+                    "true": np.array(["O", "B-PER", "I-PER", "O", "B-PER"]),
+                    "pred": np.array(["O", "B-PER", "I-PER", "I-PER", "B-PER"]),
+                },
+                "test",
+                "PER",
+                {
+                    "entity_PER_recall": 0.5,
+                    "entity_PER_precision": 0.5,
+                    "entity_PER_f1": 0.5,
+                    "token_PER_recall": 1.0,
+                    "token_PER_precision": 0.75,
+                    "token_PER_f1": 0.86,
+                },
             ),
             (
-                    "bio",
-                    {
-                        "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                        "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
-                    },
-                    "test",
-                    "PER",
-                    {
-                        "entity_PER_recall": 0.0,
-                        "entity_PER_precision": -1.0,
-                        "entity_PER_f1": -1.0,
-                        "token_PER_recall": 0.0,
-                        "token_PER_precision": -1.0,
-                        "token_PER_f1": -1.0,
-                    },
+                "bio",
+                {
+                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
+                    "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
+                },
+                "test",
+                "PER",
+                {
+                    "entity_PER_recall": 0.0,
+                    "entity_PER_precision": -1.0,
+                    "entity_PER_f1": -1.0,
+                    "token_PER_recall": 0.0,
+                    "token_PER_precision": -1.0,
+                    "token_PER_f1": -1.0,
+                },
             ),
             (
-                    "bio",
-                    {
-                        "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                        "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
-                    },
-                    "test",
-                    "ORG",
-                    {
-                        "entity_ORG_recall": 0.0,
-                        "entity_ORG_precision": 0.0,
-                        "entity_ORG_f1": 0.0,
-                        "token_ORG_recall": 1.0,
-                        "token_ORG_precision": 0.5,
-                        "token_ORG_f1": 0.66,
-                    },
+                "bio",
+                {
+                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
+                    "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
+                },
+                "test",
+                "ORG",
+                {
+                    "entity_ORG_recall": 0.0,
+                    "entity_ORG_precision": 0.0,
+                    "entity_ORG_f1": 0.0,
+                    "token_ORG_recall": 1.0,
+                    "token_ORG_precision": 0.5,
+                    "token_ORG_f1": 0.66,
+                },
             ),
             (
-                    "bio",
-                    {
-                        "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                        "pred": np.array(["O", "B-ORG", "B-ORG", "O"]),
-                    },
-                    "test",
-                    "PER",
-                    {
-                        "entity_PER_recall": 0.0,
-                        "entity_PER_precision": -1.0,
-                        "entity_PER_f1": -1.0,
-                        "token_PER_recall": 0.0,
-                        "token_PER_precision": -1.0,
-                        "token_PER_f1": -1.0,
-                    },
+                "bio",
+                {
+                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
+                    "pred": np.array(["O", "B-ORG", "B-ORG", "O"]),
+                },
+                "test",
+                "PER",
+                {
+                    "entity_PER_recall": 0.0,
+                    "entity_PER_precision": -1.0,
+                    "entity_PER_f1": -1.0,
+                    "token_PER_recall": 0.0,
+                    "token_PER_precision": -1.0,
+                    "token_PER_f1": -1.0,
+                },
             ),
         ],
     )
@@ -351,8 +396,10 @@ class TestNerModelEvaluation:
                 _tags, _phase, tag_subset
             )
         elif annotation_scheme == "bio":
-            test_metrics = self.ner_model_evaluation_bio._compute_metrics_for_tags_subset(
-                _tags, _phase, tag_subset
+            test_metrics = (
+                self.ner_model_evaluation_bio._compute_metrics_for_tags_subset(
+                    _tags, _phase, tag_subset
+                )
             )
         else:
             raise Exception(f"annotation_scheme = {annotation_scheme} unknown.")
@@ -363,8 +410,8 @@ class TestNerModelEvaluation:
         assert len(b.difference(a)) == 0, b.difference(a)
 
         for k in list(set(list(test_metrics.keys()) + list(metrics.keys()))):
-            assert (
-                test_metrics[k] == pytest_approx(metrics[k])
+            assert test_metrics[k] == pytest_approx(
+                metrics[k]
             ), f"test_metrics[{k}] = {test_metrics[k]} != {metrics[k]}"
 
     ####################################################################################################################
@@ -376,7 +423,9 @@ class TestNerModelEvaluation:
                 "test",
                 {
                     "loss": 2.0,
-                    "tag_ids": np.array([0, 2, 1, 0], dtype=np.float32),  # [O, PER, ORG, O]  (true)
+                    "tag_ids": np.array(
+                        [0, 2, 1, 0], dtype=np.float32
+                    ),  # [O, PER, ORG, O]  (true)
                     "logits": np.array(
                         [  # O, ORG, PER
                             [9.0, 3.3, 1.2],  # O
@@ -429,87 +478,91 @@ class TestNerModelEvaluation:
                 {
                     "true": np.array(["O", "PER", "ORG", "O"]),
                     "pred": np.array(["O", "ORG", "ORG", "O"]),
-                }
+                },
             ),
             (
-                    "bio",
-                    "test",
-                    {
-                        "loss": 2.0,
-                        "tag_ids": np.array([0, 2, 1, 0], dtype=np.float32),  # [O, B-PER, B-ORG, O]  (true)
-                        "logits": np.array(
-                            [
-                                # 0, B-ORG, B-PER, I-ORG, I-PER  (pred)
-                                [9.0, 3.3, 1.2, 1.0, 1.0],  # O
-                                [0.7, 5.6, 1.2, 1.0, 1.0],  # B-ORG
-                                [0.9, 1.0, 2.1, 3.3, 1.0],  # I-ORG
-                                [7.0, 6.5, 6.9, 1.0, 1.0],  # O
-                            ],
-                            dtype=np.float32,
-                        ),
-                    },
-                    {
-                        "entity_fil_numberofclasses_macro": 1,
-                        "entity_fil_precision_micro": 0.0,
-                        "entity_fil_precision_macro": 0.0,
-                        "entity_fil_recall_micro": 0.0,
-                        "entity_fil_recall_macro": 0.0,
-                        "entity_fil_f1_micro": 0.0,
-                        "entity_fil_f1_macro": 0.0,
-                        "entity_PER_precision": -1.0,
-                        "entity_PER_recall": 0.0,
-                        "entity_PER_f1": -1.0,
-                        "entity_ORG_precision": 0.0,
-                        "entity_ORG_recall": 0.0,
-                        "entity_ORG_f1": 0.0,
-                        "token_all_loss": 2.0,
-                        "token_all_acc": 0.75,
-                        "token_all_precision_micro": 0.75,
-                        "token_all_precision_macro": -1.0,
-                        "token_all_recall_micro": 0.75,
-                        "token_all_recall_macro": 0.66,
-                        "token_all_f1_micro": 0.75,
-                        "token_all_f1_macro": -1.0,
-                        "token_fil_numberofclasses_macro": 1,
-                        "token_fil_precision_micro": 0.5,
-                        "token_fil_precision_macro": -1.0,
-                        "token_fil_recall_micro": 0.5,
-                        "token_fil_recall_macro": 0.5,
-                        "token_fil_f1_micro": 0.5,
-                        "token_fil_f1_macro": -1.0,
-                        "token_O_precision": 1.0,
-                        "token_O_recall": 1.0,
-                        "token_O_f1": 1.0,
-                        "token_PER_precision": -1.0,
-                        "token_PER_recall": 0.0,
-                        "token_PER_f1": -1.0,
-                        "token_ORG_precision": 0.5,
-                        "token_ORG_recall": 1.0,
-                        "token_ORG_f1": 0.66,
-                    },
-                    {
-                        "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                        "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
-                    }
+                "bio",
+                "test",
+                {
+                    "loss": 2.0,
+                    "tag_ids": np.array(
+                        [0, 2, 1, 0], dtype=np.float32
+                    ),  # [O, B-PER, B-ORG, O]  (true)
+                    "logits": np.array(
+                        [
+                            # 0, B-ORG, B-PER, I-ORG, I-PER  (pred)
+                            [9.0, 3.3, 1.2, 1.0, 1.0],  # O
+                            [0.7, 5.6, 1.2, 1.0, 1.0],  # B-ORG
+                            [0.9, 1.0, 2.1, 3.3, 1.0],  # I-ORG
+                            [7.0, 6.5, 6.9, 1.0, 1.0],  # O
+                        ],
+                        dtype=np.float32,
+                    ),
+                },
+                {
+                    "entity_fil_numberofclasses_macro": 1,
+                    "entity_fil_precision_micro": 0.0,
+                    "entity_fil_precision_macro": 0.0,
+                    "entity_fil_recall_micro": 0.0,
+                    "entity_fil_recall_macro": 0.0,
+                    "entity_fil_f1_micro": 0.0,
+                    "entity_fil_f1_macro": 0.0,
+                    "entity_PER_precision": -1.0,
+                    "entity_PER_recall": 0.0,
+                    "entity_PER_f1": -1.0,
+                    "entity_ORG_precision": 0.0,
+                    "entity_ORG_recall": 0.0,
+                    "entity_ORG_f1": 0.0,
+                    "token_all_loss": 2.0,
+                    "token_all_acc": 0.75,
+                    "token_all_precision_micro": 0.75,
+                    "token_all_precision_macro": -1.0,
+                    "token_all_recall_micro": 0.75,
+                    "token_all_recall_macro": 0.66,
+                    "token_all_f1_micro": 0.75,
+                    "token_all_f1_macro": -1.0,
+                    "token_fil_numberofclasses_macro": 1,
+                    "token_fil_precision_micro": 0.5,
+                    "token_fil_precision_macro": -1.0,
+                    "token_fil_recall_micro": 0.5,
+                    "token_fil_recall_macro": 0.5,
+                    "token_fil_f1_micro": 0.5,
+                    "token_fil_f1_macro": -1.0,
+                    "token_O_precision": 1.0,
+                    "token_O_recall": 1.0,
+                    "token_O_f1": 1.0,
+                    "token_PER_precision": -1.0,
+                    "token_PER_recall": 0.0,
+                    "token_PER_f1": -1.0,
+                    "token_ORG_precision": 0.5,
+                    "token_ORG_recall": 1.0,
+                    "token_ORG_f1": 0.66,
+                },
+                {
+                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
+                    "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
+                },
             ),
         ],
     )
     def test_compute_metrics(
-            self,
-            annotation_scheme: str,
-            phase: str,
-            np_epoch: Dict[str, Union[np.number, np.array]],
-            epoch_metrics: Dict[str, np.array],
-            epoch_tags: Dict[str, np.array],
+        self,
+        annotation_scheme: str,
+        phase: str,
+        np_epoch: Dict[str, Union[np.number, np.array]],
+        epoch_metrics: Dict[str, np.array],
+        epoch_tags: Dict[str, np.array],
     ) -> None:
         if annotation_scheme == "plain":
-            test_epoch_metrics, test_epoch_tags = self.ner_model_evaluation._compute_metrics(
-                phase, np_epoch
-            )
+            (
+                test_epoch_metrics,
+                test_epoch_tags,
+            ) = self.ner_model_evaluation._compute_metrics(phase, np_epoch)
         elif annotation_scheme == "bio":
-            test_epoch_metrics, test_epoch_tags = self.ner_model_evaluation_bio._compute_metrics(
-                phase, np_epoch
-            )
+            (
+                test_epoch_metrics,
+                test_epoch_tags,
+            ) = self.ner_model_evaluation_bio._compute_metrics(phase, np_epoch)
         else:
             raise Exception(f"annotation_scheme = {annotation_scheme} unknown.")
 
@@ -519,12 +572,16 @@ class TestNerModelEvaluation:
         assert len(b.difference(a)) == 0, b.difference(a)
 
         for k in list(set(list(test_epoch_tags.keys()) + list(epoch_tags.keys()))):
-            assert np.array_equal(test_epoch_tags[k], epoch_tags[k]), \
-                f"key = {k}: test_epoch_tags = {test_epoch_tags[k]} != {epoch_tags[k]}"
+            assert np.array_equal(
+                test_epoch_tags[k], epoch_tags[k]
+            ), f"key = {k}: test_epoch_tags = {test_epoch_tags[k]} != {epoch_tags[k]}"
 
-        for k in list(set(list(test_epoch_metrics.keys()) + list(epoch_metrics.keys()))):
-            assert test_epoch_metrics[k] == pytest_approx(epoch_metrics[k]), \
-                f"key = {k}: test_epoch_metrics = {test_epoch_metrics[k]} != {epoch_metrics[k]}"
+        for k in list(
+            set(list(test_epoch_metrics.keys()) + list(epoch_metrics.keys()))
+        ):
+            assert test_epoch_metrics[k] == pytest_approx(
+                epoch_metrics[k]
+            ), f"key = {k}: test_epoch_metrics = {test_epoch_metrics[k]} != {epoch_metrics[k]}"
 
     ####################################################################################################################
     @pytest.mark.parametrize(
@@ -535,13 +592,17 @@ class TestNerModelEvaluation:
                 [
                     [
                         torch.tensor([1.0, 2.0]),
-                        torch.tensor([0, 2]),                              # =          [O, PER]  (true)
-                        torch.tensor([[9.0, 1.2, 3.3], [0.7, 5.6, 0.6]]),  # = [0, 1] = [O, ORG]  (pred)
+                        torch.tensor([0, 2]),  # =          [O, PER]  (true)
+                        torch.tensor(
+                            [[9.0, 1.2, 3.3], [0.7, 5.6, 0.6]]
+                        ),  # = [0, 1] = [O, ORG]  (pred)
                     ],
                     [
                         torch.tensor([2.0, 3.0]),
-                        torch.tensor([1, 0]),                              # =          [ORG, O]  (true)
-                        torch.tensor([[0.9, 3.3, 2.1], [7.0, 6.5, 6.0]]),  # = [1, 0] = [ORG, O]  (pred)
+                        torch.tensor([1, 0]),  # =          [ORG, O]  (true)
+                        torch.tensor(
+                            [[0.9, 3.3, 2.1], [7.0, 6.5, 6.0]]
+                        ),  # = [1, 0] = [ORG, O]  (pred)
                     ],
                 ],
                 {
@@ -588,22 +649,27 @@ class TestNerModelEvaluation:
         ],
     )
     def test_execute(
-            self,
-            phase: str,
-            outputs: List[Union[torch.Tensor, Dict[str, Any]]],
-            epoch_metrics: Dict[str, np.array],
-            epoch_loss: float,
+        self,
+        phase: str,
+        outputs: List[Union[torch.Tensor, Dict[str, Any]]],
+        epoch_metrics: Dict[str, np.array],
+        epoch_loss: float,
     ) -> None:
-        test_epoch_metrics, _, _, test_epoch_loss = self.ner_model_evaluation.execute(phase, outputs)
+        test_epoch_metrics, _, _, test_epoch_loss = self.ner_model_evaluation.execute(
+            phase, outputs
+        )
 
         a = set(list(test_epoch_metrics.keys()))
         b = set(list(epoch_metrics.keys()))
         assert len(a.difference(b)) == 0, a.difference(b)
         assert len(b.difference(a)) == 0, b.difference(a)
 
-        for k in list(set(list(test_epoch_metrics.keys()) + list(epoch_metrics.keys()))):
-            assert test_epoch_metrics[k] == pytest_approx(epoch_metrics[k]), \
-                f"key = {k}: test_epoch_metrics = {test_epoch_metrics[k]} != {epoch_metrics[k]}"
+        for k in list(
+            set(list(test_epoch_metrics.keys()) + list(epoch_metrics.keys()))
+        ):
+            assert test_epoch_metrics[k] == pytest_approx(
+                epoch_metrics[k]
+            ), f"key = {k}: test_epoch_metrics = {test_epoch_metrics[k]} != {epoch_metrics[k]}"
 
 
 if __name__ == "__main__":

@@ -12,28 +12,29 @@ class LoggedMetrics:
         # GENERAL
         ("loss", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
         ("acc", ["train", "val", "test"], ["all"], ["token"], ["simple"]),
-
         # VAL
         ("f1", ["val"], ["all"], ["token"], ["micro"]),
         ("f1", ["val"], ["fil"], ["token", "entity"], ["micro"]),
-
         # TEST
         ("precision", ["test"], ["all"], ["token"], ["micro", "macro"]),
         ("precision", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("precision", ["test"], ["ind"], ["token", "entity"], ["micro"]),
         ("precision", ["test"], ["O"], ["token"], ["micro"]),
-
         ("recall", ["test"], ["all"], ["token"], ["micro", "macro"]),
         ("recall", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("recall", ["test"], ["ind"], ["token", "entity"], ["micro"]),
         ("recall", ["test"], ["O"], ["token"], ["micro"]),
-
         ("f1", ["test"], ["all"], ["token"], ["micro", "macro"]),
         ("f1", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("f1", ["test"], ["ind"], ["token", "entity"], ["micro"]),
         ("f1", ["test"], ["O"], ["token"], ["micro"]),
-
-        ("numberofclasses", ["test"], ["fil"], ["token", "entity"], ["macro"]),  # special
+        (
+            "numberofclasses",
+            ["test"],
+            ["fil"],
+            ["token", "entity"],
+            ["macro"],
+        ),  # special
     ]
 
     @classmethod
@@ -50,7 +51,9 @@ class LoggedMetrics:
                     flat_list.append(f"{level}_{tag_group}_{metric}")
                 else:
                     for averaging_group in averaging_groups:
-                        flat_list.append(f"{level}_{tag_group}_{metric}_{averaging_group}")
+                        flat_list.append(
+                            f"{level}_{tag_group}_{metric}_{averaging_group}"
+                        )
         return flat_list
 
     def __init__(self):
@@ -84,21 +87,25 @@ class LoggedMetrics:
             add_metric_1 = (
                 True
                 if required_tag_groups is None
-                else all([required_tag_group in tag_groups for required_tag_group in required_tag_groups])
+                else all(
+                    [
+                        required_tag_group in tag_groups
+                        for required_tag_group in required_tag_groups
+                    ]
+                )
             )
             add_metric_2 = (
                 True
                 if required_phases is None
-                else all([required_phase in phases for required_phase in required_phases])
+                else all(
+                    [required_phase in phases for required_phase in required_phases]
+                )
             )
             add_metric_3 = (
                 True
                 if required_levels is None
                 else all(
-                    [
-                        required_level in levels
-                        for required_level in required_levels
-                    ]
+                    [required_level in levels for required_level in required_levels]
                 )
             )
             add_metric_4 = (
@@ -113,7 +120,13 @@ class LoggedMetrics:
             )
             add_metric_5 = True if exclude is None else metric not in exclude
 
-            if add_metric_1 and add_metric_2 and add_metric_3 and add_metric_4 and add_metric_5:
+            if (
+                add_metric_1
+                and add_metric_2
+                and add_metric_3
+                and add_metric_4
+                and add_metric_5
+            ):
                 filtered_metrics.append(metric)
 
         return list(set(filtered_metrics))

@@ -54,7 +54,9 @@ def main(params, hparams, log_dirs, experiment: bool):
         trainer.fit(model)
         callback_info = get_callback_info(callbacks, params, hparams)
 
-        default_logger.log_info("--- LOAD BEST CHECKPOINT FOR TESTING AND DETAILED RESULTS ---")
+        default_logger.log_info(
+            "--- LOAD BEST CHECKPOINT FOR TESTING AND DETAILED RESULTS ---"
+        )
         model_best = NerModelTrain.load_from_checkpoint(
             checkpoint_path=callback_info["checkpoint_best"]
         )
@@ -147,7 +149,7 @@ def get_callbacks(_params, _hparams, _log_dirs):
             dirpath=model_checkpoint_filepath,
             filename="{epoch}",
             monitor="val_loss",
-            verbose=True
+            verbose=True,
         ),
         EarlyStopping(**early_stopping_params, verbose=True),
     ]
@@ -221,7 +223,7 @@ def logging_end(
         )
         _model_stopped.mlflow_client.log_metric(
             f"epoch_best_test_{metric}".upper(),
-            _model_best.epoch_metrics["test"][0][metric]
+            _model_best.epoch_metrics["test"][0][metric],
         )
 
     _model_stopped.mlflow_client.finish_artifact_logger()  # mlflow
@@ -259,24 +261,16 @@ def _tb_logger_stopped_epoch(
 
     # val/test
     hparams_best_val = {
-        f'hparam/val/epoch_best_{_epoch_best}/{metric}': _model_stopped.epoch_metrics[
+        f"hparam/val/epoch_best_{_epoch_best}/{metric}": _model_stopped.epoch_metrics[
             "val"
-        ][
-            _epoch_best
-        ][
-            metric
-        ]
+        ][_epoch_best][metric]
         for metric in metrics
     }
 
     hparams_best_test = {
-        f'hparam/test/epoch_best_{_epoch_best}/{metric}': _model_best.epoch_metrics[
+        f"hparam/test/epoch_best_{_epoch_best}/{metric}": _model_best.epoch_metrics[
             "test"
-        ][
-            0
-        ][
-            metric
-        ]
+        ][0][metric]
         for metric in metrics
     }
 

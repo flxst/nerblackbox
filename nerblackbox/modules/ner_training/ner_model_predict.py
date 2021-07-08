@@ -15,10 +15,7 @@ class NerModelPredict(NerModel):
     """
 
     @classmethod
-    def load_from_checkpoint(
-            cls,
-            checkpoint_path: Union[str, IO]
-    ) -> "NerModelPredict":
+    def load_from_checkpoint(cls, checkpoint_path: Union[str, IO]) -> "NerModelPredict":
         """load model in inference mode from checkpoint_path
 
         Args:
@@ -27,9 +24,7 @@ class NerModelPredict(NerModel):
         Returns:
             model loaded from checkpoint
         """
-        model = super().load_from_checkpoint(
-            checkpoint_path
-        )
+        model = super().load_from_checkpoint(checkpoint_path)
         model.freeze()  # for inference mode
         return model
 
@@ -87,7 +82,12 @@ class NerModelPredict(NerModel):
     ####################################################################################################################
     # PREDICT
     ####################################################################################################################
-    def predict(self, input_texts: Union[str, List[str]], level: str = "entity", autocorrect: bool = True) -> List[List[Dict[str, str]]]:
+    def predict(
+        self,
+        input_texts: Union[str, List[str]],
+        level: str = "entity",
+        autocorrect: bool = True,
+    ) -> List[List[Dict[str, str]]]:
         """predict tags for input texts. output on entity or word level.
 
         Examples:
@@ -128,7 +128,9 @@ class NerModelPredict(NerModel):
         """
         return self._predict(input_texts, level, autocorrect, proba=False)
 
-    def predict_proba(self, input_texts: Union[str, List[str]]) -> List[List[Dict[str, Union[str, Dict]]]]:
+    def predict_proba(
+        self, input_texts: Union[str, List[str]]
+    ) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict probability distributions for input texts. output on word level.
 
         Examples:
@@ -153,7 +155,11 @@ class NerModelPredict(NerModel):
         return self._predict(input_texts, level="word", autocorrect=False, proba=True)
 
     def _predict(
-            self, input_texts: Union[str, List[str]], level: str = "entity", autocorrect: bool = True, proba: bool = False
+        self,
+        input_texts: Union[str, List[str]],
+        level: str = "entity",
+        autocorrect: bool = True,
+        proba: bool = False,
     ) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict tags or probabilities for tags
 
@@ -168,14 +174,19 @@ class NerModelPredict(NerModel):
                          where proba_dist = [dict] that maps self.tag_list to probabilities
         """
         # --- check input arguments ---
-        assert level in ["entity", "word"], \
-            f"ERROR! model prediction level = {level} unknown, needs to be entity or word."
+        assert level in [
+            "entity",
+            "word",
+        ], f"ERROR! model prediction level = {level} unknown, needs to be entity or word."
         if level == "entity":
-            assert autocorrect is True, f"ERROR! level = entity requires autocorrect = True."
+            assert (
+                autocorrect is True
+            ), f"ERROR! level = entity requires autocorrect = True."
         if proba:
-            assert level == "word" and autocorrect is False, \
-                f"ERROR! probability predictions require level = word and autocorrect = False. " \
+            assert level == "word" and autocorrect is False, (
+                f"ERROR! probability predictions require level = word and autocorrect = False. "
                 f"level = {level} and autocorrect = {autocorrect} not possible."
+            )
         # ------------------------------
 
         if isinstance(input_texts, str):
@@ -209,13 +220,15 @@ class NerModelPredict(NerModel):
             ######################################
             # 1 input_text, merged chunks, tokens -> words
             ######################################
-            _input_text_word_predictions: List[Tuple[Union[str, Any], ...]] = get_tags_on_words_between_special_tokens(
+            _input_text_word_predictions: List[
+                Tuple[Union[str, Any], ...]
+            ] = get_tags_on_words_between_special_tokens(
                 input_text_tokens, input_text_token_predictions
             )
 
-            input_text_word_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
-                _input_text_word_predictions, input_text
-            )
+            input_text_word_predictions: List[
+                Dict[str, Union[str, Dict]]
+            ] = restore_unknown_tokens(_input_text_word_predictions, input_text)
 
             if autocorrect:
                 input_text_word_predictions = restore_annotation_scheme_consistency(
@@ -223,7 +236,9 @@ class NerModelPredict(NerModel):
                 )
 
             if level == "entity":
-                assert proba is False, f"ERROR! level = entity not allowed if proba = {proba}"
+                assert (
+                    proba is False
+                ), f"ERROR! level = entity not allowed if proba = {proba}"
                 input_text_word_predictions = merge_tokens_to_entities(
                     input_text_word_predictions, input_text
                 )
@@ -321,7 +336,7 @@ class NerModelPredict(NerModel):
 ########################################################################################################################
 ########################################################################################################################
 def get_tags_on_words_between_special_tokens(
-        tokens: List[str], example_token_predictions: List[Any]
+    tokens: List[str], example_token_predictions: List[Any]
 ) -> List[Tuple[Union[str, Any], ...]]:
     """
     Args:
@@ -336,9 +351,7 @@ def get_tags_on_words_between_special_tokens(
     for token, example_token_prediction in zip(tokens, example_token_predictions):
         if token not in ["[CLS]", "[SEP]", "[PAD]"]:
             if not token.startswith("##"):
-                example_word_predictions_list.append(
-                    [token, example_token_prediction]
-                )
+                example_word_predictions_list.append([token, example_token_prediction])
             else:
                 example_word_predictions_list[-1][0] += token.strip("##")
 
@@ -348,9 +361,9 @@ def get_tags_on_words_between_special_tokens(
 
 
 def restore_unknown_tokens(
-        example_word_predictions: List[Tuple[Union[str, Any], ...]],
-        _example: str,
-        verbose: bool = True,
+    example_word_predictions: List[Tuple[Union[str, Any], ...]],
+    _example: str,
+    verbose: bool = True,
 ) -> List[Dict[str, Union[str, Dict]]]:
     """
     - replace "[UNK]" tokens by the original token
@@ -395,8 +408,8 @@ def restore_unknown_tokens(
     # 2. restore unknown tokens
     for i, (token, tag) in enumerate(example_word_predictions):
         if (
-                token_char_margins[i][0] is not None
-                and token_char_margins[i][1] is not None
+            token_char_margins[i][0] is not None
+            and token_char_margins[i][1] is not None
         ):
             example_word_predictions_restored.append(
                 {
@@ -409,7 +422,7 @@ def restore_unknown_tokens(
         else:
             for j in range(2):
                 assert (
-                        token_char_margins[i][j] is None
+                    token_char_margins[i][j] is None
                 ), f"ERROR! token_char_margin[{i}][{j}] is not None for token = {token}"
 
             char_start_margin, char_end_margin = None, None
@@ -428,11 +441,9 @@ def restore_unknown_tokens(
                     char_end_margin = token_char_margins[i + k][0]
                     break
             assert (
-                    char_start_margin is not None
+                char_start_margin is not None
             ), f"ERROR! could not find char_start_margin"
-            assert (
-                    char_end_margin is not None
-            ), f"ERROR! could not find char_end_margin"
+            assert char_end_margin is not None, f"ERROR! could not find char_end_margin"
 
             new_token = _example[char_start_margin:char_end_margin].strip()
 
@@ -464,7 +475,7 @@ def restore_unknown_tokens(
 
 
 def restore_annotation_scheme_consistency(
-        example_word_predictions: List[Dict[str, Union[str, Dict]]],
+    example_word_predictions: List[Dict[str, Union[str, Dict]]],
 ) -> List[Dict[str, Union[str, Dict]]]:
     """
     restore annotation scheme consistency in case of BIO tags
@@ -494,20 +505,26 @@ def restore_annotation_scheme_consistency(
             previous_tag = example_word_predictions[i - 1]["tag"] if i > 0 else None
 
             if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
-                example_word_prediction_restored["tag"] = current_tag.replace("I-", "B-")
+                example_word_prediction_restored["tag"] = current_tag.replace(
+                    "I-", "B-"
+                )
 
             example_word_predictions_restored.append(example_word_prediction_restored)
         else:
-            raise Exception(f"ERROR! current tag = {current_tag} expected to be of the form I-*")
+            raise Exception(
+                f"ERROR! current tag = {current_tag} expected to be of the form I-*"
+            )
 
-    assert len(example_word_predictions_restored) == len(example_word_predictions), f"ERROR!"
+    assert len(example_word_predictions_restored) == len(
+        example_word_predictions
+    ), f"ERROR!"
 
     return example_word_predictions_restored
 
 
 def merge_tokens_to_entities(
-        example_word_predictions: List[Dict[str, Union[str, Dict]]],
-        example: str,
+    example_word_predictions: List[Dict[str, Union[str, Dict]]],
+    example: str,
 ) -> List[Dict[str, Union[str, Dict]]]:
     """
     merge token predictions that belong together (B-* & I-*)
@@ -548,38 +565,53 @@ def merge_tokens_to_entities(
                 next_tag = assert_str(next_tag, "next_tag")
                 # next_token_start = example_word_predictions[n].token_start
                 # previous_token_end = example_word_predictions[n - 1].token_end
-                if next_tag.startswith("I-") and \
-                        next_tag == current_tag.replace("B-", "I-"):  # and previous_token_end == next_token_start:
+                if next_tag.startswith("I-") and next_tag == current_tag.replace(
+                    "B-", "I-"
+                ):  # and previous_token_end == next_token_start:
                     n_tags += 1
                 else:
                     break
 
             merged_ner_tag = example_word_predictions[i]
-            assert isinstance(merged_ner_tag["tag"], str), "ERROR! merged_ner_tag.tag should be a string"
+            assert isinstance(
+                merged_ner_tag["tag"], str
+            ), "ERROR! merged_ner_tag.tag should be a string"
 
             merged_ner_tag["tag"] = merged_ner_tag["tag"].split("-")[-1]
             if n_tags > 0:
-                merged_ner_tag["char_end"] = example_word_predictions[i + n_tags]["char_end"]
+                merged_ner_tag["char_end"] = example_word_predictions[i + n_tags][
+                    "char_end"
+                ]
                 # merged_ner_tag.token_end = example_word_predictions[i + n_tags]["token_end"]
-                assert isinstance(merged_ner_tag["char_start"], str), "ERROR! merged_ner_tag.char_start should be a string"
-                assert isinstance(merged_ner_tag["char_end"], str), "ERROR! merged_ner_tag.char_end should be a string"
-                merged_ner_tag["token"] = example[int(merged_ner_tag["char_start"]): int(merged_ner_tag["char_end"])]
+                assert isinstance(
+                    merged_ner_tag["char_start"], str
+                ), "ERROR! merged_ner_tag.char_start should be a string"
+                assert isinstance(
+                    merged_ner_tag["char_end"], str
+                ), "ERROR! merged_ner_tag.char_end should be a string"
+                merged_ner_tag["token"] = example[
+                    int(merged_ner_tag["char_start"]) : int(merged_ner_tag["char_end"])
+                ]
                 count["merge"] += 1 + n_tags
             else:
                 count["replace"] += 1
             merged_ner_tags.append(merged_ner_tag)
 
-    assert count["merge"] + count["replace"] + count["o_tags"] == len(example_word_predictions), \
-        f"{count} -> {sum(count.values())} != {len(example_word_predictions)}"
+    assert count["merge"] + count["replace"] + count["o_tags"] == len(
+        example_word_predictions
+    ), f"{count} -> {sum(count.values())} != {len(example_word_predictions)}"
 
     example_word_predictions_merged = merged_ner_tags
-    print(f"> merged {len(example_word_predictions_merged)} BIO-tags "
-          f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}).\n")
+    print(
+        f"> merged {len(example_word_predictions_merged)} BIO-tags "
+        f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}).\n"
+    )
 
     return example_word_predictions_merged
 
 
 def assert_str(_object: Union[str, Dict[Any, Any]], _object_name: str) -> str:
-    assert isinstance(_object, str), \
-        f"ERROR! {_object_name} = {_object} is {type(_object)} but should be string"
+    assert isinstance(
+        _object, str
+    ), f"ERROR! {_object_name} = {_object} is {type(_object)} but should be string"
     return _object

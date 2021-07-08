@@ -551,7 +551,9 @@ class NerBlackBoxMain:
             _df_best_single_run = _single_runs.iloc[0, :]
             best_single_run_id = _df_best_single_run[("info", "run_id")]
             best_single_run_name_nr = _df_best_single_run[("info", "run_name_nr")]
-            best_single_run_epoch_best = _df_best_single_run[("metrics", "epoch_best".upper())]
+            best_single_run_epoch_best = _df_best_single_run[
+                ("metrics", "epoch_best".upper())
+            ]
             best_single_run_epoch_best_val_entity_fil_f1_micro = _df_best_single_run[
                 ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
             ]
@@ -585,15 +587,19 @@ class NerBlackBoxMain:
             best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
                 ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
             ]
-            d_best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "d_epoch_best_val_entity_fil_f1_micro".upper())
-            ]
+            d_best_average_run_epoch_best_val_entity_fil_f1_micro = (
+                _df_best_average_run[
+                    ("metrics", "d_epoch_best_val_entity_fil_f1_micro".upper())
+                ]
+            )
             best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
                 ("metrics", "epoch_best_test_entity_fil_f1_micro".upper())
             ]
-            d_best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "d_epoch_best_test_entity_fil_f1_micro".upper())
-            ]
+            d_best_average_run_epoch_best_test_entity_fil_f1_micro = (
+                _df_best_average_run[
+                    ("metrics", "d_epoch_best_test_entity_fil_f1_micro".upper())
+                ]
+            )
 
             _best_average_run = {
                 "experiment_id": experiment_id,
@@ -749,9 +755,9 @@ class NerBlackBoxMain:
 
             def get_mean_and_dmean(_parameters_runs, phase):
                 values = [
-                    _parameters_runs[("metrics", f"epoch_best_{phase}_entity_fil_f1_micro".upper())][
-                        idx
-                    ]
+                    _parameters_runs[
+                        ("metrics", f"epoch_best_{phase}_entity_fil_f1_micro".upper())
+                    ][idx]
                     for idx in indices[run_name]
                 ]
                 return compute_mean_and_dmean(values)

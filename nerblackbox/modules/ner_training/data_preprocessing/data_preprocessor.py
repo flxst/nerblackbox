@@ -75,9 +75,7 @@ class DataPreprocessor:
                 input_examples_all, phase, ratio=prune_ratio[phase]
             )
 
-        tag_list = self._ensure_completeness_in_case_of_bio_tags(
-            csv_reader.tag_list
-        )
+        tag_list = self._ensure_completeness_in_case_of_bio_tags(csv_reader.tag_list)
         tag_list_ordered = order_tag_list(tag_list)
 
         return input_examples, tag_list_ordered
@@ -171,7 +169,10 @@ class DataPreprocessor:
                 sampler = None
 
             _dataloader[phase] = DataLoader(
-                data, sampler=sampler, batch_size=batch_size, num_workers=0,  # num_workers=1, pin_memory=True
+                data,
+                sampler=sampler,
+                batch_size=batch_size,
+                num_workers=0,  # num_workers=1, pin_memory=True
                 # see https://pytorch-lightning.readthedocs.io/en/stable/benchmarking/performance.html
             )
 
@@ -221,4 +222,9 @@ def order_tag_list(tag_list: List[str]) -> List[str]:
 
 def convert_tag_list_bio2plain(tag_list_bio: List[str]) -> List[str]:
     tag_list_bio_without_o = [elem for elem in tag_list_bio if elem != "O"]
-    return ["O"] + sorted(pd.Series(tag_list_bio_without_o).map(lambda x: x.split("-")[-1]).drop_duplicates().tolist())
+    return ["O"] + sorted(
+        pd.Series(tag_list_bio_without_o)
+        .map(lambda x: x.split("-")[-1])
+        .drop_duplicates()
+        .tolist()
+    )
