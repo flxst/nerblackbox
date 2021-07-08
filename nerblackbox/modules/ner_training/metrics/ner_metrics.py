@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dataclasses import asdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Callable
 
 import numpy as np
 from sklearn.metrics import accuracy_score as accuracy_sklearn
@@ -144,7 +144,7 @@ class NerMetrics:
             self.results.f1_micro, self.results.f1_macro = self._entity_evaluation_f1(evaluation_function=f1_seqeval,
                                                                                       restrict_macro=True)
 
-    def _token_evaluation(self, evaluation_function: callable, average: str) -> float:
+    def _token_evaluation(self, evaluation_function: Callable, average: str) -> float:
         """
         compute precision/recall/f1 on token level
 
@@ -182,7 +182,7 @@ class NerMetrics:
 
         return metric
 
-    def _entity_evaluation_micro(self, evaluation_function: callable) -> float:
+    def _entity_evaluation_micro(self, evaluation_function: Callable) -> float:
         """
         compute precision/recall micro average on entity level
 
@@ -234,7 +234,7 @@ class NerMetrics:
             results.classindices_macro: list of indices of well-defined classes in terms of precision, recall, f1
             results.numberofclasses_macro: number of well-defined classes in terms of precision, recall, f1
         """
-        def _get_index_list(evaluation_function: callable, true_array, pred_array):
+        def _get_index_list(evaluation_function: Callable, true_array, pred_array):
             try:
                 metric_list = evaluation_function(
                     true_array, pred_array, average=None, zero_division="warn",
@@ -279,7 +279,7 @@ class NerMetrics:
         else:
             self.results.numberofclasses_macro = len(self.results.classindices_macro)
 
-    def _entity_evaluation_macro(self, evaluation_function: callable, restrict_macro: bool = True) -> float:
+    def _entity_evaluation_macro(self, evaluation_function: Callable, restrict_macro: bool = True) -> float:
         """
         compute precision/recall macro average on entity level
 
@@ -312,7 +312,7 @@ class NerMetrics:
 
         return metric
 
-    def _entity_evaluation_f1(self, evaluation_function: callable, restrict_macro: bool = True) -> Tuple[float, float]:
+    def _entity_evaluation_f1(self, evaluation_function: Callable, restrict_macro: bool = True) -> Tuple[float, float]:
         """
         compute f1 micro or macro average on entity level
 
@@ -377,7 +377,7 @@ class Results:
     recall_macro: float = -1
     f1_micro: float = -1
     f1_macro: float = -1
-    classindices_macro: Tuple[float] = ()
+    classindices_macro: Tuple[float, ...] = ()
     numberofclasses_macro: float = -1
 
 

@@ -2,6 +2,7 @@ import json
 
 from transformers import AutoModelForTokenClassification
 from omegaconf import OmegaConf
+from torch.optim.lr_scheduler import LambdaLR
 
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
@@ -116,7 +117,7 @@ class NerModelTrain(NerModel):
         )
 
         # learning rate
-        self.scheduler = self._create_scheduler(
+        self.scheduler: LambdaLR = self._create_scheduler(
             self._hparams.lr_warmup_epochs,
             self._hparams.lr_schedule,
             self._hparams.lr_num_cycles,

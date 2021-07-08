@@ -10,8 +10,6 @@ class DefaultLogger:
 
     custom_datefmt = "%Y/%m/%d %H:%M:%S"
     custom_format = "%(asctime)s - %(name)s - %(levelname)s -  %(message)s"
-    assert BASE_DIR is not None, "ERROR! BASE_DIR not found."
-    default_log_file = join(BASE_DIR, "logs.log")
 
     def __init__(self, path, log_file=None, level=None, mode="a"):
         """
@@ -21,7 +19,6 @@ class DefaultLogger:
         :param mode:     [str] 'w' (write) or 'a' (append)
         :created attr: logger [python logging logger]
         """
-
         name = path.split("/")[-1]
         self.logger = logging.getLogger(name)
         self.logger.propagate = (
@@ -29,7 +26,11 @@ class DefaultLogger:
         )  # only shows console output if level is 'debug'
 
         # log file
-        self.filename = log_file if log_file else self.default_log_file
+        if log_file:
+            self.filename = log_file
+        else:
+            assert BASE_DIR is not None, "ERROR! BASE_DIR not found."
+            self.log_file = join(BASE_DIR, "logs.log")
 
         # level
         self.level = level.upper() if level else None

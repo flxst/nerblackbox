@@ -47,6 +47,9 @@ data_preprocessor = DataPreprocessor(
 )
 
 
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 class TestCsvReaderAndDataProcessor:
 
     ####################################################################################################################
@@ -175,7 +178,11 @@ class TestCsvReaderAndDataProcessor:
             # TODO: further testing
 
 
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 class TestInputExamplesToTensorsAndBertDataset:
+
     @pytest.mark.parametrize(
         "texts, "
         "labels, "
@@ -435,6 +442,9 @@ class TestInputExamplesToTensorsAndBertDataset:
                 ), f"{string} = {data[j][i]} != {true[j]}"
 
 
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 class TestMisc:
 
     ####################################################################################################################
@@ -519,8 +529,13 @@ class TestMisc:
 
 
 if __name__ == "__main__":
-    TestCsvReaderAndDataProcessor().tests()
-    TestInputExamplesToTensorsAndBertDataset().tests()
-    TestMisc().test_ensure_completeness_in_case_of_bio_tags()
-    TestMisc().test_order_tag_list()
-    TestMisc().test_convert_tag_list_bio2plain()
+    test_csv = TestCsvReaderAndDataProcessor()
+    test_csv.tests()
+
+    test_input_examples_to_tensors = TestInputExamplesToTensorsAndBertDataset()
+    test_input_examples_to_tensors.tests()
+
+    test_misc = TestMisc()
+    test_misc.test_ensure_completeness_in_case_of_bio_tags()
+    test_misc.test_order_tag_list()
+    test_misc.test_convert_tag_list_bio2plain()

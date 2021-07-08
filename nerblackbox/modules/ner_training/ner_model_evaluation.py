@@ -42,7 +42,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def execute(
         self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
-    ) -> Tuple[Dict[str, np.array], Optional[str], Optional[np.array], float]:
+    ) -> Tuple[Dict[str, np.array], str, str, float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
 
@@ -53,7 +53,7 @@ class NerModelEvaluation:
         Returns:
             epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
             classification_report: [str]
-            confusion_matrix:      [ndarray] of shape (n_classes, n_classes)
+            confusion_matrix:      [str]
             epoch_loss:            [float] mean of of all batch losses
         """
         print()
@@ -74,8 +74,8 @@ class NerModelEvaluation:
                 epoch_tags, phase=None, epoch=None,
             )
         else:
-            classification_report = None
-            confusion_matrix = None
+            classification_report = ""
+            confusion_matrix = ""
 
         return epoch_metrics, classification_report, confusion_matrix, np_epoch["loss"]
 

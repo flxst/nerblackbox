@@ -8,6 +8,8 @@ from torch.optim.optimizer import Optimizer
 from typing import List, Dict, Optional, Callable, Union, Any
 from omegaconf import OmegaConf
 
+from torch.optim.lr_scheduler import LambdaLR
+
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
 from transformers import get_constant_schedule_with_warmup
@@ -20,6 +22,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor impor
 )
 from nerblackbox.modules.utils.util_functions import split_parameters
 from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
+from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
+from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 
 NEWLINE_TOKENS = ["[newline]", "[NEWLINE]"]
 
@@ -63,7 +67,10 @@ class NerModel(pl.LightningModule, ABC):
         :created attr: scheduler              [torch LambdaLR]
         :return: -
         """
-        pass
+        self.mlflow_client: MLflowClient
+        self.default_logger: DefaultLogger
+        self.scheduler: LambdaLR
+        self.tag_list: List[str]
 
     def _preparations_data_general(self):
         """
@@ -172,8 +179,9 @@ class NerModel(pl.LightningModule, ABC):
     ) -> None:
 
         # update params
-        optimizer.step(closure=optimizer_closure)
-        optimizer.zero_grad()
+        if optimizer is not None:
+            optimizer.step(closure=optimizer_closure)
+            optimizer.zero_grad()
 
         # update learning rate
         self.scheduler.step()
@@ -303,7 +311,7 @@ class NerModel(pl.LightningModule, ABC):
         # optimizer = BertAdam(optimizer_grouped_parameters,lr=2e-5, warmup=.1)
         return optimizer
 
-    def _create_scheduler(self, _lr_warmup_epochs, _lr_schedule, _lr_num_cycles=None):
+    def _create_scheduler(self, _lr_warmup_epochs, _lr_schedule, _lr_num_cycles=None) -> LambdaLR:
         """
         create scheduler with warmup
         ----------------------------

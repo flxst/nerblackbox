@@ -2,9 +2,9 @@ import json
 
 import numpy as np
 from transformers import AutoModelForTokenClassification
-from argparse import Namespace
 from torch.nn.functional import softmax
-from typing import List, Union, Tuple, Any, Dict
+from typing import List, Union, Tuple, Any, Dict, IO
+from omegaconf import OmegaConf
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
 
@@ -17,7 +17,7 @@ class NerModelPredict(NerModel):
     @classmethod
     def load_from_checkpoint(
             cls,
-            checkpoint_path: str,
+            checkpoint_path: Union[str, IO]
     ) -> "NerModelPredict":
         """load model in inference mode from checkpoint_path
 
@@ -28,12 +28,12 @@ class NerModelPredict(NerModel):
             model loaded from checkpoint
         """
         model = super().load_from_checkpoint(
-            checkpoint_path, map_location=None, tags_csv=None
+            checkpoint_path
         )
         model.freeze()  # for inference mode
         return model
 
-    def __init__(self, hparams: Namespace):
+    def __init__(self, hparams: OmegaConf):
         """
         Args:
             hparams: attr experiment_name, run_name, pretrained_model_name, dataset_name, ..
@@ -332,17 +332,17 @@ def get_tags_on_words_between_special_tokens(
         example_word_predictions:   [list] of Tuple[str, str or prob dist]
     """
     # predict tags on words between [CLS] and [SEP]
-    example_word_predictions = list()
+    example_word_predictions_list: List[List[Union[str, Any]]] = list()
     for token, example_token_prediction in zip(tokens, example_token_predictions):
         if token not in ["[CLS]", "[SEP]", "[PAD]"]:
             if not token.startswith("##"):
-                example_word_predictions.append(
+                example_word_predictions_list.append(
                     [token, example_token_prediction]
                 )
             else:
-                example_word_predictions[-1][0] += token.strip("##")
+                example_word_predictions_list[-1][0] += token.strip("##")
 
-    example_word_predictions = [tuple(elem) for elem in example_word_predictions]
+    example_word_predictions = [tuple(elem) for elem in example_word_predictions_list]
 
     return example_word_predictions
 
@@ -386,8 +386,7 @@ def restore_unknown_tokens(
             char_start_new = None
             for expression in [" ", "."]:  # TODO: heuristic, could/should be improved
                 try:
-                    _char_start_new = _example.index(expression, char_start + 1)
-                    char_start_new = min(char_start_new, _char_start_new) if char_start_new else _char_start_new
+                    char_start_new = _example.index(expression, char_start + 1)
                 except ValueError:
                     pass
             if char_start_new is not None:
@@ -483,10 +482,11 @@ def restore_annotation_scheme_consistency(
             ..
         ]
     """
-    example_word_predictions_restored: List[Dict[str, str]] = list()
+    example_word_predictions_restored: List[Dict[str, Union[str, Dict]]] = list()
     for i in range(len(example_word_predictions)):
         example_word_prediction_restored = example_word_predictions[i]
         current_tag = example_word_predictions[i]["tag"]
+        current_tag = assert_str(current_tag, "current_tag")
 
         if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
             example_word_predictions_restored.append(example_word_prediction_restored)
@@ -536,6 +536,7 @@ def merge_tokens_to_entities(
     }
     for i in range(len(example_word_predictions)):
         current_tag = example_word_predictions[i]["tag"]
+        current_tag = assert_str(current_tag, "current_tag")
         if current_tag == "O":
             # merged_ner_tag = example_word_predictions[i]
             count["o_tags"] += 1
@@ -544,6 +545,7 @@ def merge_tokens_to_entities(
             n_tags = 0
             for n in range(i + 1, len(example_word_predictions)):
                 next_tag = example_word_predictions[n]["tag"]
+                next_tag = assert_str(next_tag, "next_tag")
                 # next_token_start = example_word_predictions[n].token_start
                 # previous_token_end = example_word_predictions[n - 1].token_end
                 if next_tag.startswith("I-") and \
@@ -553,10 +555,14 @@ def merge_tokens_to_entities(
                     break
 
             merged_ner_tag = example_word_predictions[i]
+            assert isinstance(merged_ner_tag["tag"], str), "ERROR! merged_ner_tag.tag should be a string"
+
             merged_ner_tag["tag"] = merged_ner_tag["tag"].split("-")[-1]
             if n_tags > 0:
                 merged_ner_tag["char_end"] = example_word_predictions[i + n_tags]["char_end"]
                 # merged_ner_tag.token_end = example_word_predictions[i + n_tags]["token_end"]
+                assert isinstance(merged_ner_tag["char_start"], str), "ERROR! merged_ner_tag.char_start should be a string"
+                assert isinstance(merged_ner_tag["char_end"], str), "ERROR! merged_ner_tag.char_end should be a string"
                 merged_ner_tag["token"] = example[int(merged_ner_tag["char_start"]): int(merged_ner_tag["char_end"])]
                 count["merge"] += 1 + n_tags
             else:
@@ -571,3 +577,9 @@ def merge_tokens_to_entities(
           f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}).\n")
 
     return example_word_predictions_merged
+
+
+def assert_str(_object: Union[str, Dict[Any, Any]], _object_name: str) -> str:
+    assert isinstance(_object, str), \
+        f"ERROR! {_object_name} = {_object} is {type(_object)} but should be string"
+    return _object
