@@ -1,6 +1,19 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## 0.0.11 (2021-07-08)
+#### Added
+- NerModelPredict: predict on token or entity level
+- Evaluation entity level: compute metrics for single labels
+- Evaluation token level: confusion matrix
+- Evaluation token & entity level: number of predicted classes
+
+#### Changed
+- Evaluation token level: use plain annotation scheme
+- Migrate to pytorch-lightning==1.3.7, seqeval==1.2.2, mlflow==1.8.0
+
+
 ## 0.0.10 (2021-06-18)
 #### Added
 - special [NEWLINE] token can be used in input data
@@ -14,6 +27,7 @@ This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.o
 - NerModelPredict for local pretrained models
 - NerModelEvaluation
 
+
 ## 0.0.9 (2021-04-05)
 #### Added
 - Swedish datasets (SIC & SUC 3.0)
@@ -21,6 +35,7 @@ This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.o
 
 #### Fixed
 - CLI command "get_experiments_results"
+
 
 ## 0.0.8 (2021-01-24)
 #### Added
