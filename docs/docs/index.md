@@ -1,6 +1,6 @@
 # Overview
 
-**nerblackbox** - a python package to fine-tune transformer-based language models for Named Entity Recognition (NER).
+**nerblackbox** - a python package to fine-tune transformer-based language models for named entity recognition (NER).
 
 Latest version: 0.0.10
 
@@ -82,5 +82,17 @@ See [Guide](guide/getting_started) for more details.
 * Language Agnosticism
 
 Based on: [Hugging Face Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/), [MLflow](https://mlflow.org/docs/latest/index.html)
+
+-----------
+## Citation
+
+``` tex
+@misc{nerblackbox,
+  author = {Stollenwerk, Felix},
+  title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
+  year   = {2021},
+  url    = {https://github.com/af-ai-center/nerblackbox},
+}
+```
 
 -----------

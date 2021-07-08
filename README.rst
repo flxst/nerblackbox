@@ -2,7 +2,7 @@
 nerblackbox
 ===========
 
-A python package to fine-tune transformer-based language models for Named Entity Recognition (NER).
+A python package to fine-tune transformer-based language models for named entity recognition (NER).
 
 .. image:: https://img.shields.io/pypi/v/nerblackbox
     :target: https://pypi.org/project/nerblackbox
@@ -59,9 +59,23 @@ and you get
 Installation
 ============
 
-    ``pip install nerblackbox``
+::
+
+    pip install nerblackbox
 
 Usage
 =====
 
 see documentation: https://af-ai-center.github.io/nerblackbox
+
+Citation
+========
+
+::
+
+    @misc{nerblackbox,
+      author = {Stollenwerk, Felix},
+      title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
+      year   = {2021},
+      url    = {https://github.com/af-ai-center/nerblackbox},
+    }
