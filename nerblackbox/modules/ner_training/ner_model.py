@@ -265,7 +265,7 @@ class NerModel(pl.LightningModule, ABC):
     # 1. PREPARATIONS
     ####################################################################################################################
     def _create_optimizer(
-        self, learning_rate, fp16=True, no_decay=("bias", "gamma", "beta")
+        self, learning_rate, fp16=True, no_decay=('bias', 'LayerNorm.weight')
     ):
         """
         create optimizer with basic learning rate and L2 normalization for some parameters
@@ -277,13 +277,12 @@ class NerModel(pl.LightningModule, ABC):
         """
         # Remove unused pooler that otherwise break Apex
         param_optimizer = list(self.model.named_parameters())
-        param_optimizer = [n for n in param_optimizer if "pooler" not in n[0]]
         optimizer_grouped_parameters = [
             {
                 "params": [
                     p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
                 ],
-                "weight_decay": 0.02,
+                "weight_decay": 0.01,
             },
             {
                 "params": [
@@ -292,8 +291,10 @@ class NerModel(pl.LightningModule, ABC):
                 "weight_decay": 0.0,
             },
         ]
-        # print('> param_optimizer')
-        # print([n for n, p in param_optimizer])
+        # self.default_logger.log_debug(
+        #     '> param_optimizer:',
+        #     [n for n, p in param_optimizer],
+        # )
         self.default_logger.log_debug(
             "> parameters w/  weight decay:",
             len(optimizer_grouped_parameters[0]["params"]),
