@@ -113,6 +113,7 @@ def print_run_information(_params, _hparams, _logger):
     _logger.log_info(f"> batch_size:       {_hparams.batch_size}")
     _logger.log_info(f"> max_seq_length:   {_hparams.max_seq_length}")
     _logger.log_info(f"> max_epochs:       {_hparams.max_epochs}")
+    _logger.log_info(f"> early_stopping:   {_hparams.early_stopping}")
     _logger.log_info(f"> monitor:          {_hparams.monitor}")
     _logger.log_info(f"> min_delta:        {_hparams.min_delta}")
     _logger.log_info(f"> patience:         {_hparams.patience}")
@@ -139,20 +140,34 @@ def get_callbacks(_params, _hparams, _log_dirs):
     :param _log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
     :return: _callbacks: [list] w/ [pytorch lightning callback]
     """
-    early_stopping_params = {
-        k: vars(_hparams)[k] for k in ["monitor", "min_delta", "patience", "mode"]
-    }
-    model_checkpoint_filepath = _get_model_checkpoint_directory(_params)
+    early_stopping = vars(_hparams)["early_stopping"]
 
-    _callbacks = [
-        ModelCheckpoint(
-            dirpath=model_checkpoint_filepath,
-            filename="{epoch}",
-            monitor="val_loss",
-            verbose=True,
-        ),
-        EarlyStopping(**early_stopping_params, verbose=True),
-    ]
+    if early_stopping:
+        early_stopping_params = {
+            k: vars(_hparams)[k] for k in ["monitor", "min_delta", "patience", "mode"]
+        }
+        _callbacks = [
+            ModelCheckpoint(
+                dirpath=_get_model_checkpoint_directory(_params),
+                filename="{epoch}",
+                monitor=vars(_hparams)["monitor"],
+                verbose=True,
+            ),
+            EarlyStopping(**early_stopping_params, verbose=True),
+        ]
+    else:
+        _callbacks = [
+            ModelCheckpoint(
+                dirpath=_get_model_checkpoint_directory(_params),
+                filename="{epoch}",
+                monitor=None,
+                verbose=True,
+                save_top_k=0,
+                save_last=True,
+            ),
+        ]
+        _callbacks[0].CHECKPOINT_NAME_LAST = "{epoch}"
+
     return _callbacks
 
 
@@ -163,15 +178,22 @@ def get_callback_info(_callbacks, _params, _hparams):
     :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     """
-    checkpoint_best = list(_callbacks[0].best_k_models.keys())[0]
-
     callback_info = dict()
+
+    early_stopping = hasattr(_callbacks[1], 'stopped_epoch')
+    if early_stopping:
+        checkpoint_best = list(_callbacks[0].best_k_models.keys())[0]
+    else:
+        checkpoint_best = _callbacks[0].last_model_path
+
+    if early_stopping and _callbacks[1].stopped_epoch:
+        callback_info["epoch_stopped"] = (
+            _callbacks[1].stopped_epoch
+        )
+    else:
+        callback_info["epoch_stopped"] = _hparams.max_epochs - 1
+
     callback_info["epoch_best"] = checkpoint2epoch(checkpoint_best)
-    callback_info["epoch_stopped"] = (
-        _callbacks[1].stopped_epoch
-        if _callbacks[1].stopped_epoch
-        else _hparams.max_epochs - 1
-    )
     callback_info["checkpoint_best"] = join(
         _get_model_checkpoint_directory(_params),
         epoch2checkpoint(callback_info["epoch_best"]),

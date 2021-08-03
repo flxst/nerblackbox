@@ -64,6 +64,7 @@ def get_hardcoded_parameters(keys=False):
         "batch_size": "int",
         "max_seq_length": "int",
         "max_epochs": "int",
+        "early_stopping": "bool",
         "monitor": "str",
         "min_delta": "float",
         "patience": "int",

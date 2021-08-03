@@ -23,6 +23,7 @@ Create your own **custom experiment configuration** with ``<experiment_name> = c
 
     [hparams]
     max_epochs = 20
+    early_stopping = True
     monitor = val_loss
     min_delta = 0.0
     patience = 2
@@ -115,11 +116,12 @@ others are **optional** and are set to default values if not specified.
 
 | Key               | Mandatory | Default Value | Type  | Values                   | Comment                                                                                                                |          
 |---                |---        |---            |---    |---                       |---                                                                                                                     |
-| max_epochs        | No        | 20            | int   | 1+                       | maximum amount of training epochs                                                                                      |
-| monitor           | No        | val_loss      | str   | val_loss, val_acc        | metric to monitor for early stopping (acc = accuracy)                                                                                  |
-| min_delta         | No        | 0.0           | float | 0.0+                     | minimum amount of improvement (w.r.t. monitored metric) required to continue training (i.e. not employ early stopping) |
-| patience          | No        | 2             | int   | 0+                       | number of epochs to wait for improvement w.r.t. monitored metric until early stopping is employed                      |
-| mode              | No        | min           | str   | min, max                 | whether the optimum for the monitored metric is the minimum (val_loss) or maximum (val_acc) value                      |
+| max_epochs        | No        | 20            | int   | 1+                       | (maximum) amount of training epochs                                                                                    |
+| early_stopping    | No        | True          | bool  | True, False              | whether to use early stopping                                                                                          |
+| monitor           | No        | val_loss      | str   | val_loss, val_acc        | if early stopping is True: metric to monitor (acc = accuracy)                                                                     |
+| min_delta         | No        | 0.0           | float | 0.0+                     | if early stopping is True: minimum amount of improvement (w.r.t. monitored metric) required to continue training                  |
+| patience          | No        | 2             | int   | 0+                       | if early stopping is True: number of epochs to wait for improvement w.r.t. monitored metric until training is stopped             |
+| mode              | No        | min           | str   | min, max                 | if early stopping is True: whether the optimum for the monitored metric is the minimum (val_loss) or maximum (val_acc) value      |
 | lr_warmup_epochs  | No        | 1             | int   | 0+                       | number of epochs to gradually increase the learning rate during the warm-up phase, gets translated to [num_warmup_steps](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_scheduler)                          |
 | lr_num_cycles     | No        | 4             | int   | 1+                       | num_cycles for [lr_schedule = cosine](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_schedule_with_warmup) or [lr_schedule = cosine_with_hard_restarts](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_with_hard_restarts_schedule_with_warmup)                                                                                |
 
@@ -127,6 +129,7 @@ others are **optional** and are set to default values if not specified.
     ``` markdown
     [hparams]
     max_epochs = 20
+    early_stopping = True
     monitor = val_loss
     min_delta = 0.0
     patience = 2
