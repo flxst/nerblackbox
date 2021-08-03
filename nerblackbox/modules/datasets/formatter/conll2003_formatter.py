@@ -1,6 +1,7 @@
 import os
 import requests
 from os.path import join, isfile
+from typing import List
 
 from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
 
@@ -54,7 +55,8 @@ class CoNLL2003Formatter(BaseFormatter):
         """
         for phase in ["train", "val", "test"]:
             rows = self._read_original_file(phase)
-            self._write_formatted_csv(phase, rows)
+            rows_iob2 = self._convert_iob1_to_iob2(rows)
+            self._write_formatted_csv(phase, rows_iob2)
 
     def resplit_data(self, val_fraction: float):
         """
@@ -76,7 +78,7 @@ class CoNLL2003Formatter(BaseFormatter):
         self._write_final_csv("test", df_test)
 
     ####################################################################################################################
-    # HELPER: READ ORIGINAL
+    # HELPER FUNCTIONS
     ####################################################################################################################
     def _read_original_file(self, phase):
         """
@@ -105,3 +107,34 @@ class CoNLL2003Formatter(BaseFormatter):
         ]
 
         return _rows
+
+    @staticmethod
+    def _convert_iob1_to_iob2(rows_iob1) -> List[List[str]]:
+        """
+        convert tags from IOB1 to IOB2 format
+
+        :param  rows_iob1: [list] of [list] of [str], e.g. [['Inger', 'I-PER'], ['säger', '0'], ..]
+        :return rows_iob2: [list] of [list] of [str], e.g. [['Inger', 'B-PER'], ['säger', '0'], ..]
+        """
+        rows_iob2 = list()
+        for i in range(len(rows_iob1)):
+            if len(rows_iob1[i]) == 0:
+                rows_iob2.append(rows_iob1[i])
+            elif len(rows_iob1[i]) == 2:
+                current_tag = rows_iob1[i][1]
+
+                if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
+                    rows_iob2.append(rows_iob1[i])
+                elif current_tag.startswith("I-"):
+                    previous_tag = rows_iob1[i-1][1] if (i > 0 and len(rows_iob1[i-1]) == 2) else None
+
+                    if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
+                        tag_iob2 = current_tag.replace(
+                            "I-", "B-"
+                        )
+                        rows_iob2.append([rows_iob1[i][0], tag_iob2])
+                    else:
+                        rows_iob2.append(rows_iob1[i])
+            else:
+                raise Exception(f"ERROR! row #{i} = {rows_iob1[i]} should have length 0 or 2, not {len(rows_iob1[i])}")
+        return rows_iob2

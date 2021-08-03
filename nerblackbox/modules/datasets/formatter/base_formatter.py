@@ -149,7 +149,7 @@ class BaseFormatter(ABC):
                     sentence = list()
 
         df = pd.DataFrame(data)
-        df.to_csv(file_path, sep="\t", header=None, index=None)
+        df.to_csv(file_path, sep="\t", header=False, index=False)
         print(
             f"> phase = {phase}: wrote {len(rows)} words in {len(df)} sentences to {file_path}"
         )
