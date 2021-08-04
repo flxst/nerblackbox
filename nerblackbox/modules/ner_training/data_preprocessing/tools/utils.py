@@ -5,5 +5,5 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example imp
 )
 
 Encodings = Dict[str, torch.Tensor]
-EncodingsKeys = ["input_ids", "attention_mask", "token_type_ids", "tag_ids"]
+EncodingsKeys = ["input_ids", "attention_mask", "token_type_ids", "labels"]
 InputExamples = List[InputExample]

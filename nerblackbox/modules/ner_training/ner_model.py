@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from abc import ABC, abstractmethod
 import torch
 from torch.optim.optimizer import Optimizer
-from typing import List, Dict, Optional, Callable, Union, Any
+from typing import List, Dict, Optional, Callable, Union, Any, Tuple
 from omegaconf import OmegaConf
 
 from torch.optim.lr_scheduler import LambdaLR
@@ -119,35 +119,32 @@ class NerModel(pl.LightningModule, ABC):
     ####################################################################################################################
     # FORWARD & BACKWARD PROPAGATION
     ####################################################################################################################
-    def forward(self, _input_ids, _attention_mask, _segment_ids, _tag_ids):
+    def forward(self, _batch: Dict[str, torch.tensor]) -> List:
         """
-        :param _input_ids:            [torch tensor] of shape [batch_size, seq_length],
-                                             e.g. 1st row = [1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]
-        :param _attention_mask:       [torch tensor] of shape [batch_size, seq_length],
-                                             e.g. 1st row = [1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]
-        :param _segment_ids:          [torch tensor] of shape [batch_size, seq_length],
-                                             e.g. 1st row = [0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]
-        :param _tag_ids:              [torch tensor] of shape [batch_size, seq_length],
-                                             e.g. 1st row = [1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]
-        :return: _outputs: [list] of 2 elements:
-                    i)  _loss: [float] cross entropy between _tag_ids & _tags_ids_predictions
-                                       on non-padding tokens (i.e. where elements in _input_ids are not 0)
-                    ii) _tag_ids_prediction_logits: [torch tensor] of shape [batch_size, seq_length, vocabulary_size]
+        Args:
+            _batch: Dict with keys = subset of EncodingsKeys, values = 2D torch tensor of shape [batch_size, seq_length]
+            e.g.
+            input_ids      = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..], [..], ..]
+            attention_mask = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
+            token_type_ids = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
+            labels         = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..], [..], ..]
+
+        Returns:
+            _outputs: [list] of 1 or 2 elements:
+                   i)  _loss: [float] cross entropy between _labels & _tags_ids_predictions
+                                      on non-padding tokens (i.e. where elements in _input_ids are not 0)
+                   ii) _labels_prediction_logits: [torch tensor] of shape [batch_size, seq_length, vocabulary_size],
+                       if labels are provided in _batch
         """
-        return self.model(
-            input_ids=_input_ids,
-            attention_mask=_attention_mask,
-            token_type_ids=_segment_ids,
-            labels=_tag_ids,
-        )
+        return self.model(**_batch)
 
     ####################################################################################################################
     # TRAIN
     ####################################################################################################################
     def training_step(self, batch, batch_idx):
         # REQUIRED
-        input_ids, attention_mask, segment_ids, tag_ids = batch
-        outputs = self(input_ids, attention_mask, segment_ids, tag_ids)
+        input_ids, attention_mask, token_type_ids, labels = self._parse_batch(batch)
+        outputs = self(batch)
         batch_train_loss = outputs[0]
 
         # logging
@@ -156,7 +153,7 @@ class NerModel(pl.LightningModule, ABC):
         # debug
         if batch_idx == 0:
             self._debug_step_check(
-                "train", batch, outputs, input_ids, attention_mask, segment_ids, tag_ids
+                "train", batch, outputs, input_ids, attention_mask, token_type_ids, labels
             )
 
         return {"loss": batch_train_loss}
@@ -194,21 +191,21 @@ class NerModel(pl.LightningModule, ABC):
     ####################################################################################################################
     def validation_step(self, batch, batch_idx):
         # OPTIONAL
-        input_ids, attention_mask, segment_ids, tag_ids = batch
-        outputs = self(input_ids, attention_mask, segment_ids, tag_ids)
+        input_ids, attention_mask, token_type_ids, labels = self._parse_batch(batch)
+        outputs = self(batch)
         batch_loss, logits = outputs[:2]
 
         # debug
         if batch_idx == 0:
             self._debug_step_check(
-                "val", batch, outputs, input_ids, attention_mask, segment_ids, tag_ids
+               "val", batch, outputs, input_ids, attention_mask, token_type_ids, labels
             )
 
-        return batch_loss, tag_ids, logits
+        return batch_loss, labels, logits
 
     def validation_epoch_end(self, outputs):
         """
-        :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_tag_ids, batch_logits] for each batch
+        :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_labels, batch_logits] for each batch
         :return:        [dict] w/ key 'val_loss' & value = mean batch loss of val dataset [float]
         """
         # OPTIONAL
@@ -219,21 +216,21 @@ class NerModel(pl.LightningModule, ABC):
     ####################################################################################################################
     def test_step(self, batch, batch_idx):
         # OPTIONAL
-        input_ids, attention_mask, segment_ids, tag_ids = batch
-        outputs = self(input_ids, attention_mask, segment_ids, tag_ids)
+        input_ids, attention_mask, token_type_ids, labels = self._parse_batch(batch)
+        outputs = self(batch)
         batch_loss, logits = outputs[:2]
 
         # debug
         if batch_idx == 0:
             self._debug_step_check(
-                "test", batch, outputs, input_ids, attention_mask, segment_ids, tag_ids
+                "test", batch, outputs, input_ids, attention_mask, token_type_ids, labels
             )
 
-        return batch_loss, tag_ids, logits
+        return batch_loss, labels, logits
 
     def test_epoch_end(self, outputs):
         """
-        :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_tag_ids, batch_logits] for each batch
+        :param outputs: [list] of [list] w/ 3 elements [batch_loss, batch_labels, batch_logits] for each batch
         :return:        [dict] w/ key 'test_loss' & value = mean batch loss of test dataset [float]
         """
         # OPTIONAL
@@ -382,13 +379,39 @@ class NerModel(pl.LightningModule, ABC):
         """
         return _num_epochs * len(self.dataloader["train"])
 
+    @staticmethod
+    def _parse_batch(_batch) -> Tuple[torch.tensor, ...]:
+        """
+        Args:
+            _batch: Dict with keys = subset of EncodingsKeys, values = 2D torch tensor of shape [batch_size, seq_length]
+            e.g.
+            input_ids      = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..], [..], ..]
+            attention_mask = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
+            token_type_ids = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
+            labels         = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..], [..], ..]
+
+        Returns:
+            input_ids      = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..], [..], ..]
+            attention_mask = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
+            token_type_ids = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
+            labels         = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..], [..], ..]
+        """
+        input_ids = _batch["input_ids"]
+        attention_mask = _batch["attention_mask"]
+        token_type_ids = _batch["token_type_ids"] if "token_type_ids" in _batch.keys() else None
+        labels = _batch["labels"]
+        return input_ids, attention_mask, token_type_ids, labels
+
+    ####################################################################################################################
+    # 2. VALIDATE / COMPUTE METRICS
+    ####################################################################################################################
     def _validate_on_epoch(
         self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
     ) -> Dict[str, float]:
         """
         Args:
             phase:   [str], 'val', 'test'
-            outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
+            outputs: [list] of [lists] = [batch_loss, batch_labels, batch_logits] with 3 torch tensors for each batch
 
         Returns:
             [dict] w/ key '<phase>_loss' & value = mean batch loss [float]
@@ -505,24 +528,25 @@ class NerModel(pl.LightningModule, ABC):
         _outputs,
         _input_ids,
         _attention_mask,
-        _segment_ids,
-        _tag_ids,
+        _token_type_ids,
+        _labels,
     ):
         self.default_logger.log_debug(f"{phase.upper()} STEP CHECK")
-        self.default_logger.log_debug(f"batch on gpu:   {_batch[0].is_cuda}")
+        self.default_logger.log_debug(f"batch on gpu:   {_batch['input_ids'].is_cuda}")
         self.default_logger.log_debug(f"outputs on gpu: {_outputs[0].is_cuda}")
-        self.default_logger.log_debug(
-            f"input_ids      shape|1st row: {_input_ids.shape} | {_input_ids[0]}"
-        )
-        self.default_logger.log_debug(
-            f"attention_mask shape|1st row: {_attention_mask.shape} | {_attention_mask[0]}"
-        )
-        self.default_logger.log_debug(
-            f"segment_ids    shape|1st row: {_segment_ids.shape} | {_segment_ids[0]}"
-        )
-        self.default_logger.log_debug(
-            f"tag_ids        shape|1st row: {_tag_ids.shape} | {_tag_ids[0]}"
-        )
+        name_tensor_combinations = [
+            ("input_ids", _input_ids),
+            ("attention_mask", _attention_mask),
+            ("token_type_ids", _token_type_ids),
+            ("labels", _labels)
+        ]
+        for _name, _tensor in name_tensor_combinations:
+            if _tensor is not None:
+                self.default_logger.log_debug(
+                    f"{_name.ljust(15)} shape|1st row: {_tensor.shape} | {_tensor[0]}"
+                )
+            else:
+                self.default_logger.log_debug(f"{_name.ljust(15)} = None")
 
     def _print_metrics(self, phase, _metrics, _classification_reports: Optional[str]):
         """

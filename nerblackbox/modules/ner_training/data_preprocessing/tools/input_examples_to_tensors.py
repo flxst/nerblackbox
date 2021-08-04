@@ -48,19 +48,22 @@ class InputExamplesToTensors:
             key = input_ids,      value = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]]
             key = attention_mask, value = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]]
             key = token_type_ids, value = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]]
-            key = tag_ids,        value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
+            key = labels,         value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
         """
 
         # encodings_single
         encodings_single: Dict[str, List[Any]] = {key: list() for key in EncodingsKeys}
         for input_example in input_examples:
             _encodings = self._transform_input_example(input_example, predict)
-            for key in encodings_single.keys():
+            for key in _encodings.keys():
                 encodings_single[key].append(_encodings[key])
 
         # combine encodings_single -> encodings
         encodings = {
-            key: torch.cat(encodings_single[key]) for key in encodings_single.keys()
+            key: torch.cat(encodings_single[key])
+            if len(encodings_single[key])
+            else torch.tensor([])
+            for key in encodings_single.keys()
         }
 
         return encodings
@@ -82,7 +85,7 @@ class InputExamplesToTensors:
             key = input_ids,      value = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..]]
             key = attention_mask, value = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]]
             key = token_type_ids, value = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]]
-            key = tag_ids,        value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
+            key = labels,         value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
         """
         ####################
         # A0. tokens_*, tags_*
@@ -104,7 +107,7 @@ class InputExamplesToTensors:
             return_overflowing_tokens=True,
         )
 
-        encodings["tag_ids"] = self._encode_tags(
+        encodings["labels"] = self._encode_tags(
             tags_split_into_words, encodings.offset_mapping, predict
         )
         keys = list(encodings.keys())

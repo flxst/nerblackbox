@@ -192,7 +192,7 @@ class TestInputExamplesToTensorsAndBertDataset:
         "true_input_ids, "
         "true_attention_mask, "
         "true_token_type_ids, "
-        "true_tag_ids, "
+        "true_labels, "
         "true_input_tokens",
         [
             # 1. single example: no truncation
@@ -375,7 +375,7 @@ class TestInputExamplesToTensorsAndBertDataset:
         true_input_ids: torch.Tensor,
         true_attention_mask: torch.Tensor,
         true_token_type_ids: torch.Tensor,
-        true_tag_ids: torch.Tensor,
+        true_labels: torch.Tensor,
         true_input_tokens: torch.Tensor,
     ) -> None:
 
@@ -404,7 +404,7 @@ class TestInputExamplesToTensorsAndBertDataset:
 
         for (string, true) in zip(
             EncodingsKeys,
-            [true_input_ids, true_attention_mask, true_token_type_ids, true_tag_ids],
+            [true_input_ids, true_attention_mask, true_token_type_ids, true_labels],
         ):
             assert torch.all(
                 torch.eq(encodings[string], true)
@@ -422,25 +422,23 @@ class TestInputExamplesToTensorsAndBertDataset:
         ##################################
         data = BertDataset(
             encodings=encodings
-        )  # data[j] = 4 torch tensors corresponding to EncodingKeys
+        )  # data[j] = Dict with 4 keys corresponding to EncodingKeys and values = torch tensors
         assert len(data) >= len(
             texts
         ), f"len(data) = {len(data)} < {len(texts)} = len(texts)"
-        for i, (string, true) in enumerate(
-            zip(
-                ["input_ids", "attention_mask", "token_type_ids", "tag_ids"],
-                [
-                    true_input_ids,
-                    true_attention_mask,
-                    true_token_type_ids,
-                    true_tag_ids,
-                ],
-            )
+        for string, true in zip(
+            ["input_ids", "attention_mask", "token_type_ids", "labels"],
+            [
+                true_input_ids,
+                true_attention_mask,
+                true_token_type_ids,
+                true_labels,
+            ],
         ):
             for j in range(len(true)):
                 assert torch.all(
-                    torch.eq(data[j][i], true[j])
-                ), f"{string} = {data[j][i]} != {true[j]}"
+                    torch.eq(data[j][string], true[j])
+                ), f"{string} = {data[j][string]} != {true[j]}"
 
 
 ########################################################################################################################
