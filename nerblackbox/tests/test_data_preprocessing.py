@@ -12,8 +12,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example imp
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to_tensors import (
     InputExamplesToTensors,
 )
-from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import (
-    BertDataset,
+from nerblackbox.modules.ner_training.data_preprocessing.tools.encodings_dataset import (
+    EncodingsDataset,
 )
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
     DataPreprocessor,
@@ -183,7 +183,7 @@ class TestCsvReaderAndDataProcessor:
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
-class TestInputExamplesToTensorsAndBertDataset:
+class TestInputExamplesToTensorsAndEncodingsDataset:
     @pytest.mark.parametrize(
         "texts, "
         "labels, "
@@ -418,9 +418,9 @@ class TestInputExamplesToTensorsAndBertDataset:
             assert _test == true, f"{string} = {_test} != {true}"
 
         ##################################
-        # 2. BertDataset
+        # 2. EncodingsDataset
         ##################################
-        data = BertDataset(
+        data = EncodingsDataset(
             encodings=encodings
         )  # data[j] = Dict with 4 keys corresponding to EncodingKeys and values = torch tensors
         assert len(data) >= len(
@@ -531,7 +531,7 @@ if __name__ == "__main__":
     test_csv = TestCsvReaderAndDataProcessor()
     test_csv.tests()
 
-    test_input_examples_to_tensors = TestInputExamplesToTensorsAndBertDataset()
+    test_input_examples_to_tensors = TestInputExamplesToTensorsAndEncodingsDataset()
     test_input_examples_to_tensors.tests()
 
     test_misc = TestMisc()

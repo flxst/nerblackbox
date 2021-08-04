@@ -1,5 +1,5 @@
-from nerblackbox.modules.ner_training.data_preprocessing.tools.bert_dataset import (
-    BertDataset,
+from nerblackbox.modules.ner_training.data_preprocessing.tools.encodings_dataset import (
+    EncodingsDataset,
 )
 from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import (
     CsvReader,
@@ -146,7 +146,7 @@ class DataPreprocessor:
             )
 
             # dataloader
-            data = BertDataset(
+            data = EncodingsDataset(
                 encodings=encodings
             )  # data[j] = 4 torch tensors corresponding to EncodingKeys
             if self.default_logger:

@@ -20,7 +20,7 @@ from nerblackbox.modules.utils.util_functions import (
 )
 
 
-def main(params, hparams, log_dirs, experiment: bool):
+def execute_single_run(params, hparams, log_dirs, experiment: bool):
     """
     :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*

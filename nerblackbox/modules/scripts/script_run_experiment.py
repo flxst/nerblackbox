@@ -6,7 +6,7 @@ import gc
 import logging
 import warnings
 
-import nerblackbox.modules.ner_training.bert_ner_single as bert_ner_single
+from nerblackbox.modules.ner_training.single_run import execute_single_run
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
 
@@ -39,8 +39,8 @@ def main(params, log_dirs):
             params = argparse.Namespace(**runs_params[run_name_nr])
             hparams = argparse.Namespace(**runs_hparams[run_name_nr])
 
-            # bert_ner: single run
-            bert_ner_single.main(params, hparams, log_dirs, experiment=True)
+            # execute single run
+            execute_single_run(params, hparams, log_dirs, experiment=True)
 
             # clear gpu memory
             clear_gpu_memory(

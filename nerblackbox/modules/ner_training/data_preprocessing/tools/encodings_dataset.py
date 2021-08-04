@@ -6,8 +6,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
 )
 
 
-class BertDataset(Dataset):
-    """ Bert Dataset with features created when requested """
+class EncodingsDataset(Dataset):
+    """ Encodings Dataset with features created when requested """
 
     def __init__(self, encodings: Encodings) -> None:
         """
