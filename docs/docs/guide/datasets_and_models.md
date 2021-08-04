@@ -45,7 +45,11 @@ for **built-in** datasets and models.
 -----------
 ## Built-in Models
 
-- All [built-in or community-uploaded BERT models](https://huggingface.co/models) of the [transformers library](https://huggingface.co/transformers/)
+- All [built-in or community-uploaded models](https://huggingface.co/models) of the [transformers library](https://huggingface.co/transformers/)
+  that use the [WordPiece Tokenizer](https://huggingface.co/transformers/tokenizer_summary.html#wordpiece), e.g.
+    - BERT
+    - DistilBERT
+    - Electra
 
 -----------
 ## Custom Datasets

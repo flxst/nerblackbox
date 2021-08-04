@@ -183,9 +183,9 @@ class ExperimentConfig:
             elif "cased" in _config_dict["params"]["pretrained_model_name"]:
                 _config_dict["params"]["uncased"] = False
             else:
-                raise Exception(
-                    "cannot derive uncased = True/False from pretrained_model_name."
-                )
+                _config_dict["params"]["uncased"] = False
+                print("ATTENTION! could not derive uncased = True/False from pretrained_model_name."
+                      " => assume model is cased")
 
         return _config, _config_dict
 
