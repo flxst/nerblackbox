@@ -97,7 +97,7 @@ def print_run_information(_params, _hparams, _logger):
     _logger.log_info(f"> fp16:           {_params.fp16}")
     _logger.log_info("..")
     _logger.log_info(f"> dataset_name:          {_params.dataset_name}")
-    _logger.log_info(f"> dataset_tags:          {_params.dataset_tags}")
+    _logger.log_info(f"> annotation_scheme:     {_params.annotation_scheme}")
     _logger.log_info(f"> prune_ratio_train:     {_params.prune_ratio_train}")
     _logger.log_info(f"> prune_ratio_val:       {_params.prune_ratio_val}")
     _logger.log_info(f"> prune_ratio_test:      {_params.prune_ratio_test}")

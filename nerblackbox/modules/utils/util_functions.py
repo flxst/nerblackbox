@@ -50,7 +50,7 @@ def get_hardcoded_parameters(keys=False):
     }
     _params = {
         "dataset_name": "str",
-        "dataset_tags": "str",
+        "annotation_scheme": "str",
         "prune_ratio_train": "float",
         "prune_ratio_val": "float",
         "prune_ratio_test": "float",
@@ -96,7 +96,7 @@ def unify_parameters(_params, _hparams, _log_dirs, _experiment):
     """
     unify parameters (namespaces, bool) to one namespace
     ----------------------------------------------------
-    :param _params:             [Namespace] with keys = 'dataset_name', 'dataset_tags', ..
+    :param _params:             [Namespace] with keys = 'dataset_name', 'annotation_scheme', ..
     :param _hparams:            [Namespace] with keys = 'batch_size', 'max_seq_length', ..
     :param _log_dirs:           [Namespace] with keys = 'mlflow', 'tensorboard', ..
     :param _experiment:         [bool]
@@ -120,7 +120,7 @@ def split_parameters(_lightning_hparams):
     split namespace to parameters (namespaces, bool)
     ----------------------------------------------------
     :param _lightning_hparams [Namespace] with keys = all keys from output namespaces + 'experiment'
-    :return: _params:         [Namespace] with keys = 'dataset_name', 'dataset_tags', ..
+    :return: _params:         [Namespace] with keys = 'dataset_name', 'annotation_scheme', ..
     :return: _hparams:        [Namespace] with keys = 'batch_size', 'max_seq_length', ..
     :return: _log_dirs:       [Namespace] with keys = 'mlflow', 'tensorboard', ..
     :return: _experiment:     [bool]
