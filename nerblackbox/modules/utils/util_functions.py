@@ -59,6 +59,7 @@ def get_hardcoded_parameters(keys=False):
         "checkpoints": "bool",
         "logging_level": "str",
         "multiple_runs": "int",
+        "seed": "int",
     }
     _hparams = {
         "batch_size": "int",

@@ -20,6 +20,7 @@ Create your own **custom experiment configuration** with ``<experiment_name> = c
     checkpoints = True
     logging_level = info
     multiple_runs = 3
+    seed = 42
 
     [hparams]
     max_epochs = 20
@@ -102,6 +103,7 @@ others are **optional** and are set to default values if not specified.
 | checkpoints       | No        | True          | bool  | True, False    | whether to save model checkpoints                                                                    |
 | logging_level     | No        | info          | str   | info, debug    | choose [logging level](https://docs.python.org/3/library/logging.html#levels), debug is more verbose |
 | multiple_runs     | No        | 1             | int   | 1+             | choose how often each hyperparameter run is executed (to control for statistical uncertainties)      |
+| seed              | No        | 42            | int   | 1+             | for reproducibility. multiple runs get different seeds.                                                                   |
 
 ??? example "Example: custom_experiment.ini (Settings)"
     ``` markdown
@@ -109,6 +111,7 @@ others are **optional** and are set to default values if not specified.
     checkpoints = True
     logging_level = info
     multiple_runs = 3
+    seed = 42
     ```
 
 -----------

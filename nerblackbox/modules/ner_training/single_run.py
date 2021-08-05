@@ -6,6 +6,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.utilities.seed import seed_everything
 
 from nerblackbox.modules.ner_training.ner_model_train import (
     NerModelTrain,
@@ -28,12 +29,16 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
     :param experiment: [bool] whether run is part of an experiment w/ multiple runs
     :return: -
     """
+    # seed
+    seed = params.seed + int(params.run_name_nr.split("-")[1])  # run_name_nr = e.g. 'runA-1', 'runA-2', 'runB-1', ..
+    seed_everything(seed)
+
     default_logger = DefaultLogger(
         __file__, log_file=log_dirs.log_file, level=params.logging_level
     )  # python logging
     default_logger.clear()
 
-    print_run_information(params, hparams, default_logger)
+    print_run_information(params, hparams, default_logger, seed)
 
     lightning_hparams = unify_parameters(params, hparams, log_dirs, experiment)
 
@@ -80,11 +85,12 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
 ########################################################################################################################
 # HELPER FUNCTIONS #####################################################################################################
 ########################################################################################################################
-def print_run_information(_params, _hparams, _logger):
+def print_run_information(_params, _hparams, _logger, _seed: int):
     """
     :param _params:   [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
     :param _logger:   [DefaultLogger]
+    :param _seed:     [int]
     :return: -
     """
     _logger.log_info(f">>> NER BLACK BOX VERSION: {get_package_version()}")
@@ -108,6 +114,7 @@ def print_run_information(_params, _hparams, _logger):
     _logger.log_info(f"> checkpoints:           {_params.checkpoints}")
     _logger.log_info(f"> logging_level:         {_params.logging_level}")
     _logger.log_info(f"> multiple_runs:         {_params.multiple_runs}")
+    _logger.log_info(f"> seed:                  {_seed}")
     _logger.log_info("")
     _logger.log_info("- HPARAMS ----------------------------------------")
     _logger.log_info(f"> batch_size:       {_hparams.batch_size}")
