@@ -64,13 +64,13 @@ others are **optional** and are set to default values if not specified.
 -----------
 ### 1. Dataset
 
-| Key               | Mandatory | Default Value | Type  | Values         | Comment                                                                                                                                |          
-|---                |---        |---            |---    |---             |---                                                                                                                                     |
-| dataset_name      | Yes       | ---           | str   | e.g. conll2003 | [Built-in Dataset](../datasets_and_models/#built-in-datasets) or [Custom Dataset](../datasets_and_models/#custom-datasets)             |
-| annotation_scheme | Yes       | ---           | str   | plain, bio     | specify dataset tag format (e.g. [BIO](https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging)))              |
-| prune_ratio_train | No        | 1.0           | float | 0.0 - 1.0      | fraction of train dataset to be used                                                                                                   |
-| prune_ratio_val   | No        | 1.0           | float | 0.0 - 1.0      | fraction of val   dataset to be used                                                                                                   | 
-| prune_ratio_test  | No        | 1.0           | float | 0.0 - 1.0      | fraction of test  dataset to be used                                                                                                   |
+| Key               | Mandatory | Default Value | Type  | Values           | Comment                                                                                                                                                        |          
+|---                |---        |---            |---    |---               |---                                                                                                                                                             |
+| dataset_name      | Yes       | ---           | str   | e.g. conll2003   | [Built-in Dataset](../datasets_and_models/#built-in-datasets) or [Custom Dataset](../datasets_and_models/#custom-datasets)                                     |
+| annotation_scheme | No        | auto          | str   | auto, plain, bio | specify dataset tag format (e.g. [BIO](https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging))). auto means it is inferred from data |
+| prune_ratio_train | No        | 1.0           | float | 0.0 - 1.0        | fraction of train dataset to be used                                                                                                                           |
+| prune_ratio_val   | No        | 1.0           | float | 0.0 - 1.0        | fraction of val   dataset to be used                                                                                                                           | 
+| prune_ratio_test  | No        | 1.0           | float | 0.0 - 1.0        | fraction of test  dataset to be used                                                                                                                           |
 
 ??? example "Example: custom_experiment.ini (Dataset)"
     ``` markdown

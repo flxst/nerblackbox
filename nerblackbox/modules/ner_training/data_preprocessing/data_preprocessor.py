@@ -10,10 +10,14 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example imp
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to_tensors import (
     InputExamplesToTensors,
 )
+from nerblackbox.modules.ner_training.metrics.ner_metrics import (
+    convert2bio
+)
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
 import pandas as pd
+from copy import deepcopy
 from pkg_resources import resource_filename
 
 from typing import List, Dict, Tuple, Optional, Any
@@ -42,7 +46,7 @@ class DataPreprocessor:
 
     def get_input_examples_train(
         self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None
-    ) -> Tuple[Dict[str, InputExamples], List[str]]:
+    ) -> Tuple[Dict[str, InputExamples], List[str], str]:
         """
         - get input examples for TRAIN from csv files
 
@@ -53,6 +57,7 @@ class DataPreprocessor:
         Returns:
             input_examples:   [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
             tag_list_ordered: [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+            annotation_scheme_found: [str] e.g. 'plain' or 'bio'
         """
         if dataset_name is None:
             dataset_path = resource_filename("nerblackbox", "tests/test_data")
@@ -78,7 +83,56 @@ class DataPreprocessor:
         tag_list = self._ensure_completeness_in_case_of_bio_tags(csv_reader.tag_list)
         tag_list_ordered = order_tag_list(tag_list)
 
-        return input_examples, tag_list_ordered
+        if any(["-" in tag for tag in tag_list]):
+            annotation_scheme_found = "bio"
+        else:
+            annotation_scheme_found = "plain"
+
+        return input_examples, tag_list_ordered, annotation_scheme_found
+
+    @staticmethod
+    def convert_annotation_scheme(
+            input_examples: Dict[str, InputExamples],
+            tag_list: List[str],
+            annotation_scheme_source: str,
+            annotation_scheme_target: str) -> Tuple[Dict[str, InputExamples], List[str]]:
+        """
+        convert input_examples from annotation_scheme_source to annotation_scheme_target
+
+        Args:
+            input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                      values = [list] of [InputExample]
+            tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+            annotation_scheme_source: [str], e.g. plain / bio
+            annotation_scheme_target: [str], e.g. bio / plain
+
+        Returns:
+            input_examples_converted: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                                values = [list] of [InputExample]
+            tag_list_converted:       [list] of tags present in the dataset, e.g. ['O', 'B-PER', ..]
+        """
+        input_examples_converted = deepcopy(input_examples)
+        tag_list_converted = list()
+        if annotation_scheme_source == "plain" and annotation_scheme_target == "bio":
+            # convert input_examples
+            for key in input_examples_converted.keys():
+                for input_example_converted in input_examples_converted[key]:
+                    input_example_converted.tags = " ".join(convert2bio(input_example_converted.tags.split()))
+
+            # convert tag_list
+            for tag in tag_list:
+                if tag == "O":
+                    tag_list_converted.append(tag)
+                else:
+                    tag_list_converted.append(f"B-{tag}")
+                    tag_list_converted.append(f"I-{tag}")
+        else:
+            raise Exception(f"annotation_scheme_source = {annotation_scheme_source} and "
+                            f"annotation_scheme_target = {annotation_scheme_target} not implemented.")
+
+        tag_list_converted = sorted(tag_list_converted)
+
+        return input_examples_converted, tag_list_converted
 
     def get_input_examples_predict(
         self, examples: List[str]
@@ -108,7 +162,6 @@ class DataPreprocessor:
                 for example in examples
             ]
         }
-        # print('TEMP: input_examples:', input_examples)
 
         return input_examples
 

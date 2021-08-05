@@ -83,7 +83,7 @@ class NerModelTrain(NerModel):
         :return: -
         """
         # input_examples & tag_list
-        input_examples, self.tag_list = self.data_preprocessor.get_input_examples_train(
+        input_examples, self.tag_list, annotation_scheme_found = self.data_preprocessor.get_input_examples_train(
             prune_ratio={
                 "train": self.params.prune_ratio_train,
                 "val": self.params.prune_ratio_val,
@@ -91,6 +91,19 @@ class NerModelTrain(NerModel):
             },
             dataset_name=self.params.dataset_name,
         )
+        self.default_logger.log_info("")
+        self.default_logger.log_info(f"> annotation scheme found: {annotation_scheme_found}")
+        if self.params.annotation_scheme == "auto":
+            self.params.annotation_scheme = annotation_scheme_found
+        elif self.params.annotation_scheme != annotation_scheme_found:
+            input_examples, self.tag_list = self.data_preprocessor.convert_annotation_scheme(
+                input_examples=input_examples,
+                tag_list=self.tag_list,
+                annotation_scheme_source=annotation_scheme_found,
+                annotation_scheme_target=self.params.annotation_scheme
+            )
+            self.default_logger.log_info(f"> annotation scheme converted to {self.params.annotation_scheme}")
+
         self.default_logger.log_debug("> self.tag_list:", self.tag_list)
         self.hparams.tag_list = json.dumps(
             self.tag_list
