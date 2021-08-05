@@ -2,6 +2,7 @@ import argparse
 import torch
 import mlflow
 import gc
+from os.path import join, isdir
 
 import logging
 import warnings
@@ -22,6 +23,8 @@ def main(params, log_dirs):
     :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     :return: -
     """
+    assert_that_experiment_hasnt_been_run_before(params.experiment_name)
+
     experiment_config = ExperimentConfig(
         experiment_name=params.experiment_name,
         run_name=params.run_name,
@@ -46,6 +49,16 @@ def main(params, log_dirs):
             clear_gpu_memory(
                 device=params.device, verbose=params.logging_level == "debug"
             )
+
+
+def assert_that_experiment_hasnt_been_run_before(experiment_name: str) -> None:
+    """
+    Args:
+        experiment_name: e.g. 'my_experiment'
+    """
+    experiment_directory = join(env_variable("DIR_CHECKPOINTS"), experiment_name)
+    if isdir(experiment_directory):
+        raise Exception(f"ERROR! experiment = {experiment_name} has been run before ({experiment_directory} exists)")
 
 
 def clear_gpu_memory(device, verbose: bool = False):
