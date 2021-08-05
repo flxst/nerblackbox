@@ -176,7 +176,7 @@ class TestCsvReaderAndDataProcessor:
                 test_input_examples[phase][0].tags == input_examples[phase][0].tags
             ), f"phase = {phase}: test_input_examples.tags = {test_input_examples[phase][0].tags} != {input_examples[phase][0].tags}"
 
-        # b. convert_annotation_scheme to bio
+        # b1. convert_annotation_scheme to bio
         test_input_examples_bio, test_tag_list_bio = data_preprocessor.convert_annotation_scheme(
             input_examples=input_examples,
             tag_list=tag_list,
@@ -196,6 +196,27 @@ class TestCsvReaderAndDataProcessor:
             assert (
                     test_input_examples_bio[phase][0].tags == input_examples_bio[phase][0].tags
             ), f"phase = {phase}: test_input_examples_bio.tags = {test_input_examples_bio[phase][0].tags} != {input_examples_bio[phase][0].tags}"
+
+        # b2. convert_annotation_scheme back from bio
+        test_input_examples_2, test_tag_list_2 = data_preprocessor.convert_annotation_scheme(
+            input_examples=test_input_examples_bio,
+            tag_list=test_tag_list_bio,
+            annotation_scheme_source="bio",
+            annotation_scheme_target=annotation_scheme,
+        )
+        assert set(test_tag_list_2) == set(
+            tag_list
+        ), f"test_tag_list = {test_tag_list_2} != {tag_list}"
+        for phase in ["train", "val", "test"]:
+            assert (
+                    len(test_input_examples_2[phase]) == 1
+            ), f"ERROR! len(test_input_examples_2[{phase}]) = {len(test_input_examples_2[phase])} should be 1."
+            assert (
+                    test_input_examples_2[phase][0].text == input_examples[phase][0].text
+            ), f"phase = {phase}: test_input_examples_2.text = {test_input_examples_2[phase][0].text} != {input_examples[phase][0].text}"
+            assert (
+                    test_input_examples_2[phase][0].tags == input_examples[phase][0].tags
+            ), f"phase = {phase}: test_input_examples_2.tags = {test_input_examples_2[phase][0].tags} != {input_examples[phase][0].tags}"
 
         # c. get_input_examples_predict
         test_sentences = [

@@ -11,7 +11,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to
     InputExamplesToTensors,
 )
 from nerblackbox.modules.ner_training.metrics.ner_metrics import (
-    convert2bio
+    convert2bio, convert2plain
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
@@ -126,6 +126,18 @@ class DataPreprocessor:
                 else:
                     tag_list_converted.append(f"B-{tag}")
                     tag_list_converted.append(f"I-{tag}")
+        elif annotation_scheme_source == "bio" and annotation_scheme_target == "plain":
+            # convert input_examples
+            for key in input_examples_converted.keys():
+                for input_example_converted in input_examples_converted[key]:
+                    input_example_converted.tags = " ".join(convert2plain(input_example_converted.tags.split()))
+
+            # convert tag_list
+            for tag in tag_list:
+                if tag == "O":
+                    tag_list_converted.append(tag)
+                elif tag.startswith("B-"):
+                    tag_list_converted.append(tag.split("-")[-1])
         else:
             raise Exception(f"annotation_scheme_source = {annotation_scheme_source} and "
                             f"annotation_scheme_target = {annotation_scheme_target} not implemented.")
