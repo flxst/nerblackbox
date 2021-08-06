@@ -97,12 +97,12 @@ class NerModelTrain(NerModel):
             self.params.annotation_scheme = self.annotation.scheme
         elif self.params.annotation_scheme != self.annotation.scheme:
             # convert annotation_classes
-            self.annotation = self.annotation.change_scheme(new_scheme=self.params.annotation_scheme)  # TODO: generalize
             input_examples = InputExamplesUtils.convert_annotation_scheme(
                 input_examples=input_examples,
                 annotation_scheme_source=self.annotation.scheme,
-                annotation_scheme_target=self.params.annotation_scheme
+                annotation_scheme_target=self.params.annotation_scheme,
             )
+            self.annotation = self.annotation.change_scheme(new_scheme=self.params.annotation_scheme)
             self.default_logger.log_info(f"> annotation scheme converted to {self.params.annotation_scheme}")
 
         self.default_logger.log_debug("> self.annotation.classes:", self.annotation.classes)
