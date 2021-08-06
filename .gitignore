@@ -10,3 +10,6 @@
 
 # misc
 .tox
+
+# docs
+docs/site/*

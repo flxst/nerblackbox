@@ -37,30 +37,30 @@ class CsvReader:
         # additional attributes
         self.token_count = None
 
-        # data & tag_list
+        # data & annotation_classes
         self.data: Dict[str, pd.DataFrame] = dict()
-        self.tag_list_found: List[str] = list()
+        self.annotation_classes_found: List[str] = list()
         for phase in ["train", "val", "test"]:
             # data
             self.data[phase] = self._read_csv(os.path.join(self.path, f"{phase}.csv"))
 
             # tag list
-            tag_list_phase = list(
+            annotation_classes_phase = list(
                 set(" ".join(self.data[phase]["tags"].values).split())
             )
-            self.tag_list_found = sorted(
-                list(set(self.tag_list_found + tag_list_phase))
+            self.annotation_classes_found = sorted(
+                list(set(self.annotation_classes_found + annotation_classes_phase))
             )
 
-        self.tag_list: List[str] = ["O"] + [
-            elem for elem in self.tag_list_found if elem != "O"
+        self.annotation_classes: List[str] = ["O"] + [
+            elem for elem in self.annotation_classes_found if elem != "O"
         ]
 
         if self.default_logger:
             self.default_logger.log_debug(
-                f"> tag list found in data: {self.tag_list_found}"
+                f"> tag list found in data: {self.annotation_classes_found}"
             )
-            self.default_logger.log_debug(f"> tag list complete:      {self.tag_list}")
+            self.default_logger.log_debug(f"> tag list complete:      {self.annotation_classes}")
 
     ####################################################################################################################
     # PUBLIC METHODS

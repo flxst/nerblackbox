@@ -8,30 +8,28 @@ from sklearn.metrics import confusion_matrix as confusion_matrix_sklearn
 from typing import List, Dict, Union, Tuple, Any, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
+from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
+from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 
 
 class NerModelEvaluation:
     def __init__(
         self,
         current_epoch: int,
-        tag_list: List[str],
-        annotation_scheme: str,
+        annotation: Annotation,
         default_logger,
         logged_metrics,
     ):
         """
         Args:
-            current_epoch:     e.g. 1
-            tag_list:          e.g. ["O", "PER", "ORG"]
-            annotation_scheme: e.g. "plain", "bio"
+            current_epoch:   e.g. 1
+            annotation:      [Annotation]
             default_logger:
             logged_metrics:
         """
         self.current_epoch = current_epoch
-        self.tag_list = AnnotationSchemeUtils.order_tag_list(tag_list)
-        self.tag_list_plain = AnnotationSchemeUtils.convert_tag_list_bio2plain(tag_list)
-        self.annotation_scheme = annotation_scheme
+        self.annotation = annotation
+        self.annotation_plain = annotation.change_scheme(new_scheme="plain")
         self.default_logger = default_logger
         self.logged_metrics = logged_metrics
 
@@ -181,7 +179,7 @@ class NerModelEvaluation:
         for tag_subset in [
             "all",
             "fil",
-        ] + self.tag_list_plain:
+        ] + self.annotation_plain.classes:
             _epoch_metrics.update(
                 self._compute_metrics_for_tags_subset(
                     _epoch_tags, phase, tag_subset=tag_subset
@@ -224,7 +222,7 @@ class NerModelEvaluation:
         """
         return np.array(
             [
-                self.tag_list[int(tag_id)] if tag_id >= 0 else "[S]"
+                self.annotation.classes[int(tag_id)] if tag_id >= 0 else "[S]"
                 for tag_id in _tag_ids
             ]
         )
@@ -264,13 +262,13 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         _tags_plain = {
-            field: AnnotationSchemeUtils.convert2plain(
-                _tags[field], convert_to_plain=self.annotation_scheme != "plain"
+            field: Tags(_tags[field]).convert2plain(
+                convert_to_plain=self.annotation.scheme != "plain"
             )
             for field in ["true", "pred"]
         }
 
-        tag_list, tag_list_indices = self._get_filtered_tags(tag_subset, _tags_plain)
+        classes, class_index = self._get_filtered_classes(tag_subset, _tags_plain)
         required_tag_groups = (
             [tag_subset] if tag_subset in ["all", "fil", "O"] else ["ind"]
         )
@@ -294,10 +292,10 @@ class NerModelEvaluation:
                 ner_metrics = NerMetrics(
                     _tags["true"] if level == "entity" else _tags_plain["true"],
                     _tags["pred"] if level == "entity" else _tags_plain["pred"],
-                    tag_list=tag_list if level == "token" else None,
-                    tag_index=tag_list_indices if level == "entity" else None,
+                    classes=classes if level == "token" else None,
+                    class_index=class_index if level == "entity" else None,
                     level=level,
-                    plain_tags=self.annotation_scheme == "plain"
+                    plain_scheme=self.annotation.scheme == "plain"
                     if level == "entity"
                     else True,
                 )
@@ -346,7 +344,7 @@ class NerModelEvaluation:
 
         return _metrics
 
-    def _get_filtered_tags(
+    def _get_filtered_classes(
         self, _tag_subset: str, _tags_plain: Optional[Dict[str, np.array]] = None
     ) -> Tuple[List[str], Optional[int]]:
         """
@@ -358,33 +356,33 @@ class NerModelEvaluation:
             _tags_plain: [dict] w/ keys 'true', 'pred'      & values = [np array]
 
         Returns:
-            _filtered_tags:       list of filtered tags
-            _filtered_tags_index: filtered tags index in case of single _filtered_tag, ignoring "O"
+            _filtered_classes:     list of filtered tags
+            _filtered_class_index: filtered tags index in case of single _filtered_tag, ignoring "O"
         """
         if _tag_subset == "all":
-            _filtered_tags = self.tag_list_plain
-            _filtered_tags_index = None
+            _filtered_classes = self.annotation_plain.classes
+            _filtered_class_index = None
         elif _tag_subset == "fil":
-            _filtered_tags = [tag for tag in self.tag_list_plain if tag != "O"]
-            _filtered_tags_index = None
+            _filtered_classes = [tag for tag in self.annotation_plain.classes if tag != "O"]
+            _filtered_class_index = None
         else:
             assert _tags_plain is not None, f"ERROR! need to provide _tags_plain"
-            tag_list_plain_filtered = [
+            classes_plain_filtered = [
                 elem
-                for elem in self.tag_list_plain
+                for elem in self.annotation_plain.classes
                 if (elem in _tags_plain["true"] or elem in _tags_plain["pred"])
                 and elem != "O"
             ]
-            _filtered_tags = [_tag_subset]
+            _filtered_classes = [_tag_subset]
 
             try:
-                _filtered_tags_index_list = [tag_list_plain_filtered.index(_tag_subset)]
-                assert len(_filtered_tags_index_list) == 1
-                _filtered_tags_index = _filtered_tags_index_list[0]
+                _filtered_classes_index_list = [classes_plain_filtered.index(_tag_subset)]
+                assert len(_filtered_classes_index_list) == 1
+                _filtered_class_index = _filtered_classes_index_list[0]
             except ValueError:
-                _filtered_tags_index = None
+                _filtered_class_index = None
 
-        return _filtered_tags, _filtered_tags_index
+        return _filtered_classes, _filtered_class_index
 
     ####################################################################################################################
     # 2. CLASSIFICATION REPORT #########################################################################################
@@ -409,14 +407,14 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: AnnotationSchemeUtils.convert2plain(
-                epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain"
+            field: Tags(epoch_tags[field]).convert2plain(
+                convert_to_plain=self.annotation.scheme != "plain"
             )
             for field in ["true", "pred"]
         }
 
         # token-based classification report, plain tags
-        tag_list_filtered, _ = self._get_filtered_tags("fil")
+        classes_filtered, _ = self._get_filtered_classes("fil")
         classification_report: str = ""
         if phase is not None and epoch is not None:
             classification_report += f"\n>>> Phase: {phase} | Epoch: {epoch}"
@@ -424,16 +422,16 @@ class NerModelEvaluation:
             "\n--- token-based, plain tag (sklearn) classification report on fil ---\n"
         )
         classification_report += classification_report_sklearn(
-            epoch_tags_plain["true"], epoch_tags_plain["pred"], labels=tag_list_filtered
+            epoch_tags_plain["true"], epoch_tags_plain["pred"], labels=classes_filtered
         )
 
         # chunk-based classification report
         epoch_tags_chunk = dict()
         for field in ["true", "pred"]:
-            epoch_tags_chunk[field] = AnnotationSchemeUtils.convert2bio(
-                epoch_tags[field], convert_to_bio=self.annotation_scheme == "plain"
+            epoch_tags_chunk[field] = Tags(epoch_tags[field]).convert2bio(
+                convert_to_bio=self.annotation.scheme == "plain"
             )
-        self.default_logger.log_debug("> annotation_scheme:", self.annotation_scheme)
+        self.default_logger.log_debug("> annotation.scheme:", self.annotation.scheme)
         self.default_logger.log_debug(
             "> epoch_tags_chunk[true]:", list(set(epoch_tags_chunk["true"]))
         )
@@ -472,8 +470,8 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: AnnotationSchemeUtils.convert2plain(
-                epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain"
+            field: Tags(epoch_tags[field]).convert2plain(
+                convert_to_plain=self.annotation.scheme != "plain"
             )
             for field in ["true", "pred"]
         }
@@ -482,12 +480,12 @@ class NerModelEvaluation:
         confusion_matrix = confusion_matrix_sklearn(
             epoch_tags_plain["true"],
             epoch_tags_plain["pred"],
-            labels=self.tag_list_plain,
+            labels=self.annotation_plain.classes,
         )
 
         df_confusion_matrix = pd.DataFrame(confusion_matrix)
-        df_confusion_matrix.columns = self.tag_list_plain
-        df_confusion_matrix.index = self.tag_list_plain
+        df_confusion_matrix.columns = self.annotation_plain.classes
+        df_confusion_matrix.index = self.annotation_plain.classes
 
         confusion_matrix_str: str = ""
         if phase is not None and epoch is not None:

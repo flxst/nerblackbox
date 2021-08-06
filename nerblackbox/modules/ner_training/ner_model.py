@@ -22,6 +22,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor impor
 )
 from nerblackbox.modules.utils.util_functions import split_parameters
 from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
+from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 
@@ -57,7 +58,7 @@ class NerModel(pl.LightningModule, ABC):
         :created attr: logged_metrics    [LoggedMetrics]
         :created attr: tokenizer         [transformers AutoTokenizer]
         :created attr: data_preprocessor [DataPreprocessor]
-        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: annotation        [Annotation]
         :created attr: model             [transformers AutoModelForTokenClassification]
 
         [only train]
@@ -73,7 +74,7 @@ class NerModel(pl.LightningModule, ABC):
         self.mlflow_client: MLflowClient
         self.default_logger: DefaultLogger
         self.scheduler: LambdaLR
-        self.tag_list: List[str]
+        self.annotation: Annotation
 
     def _preparations_data_general(self):
         """
@@ -418,8 +419,7 @@ class NerModel(pl.LightningModule, ABC):
         """
         ner_model_evaluation = NerModelEvaluation(
             current_epoch=self.current_epoch,
-            tag_list=self.tag_list,
-            annotation_scheme=self.params.annotation_scheme,
+            annotation=self.annotation,
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )

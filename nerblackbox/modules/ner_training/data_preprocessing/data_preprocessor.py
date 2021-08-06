@@ -13,7 +13,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.input_examples_to
 from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     InputExamples,
 )
-from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
+from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
@@ -43,7 +43,7 @@ class DataPreprocessor:
 
     def get_input_examples_train(
         self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None
-    ) -> Tuple[Dict[str, InputExamples], List[str], str]:
+    ) -> Tuple[Dict[str, InputExamples], Annotation]:
         """
         - get input examples for TRAIN from csv files
 
@@ -52,9 +52,8 @@ class DataPreprocessor:
             prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
 
         Returns:
-            input_examples:   [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
-            tag_list_ordered: [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
-            annotation_scheme_found: [str] e.g. 'plain' or 'bio'
+            input_examples:          [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
+            annotation:              [Annotation] instance
         """
         if dataset_name is None:
             dataset_path = resource_filename("nerblackbox", "tests/test_data")
@@ -77,15 +76,9 @@ class DataPreprocessor:
                 input_examples_all, phase, ratio=prune_ratio[phase]
             )
 
-        tag_list = AnnotationSchemeUtils.ensure_completeness_in_case_of_bio_tags(csv_reader.tag_list)
-        tag_list_ordered = AnnotationSchemeUtils.order_tag_list(tag_list)
+        annotation = Annotation(csv_reader.annotation_classes)
 
-        if any(["-" in tag for tag in tag_list]):
-            annotation_scheme_found = "bio"
-        else:
-            annotation_scheme_found = "plain"
-
-        return input_examples, tag_list_ordered, annotation_scheme_found
+        return input_examples, annotation
 
     def get_input_examples_predict(
         self, examples: List[str]
@@ -121,17 +114,17 @@ class DataPreprocessor:
     def to_dataloader(
         self,
         input_examples: Dict[str, InputExamples],
-        tag_list: List[str],
+        annotation_classes: List[str],
         batch_size: int,
     ) -> Dict[str, DataLoader]:
         """
         - turn input_examples into dataloader
 
         Args:
-            input_examples: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
-                                      values = [list] of [InputExample]
-            tag_list:       [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
-            batch_size:     [int]
+            input_examples:     [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                          values = [list] of [InputExample]
+            annotation_classes: [list] of tags present in the dataset, e.g. ['O', 'PER', ..]
+            batch_size:         [int]
 
         Returns:
             _dataloader:    [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
@@ -141,7 +134,7 @@ class DataPreprocessor:
         input_examples_to_tensors = InputExamplesToTensors(
             self.tokenizer,
             max_seq_length=self.max_seq_length,
-            tag_tuple=tuple(tag_list),
+            annotation_classes_tuple=tuple(annotation_classes),
             default_logger=self.default_logger,
         )
 

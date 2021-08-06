@@ -15,7 +15,7 @@ from seqeval.metrics import precision_score as precision_seqeval
 from seqeval.metrics import recall_score as recall_seqeval
 from seqeval.metrics import f1_score as f1_seqeval
 
-from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
+from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 
 
 class NerMetrics:
@@ -28,24 +28,24 @@ class NerMetrics:
         self,
         true_flat,
         pred_flat,
-        tag_list=None,
-        tag_index=None,
+        classes=None,
+        class_index=None,
         level="token",
-        plain_tags=False,
+        plain_scheme=False,
         verbose=False,
     ):
         """
-        :param true_flat: [np array] of shape [batch_size * seq_length]
-        :param pred_flat: [np array] of shape [batch_size * seq_length]
-        :param tag_list:  [optional, list] of [str] labels to take into account for metrics -> if level = 'token'
-        :param tag_index: [optional, int]            index to take into account for metrics -> if level = 'entity'
-        :param level:     [optional, str] 'token' or 'entity'
-        :param verbose:   [optional, bool] if True, show verbose output
+        :param true_flat:   [np array] of shape [batch_size * seq_length]
+        :param pred_flat:   [np array] of shape [batch_size * seq_length]
+        :param classes:     [optional, list] of [str] labels to take into account for metrics -> if level = 'token'
+        :param class_index: [optional, int]            index to take into account for metrics -> if level = 'entity'
+        :param level:       [optional, str] 'token' or 'entity'
+        :param verbose:     [optional, bool] if True, show verbose output
         """
         self.true_flat = true_flat
         self.pred_flat = pred_flat
-        self.tag_list = tag_list
-        self.tag_index = tag_index
+        self.classes = classes
+        self.class_index = class_index
         self.level = level
         self.verbose = verbose
 
@@ -57,12 +57,12 @@ class NerMetrics:
             "entity",
         ], f"ERROR! level = {self.level} unknown."
         if self.level == "entity":
-            self.true_flat_bio: List[str] = AnnotationSchemeUtils.convert2bio(
-                self.true_flat, convert_to_bio=plain_tags
-            )
-            self.pred_flat_bio: List[str] = AnnotationSchemeUtils.convert2bio(
-                self.pred_flat, convert_to_bio=plain_tags
-            )
+            self.true_flat_bio: List[str] = Tags(
+                self.true_flat,
+            ).convert2bio(convert_to_bio=plain_scheme)
+            self.pred_flat_bio: List[str] = Tags(
+                self.pred_flat
+            ).convert2bio(convert_to_bio=plain_scheme)
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -190,14 +190,14 @@ class NerMetrics:
                 metric = evaluation_function(
                     self.true_flat,
                     self.pred_flat,
-                    labels=self.tag_list,
+                    labels=self.classes,
                     average=average,
                 )
             else:
                 _, _, metric, _ = prf_sklearn(
                     self.true_flat,
                     self.pred_flat,
-                    labels=self.tag_list,
+                    labels=self.classes,
                     average=average,
                     warn_for=("precision", "recall", "f-score"),
                 )
@@ -223,7 +223,7 @@ class NerMetrics:
             recall_seqeval,
         ], f"evaluation function = {evaluation_function} unknown / not allowed."
 
-        if self.tag_index is None:  # "fil"
+        if self.class_index is None:  # "fil"
             try:
                 metric = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average="micro"
@@ -239,7 +239,7 @@ class NerMetrics:
                     [self.pred_flat_bio],
                     average=None,
                     zero_division="warn",
-                )[self.tag_index]
+                )[self.class_index]
             except UndefinedMetricWarning:
                 try:
                     metric = evaluation_function(
@@ -247,7 +247,7 @@ class NerMetrics:
                         [self.pred_flat_bio],
                         average=None,
                         zero_division=0,
-                    )[self.tag_index]
+                    )[self.class_index]
                 except IndexError:
                     metric = self.failure_value
 
@@ -257,7 +257,7 @@ class NerMetrics:
                         [self.pred_flat_bio],
                         average=None,
                         zero_division=1,
-                    )[self.tag_index]
+                    )[self.class_index]
                     if metric == 1:
                         metric = self.failure_value
             except IndexError:
@@ -408,7 +408,7 @@ class NerMetrics:
         ):
             f1_micro = self.failure_value
         else:
-            if self.tag_index is None:  # "fil"
+            if self.class_index is None:  # "fil"
                 f1_micro = evaluation_function(
                     [self.true_flat_bio], [self.pred_flat_bio], average="micro"
                 )
@@ -418,7 +418,7 @@ class NerMetrics:
                     [self.pred_flat_bio],
                     average=None,
                     zero_division="warn",
-                )[self.tag_index]
+                )[self.class_index]
 
         # f1_macro
         if (
@@ -427,7 +427,7 @@ class NerMetrics:
         ):
             f1_macro = self.failure_value
         else:
-            if self.tag_index is None:  # "fil"
+            if self.class_index is None:  # "fil"
                 if restrict_macro:
                     metric_list = evaluation_function(
                         [self.true_flat_bio],

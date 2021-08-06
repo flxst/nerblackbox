@@ -7,7 +7,7 @@ from typing import List, Union, Tuple, Any, Dict, IO
 from omegaconf import OmegaConf
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
-from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
+from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 
 from transformers import logging
 
@@ -52,14 +52,14 @@ class NerModelPredict(NerModel):
         :created attr: logged_metrics    [LoggedMetrics]
         :created attr: tokenizer         [transformers AutoTokenizer]
         :created attr: data_preprocessor [DataPreprocessor]
-        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: annotation        [Annotation]
         :created attr: model             [transformers AutoModelForTokenClassification]
         :return: -
         """
         # predict
         self._preparations_predict()  # attr: default_logger
         self._preparations_data_general()  # attr: tokenizer, data_preprocessor
-        self._preparations_data_predict()  # attr: tag_list, model
+        self._preparations_data_predict()  # attr: annotation, model
 
     def _preparations_predict(self):
         """
@@ -70,17 +70,17 @@ class NerModelPredict(NerModel):
 
     def _preparations_data_predict(self):
         """
-        :created attr: tag_list          [list] of tags in dataset, e.g. ['O', 'PER', 'LOC', ..]
+        :created attr: annotation        [Annotation]
         :created attr: model             [transformers AutoModelForTokenClassification]
         :return: -
         """
-        # tag_list
-        self.tag_list = json.loads(self.hparams.tag_list)
+        # annotation
+        self.annotation = Annotation(json.loads(self.hparams.annotation_classes))
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(
             self.pretrained_model_name,
-            num_labels=len(self.tag_list),
+            num_labels=len(self.annotation.classes),
             return_dict=False,
         )
         self.model.resize_token_embeddings(
@@ -158,7 +158,7 @@ class NerModelPredict(NerModel):
         Returns:
             predictions: [list] of probability predictions for different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
-                         where proba_dist = [dict] that maps self.tag_list to probabilities
+                         where proba_dist = [dict] that maps self.annotation.classes to probabilities
         """
         return self._predict(input_texts, level="word", autocorrect=False, proba=True)
 
@@ -179,7 +179,7 @@ class NerModelPredict(NerModel):
 
         Returns:
             predictions: [list] of [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
-                         where proba_dist = [dict] that maps self.tag_list to probabilities
+                         where proba_dist = [dict] that maps self.annotation.classes to probabilities
         """
         # --- check input arguments ---
         assert level in [
@@ -273,7 +273,7 @@ class NerModelPredict(NerModel):
 
         # dataloader
         dataloader = self.data_preprocessor.to_dataloader(
-            input_examples, self.tag_list, batch_size=1
+            input_examples, self.annotation.classes, batch_size=1
         )
 
         return dataloader["predict"]
@@ -312,7 +312,7 @@ class NerModelPredict(NerModel):
         :return: output_token_predictions [list] of [str]
         """
         return [
-            self.tag_list[np.argmax(output_token_tensors[i].detach().numpy())]
+            self.annotation.classes[int(np.argmax(output_token_tensors[i].detach().numpy()))]
             for i in range(self._hparams.max_seq_length)
         ]
 
@@ -329,10 +329,10 @@ class NerModelPredict(NerModel):
 
         tag_probability_distribution = [
             {
-                self.tag_list[j]: float(
+                self.annotation.classes[j]: float(
                     probability_distributions[i][j].detach().numpy()
                 )
-                for j in range(len(self.tag_list))
+                for j in range(len(self.annotation.classes))
             }
             for i in range(self._hparams.max_seq_length)
         ]

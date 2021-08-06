@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import pytest
 from pkg_resources import resource_filename
 from nerblackbox.modules.ner_training.metrics.ner_metrics import (
     NerMetrics,
@@ -84,7 +83,7 @@ class TestNerMetricsTable:
             tested_metrics: labels_metrics, e.g. ['all-precision', 'B-recall', ..]
         """
 
-        def get_tag_list(_labels):
+        def get_classes(_labels):
             if _labels == "all":
                 return None
             elif _labels == "fil":
@@ -92,7 +91,7 @@ class TestNerMetricsTable:
             else:
                 return _labels
 
-        def get_tag_index(_labels):
+        def get_class_index(_labels):
             if _labels == "fil":
                 return None
             else:
@@ -101,10 +100,10 @@ class TestNerMetricsTable:
         ner_metrics = NerMetrics(
             true,
             pred,
-            tag_list=get_tag_list(labels) if self.level == "token" else None,
-            tag_index=get_tag_index(labels) if self.level == "entity" else None,
+            classes=get_classes(labels) if self.level == "token" else None,
+            class_index=get_class_index(labels) if self.level == "entity" else None,
             level=self.level,
-            plain_tags=True,
+            plain_scheme=True,
             verbose=True,
         )
         ner_metrics.compute(self.metrics)
@@ -187,4 +186,3 @@ if __name__ == "__main__":
     test_ner_metrics_table = TestNerMetricsTable()
     test_ner_metrics_table.test_predictions_from_csv_token()
     test_ner_metrics_table.test_predictions_from_csv_entity()
-

@@ -23,7 +23,6 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.ner_training.ner_model import NEWLINE_TOKENS
-from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
 
 tokenizer = AutoTokenizer.from_pretrained(
     "af-ai-center/bert-base-swedish-uncased",
@@ -55,7 +54,7 @@ class TestCsvReaderAndDataProcessor:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "tag_list, " "annotation_scheme, " "input_examples, " "tag_list_bio, " "input_examples_bio",
+        "annotation_classes, " "annotation_scheme, " "input_examples",
         [
             (
                 ["O", "PER", "ORG", "MISC"],
@@ -100,41 +99,14 @@ class TestCsvReaderAndDataProcessor:
                         ),
                     ],
                 },
-                ["O", "B-PER", "B-ORG", "B-MISC", "I-PER", "I-ORG", "I-MISC"],
-                {
-                    "train": [
-                        InputExample(
-                            guid="",
-                            text="På skidspår.se kan längdskidåkare själva betygsätta förhållandena i spåren .",
-                            tags="O B-MISC O O O O O O O O",
-                        ),
-                    ],
-                    "val": [
-                        InputExample(
-                            guid="",
-                            text="Fastigheten är ett landmärke designad av arkitekten Robert Stern .",
-                            tags="O O O O O O O B-PER I-PER O",
-                        ),
-                    ],
-                    "test": [
-                        InputExample(
-                            guid="",
-                            text="Apple noteras för 85,62 poäng , vilket är den högsta siffran någonsin i undersökningen .",
-                            tags="B-ORG O O O O O O O O O O O O O O",
-                        ),
-                    ],
-
-                }
             ),
         ],
     )
     def tests(
         self,
-        tag_list: List[str],
+        annotation_classes: List[str],
         annotation_scheme: str,
         input_examples: Dict[str, List[InputExample]],
-        tag_list_bio: List[str],
-        input_examples_bio: Dict[str, List[InputExample]],
     ) -> None:
 
         ##################################
@@ -156,14 +128,14 @@ class TestCsvReaderAndDataProcessor:
         # 2. DataProcessor
         ##################################
         # a. get_input_examples_train
-        test_input_examples, test_tag_list, test_annotation_scheme = data_preprocessor.get_input_examples_train(
+        test_input_examples, test_annotation = data_preprocessor.get_input_examples_train(
             prune_ratio={"train": 0.5, "val": 1.0, "test": 1.0},
             dataset_name=None,
         )
-        assert test_annotation_scheme == annotation_scheme, f"ERROR! {test_annotation_scheme} != {annotation_scheme}"
-        assert set(test_tag_list) == set(
-            tag_list
-        ), f"test_tag_list = {test_tag_list} != {tag_list}"
+        assert test_annotation.scheme == annotation_scheme, f"ERROR! {test_annotation.scheme} != {annotation_scheme}"
+        assert set(test_annotation.classes) == set(
+            annotation_classes
+        ), f"test_annotation.classes = {test_annotation.classes} != {annotation_classes}"
         for phase in ["train", "val", "test"]:
             assert (
                 len(test_input_examples[phase]) == 1
@@ -175,49 +147,7 @@ class TestCsvReaderAndDataProcessor:
                 test_input_examples[phase][0].tags == input_examples[phase][0].tags
             ), f"phase = {phase}: test_input_examples.tags = {test_input_examples[phase][0].tags} != {input_examples[phase][0].tags}"
 
-        # b1. convert_annotation_scheme to bio
-        test_input_examples_bio, test_tag_list_bio = AnnotationSchemeUtils.convert_annotation_scheme(
-            input_examples=input_examples,
-            tag_list=tag_list,
-            annotation_scheme_source=annotation_scheme,
-            annotation_scheme_target="bio",
-        )
-        assert set(test_tag_list_bio) == set(
-            tag_list_bio
-        ), f"test_tag_list_bio = {test_tag_list_bio} != {tag_list_bio}"
-        for phase in ["train", "val", "test"]:
-            assert (
-                    len(test_input_examples_bio[phase]) == 1
-            ), f"ERROR! len(test_input_examples_bio[{phase}]) = {len(test_input_examples_bio[phase])} should be 1."
-            assert (
-                    test_input_examples_bio[phase][0].text == input_examples_bio[phase][0].text
-            ), f"phase = {phase}: test_input_examples_bio.text = {test_input_examples_bio[phase][0].text} != {input_examples_bio[phase][0].text}"
-            assert (
-                    test_input_examples_bio[phase][0].tags == input_examples_bio[phase][0].tags
-            ), f"phase = {phase}: test_input_examples_bio.tags = {test_input_examples_bio[phase][0].tags} != {input_examples_bio[phase][0].tags}"
-
-        # b2. convert_annotation_scheme back from bio
-        test_input_examples_2, test_tag_list_2 = AnnotationSchemeUtils.convert_annotation_scheme(
-            input_examples=test_input_examples_bio,
-            tag_list=test_tag_list_bio,
-            annotation_scheme_source="bio",
-            annotation_scheme_target=annotation_scheme,
-        )
-        assert set(test_tag_list_2) == set(
-            tag_list
-        ), f"test_tag_list = {test_tag_list_2} != {tag_list}"
-        for phase in ["train", "val", "test"]:
-            assert (
-                    len(test_input_examples_2[phase]) == 1
-            ), f"ERROR! len(test_input_examples_2[{phase}]) = {len(test_input_examples_2[phase])} should be 1."
-            assert (
-                    test_input_examples_2[phase][0].text == input_examples[phase][0].text
-            ), f"phase = {phase}: test_input_examples_2.text = {test_input_examples_2[phase][0].text} != {input_examples[phase][0].text}"
-            assert (
-                    test_input_examples_2[phase][0].tags == input_examples[phase][0].tags
-            ), f"phase = {phase}: test_input_examples_2.tags = {test_input_examples_2[phase][0].tags} != {input_examples[phase][0].tags}"
-
-        # c. get_input_examples_predict
+        # b. get_input_examples_predict
         test_sentences = [
             elem.text for v in test_input_examples.values() for elem in v
         ]  # retrieve example sentences
@@ -240,9 +170,9 @@ class TestCsvReaderAndDataProcessor:
                 test_input_example_predict.tags == true_input_example_predict_tags
             ), f"test_input_example_predict.tags = {test_input_example_predict.tags} != {true_input_example_predict_tags}"
 
-        # d. to_dataloader
+        # c. to_dataloader
         dataloader = data_preprocessor.to_dataloader(
-            input_examples, tag_list, batch_size=1
+            input_examples, annotation_classes, batch_size=1
         )
         for key in ["train", "val", "test", "predict"]:
             assert (
@@ -258,7 +188,7 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
     @pytest.mark.parametrize(
         "texts, "
         "labels, "
-        "tag_tuple, "
+        "annotation_classes, "
         "max_seq_length, "
         "true_input_ids, "
         "true_attention_mask, "
@@ -471,7 +401,7 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
         self,
         texts: List[str],
         labels: List[str],
-        tag_tuple: List[str],
+        annotation_classes: List[str],
         max_seq_length: int,
         true_input_ids: torch.Tensor,
         true_attention_mask: torch.Tensor,
@@ -494,7 +424,7 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
         input_examples_to_tensors = InputExamplesToTensors(
             tokenizer=tokenizer,
             max_seq_length=max_seq_length,
-            tag_tuple=tuple(tag_tuple),
+            annotation_classes_tuple=tuple(annotation_classes),
             default_logger=PseudoDefaultLogger(),
         )
         encodings = input_examples_to_tensors(input_examples, predict=False)

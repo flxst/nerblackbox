@@ -19,19 +19,19 @@ class InputExamplesToTensors:
         self,
         tokenizer,
         max_seq_length: int = 128,
-        tag_tuple: tuple = ("O", "PER", "ORG"),
+        annotation_classes_tuple: tuple = ("O", "PER", "ORG"),
         default_logger=None,
     ):
         """
-        :param tokenizer:      [BertTokenizer] used to tokenize to Wordpieces and transform to indices
-        :param max_seq_length: [int]
-        :param tag_tuple:      [tuple] of [str]
+        :param tokenizer:                [Tokenizer] used for tokenization and transformation to indices
+        :param max_seq_length:           [int]
+        :param annotation_classes_tuple: [tuple] of [str]
         """
         self.tokenizer = tokenizer
         self.max_seq_length = max_seq_length
         self.default_logger = default_logger
 
-        self.tag2id = {tag: i for i, tag in enumerate(tag_tuple)}
+        self.tag2id = {tag: i for i, tag in enumerate(annotation_classes_tuple)}
         if self.default_logger:
             self.default_logger.log_debug("> tag2id:", self.tag2id)
 

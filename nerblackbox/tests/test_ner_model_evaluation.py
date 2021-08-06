@@ -6,21 +6,20 @@ from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvalua
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.tests.test_utils import pytest_approx
+from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 
 
 class TestNerModelEvaluation:
 
     ner_model_evaluation = NerModelEvaluation(
         current_epoch=2,
-        tag_list=["O", "ORG", "PER"],
-        annotation_scheme="plain",
+        annotation=Annotation(["O", "ORG", "PER"]),
         default_logger=PseudoDefaultLogger(),
         logged_metrics=LoggedMetrics(),
     )
     ner_model_evaluation_bio = NerModelEvaluation(
         current_epoch=2,
-        tag_list=["O", "B-ORG", "B-PER", "I-ORG", "I-PER"],
-        annotation_scheme="bio",
+        annotation=Annotation(["O", "B-ORG", "B-PER", "I-ORG", "I-PER"]),
         default_logger=PseudoDefaultLogger(),
         logged_metrics=LoggedMetrics(),
     )
@@ -197,7 +196,7 @@ class TestNerModelEvaluation:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "_tags_plain, " "_tag_subset, " "_filtered_tags, " "_filtered_tags_index",
+        "_tags_plain, " "_tag_subset, " "_filtered_classes, " "_filtered_class_index",
         [
             (
                 {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
@@ -248,24 +247,24 @@ class TestNerModelEvaluation:
             ({"true": np.array(["PER"]), "pred": np.array([])}, "ORG", ["ORG"], None),
         ],
     )
-    def test_get_filtered_tags(
+    def test_get_filtered_classes(
         self,
         _tags_plain: Dict[str, np.array],
         _tag_subset: str,
-        _filtered_tags: List[str],
-        _filtered_tags_index: Optional[int],
+        _filtered_classes: List[str],
+        _filtered_class_index: Optional[int],
     ) -> None:
         (
-            test_filtered_tags,
-            test_filtered_tags_index,
-        ) = self.ner_model_evaluation._get_filtered_tags(_tag_subset, _tags_plain)
+            test_filtered_classes,
+            test_filtered_class_index,
+        ) = self.ner_model_evaluation._get_filtered_classes(_tag_subset, _tags_plain)
 
         assert (
-            test_filtered_tags == _filtered_tags
-        ), f"test_filtered_tags = {test_filtered_tags} != {_filtered_tags}"
+            test_filtered_classes == _filtered_classes
+        ), f"test_filtered_classes = {test_filtered_classes} != {_filtered_classes}"
         assert (
-            test_filtered_tags_index == _filtered_tags_index
-        ), f"test_filtered_tags_index = {test_filtered_tags_index} != {_filtered_tags_index}"
+            test_filtered_class_index == _filtered_class_index
+        ), f"test_filtered_class_index = {test_filtered_class_index} != {_filtered_class_index}"
 
     ####################################################################################################################
     @pytest.mark.parametrize(
@@ -678,7 +677,7 @@ if __name__ == "__main__":
     test.test_reduce_and_flatten()
     test.test_convert_tag_ids_to_tags()
     test.test_get_rid_of_special_tag_occurrences()
-    test.test_get_filtered_tags()
+    test.test_get_filtered_classes()
     test.test_compute_metrics_for_tags_subset()
     test.test_compute_metrics()
     test.test_execute()
