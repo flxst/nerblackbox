@@ -33,21 +33,19 @@ class InputExamplesUtils:
             input_examples_converted: [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
                                                 values = [list] of [InputExample]
         """
-        input_examples_converted = deepcopy(input_examples)
-        if annotation_scheme_source == "plain" and annotation_scheme_target == "bio":
-            # convert input_examples
-            for key in input_examples_converted.keys():
-                for input_example_converted in input_examples_converted[key]:
-                    input_example_converted.tags = " ".join(Tags(input_example_converted.tags.split()).convert2bio())
-
-        elif annotation_scheme_source == "bio" and annotation_scheme_target == "plain":
-            # convert input_examples
-            for key in input_examples_converted.keys():
-                for input_example_converted in input_examples_converted[key]:
-                    input_example_converted.tags = " ".join(Tags(input_example_converted.tags.split()).convert2plain())
-
+        if annotation_scheme_source == annotation_scheme_target:
+            return input_examples
         else:
-            raise Exception(f"annotation_scheme_source = {annotation_scheme_source} and "
-                            f"annotation_scheme_target = {annotation_scheme_target} not implemented.")
+            input_examples_converted = deepcopy(input_examples)
+            for key in input_examples_converted.keys():
+                for input_example_converted in input_examples_converted[key]:
+                    tags = Tags(input_example_converted.tags.split())
+                    if annotation_scheme_source == "plain" and annotation_scheme_target == "bio":
+                        input_example_converted.tags = " ".join(tags.convert2bio())
+                    elif annotation_scheme_source == "bio" and annotation_scheme_target == "plain":
+                        input_example_converted.tags = " ".join(tags.convert2plain())
+                    else:
+                        raise Exception(f"annotation_scheme_source = {annotation_scheme_source} and "
+                                        f"annotation_scheme_target = {annotation_scheme_target} not implemented.")
 
         return input_examples_converted

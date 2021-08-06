@@ -128,7 +128,24 @@ class TestInputExamplesUtils:
                     test_input_examples_2[phase][0].tags == input_examples[phase][0].tags
             ), f"phase = {phase}: test_input_examples_2.tags = {test_input_examples_2[phase][0].tags} != {input_examples[phase][0].tags}"
 
-        # b3. use unknown parameter
+        # b3. no_conversion
+        test_input_examples_plain = InputExamplesUtils.convert_annotation_scheme(
+            input_examples=input_examples,
+            annotation_scheme_source=Annotation(tag_classes).scheme,
+            annotation_scheme_target="plain",
+        )
+        for phase in ["train", "val", "test"]:
+            assert (
+                    len(test_input_examples_plain[phase]) == 1
+            ), f"ERROR! len(test_input_examples_plain[{phase}]) = {len(test_input_examples_plain[phase])} should be 1."
+            assert (
+                    test_input_examples_plain[phase][0].text == input_examples[phase][0].text
+            ), f"phase = {phase}: test_input_examples_plain.text = {test_input_examples_plain[phase][0].text} != {input_examples[phase][0].text}"
+            assert (
+                    test_input_examples_plain[phase][0].tags == input_examples[phase][0].tags
+            ), f"phase = {phase}: test_input_examples_plain.tags = {test_input_examples_plain[phase][0].tags} != {input_examples[phase][0].tags}"
+
+        # b4. use unknown parameter
         with pytest.raises(Exception):
             _ = InputExamplesUtils.convert_annotation_scheme(
                 input_examples=input_examples,
