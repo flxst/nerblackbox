@@ -4,8 +4,6 @@ import pytest
 from pkg_resources import resource_filename
 from nerblackbox.modules.ner_training.metrics.ner_metrics import (
     NerMetrics,
-    convert2bio,
-    convert2plain,
 )
 from nerblackbox.tests.test_utils import pytest_approx
 from typing import List
@@ -185,91 +183,8 @@ class TestNerMetricsTable:
         return np.array(_str.strip("[").strip("]").replace(" ", "").split(","))
 
 
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-class TestNerMetrics:
-    @pytest.mark.parametrize(
-        "input_sequence, " "convert_to_bio, " "output_sequence",
-        [
-            (
-                ["O", "A", "A", "O", "O", "O", "B", "O"],
-                True,
-                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-            ),
-            (
-                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                False,
-                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-            ),
-            (
-                ["O", "A", "A", "O", "O", "O", "B", "O"],
-                False,
-                None,
-            ),
-            (
-                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                True,
-                None,
-            ),
-        ],
-    )
-    def test_convert2bio(
-        self,
-        input_sequence: List[str],
-        convert_to_bio: bool,
-        output_sequence: List[str],
-    ):
-        if output_sequence is not None:
-            test_output_sequence = convert2bio(input_sequence, convert_to_bio)
-            assert (
-                test_output_sequence == output_sequence
-            ), f"{test_output_sequence} != {output_sequence}"
-        else:
-            with pytest.raises(Exception):
-                convert2bio(input_sequence, convert_to_bio)
-
-    @pytest.mark.parametrize(
-        "input_sequence, " "convert_to_plain, " "output_sequence",
-        [
-            (
-                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                True,
-                ["O", "A", "A", "O", "O", "O", "B", "O"],
-            ),
-            (
-                ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                False,
-                None,
-            ),
-            (
-                ["O", "A", "A", "O", "O", "O", "B", "O"],
-                False,
-                ["O", "A", "A", "O", "O", "O", "B", "O"],
-            ),
-        ],
-    )
-    def test_convert2plain(
-        self,
-        input_sequence: List[str],
-        convert_to_plain: bool,
-        output_sequence: List[str],
-    ):
-        if output_sequence is not None:
-            test_output_sequence = convert2plain(input_sequence, convert_to_plain)
-            assert (
-                test_output_sequence == output_sequence
-            ), f"{test_output_sequence} != {output_sequence}"
-        else:
-            with pytest.raises(Exception):
-                convert2plain(input_sequence, convert_to_plain)
-
-
 if __name__ == "__main__":
     test_ner_metrics_table = TestNerMetricsTable()
     test_ner_metrics_table.test_predictions_from_csv_token()
     test_ner_metrics_table.test_predictions_from_csv_entity()
 
-    test_ner_metrics = TestNerMetrics()
-    test_ner_metrics.test_convert2bio()
-    test_ner_metrics.test_convert2plain()

@@ -17,14 +17,13 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.encodings_dataset
 )
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
     DataPreprocessor,
-    order_tag_list,
-    convert_tag_list_bio2plain,
 )
 from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     EncodingsKeys,
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.ner_training.ner_model import NEWLINE_TOKENS
+from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
 
 tokenizer = AutoTokenizer.from_pretrained(
     "af-ai-center/bert-base-swedish-uncased",
@@ -177,7 +176,7 @@ class TestCsvReaderAndDataProcessor:
             ), f"phase = {phase}: test_input_examples.tags = {test_input_examples[phase][0].tags} != {input_examples[phase][0].tags}"
 
         # b1. convert_annotation_scheme to bio
-        test_input_examples_bio, test_tag_list_bio = data_preprocessor.convert_annotation_scheme(
+        test_input_examples_bio, test_tag_list_bio = AnnotationSchemeUtils.convert_annotation_scheme(
             input_examples=input_examples,
             tag_list=tag_list,
             annotation_scheme_source=annotation_scheme,
@@ -198,7 +197,7 @@ class TestCsvReaderAndDataProcessor:
             ), f"phase = {phase}: test_input_examples_bio.tags = {test_input_examples_bio[phase][0].tags} != {input_examples_bio[phase][0].tags}"
 
         # b2. convert_annotation_scheme back from bio
-        test_input_examples_2, test_tag_list_2 = data_preprocessor.convert_annotation_scheme(
+        test_input_examples_2, test_tag_list_2 = AnnotationSchemeUtils.convert_annotation_scheme(
             input_examples=test_input_examples_bio,
             tag_list=test_tag_list_bio,
             annotation_scheme_source="bio",
@@ -543,100 +542,9 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
                 ), f"{string} = {data[j][string]} != {true[j]}"
 
 
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-class TestMisc:
-
-    ####################################################################################################################
-    @pytest.mark.parametrize(
-        "tag_list, " "returned_tag_list",
-        [
-            (
-                ["O", "PER", "ORG", "MISC"],
-                ["O", "PER", "ORG", "MISC"],
-            ),
-            (
-                ["O", "B-PER", "B-ORG", "B-MISC"],
-                ["O", "B-PER", "B-ORG", "B-MISC", "I-PER", "I-ORG", "I-MISC"],
-            ),
-        ],
-    )
-    def test_ensure_completeness_in_case_of_bio_tags(
-        self,
-        tag_list: List[str],
-        returned_tag_list: List[str],
-    ) -> None:
-        test_returned_tag_list = (
-            data_preprocessor._ensure_completeness_in_case_of_bio_tags(
-                tag_list=tag_list
-            )
-        )
-        assert (
-            test_returned_tag_list == returned_tag_list
-        ), f"test_returned_tag_list = {test_returned_tag_list} != {returned_tag_list}"
-
-    ####################################################################################################################
-    @pytest.mark.parametrize(
-        "tag_list, " "tag_list_ordered",
-        [
-            (
-                ["O", "PER", "ORG", "MISC"],
-                ["O", "MISC", "ORG", "PER"],
-            ),
-            (
-                ["PER", "ORG", "O", "MISC"],
-                ["O", "MISC", "ORG", "PER"],
-            ),
-            (
-                ["O", "B-PER", "I-MISC", "B-ORG", "I-PER", "B-MISC", "I-ORG"],
-                ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
-            ),
-        ],
-    )
-    def test_order_tag_list(
-        self,
-        tag_list: List[str],
-        tag_list_ordered: List[str],
-    ) -> None:
-        test_tag_list_ordered = order_tag_list(tag_list)
-        assert (
-            test_tag_list_ordered == tag_list_ordered
-        ), f"test_tag_list_ordered = {test_tag_list_ordered} != {tag_list_ordered}"
-
-    ####################################################################################################################
-    @pytest.mark.parametrize(
-        "tag_list_bio, " "tag_list",
-        [
-            (
-                ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
-                ["O", "MISC", "ORG", "PER"],
-            ),
-            (  # if applied to plain tag_list, nothing happens
-                ["O", "MISC", "ORG", "PER"],
-                ["O", "MISC", "ORG", "PER"],
-            ),
-        ],
-    )
-    def test_convert_tag_list_bio2plain(
-        self,
-        tag_list_bio: List[str],
-        tag_list: List[str],
-    ) -> None:
-        test_tag_list = convert_tag_list_bio2plain(tag_list_bio)
-        assert (
-            test_tag_list == tag_list
-        ), f"test_tag_list_ordered = {test_tag_list} != {tag_list}"
-
-
 if __name__ == "__main__":
     test_csv = TestCsvReaderAndDataProcessor()
     test_csv.tests()
 
     test_input_examples_to_tensors = TestInputExamplesToTensorsAndEncodingsDataset()
     test_input_examples_to_tensors.tests()
-
-    test_misc = TestMisc()
-    test_misc.test_ensure_completeness_in_case_of_bio_tags()
-    test_misc.test_order_tag_list()
-    test_misc.test_convert_tag_list_bio2plain()

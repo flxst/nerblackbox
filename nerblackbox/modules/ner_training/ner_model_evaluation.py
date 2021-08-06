@@ -8,14 +8,7 @@ from sklearn.metrics import confusion_matrix as confusion_matrix_sklearn
 from typing import List, Dict, Union, Tuple, Any, Optional
 
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.ner_training.metrics.ner_metrics import (
-    convert2bio,
-    convert2plain,
-)
-from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
-    order_tag_list,
-    convert_tag_list_bio2plain,
-)
+from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
 
 
 class NerModelEvaluation:
@@ -36,8 +29,8 @@ class NerModelEvaluation:
             logged_metrics:
         """
         self.current_epoch = current_epoch
-        self.tag_list = order_tag_list(tag_list)
-        self.tag_list_plain = convert_tag_list_bio2plain(tag_list)
+        self.tag_list = AnnotationSchemeUtils.order_tag_list(tag_list)
+        self.tag_list_plain = AnnotationSchemeUtils.convert_tag_list_bio2plain(tag_list)
         self.annotation_scheme = annotation_scheme
         self.default_logger = default_logger
         self.logged_metrics = logged_metrics
@@ -271,7 +264,7 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         _tags_plain = {
-            field: convert2plain(
+            field: AnnotationSchemeUtils.convert2plain(
                 _tags[field], convert_to_plain=self.annotation_scheme != "plain"
             )
             for field in ["true", "pred"]
@@ -416,7 +409,7 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: convert2plain(
+            field: AnnotationSchemeUtils.convert2plain(
                 epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain"
             )
             for field in ["true", "pred"]
@@ -437,7 +430,7 @@ class NerModelEvaluation:
         # chunk-based classification report
         epoch_tags_chunk = dict()
         for field in ["true", "pred"]:
-            epoch_tags_chunk[field] = convert2bio(
+            epoch_tags_chunk[field] = AnnotationSchemeUtils.convert2bio(
                 epoch_tags[field], convert_to_bio=self.annotation_scheme == "plain"
             )
         self.default_logger.log_debug("> annotation_scheme:", self.annotation_scheme)
@@ -479,7 +472,7 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: convert2plain(
+            field: AnnotationSchemeUtils.convert2plain(
                 epoch_tags[field], convert_to_plain=self.annotation_scheme != "plain"
             )
             for field in ["true", "pred"]

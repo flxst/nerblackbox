@@ -7,6 +7,7 @@ from typing import List, Union, Tuple, Any, Dict, IO
 from omegaconf import OmegaConf
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
+from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
 
 from transformers import logging
 

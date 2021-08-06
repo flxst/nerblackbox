@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dataclasses import asdict
-from typing import List, Optional, Tuple, Callable
+from typing import List, Tuple, Callable
 
 import numpy as np
 from sklearn.metrics import accuracy_score as accuracy_sklearn
@@ -14,6 +14,8 @@ import warnings
 from seqeval.metrics import precision_score as precision_seqeval
 from seqeval.metrics import recall_score as recall_seqeval
 from seqeval.metrics import f1_score as f1_seqeval
+
+from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
 
 
 class NerMetrics:
@@ -55,10 +57,10 @@ class NerMetrics:
             "entity",
         ], f"ERROR! level = {self.level} unknown."
         if self.level == "entity":
-            self.true_flat_bio: List[str] = convert2bio(
+            self.true_flat_bio: List[str] = AnnotationSchemeUtils.convert2bio(
                 self.true_flat, convert_to_bio=plain_tags
             )
-            self.pred_flat_bio: List[str] = convert2bio(
+            self.pred_flat_bio: List[str] = AnnotationSchemeUtils.convert2bio(
                 self.pred_flat, convert_to_bio=plain_tags
             )
 
@@ -457,107 +459,3 @@ class Results:
     f1_macro: float = -1
     classindices_macro: Tuple[float, ...] = ()
     numberofclasses_macro: float = -1
-
-
-def _assert_plain_tags(tag_list: List[str]) -> None:
-    for tag in tag_list:
-        if tag != "O" and (len(tag) > 2 and tag[1] == "-"):
-            raise Exception(
-                "ERROR! attempt to convert tags to bio format that already seem to have bio format."
-            )
-
-
-def _assert_bio_tags(tag_list: List[str]) -> None:
-    for tag in tag_list:
-        if tag != "O" and (len(tag) <= 2 or tag[1] != "-"):
-            raise Exception(
-                "ERROR! assuming tags to have bio format that seem to have plain format instead."
-            )
-
-
-def convert2bio(tag_list: List[str], convert_to_bio=True) -> List[str]:
-    """
-    - add bio prefixes if tag_list is in plain annotation scheme
-
-    Args:
-        tag_list:       e.g. ['O',   'ORG',   'ORG']
-        convert_to_bio: whether to cast to bio labels
-
-    Returns:
-        bio_tag_list:  e.g. ['O', 'B-ORG', 'I-ORG']
-    """
-    if convert_to_bio:
-        _assert_plain_tags(tag_list)
-        return _convert_tags_plain2bio(tag_list)
-    else:
-        _assert_bio_tags(tag_list)
-        return list(tag_list)
-
-
-def _convert_tags_plain2bio(tag_list: List[str]) -> List[str]:
-    """
-    adds bio prefixes to plain tags
-
-    Args:
-        tag_list:     e.g. ['O',   'ORG',   'ORG']
-
-    Returns:
-        bio_tag_list: e.g. ['O', 'B-ORG', 'I-ORG']
-    """
-    return [
-        _convert_tag_plain2bio(tag_list[i], previous=tag_list[i - 1] if i > 0 else None)
-        for i in range(len(tag_list))
-    ]
-
-
-def _convert_tag_plain2bio(tag: str, previous: Optional[str] = None) -> str:
-    """
-    add bio prefix to plain tag, depending on previous tag
-
-    Args:
-        tag:      e.g. 'ORG'
-        previous: e.g. 'ORG'
-
-    Returns:
-        bio_tag:  e.g. 'I-ORG'
-    """
-    if tag == "O" or tag.startswith("["):
-        return tag
-    elif previous is None:
-        return f"B-{tag}"
-    elif tag != previous:
-        return f"B-{tag}"
-    else:
-        return f"I-{tag}"
-
-
-def convert2plain(tag_list: List[str], convert_to_plain=True) -> List[str]:
-    """
-    - removes bio prefixes if tag_list is in bio annotation scheme
-
-    Args:
-        tag_list:  e.g. ['O', 'B-ORG', 'I-ORG']
-        convert_to_plain: whether to cast to plain labels
-
-    Returns:
-        tag_list_plain:       e.g. ['O',   'ORG',   'ORG']
-    """
-    if convert_to_plain:
-        _assert_bio_tags(tag_list)
-        return _convert_tags_bio2plain(tag_list)
-    else:
-        _assert_plain_tags(tag_list)
-        return list(tag_list)
-
-
-def _convert_tags_bio2plain(bio_tag_list: List[str]) -> List[str]:
-    """
-    retrieve plain tags by removing bio prefixes
-
-    Args:
-        bio_tag_list: e.g. ['O', 'B-ORG', 'I-ORG']
-
-    Returns:
-        tag_list:     e.g. ['O',   'ORG',   'ORG']
-    """
-    return [elem.split("-")[-1] for elem in bio_tag_list]

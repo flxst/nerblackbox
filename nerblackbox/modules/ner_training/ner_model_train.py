@@ -8,6 +8,7 @@ from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetric
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 from nerblackbox.modules.ner_training.ner_model import NerModel
+from nerblackbox.modules.ner_training.annotation_scheme.annotation_scheme_utils import AnnotationSchemeUtils
 
 
 class NerModelTrain(NerModel):
@@ -95,7 +96,7 @@ class NerModelTrain(NerModel):
         if self.params.annotation_scheme == "auto":
             self.params.annotation_scheme = annotation_scheme_found
         elif self.params.annotation_scheme != annotation_scheme_found:
-            input_examples, self.tag_list = self.data_preprocessor.convert_annotation_scheme(
+            input_examples, self.tag_list = AnnotationSchemeUtils.convert_annotation_scheme(
                 input_examples=input_examples,
                 tag_list=self.tag_list,
                 annotation_scheme_source=annotation_scheme_found,
