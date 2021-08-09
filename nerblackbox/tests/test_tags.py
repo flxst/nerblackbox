@@ -12,82 +12,51 @@ class TestTags:
     ####################################################################################################################
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "input_sequence, " "convert_to_bio, " "output_sequence",
+        "source_scheme, " "input_sequence, " "target_scheme, " "output_sequence",
         [
             (
+                    "plain",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
-                    True,
+                    "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
             (
+                    "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    False,
+                    "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
             (
+                    "bio",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
-                    False,
+                    "bio",
                     None,
             ),
             (
+                    "plain",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    True,
+                    "bio",
                     None,
             ),
         ],
     )
-    def test_convert2bio(
+    def test_convert_scheme(
             self,
+            source_scheme: str,
             input_sequence: List[str],
-            convert_to_bio: bool,
+            target_scheme: str,
             output_sequence: List[str],
     ):
         if output_sequence is not None:
-            test_output_sequence = Tags(input_sequence).convert2bio(convert_to_bio)
+            test_output_sequence = Tags(input_sequence).convert_scheme(source_scheme, target_scheme)
             assert (
                     test_output_sequence == output_sequence
             ), f"{test_output_sequence} != {output_sequence}"
         else:
             with pytest.raises(Exception):
-                Tags(input_sequence).convert2bio(convert_to_bio)
-
-    @pytest.mark.parametrize(
-        "input_sequence, " "convert_to_plain, " "output_sequence",
-        [
-            (
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    True,
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
-            ),
-            (
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    False,
-                    None,
-            ),
-            (
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
-                    False,
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
-            ),
-        ],
-    )
-    def test_convert2plain(
-            self,
-            input_sequence: List[str],
-            convert_to_plain: bool,
-            output_sequence: List[str],
-    ):
-        if output_sequence is not None:
-            test_output_sequence = Tags(input_sequence).convert2plain(convert_to_plain)
-            assert (
-                    test_output_sequence == output_sequence
-            ), f"{test_output_sequence} != {output_sequence}"
-        else:
-            with pytest.raises(Exception):
-                Tags(input_sequence).convert2plain(convert_to_plain)
+                Tags(input_sequence).convert_scheme(source_scheme, target_scheme)
 
 
 if __name__ == "__main__":
     test_tags = TestTags()
-    test_tags.test_convert2bio()
-    test_tags.test_convert2plain()
+    test_tags.test_convert_scheme()

@@ -100,10 +100,10 @@ class TestNerMetricsTable:
         ner_metrics = NerMetrics(
             true,
             pred,
+            level=self.level,
+            scheme="plain",
             classes=get_classes(labels) if self.level == "token" else None,
             class_index=get_class_index(labels) if self.level == "entity" else None,
-            level=self.level,
-            plain_scheme=True,
             verbose=True,
         )
         ner_metrics.compute(self.metrics)

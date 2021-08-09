@@ -11,7 +11,38 @@ class Tags:
         self.tag_list = tag_list
 
     ####################################################################################################################
-    # 2. from ner_metrics
+    # 1. MAIN FUNCTIONS
+    ####################################################################################################################
+    def convert_scheme(self, source_scheme: str, target_scheme: str) -> List[str]:
+        """
+        Args:
+            source_scheme: e.g. 'plain', 'bio'
+            target_scheme: e.g. 'bio', 'plain'
+
+        Uses:
+            tag_list:       e.g. ['O',   'ORG',   'ORG'] or ['O', 'B-ORG', 'I-ORG']
+
+        Returns:
+            tag_list_plain: e.g. ['O', 'B-ORG', 'I-ORG'] or ['O',   'ORG',   'ORG']
+        """
+        if source_scheme == "plain":
+            self._assert_plain_tags()
+        elif source_scheme == "bio":
+            self._assert_bio_tags()
+        else:
+            raise Exception(f"ERROR! source scheme = {source_scheme} not implemented.")
+
+        if source_scheme == target_scheme:
+            return list(self.tag_list)
+        elif source_scheme == "plain" and target_scheme == "bio":
+            return self._convert_tags_plain2bio()
+        elif source_scheme == "bio" and target_scheme == "plain":
+            return self._convert_tags_bio2plain()
+        else:
+            raise Exception(f"ERROR! source & target scheme = {source_scheme} & {target_scheme} not implemented.")
+
+    ####################################################################################################################
+    # 2. HELPER FUNCTIONS
     ####################################################################################################################
     def _assert_plain_tags(self) -> None:
         for tag in self.tag_list:
@@ -22,30 +53,10 @@ class Tags:
 
     def _assert_bio_tags(self) -> None:
         for tag in self.tag_list:
-            if tag != "O" and (len(tag) <= 2 or tag[1] != "-"):
+            if tag != "O" and (len(tag) <= 2 or tag[0] not in ["B", "I"] or tag[1] != "-"):
                 raise Exception(
                     "ERROR! assuming tags to have bio format that seem to have plain format instead."
                 )
-
-    def convert2bio(self, convert_to_bio=True) -> List[str]:
-        """
-        - add bio prefixes if tag_list is in plain annotation scheme
-
-        Uses:
-            tag_list:       e.g. ['O',   'ORG',   'ORG']
-
-        Args:
-            convert_to_bio: whether to cast to bio labels
-
-        Returns:
-            bio_tag_list:  e.g. ['O', 'B-ORG', 'I-ORG']
-        """
-        if convert_to_bio:
-            self._assert_plain_tags()
-            return self._convert_tags_plain2bio()
-        else:
-            self._assert_bio_tags()
-            return list(self.tag_list)
 
     def _convert_tags_plain2bio(self) -> List[str]:
         """
@@ -82,26 +93,6 @@ class Tags:
             return f"B-{tag}"
         else:
             return f"I-{tag}"
-
-    def convert2plain(self, convert_to_plain=True) -> List[str]:
-        """
-        - removes bio prefixes if tag_list is in bio annotation scheme
-
-        Uses:
-            tag_list:  e.g. ['O', 'B-ORG', 'I-ORG']
-
-        Args:
-            convert_to_plain: whether to cast to plain labels
-
-        Returns:
-            tag_list_plain:       e.g. ['O',   'ORG',   'ORG']
-        """
-        if convert_to_plain:
-            self._assert_bio_tags()
-            return self._convert_tags_bio2plain()
-        else:
-            self._assert_plain_tags()
-            return list(self.tag_list)
 
     def _convert_tags_bio2plain(self) -> List[str]:
         """

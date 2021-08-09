@@ -40,12 +40,9 @@ class InputExamplesUtils:
             for key in input_examples_converted.keys():
                 for input_example_converted in input_examples_converted[key]:
                     tags = Tags(input_example_converted.tags.split())
-                    if annotation_scheme_source == "plain" and annotation_scheme_target == "bio":
-                        input_example_converted.tags = " ".join(tags.convert2bio())
-                    elif annotation_scheme_source == "bio" and annotation_scheme_target == "plain":
-                        input_example_converted.tags = " ".join(tags.convert2plain())
-                    else:
-                        raise Exception(f"annotation_scheme_source = {annotation_scheme_source} and "
-                                        f"annotation_scheme_target = {annotation_scheme_target} not implemented.")
+                    input_example_converted.tags = " ".join(
+                        tags.convert_scheme(source_scheme=annotation_scheme_source,
+                                            target_scheme=annotation_scheme_target)
+                    )
 
         return input_examples_converted

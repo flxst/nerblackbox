@@ -28,22 +28,24 @@ class NerMetrics:
         self,
         true_flat,
         pred_flat,
+        level,
+        scheme,
         classes=None,
         class_index=None,
-        level="token",
-        plain_scheme=False,
         verbose=False,
     ):
         """
         :param true_flat:   [np array] of shape [batch_size * seq_length]
         :param pred_flat:   [np array] of shape [batch_size * seq_length]
+        :param level:       [str] 'token' or 'entity'
+        :param scheme:      [str] e.g. 'plain', 'bio'
         :param classes:     [optional, list] of [str] labels to take into account for metrics -> if level = 'token'
         :param class_index: [optional, int]            index to take into account for metrics -> if level = 'entity'
-        :param level:       [optional, str] 'token' or 'entity'
         :param verbose:     [optional, bool] if True, show verbose output
         """
-        self.true_flat = true_flat
-        self.pred_flat = pred_flat
+        self.true_flat = true_flat                              # token -> plain. entity -> plain, bio, bilou
+        self.pred_flat = pred_flat                              # token -> plain. entity -> plain, bio, bilou
+        self.scheme = scheme if level == "entity" else "plain"  # token -> plain. entity -> plain, bio, bilou
         self.classes = classes
         self.class_index = class_index
         self.level = level
@@ -59,10 +61,10 @@ class NerMetrics:
         if self.level == "entity":
             self.true_flat_bio: List[str] = Tags(
                 self.true_flat,
-            ).convert2bio(convert_to_bio=plain_scheme)
+            ).convert_scheme(source_scheme=self.scheme, target_scheme="bio")  # entity -> bio (not corrected)
             self.pred_flat_bio: List[str] = Tags(
                 self.pred_flat
-            ).convert2bio(convert_to_bio=plain_scheme)
+            ).convert_scheme(source_scheme=self.scheme, target_scheme="bio")  # entity -> bio (not corrected)
 
     def results_as_dict(self):
         return asdict(self.results)

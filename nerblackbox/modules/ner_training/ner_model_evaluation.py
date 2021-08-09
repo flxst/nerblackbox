@@ -262,8 +262,9 @@ class NerModelEvaluation:
             _metrics    [dict] w/ keys = metric (e.g. 'all_precision_micro') and value = [float]
         """
         _tags_plain = {
-            field: Tags(_tags[field]).convert2plain(
-                convert_to_plain=self.annotation.scheme != "plain"
+            field: Tags(_tags[field]).convert_scheme(
+                source_scheme=self.annotation.scheme,
+                target_scheme="plain",
             )
             for field in ["true", "pred"]
         }
@@ -292,12 +293,10 @@ class NerModelEvaluation:
                 ner_metrics = NerMetrics(
                     _tags["true"] if level == "entity" else _tags_plain["true"],
                     _tags["pred"] if level == "entity" else _tags_plain["pred"],
+                    level=level,
+                    scheme=self.annotation.scheme,
                     classes=classes if level == "token" else None,
                     class_index=class_index if level == "entity" else None,
-                    level=level,
-                    plain_scheme=self.annotation.scheme == "plain"
-                    if level == "entity"
-                    else True,
                 )
                 ner_metrics.compute(metrics_to_compute)
                 results = ner_metrics.results_as_dict()
@@ -407,8 +406,9 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: Tags(epoch_tags[field]).convert2plain(
-                convert_to_plain=self.annotation.scheme != "plain"
+            field: Tags(epoch_tags[field]).convert_scheme(
+                source_scheme=self.annotation.scheme,
+                target_scheme="plain",
             )
             for field in ["true", "pred"]
         }
@@ -428,8 +428,9 @@ class NerModelEvaluation:
         # chunk-based classification report
         epoch_tags_chunk = dict()
         for field in ["true", "pred"]:
-            epoch_tags_chunk[field] = Tags(epoch_tags[field]).convert2bio(
-                convert_to_bio=self.annotation.scheme == "plain"
+            epoch_tags_chunk[field] = Tags(epoch_tags[field]).convert_scheme(
+                source_scheme=self.annotation.scheme,
+                target_scheme="bio",
             )
         self.default_logger.log_debug("> annotation.scheme:", self.annotation.scheme)
         self.default_logger.log_debug(
@@ -470,8 +471,9 @@ class NerModelEvaluation:
         warnings.filterwarnings("ignore")
 
         epoch_tags_plain = {
-            field: Tags(epoch_tags[field]).convert2plain(
-                convert_to_plain=self.annotation.scheme != "plain"
+            field: Tags(epoch_tags[field]).convert_scheme(
+                source_scheme=self.annotation.scheme,
+                target_scheme="plain",
             )
             for field in ["true", "pred"]
         }

@@ -71,7 +71,7 @@ class TokenTags:
                 elif current_tag.startswith("I-"):
                     previous_tag = self.token_tag_list[i - 1]["tag"] if i > 0 else None
 
-                    if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
+                    if previous_tag is None or previous_tag.split("-")[-1] != current_tag.split("-")[-1]:
                         example_word_prediction_restored["tag"] = current_tag.replace(
                             "I-", "B-"
                         )
