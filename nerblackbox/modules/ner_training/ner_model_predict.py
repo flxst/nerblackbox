@@ -244,7 +244,7 @@ class NerModelPredict(NerModel):
                         proba is False
                 ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
 
-                token_tags = TokenTags(input_text_word_predictions)
+                token_tags = TokenTags(input_text_word_predictions, scheme=self.annotation.scheme)
 
                 if autocorrect:
                     token_tags.restore_annotation_scheme_consistency()

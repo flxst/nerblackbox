@@ -6,9 +6,10 @@ from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTag
 class TestTokenTags:
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "example_word_predictions," "example_word_predictions_restored",
+        "annotation_scheme," "example_word_predictions," "example_word_predictions_restored",
         [
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -53,6 +54,7 @@ class TestTokenTags:
                     ],
             ),
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -97,6 +99,7 @@ class TestTokenTags:
                     ],
             ),
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -141,6 +144,7 @@ class TestTokenTags:
                     ],
             ),
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -195,6 +199,7 @@ class TestTokenTags:
                     ],
             ),
             (
+                    "plain",
                     [
                         {
                             "char_start": "0",
@@ -242,10 +247,11 @@ class TestTokenTags:
     )
     def test_restore_annotatione_scheme_consistency(
             self,
+            annotation_scheme: str,
             example_word_predictions: List[Dict[str, Any]],
             example_word_predictions_restored: List[Dict[str, Any]],
     ):
-        token_tags = TokenTags(example_word_predictions)
+        token_tags = TokenTags(example_word_predictions, scheme=annotation_scheme)
         token_tags.restore_annotation_scheme_consistency()
         test_example_word_predictions_restored = token_tags.as_list()
         assert (
@@ -258,9 +264,11 @@ class TestTokenTags:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "example_word_predictions," "example, " "example_word_predictions_merged",
+        "scheme, " "example_word_predictions," "example, " "example_word_predictions_merged",
         [
+            # 1. BIO: 1 single word entity
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -292,7 +300,9 @@ class TestTokenTags:
                         },
                     ],
             ),
+            # 2. BIO: 2 single word entities
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -330,7 +340,9 @@ class TestTokenTags:
                         },
                     ],
             ),
+            # 3. BIO: 2 single word entities + 1 multiple word entity
             (
+                    "bio",
                     [
                         {
                             "char_start": "0",
@@ -379,7 +391,9 @@ class TestTokenTags:
                         },
                     ],
             ),
+            # 4. PLAIN: 1 single word entity
             (
+                    "plain",
                     [
                         {
                             "char_start": "0",
@@ -406,15 +420,45 @@ class TestTokenTags:
                         },
                     ],
             ),
+            # 5. PLAIN: 1 multiple word entity
+            (
+                    "plain",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "8",
+                            "token": "annotera",
+                            "tag": "O",
+                        },
+                        {"char_start": "9", "char_end": "12", "token": "den", "tag": "ORG"},
+                        {"char_start": "13", "char_end": "16", "token": "här", "tag": "ORG"},
+                        {
+                            "char_start": "17",
+                            "char_end": "23",
+                            "token": "texten",
+                            "tag": "O",
+                        },
+                    ],
+                    "annotera den här texten",
+                    [
+                        {
+                            "char_start": "9",
+                            "char_end": "16",
+                            "token": "den här",
+                            "tag": "ORG",
+                        },
+                    ],
+            ),
         ],
     )
     def test_merge_tokens_to_entities(
             self,
+            scheme: str,
             example_word_predictions: List[Dict[str, Any]],
             example: str,
             example_word_predictions_merged: List[Dict[str, Any]],
     ):
-        token_tags = TokenTags(example_word_predictions)
+        token_tags = TokenTags(example_word_predictions, scheme=scheme)
         token_tags.merge_tokens_to_entities(original_text=example, verbose=True)
         test_example_word_predictions_merged = token_tags.as_list()
         assert (
