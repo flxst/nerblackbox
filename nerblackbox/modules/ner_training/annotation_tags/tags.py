@@ -32,8 +32,10 @@ class Tags:
         else:
             raise Exception(f"ERROR! source scheme = {source_scheme} not implemented.")
 
-        if source_scheme == target_scheme:
+        if source_scheme == "plain" and target_scheme == "plain":
             return list(self.tag_list)
+        elif source_scheme == "bio" and target_scheme == "bio":
+            return self._restore_annotation_scheme_consistency(scheme="bio")
         elif source_scheme == "plain" and target_scheme == "bio":
             return self._convert_tags_plain2bio()
         elif source_scheme == "bio" and target_scheme == "plain":
@@ -85,7 +87,7 @@ class Tags:
         Returns:
             bio_tag:  e.g. 'I-ORG'
         """
-        if tag == "O" or tag.startswith("["):
+        if tag == "O":
             return tag
         elif previous is None:
             return f"B-{tag}"
@@ -105,3 +107,37 @@ class Tags:
             tag_list:     e.g. ['O',   'ORG',   'ORG']
         """
         return [elem.split("-")[-1] for elem in self.tag_list]
+
+    def _restore_annotation_scheme_consistency(self, scheme: str):
+        if scheme == "bio":
+            return [
+                self._convert_tag_bio2bio(self.tag_list[i], previous=self.tag_list[i - 1] if i > 0 else None)
+                for i in range(len(self.tag_list))
+            ]
+        else:
+            raise Exception(f"ERROR! restore annotation scheme consistency not implemented for scheme = {scheme}.")
+
+    @staticmethod
+    def _convert_tag_bio2bio(current: str, previous: Optional[str] = None) -> str:
+        """
+        correct bio prefix, depending on previous tag
+
+        Args:
+            current:  e.g. 'I-ORG'
+            previous: e.g. 'O'
+
+        Returns:
+            current_corrected:  e.g. 'B-ORG'
+        """
+        if current == "O" or current.startswith("B-"):
+            return current
+        elif current.startswith("I-"):
+            current_plain = current.split("-")[-1]
+            previous_plain = previous.split("-")[-1]
+            if previous is None or previous_plain != current_plain:
+                return f"B-{current_plain}"
+            else:
+                return current
+        else:
+            raise Exception(f"ERROR! bio tag {current} should be of the format O, B-*, I-*")
+

@@ -14,18 +14,40 @@ class TestTags:
     @pytest.mark.parametrize(
         "source_scheme, " "input_sequence, " "target_scheme, " "output_sequence",
         [
+            # 1. plain -> bio
             (
                     "plain",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
+            # 2. bio -> plain
+            (
+                    "bio",
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    "plain",
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+            ),
+            # 3. bio -> bio
             (
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
+            (
+                    "bio",
+                    ["O", "I-A", "I-A", "O", "O", "O", "I-B", "O"],
+                    "bio",
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+            ),
+            (
+                    "bio",
+                    ["B-B", "I-A", "B-A", "O", "O", "I-A", "I-B", "O"],
+                    "bio",
+                    ["B-B", "B-A", "B-A", "O", "O", "B-A", "B-B", "O"],
+            ),
+            # 4. wrong input scheme
             (
                     "bio",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],

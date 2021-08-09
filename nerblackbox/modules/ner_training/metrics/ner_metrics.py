@@ -14,6 +14,7 @@ import warnings
 from seqeval.metrics import precision_score as precision_seqeval
 from seqeval.metrics import recall_score as recall_seqeval
 from seqeval.metrics import f1_score as f1_seqeval
+from seqeval.scheme import IOB2
 
 from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 
@@ -61,10 +62,10 @@ class NerMetrics:
         if self.level == "entity":
             self.true_flat_bio: List[str] = Tags(
                 self.true_flat,
-            ).convert_scheme(source_scheme=self.scheme, target_scheme="bio")  # entity -> bio (not corrected)
+            ).convert_scheme(source_scheme=self.scheme, target_scheme="bio")  # entity -> bio (corrected if necessary)
             self.pred_flat_bio: List[str] = Tags(
                 self.pred_flat
-            ).convert_scheme(source_scheme=self.scheme, target_scheme="bio")  # entity -> bio (not corrected)
+            ).convert_scheme(source_scheme=self.scheme, target_scheme="bio")  # entity -> bio (corrected if necessary)
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -228,7 +229,7 @@ class NerMetrics:
         if self.class_index is None:  # "fil"
             try:
                 metric = evaluation_function(
-                    [self.true_flat_bio], [self.pred_flat_bio], average="micro"
+                    [self.true_flat_bio], [self.pred_flat_bio], average="micro", mode='strict', scheme=IOB2,
                 )
             except UndefinedMetricWarning as e:
                 if self.verbose:
@@ -239,6 +240,8 @@ class NerMetrics:
                 metric = evaluation_function(
                     [self.true_flat_bio],
                     [self.pred_flat_bio],
+                    mode='strict',
+                    scheme=IOB2,
                     average=None,
                     zero_division="warn",
                 )[self.class_index]
@@ -247,6 +250,8 @@ class NerMetrics:
                     metric = evaluation_function(
                         [self.true_flat_bio],
                         [self.pred_flat_bio],
+                        mode='strict',
+                        scheme=IOB2,
                         average=None,
                         zero_division=0,
                     )[self.class_index]
@@ -257,6 +262,8 @@ class NerMetrics:
                     metric = evaluation_function(
                         [self.true_flat_bio],
                         [self.pred_flat_bio],
+                        mode='strict',
+                        scheme=IOB2,
                         average=None,
                         zero_division=1,
                     )[self.class_index]
@@ -357,6 +364,8 @@ class NerMetrics:
             metric_list = evaluation_function(
                 [self.true_flat_bio],
                 [self.pred_flat_bio],
+                mode='strict',
+                scheme=IOB2,
                 average=None,
                 zero_division=0,
             )
@@ -371,7 +380,7 @@ class NerMetrics:
         else:
             try:
                 metric = evaluation_function(
-                    [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                    [self.true_flat_bio], [self.pred_flat_bio], average="macro", mode='strict', scheme=IOB2,
                 )
             except UndefinedMetricWarning as e:
                 if self.verbose:
@@ -412,12 +421,14 @@ class NerMetrics:
         else:
             if self.class_index is None:  # "fil"
                 f1_micro = evaluation_function(
-                    [self.true_flat_bio], [self.pred_flat_bio], average="micro"
+                    [self.true_flat_bio], [self.pred_flat_bio], average="micro", mode='strict', scheme=IOB2,
                 )
             else:  # "ind"
                 f1_micro = evaluation_function(
                     [self.true_flat_bio],
                     [self.pred_flat_bio],
+                    mode='strict',
+                    scheme=IOB2,
                     average=None,
                     zero_division="warn",
                 )[self.class_index]
@@ -434,6 +445,8 @@ class NerMetrics:
                     metric_list = evaluation_function(
                         [self.true_flat_bio],
                         [self.pred_flat_bio],
+                        mode='strict',
+                        scheme=IOB2,
                         average=None,
                     )
                     metric_list_filtered = [
@@ -442,7 +455,7 @@ class NerMetrics:
                     f1_macro = np.average(metric_list_filtered)
                 else:
                     f1_macro = evaluation_function(
-                        [self.true_flat_bio], [self.pred_flat_bio], average="macro"
+                        [self.true_flat_bio], [self.pred_flat_bio], average="macro", mode='strict', scheme=IOB2,
                     )
             else:  # "ind"
                 f1_macro = self.failure_value
