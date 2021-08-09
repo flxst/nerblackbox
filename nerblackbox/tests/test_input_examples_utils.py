@@ -94,58 +94,62 @@ class TestInputExamplesUtils:
             tag_classes_bio: List[str],
             input_examples_bio: Dict[str, List[InputExample]],
     ) -> None:
-        # b1. convert input_examples to bio
-        test_input_examples_bio = InputExamplesUtils.convert_annotation_scheme(
+        def _test(_test_input_examples: Dict[str, List[InputExample]],
+                  _input_examples: Dict[str, List[InputExample]],
+                  _test_name: str,
+                  ):
+            """
+            test _test_input_examples against ground truth _input_examples
+
+            Args:
+                _test_input_examples: input examples to be tested
+                _input_examples:      input examples to be tested against
+                _test_name:           _test_input_examples as string
+            """
+            for phase in ["train", "val", "test"]:
+                assert (
+                        len(_test_input_examples[phase]) == 1
+                ), f"ERROR! len({_test_name}[{phase}]) = {len(_test_input_examples[phase])} should be 1."
+                assert (
+                       _test_input_examples[phase][0].text == _input_examples[phase][0].text
+                ), f"phase = {phase}: {_test_name}.text = {_test_input_examples[phase][0].text} != {_input_examples[phase][0].text}"
+                assert (
+                        _test_input_examples[phase][0].tags == _input_examples[phase][0].tags
+                ), f"phase = {phase}: {_test_name}.tags = {_test_input_examples[phase][0].tags} != {_input_examples[phase][0].tags}"
+
+        # b1. plain -> bio
+        test_input_examples_plain2bio = InputExamplesUtils.convert_annotation_scheme(
             input_examples=input_examples,
             annotation_scheme_source=Annotation(tag_classes).scheme,
             annotation_scheme_target="bio",
         )
-        for phase in ["train", "val", "test"]:
-            assert (
-                    len(test_input_examples_bio[phase]) == 1
-            ), f"ERROR! len(test_input_examples_bio[{phase}]) = {len(test_input_examples_bio[phase])} should be 1."
-            assert (
-                    test_input_examples_bio[phase][0].text == input_examples_bio[phase][0].text
-            ), f"phase = {phase}: test_input_examples_bio.text = {test_input_examples_bio[phase][0].text} != {input_examples_bio[phase][0].text}"
-            assert (
-                    test_input_examples_bio[phase][0].tags == input_examples_bio[phase][0].tags
-            ), f"phase = {phase}: test_input_examples_bio.tags = {test_input_examples_bio[phase][0].tags} != {input_examples_bio[phase][0].tags}"
+        _test(test_input_examples_plain2bio, input_examples_bio, "test_input_examples_plain2bio")
 
-        # b2. convert input_examples back from bio
-        test_input_examples_2 = InputExamplesUtils.convert_annotation_scheme(
-            input_examples=test_input_examples_bio,
+        # b2. bio -> plain
+        test_input_examples_bio2plain = InputExamplesUtils.convert_annotation_scheme(
+            input_examples=input_examples_bio,
             annotation_scheme_source=Annotation(tag_classes_bio).scheme,
             annotation_scheme_target="plain",
         )
-        for phase in ["train", "val", "test"]:
-            assert (
-                    len(test_input_examples_2[phase]) == 1
-            ), f"ERROR! len(test_input_examples_2[{phase}]) = {len(test_input_examples_2[phase])} should be 1."
-            assert (
-                    test_input_examples_2[phase][0].text == input_examples[phase][0].text
-            ), f"phase = {phase}: test_input_examples_2.text = {test_input_examples_2[phase][0].text} != {input_examples[phase][0].text}"
-            assert (
-                    test_input_examples_2[phase][0].tags == input_examples[phase][0].tags
-            ), f"phase = {phase}: test_input_examples_2.tags = {test_input_examples_2[phase][0].tags} != {input_examples[phase][0].tags}"
+        _test(test_input_examples_bio2plain, input_examples, "test_input_examples_bio2plain")
 
-        # b3. no_conversion
+        # b3. plain -> plain
         test_input_examples_plain = InputExamplesUtils.convert_annotation_scheme(
             input_examples=input_examples,
             annotation_scheme_source=Annotation(tag_classes).scheme,
             annotation_scheme_target="plain",
         )
-        for phase in ["train", "val", "test"]:
-            assert (
-                    len(test_input_examples_plain[phase]) == 1
-            ), f"ERROR! len(test_input_examples_plain[{phase}]) = {len(test_input_examples_plain[phase])} should be 1."
-            assert (
-                    test_input_examples_plain[phase][0].text == input_examples[phase][0].text
-            ), f"phase = {phase}: test_input_examples_plain.text = {test_input_examples_plain[phase][0].text} != {input_examples[phase][0].text}"
-            assert (
-                    test_input_examples_plain[phase][0].tags == input_examples[phase][0].tags
-            ), f"phase = {phase}: test_input_examples_plain.tags = {test_input_examples_plain[phase][0].tags} != {input_examples[phase][0].tags}"
+        _test(test_input_examples_plain, input_examples, "test_input_examples_plain")
 
-        # b4. use unknown parameter
+        # b4. bio -> bio
+        test_input_examples_bio = InputExamplesUtils.convert_annotation_scheme(
+            input_examples=input_examples_bio,
+            annotation_scheme_source=Annotation(tag_classes_bio).scheme,
+            annotation_scheme_target="bio",
+        )
+        _test(test_input_examples_bio, input_examples_bio, "test_input_examples_bio")
+
+        # b5. use unknown parameter
         with pytest.raises(Exception):
             _ = InputExamplesUtils.convert_annotation_scheme(
                 input_examples=input_examples,

@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
 from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
+from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
 
 from transformers import logging
 
@@ -238,18 +239,20 @@ class NerModelPredict(NerModel):
                 Dict[str, Union[str, Dict]]
             ] = restore_unknown_tokens(_input_text_word_predictions, input_text)
 
-            if autocorrect:
-                input_text_word_predictions = restore_annotation_scheme_consistency(
-                    input_text_word_predictions
-                )
-
-            if level == "entity":
+            if autocorrect or level == "entity":
                 assert (
-                    proba is False
-                ), f"ERROR! level = entity not allowed if proba = {proba}"
-                input_text_word_predictions = merge_tokens_to_entities(
-                    input_text_word_predictions, input_text
-                )
+                        proba is False
+                ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
+
+                token_tags = TokenTags(input_text_word_predictions)
+
+                if autocorrect:
+                    token_tags.restore_annotation_scheme_consistency()
+
+                if level == "entity":
+                    token_tags.merge_tokens_to_entities(original_text=input_text, verbose=VERBOSE)
+
+                input_text_word_predictions = token_tags.as_list()
 
             predictions.append(input_text_word_predictions)
 
@@ -480,167 +483,3 @@ def restore_unknown_tokens(
                 )
 
     return example_word_predictions_restored
-
-
-def restore_annotation_scheme_consistency(
-    example_word_predictions: List[Dict[str, Union[str, Dict]]],
-) -> List[Dict[str, Union[str, Dict]]]:
-    """
-    restore annotation scheme consistency in case of BIO tags
-    plain tags are not modified
-
-    Args:
-        example_word_predictions: e.g. [
-            {"char_start": "0", "char_end": "7", "token": "example", "tag": "I-TAG"},
-            ..
-        ]
-
-    Returns:
-        example_word_predictions_restored: e.g. [
-            {"char_start": "0", "char_end": "7", "token": "example", "tag": "B-TAG"},
-            ..
-        ]
-    """
-    example_word_predictions_restored: List[Dict[str, Union[str, Dict]]] = list()
-    for i in range(len(example_word_predictions)):
-        example_word_prediction_restored = example_word_predictions[i]
-        current_tag = example_word_predictions[i]["tag"]
-        current_tag = assert_str(current_tag, "current_tag")
-
-        if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
-            example_word_predictions_restored.append(example_word_prediction_restored)
-        elif current_tag.startswith("I-"):
-            previous_tag = example_word_predictions[i - 1]["tag"] if i > 0 else None
-
-            if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
-                example_word_prediction_restored["tag"] = current_tag.replace(
-                    "I-", "B-"
-                )
-
-            example_word_predictions_restored.append(example_word_prediction_restored)
-        else:
-            raise Exception(
-                f"ERROR! current tag = {current_tag} expected to be of the form I-*"
-            )
-
-    assert len(example_word_predictions_restored) == len(
-        example_word_predictions
-    ), f"ERROR!"
-
-    return example_word_predictions_restored
-
-
-def merge_tokens_to_entities(
-    example_word_predictions: List[Dict[str, Union[str, Dict]]],
-    example: str,
-) -> List[Dict[str, Union[str, Dict]]]:
-    """
-    merge token predictions that belong together (B-* & I-*)
-    discard tokens with tag 'O'
-
-    Args:
-        example_word_predictions: e.g. [
-            {"char_start": "0", "char_end": "7", "token": "example", "tag": "B-TAG"},
-            {"char_start": "8", "char_end": "16", "token": "sentence", "tag": "I-TAG"},
-            {"char_start": "17", "char_end": "18", "token": ".", "tag": "O"},
-            ..
-        ]
-        example: str
-
-    Returns:
-        example_word_predictions_merged: e.g. [
-            {"char_start": "0", "char_end": "16", "token": "example", "tag": "TAG"},
-            ..
-        ]
-    """
-    merged_ner_tags = list()
-    count = {
-        "o_tags": 0,
-        "replace": 0,
-        "merge": 0,
-        "unmodified": 0,
-    }
-    for i in range(len(example_word_predictions)):
-        current_tag = example_word_predictions[i]["tag"]
-        current_tag = assert_str(current_tag, "current_tag")
-        if current_tag == "O":
-            # merged_ner_tag = example_word_predictions[i]
-            count["o_tags"] += 1
-            # merged_ner_tags.append(merged_ner_tag)
-        elif current_tag.startswith("B-"):  # BIO scheme
-            n_tags = 0
-            for n in range(i + 1, len(example_word_predictions)):
-                next_tag = example_word_predictions[n]["tag"]
-                next_tag = assert_str(next_tag, "next_tag")
-                # next_token_start = example_word_predictions[n].token_start
-                # previous_token_end = example_word_predictions[n - 1].token_end
-                if next_tag.startswith("I-") and next_tag == current_tag.replace(
-                    "B-", "I-"
-                ):  # and previous_token_end == next_token_start:
-                    n_tags += 1
-                else:
-                    break
-
-            merged_ner_tag = example_word_predictions[i]
-            assert isinstance(
-                merged_ner_tag["tag"], str
-            ), "ERROR! merged_ner_tag.tag should be a string"
-
-            merged_ner_tag["tag"] = merged_ner_tag["tag"].split("-")[-1]
-            if n_tags > 0:
-                merged_ner_tag["char_end"] = example_word_predictions[i + n_tags][
-                    "char_end"
-                ]
-                # merged_ner_tag.token_end = example_word_predictions[i + n_tags]["token_end"]
-                assert isinstance(
-                    merged_ner_tag["char_start"], str
-                ), "ERROR! merged_ner_tag.char_start should be a string"
-                assert isinstance(
-                    merged_ner_tag["char_end"], str
-                ), "ERROR! merged_ner_tag.char_end should be a string"
-                merged_ner_tag["token"] = example[
-                    int(merged_ner_tag["char_start"]) : int(merged_ner_tag["char_end"])
-                ]
-                count["merge"] += 1 + n_tags
-            else:
-                count["replace"] += 1
-            merged_ner_tags.append(merged_ner_tag)
-        elif "-" not in current_tag:  # plain scheme
-            count["unmodified"] += 1
-            merged_ner_tag = example_word_predictions[i]
-            merged_ner_tags.append(merged_ner_tag)
-
-    assert count["merge"] + count["replace"] + count["o_tags"] + count[
-        "unmodified"
-    ] == len(
-        example_word_predictions
-    ), f"{count} -> {sum(count.values())} != {len(example_word_predictions)} | {example_word_predictions}"
-
-    if count["merge"] > 0 or count["replace"] > 0:
-        assert (
-            count["unmodified"] == 0
-        ), f"{count} -> if merge or replaced are > 0, unmodified should be == 0."
-
-    if count["unmodified"] > 0:
-        assert (
-            count["merge"] == 0
-        ), f"{count} -> if unmodified is > 0, merge should be == 0."
-        assert (
-            count["replace"] == 0
-        ), f"{count} -> if unmodified is > 0, replace should be == 0."
-
-    example_word_predictions_merged = merged_ner_tags
-    if VERBOSE:
-        print(
-            f"> merged {len(example_word_predictions_merged)} BIO-tags "
-            f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}, unmodified: {count['unmodified']}).\n"
-        )
-
-    return example_word_predictions_merged
-
-
-def assert_str(_object: Union[str, Dict[Any, Any]], _object_name: str) -> str:
-    assert isinstance(
-        _object, str
-    ), f"ERROR! {_object_name} = {_object} is {type(_object)} but should be string"
-    return _object

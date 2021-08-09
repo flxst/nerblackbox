@@ -69,11 +69,10 @@ class Annotation:
             return self
         elif new_scheme == "plain":
             classes_bio_without_o = [elem for elem in self.classes if elem != "O"]
-            classes_plain = ["O"] + sorted(
+            classes_plain = ["O"] + list(
                 pd.Series(classes_bio_without_o)
-                    .map(lambda x: x.split("-")[-1])
-                    .drop_duplicates()
-                    .tolist()
+                .map(lambda x: x.split("-")[-1])
+                .drop_duplicates()
             )
 
             annotation_plain = Annotation(classes_plain)
