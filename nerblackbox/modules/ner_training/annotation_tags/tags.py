@@ -132,10 +132,8 @@ class Tags:
         if current == "O" or current.startswith("B-"):
             return current
         elif current.startswith("I-"):
-            current_plain = current.split("-")[-1]
-            previous_plain = previous.split("-")[-1]
-            if previous is None or previous_plain != current_plain:
-                return f"B-{current_plain}"
+            if previous is None or previous.split("-")[-1] != current.split("-")[-1]:
+                return current.replace("I-", "B-")
             else:
                 return current
         else:
