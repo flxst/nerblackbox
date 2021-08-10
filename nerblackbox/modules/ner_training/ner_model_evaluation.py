@@ -294,7 +294,7 @@ class NerModelEvaluation:
                     _tags["true"] if level == "entity" else _tags_plain["true"],
                     _tags["pred"] if level == "entity" else _tags_plain["pred"],
                     level=level,
-                    scheme=self.annotation.scheme,
+                    scheme=self.annotation.scheme if level == "entity" else "plain",
                     classes=classes if level == "token" else None,
                     class_index=class_index if level == "entity" else None,
                 )
@@ -430,7 +430,7 @@ class NerModelEvaluation:
         for field in ["true", "pred"]:
             epoch_tags_chunk[field] = Tags(epoch_tags[field]).convert_scheme(
                 source_scheme=self.annotation.scheme,
-                target_scheme="bio",
+                target_scheme=self.annotation.scheme if self.annotation.scheme in ["bio", "bilou"] else "bio"
             )
         self.default_logger.log_debug("> annotation.scheme:", self.annotation.scheme)
         self.default_logger.log_debug(

@@ -19,11 +19,23 @@ class TestAnnotation:
             ),
             (
                     ["O", "B-PER", "B-ORG", "B-MISC"],
-                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     ],
+            ),
+            (
+                    ["O", "B-PER", "B-ORG", "B-MISC", "L-MISC"],
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
             ),
         ],
     )
-    def test_ensure_completeness_in_case_of_bio_tags(
+    def test_ensure_completeness_in_case_of_bio_or_bilou_tags(
             self,
             classes: List[str],
             processed_classes: List[str],
@@ -73,6 +85,10 @@ class TestAnnotation:
                     ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
                     "bio",
             ),
+            (
+                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER", "L-MISC"],
+                    "bilou",
+            ),
         ],
     )
     def test_determine_annotation_scheme(
@@ -102,6 +118,16 @@ class TestAnnotation:
                     "bio",
                     ["O", "MISC", "ORG", "PER"],
                     ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+            ),
+            (
+                    "bilou",
+                    ["O", "MISC", "ORG", "PER"],
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
             ),
             (
                     "bio",
@@ -135,7 +161,7 @@ class TestAnnotation:
 
 if __name__ == "__main__":
     test_annotation = TestAnnotation()
-    test_annotation.test_ensure_completeness_in_case_of_bio_tags()
+    test_annotation.test_ensure_completeness_in_case_of_bio_or_bilou_tags()
     test_annotation.test_sort()
     test_annotation.test_determine_annotation_scheme()
     test_annotation.test_change_scheme()

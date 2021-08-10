@@ -21,14 +21,28 @@ class TestTags:
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
-            # 2. bio -> plain
+            # 2. plain -> bilou
+            (
+                    "plain",
+                    ["O", "A", "A", "A", "O", "O", "O", "B", "O"],
+                    "bilou",
+                    ["O", "B-A", "I-A", "L-A", "O", "O", "O", "U-B", "O"],
+            ),
+            # 3. bio -> plain
             (
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
                     "plain",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
             ),
-            # 3. bio -> bio
+            # 4. bilou -> plain
+            (
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+                    "plain",
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+            ),
+            # 5. bio -> bio
             (
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
@@ -47,7 +61,45 @@ class TestTags:
                     "bio",
                     ["B-B", "B-A", "B-A", "O", "O", "B-A", "B-B", "O"],
             ),
-            # 4. wrong input scheme
+            # 6. bilou -> bilou
+            (
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+            ),
+            (
+                    "bilou",
+                    ["O", "I-A", "I-A", "O", "O", "O", "I-B", "O"],
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+            ),
+            (
+                    "bilou",
+                    ["B-B", "I-A", "B-A", "O", "O", "I-A", "I-B", "O"],
+                    "bilou",
+                    ["U-B", "U-A", "U-A", "O", "O", "U-A", "U-B", "O"],
+            ),
+            (
+                    "bilou",
+                    ["B-A", "I-A", "I-A", "O", "O", "I-A", "I-B", "O"],
+                    "bilou",
+                    ["B-A", "I-A", "L-A", "O", "O", "U-A", "U-B", "O"],
+            ),
+            # 7. unknown input scheme
+            (
+                    "xyz",
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    "bio",
+                    None,
+            ),
+            # 8. wrong input scheme
+            (
+                    "plain",
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    "bio",
+                    None,
+            ),
             (
                     "bio",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
@@ -55,8 +107,15 @@ class TestTags:
                     None,
             ),
             (
-                    "plain",
-                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    "bilou",
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+                    "bio",
+                    None,
+            ),
+            # 9. incorrect tag format
+            (
+                    "bio",
+                    ["O", "B-A", "L-A", "O", "O", "O", "B-B", "O"],
                     "bio",
                     None,
             ),

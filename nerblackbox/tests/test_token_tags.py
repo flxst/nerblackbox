@@ -8,196 +8,7 @@ class TestTokenTags:
     @pytest.mark.parametrize(
         "annotation_scheme," "example_word_predictions," "example_word_predictions_restored",
         [
-            (
-                    "bio",
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "I-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "O",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "O",
-                        },
-                    ],
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "O",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "O",
-                        },
-                    ],
-            ),
-            (
-                    "bio",
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "I-PER",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "O",
-                        },
-                    ],
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "B-PER",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "O",
-                        },
-                    ],
-            ),
-            (
-                    "bio",
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "I-PER",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "I-PER",
-                        },
-                    ],
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "B-PER",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "B-PER",
-                        },
-                    ],
-            ),
-            (
-                    "bio",
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "I-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "I-PER",
-                        },
-                        {
-                            "char_start": "25",
-                            "char_end": "26",
-                            "token": "i",
-                            "tag": "I-PER",
-                        },
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "B-PER",
-                        },
-                    ],
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "B-PER",
-                        },
-                        {
-                            "char_start": "25",
-                            "char_end": "26",
-                            "token": "i",
-                            "tag": "I-PER",
-                        },
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "B-PER",
-                        },
-                    ],
-            ),
+            # 1. plain: 2 single-token tags
             (
                     "plain",
                     [
@@ -240,6 +51,256 @@ class TestTokenTags:
                             "char_end": "36",
                             "token": "stockholm",
                             "tag": "PER",
+                        },
+                    ],
+            ),
+            # 2. bio: 1 single-token tag
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "I-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "O",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "O",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "O",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "O",
+                        },
+                    ],
+            ),
+            # 3. bio: 2 single-token tags
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "I-PER",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "O",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "B-PER",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "O",
+                        },
+                    ],
+            ),
+            # 4. bio: 3 single-token tags
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "I-PER",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "I-PER",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "B-PER",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "B-PER",
+                        },
+                    ],
+            ),
+            # 5. bio: 2 single-token tags, 1 multiple-token tags
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "I-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "26",
+                            "token": "i",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "B-PER",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "B-PER",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "26",
+                            "token": "i",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "B-PER",
+                        },
+                    ],
+            ),
+            # 6. bilou: 2 single-token tags, 1 multiple-token tags
+            (
+                    "bilou",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "I-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "26",
+                            "token": "i",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "B-PER",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "U-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "B-PER",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "26",
+                            "token": "i",
+                            "tag": "L-PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "U-PER",
                         },
                     ],
             ),
@@ -446,6 +507,57 @@ class TestTokenTags:
                             "char_end": "16",
                             "token": "den här",
                             "tag": "ORG",
+                        },
+                    ],
+            ),
+            # 6. BILOU: 2 single word entities + 1 multiple word entity
+            (
+                    "bilou",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "U-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "B-PER",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "26",
+                            "token": "i",
+                            "tag": "L-PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "U-PER",
+                        },
+                    ],
+                    "arbetsförmedlingen finns i stockholm",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "26",
+                            "token": "finns i",
+                            "tag": "PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "PER",
                         },
                     ],
             ),

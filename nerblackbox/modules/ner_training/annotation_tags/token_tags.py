@@ -1,5 +1,6 @@
 
 from typing import List, Dict, Union, Any
+from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 
 
 class TokenTags:
@@ -27,14 +28,14 @@ class TokenTags:
         """
         tags = [elem["tag"] for elem in self.token_tag_list if elem["tag"] != "O"]
         if all(["-" not in elem for elem in tags]):
-            scheme_found = "plain"
+            possible_schemes = ["plain"]
         elif all(["-" in elem for elem in tags]):
-            scheme_found = "bio"
+            possible_schemes = ["bio", "bilou"]
         else:
             raise Exception("ERROR! inconsistent tags found. they do not seem to belong to a well-defined scheme.")
 
-        assert scheme_found == self.scheme, \
-            f"ERROR! scheme_found = {scheme_found} is inconsistent with self.scheme = {self.scheme}!"
+        assert self.scheme in possible_schemes, \
+            f"ERROR! scheme = {self.scheme} is inconsistent with possible_schemes = {possible_schemes}!"
 
     def as_list(self):
         return self.token_tag_list
@@ -46,6 +47,7 @@ class TokenTags:
         """
         plain tags: not modified
         bio   tags: restore annotation scheme consistency
+        bilou tags: restore annotation scheme consistency
 
         Changed Attr:
             token_tag_list: List[Dict[str, str]], e.g.
@@ -59,34 +61,37 @@ class TokenTags:
                 ..
             ]
         """
-        if self.scheme == "bio":
+        if self.scheme == "plain":
+            pass
+        elif self.scheme in ["bio", "bilou"]:
             token_tag_list_restored: List[Dict[str, str]] = list()
             for i in range(len(self.token_tag_list)):
                 example_word_prediction_restored = self.token_tag_list[i]
                 current_tag = self.token_tag_list[i]["tag"]
                 current_tag = self._assert_str(current_tag, "current_tag")
+                previous_tag = self.token_tag_list[i - 1]["tag"] if i > 0 else None
 
-                if current_tag == "O" or current_tag.startswith("B-"):
-                    token_tag_list_restored.append(example_word_prediction_restored)
-                elif current_tag.startswith("I-"):
-                    previous_tag = self.token_tag_list[i - 1]["tag"] if i > 0 else None
-
-                    if previous_tag is None or previous_tag.split("-")[-1] != current_tag.split("-")[-1]:
-                        example_word_prediction_restored["tag"] = current_tag.replace(
-                            "I-", "B-"
-                        )
-
-                    token_tag_list_restored.append(example_word_prediction_restored)
+                if self.scheme == "bio":
+                    example_word_prediction_restored["tag"] = \
+                        Tags.convert_tag_bio2bio(current_tag,
+                                                 previous=previous_tag)
                 else:
-                    raise Exception(
-                        f"ERROR! current tag = {current_tag} expected to be of the form I-*"
-                    )
+                    subsequent_tag = self.token_tag_list[i + 1]["tag"] if i < len(self.token_tag_list) - 1 else None
+                    example_word_prediction_restored["tag"] = \
+                        Tags.convert_tag_bilou2bilou(current_tag,
+                                                     previous=previous_tag,
+                                                     subsequent=subsequent_tag)
+
+                token_tag_list_restored.append(example_word_prediction_restored)
 
             assert len(token_tag_list_restored) == len(
                 self.token_tag_list
             ), f"ERROR!"
 
             self.token_tag_list = token_tag_list_restored
+        else:
+            raise Exception(f"ERROR! restore annotation scheme consistency "
+                            f"not implemented for scheme = {self.scheme}.")
 
     def merge_tokens_to_entities(self,
                                  original_text: str,
@@ -96,6 +101,9 @@ class TokenTags:
             - discard tokens with tag 'O'
         bio   tags:
             - merge token predictions that belong together (B-* & I-*)
+            - discard tokens with tag 'O'
+        bilou tags:
+            - merge token predictions that belong together (B-* & I-* & L-*; U-*)
             - discard tokens with tag 'O'
 
         Args:
@@ -137,9 +145,9 @@ class TokenTags:
                 if self.scheme == "plain":
                     if i > plain_threshold:
                         for n in range(i + 1, len(self.token_tag_list)):
-                            next_tag = self.token_tag_list[n]["tag"]
-                            next_tag = self._assert_str(next_tag, "next_tag")
-                            if next_tag == current_tag:
+                            subsequent_tag = self.token_tag_list[n]["tag"]
+                            subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
+                            if subsequent_tag == current_tag:
                                 n_tags += 1
                             else:
                                 plain_threshold = n
@@ -147,15 +155,27 @@ class TokenTags:
                         merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
                 elif self.scheme == "bio":
                     if current_tag.startswith("B-"):  # BIO scheme
+                        plain = current_tag.split("-")[-1]
                         for n in range(i + 1, len(self.token_tag_list)):
-                            next_tag = self.token_tag_list[n]["tag"]
-                            next_tag = self._assert_str(next_tag, "next_tag")
-                            if next_tag.startswith("I-") and next_tag == current_tag.replace(
-                                    "B-", "I-"
-                            ):
+                            subsequent_tag = self.token_tag_list[n]["tag"]
+                            subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
+                            if len(subsequent_tag) > 2 and subsequent_tag[:2] in ["I-"] and subsequent_tag[2:] == plain:
                                 n_tags += 1
                             else:
                                 break
+                        merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
+                elif self.scheme == "bilou":
+                    if current_tag.startswith("B-"):  # BILOU scheme
+                        plain = current_tag.split("-")[-1]
+                        for n in range(i + 1, len(self.token_tag_list)):
+                            subsequent_tag = self.token_tag_list[n]["tag"]
+                            subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
+                            if len(subsequent_tag) > 2 and subsequent_tag[:2] in ["I-", "L-"] and subsequent_tag[2:] == plain:
+                                n_tags += 1
+                            else:
+                                break
+                        merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
+                    elif current_tag.startswith("U-"):
                         merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
 
                 if merged_ner_tag is not None:

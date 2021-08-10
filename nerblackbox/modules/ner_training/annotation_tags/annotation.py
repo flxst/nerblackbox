@@ -28,6 +28,8 @@ class Annotation:
         self._get_scheme()  # attr: scheme
         if self.scheme == "bio":
             self._ensure_completeness_in_case_of_bio_tags()  # attr: classes
+        elif self.scheme == "bilou":
+            self._ensure_completeness_in_case_of_bilou_tags()  # attr: classes
         self._sort_classes()  # attr: classes
 
     def _get_scheme(self) -> None:
@@ -38,7 +40,10 @@ class Annotation:
             scheme: [str], e.g. "plain" or "bio"
         """
         if any(["-" in tag for tag in self.classes]):
-            self.scheme = "bio"
+            if any(["L-" in tag for tag in self.classes]) or any(["U-" in tag for tag in self.classes]):
+                self.scheme = "bilou"
+            else:
+                self.scheme = "bio"
         else:
             self.scheme = "plain"
 
@@ -54,6 +59,20 @@ class Annotation:
             i_tag = b_tag.replace("B-", "I-")
             if i_tag not in self.classes:
                 self.classes.append(i_tag)
+
+    def _ensure_completeness_in_case_of_bilou_tags(self) -> None:
+        """
+        in case of BILOU-tags: make sure that there is an "I-*", "L-*", "U-" tag for every "B-*" tag
+
+        changed attributes:
+            classes: tag classes present in dataset, e.g. ["PER", "ORG"] or ["B-person", "B-time", "I-person"]
+        """
+        b_tags = [tag for tag in self.classes if tag.startswith("B")]
+        for b_tag in b_tags:
+            for x in ["I-", "L-", "U-"]:
+                x_tag = b_tag.replace("B-", x)
+                if x_tag not in self.classes:
+                    self.classes.append(x_tag)
 
     def _sort_classes(self) -> None:
         """
@@ -77,11 +96,14 @@ class Annotation:
 
             annotation_plain = Annotation(classes_plain)
             return annotation_plain
-        elif new_scheme == "bio":
+        elif new_scheme in ["bio", "bilou"]:
             classes_plain_without_o = [elem for elem in self.classes if elem != "O"]
             classes_bio = ["O"]
             for elem in classes_plain_without_o:
-                classes_bio += [f"B-{elem}", f"I-{elem}"]
+                if new_scheme == "bio":
+                    classes_bio += [f"B-{elem}", f"I-{elem}"]
+                else:  # bilou
+                    classes_bio += [f"B-{elem}", f"I-{elem}", f"L-{elem}", f"U-{elem}"]
 
             annotation_bio = Annotation(classes_bio)
             return annotation_bio
