@@ -14,31 +14,31 @@ class TestTags:
     @pytest.mark.parametrize(
         "source_scheme, " "input_sequence, " "target_scheme, " "output_sequence",
         [
-            # 1. plain -> bio
+            # 1. plain -> plain
+            (
+                    "plain",
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+                    "plain",
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+            ),
+            # 2. plain -> bio
             (
                     "plain",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
             ),
-            # 2. plain -> bilou
+            # 3. plain -> bilou
             (
                     "plain",
                     ["O", "A", "A", "A", "O", "O", "O", "B", "O"],
                     "bilou",
                     ["O", "B-A", "I-A", "L-A", "O", "O", "O", "U-B", "O"],
             ),
-            # 3. bio -> plain
+            # 4. bio -> plain
             (
                     "bio",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
-                    "plain",
-                    ["O", "A", "A", "O", "O", "O", "B", "O"],
-            ),
-            # 4. bilou -> plain
-            (
-                    "bilou",
-                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
                     "plain",
                     ["O", "A", "A", "O", "O", "O", "B", "O"],
             ),
@@ -61,7 +61,28 @@ class TestTags:
                     "bio",
                     ["B-B", "B-A", "B-A", "O", "O", "B-A", "B-B", "O"],
             ),
-            # 6. bilou -> bilou
+            # 6. bio -> bilou
+            (
+                    "bio",
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+            ),
+            # 7. bilou -> plain
+            (
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+                    "plain",
+                    ["O", "A", "A", "O", "O", "O", "B", "O"],
+            ),
+            # 8. bilou -> bio
+            (
+                    "bilou",
+                    ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
+                    "bio",
+                    ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
+            ),
+            # 9. bilou -> bilou
             (
                     "bilou",
                     ["O", "B-A", "L-A", "O", "O", "O", "U-B", "O"],
@@ -86,14 +107,14 @@ class TestTags:
                     "bilou",
                     ["B-A", "I-A", "L-A", "O", "O", "U-A", "U-B", "O"],
             ),
-            # 7. unknown input scheme
+            # 10. unknown input scheme
             (
                     "xyz",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
                     "bio",
                     None,
             ),
-            # 8. wrong input scheme
+            # 11. wrong input scheme
             (
                     "plain",
                     ["O", "B-A", "I-A", "O", "O", "O", "B-B", "O"],
@@ -112,7 +133,7 @@ class TestTags:
                     "bio",
                     None,
             ),
-            # 9. incorrect tag format
+            # 12. incorrect tag format
             (
                     "bio",
                     ["O", "B-A", "L-A", "O", "O", "O", "B-B", "O"],

@@ -42,8 +42,12 @@ class Tags:
             return self._convert_tags_plain2bilou()
         elif source_scheme in ["bio", "bilou"] and target_scheme == "plain":
             return self._convert_tags_bio2plain()
-        elif source_scheme == target_scheme and source_scheme in ["bio", "bilou"]:  # bio, bilou
-            return self._restore_annotation_scheme_consistency(scheme=source_scheme)
+        elif source_scheme == "bio" and target_scheme == "bilou":
+            return self._restore_annotation_scheme_consistency(scheme=target_scheme)
+        elif source_scheme == "bilou" and target_scheme == "bio":
+            return self._convert_tags_bilou2bio()
+        elif source_scheme == target_scheme and target_scheme in ["bio", "bilou"]:
+            return self._restore_annotation_scheme_consistency(scheme=target_scheme)
         else:
             raise Exception(f"ERROR! source & target scheme = {source_scheme} & {target_scheme} not implemented.")
 
@@ -162,6 +166,36 @@ class Tags:
             tag_list:     e.g. ['O',   'ORG',   'ORG']
         """
         return [elem.split("-")[-1] for elem in self.tag_list]
+
+    def _convert_tags_bilou2bio(self) -> List[str]:
+        """
+        convert bilou to bio tags
+
+        Uses:
+            bilou_tag_list: e.g. ['O', 'B-ORG', 'L-ORG']
+
+        Returns:
+            bio_tag_list:   e.g. ['O', 'B-ORG', 'I-ORG']
+        """
+        return [self._convert_tag_bilou2bio(elem) for elem in self.tag_list]
+
+    @staticmethod
+    def _convert_tag_bilou2bio(tag: str):
+        """
+        Args:
+            tag:      e.g. 'L-ORG'
+
+        Returns:
+            bio_tag:  e.g. 'I-ORG'
+        """
+        if tag == "O" or tag.startswith("B-") or tag.startswith("I-"):
+            return tag
+        else:
+            plain = tag.split("-")[-1]
+            if tag.startswith("U-"):
+                return f"B-{plain}"
+            elif tag.startswith("L-"):
+                return f"I-{plain}"
 
     def _restore_annotation_scheme_consistency(self, scheme: str):
         if scheme == "bio":
