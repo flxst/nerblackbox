@@ -104,21 +104,19 @@ class TestAnnotation:
     @pytest.mark.parametrize(
         "new_scheme, " "old_classes, " "new_classes",
         [
-            (
-                    "plain",
-                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
-                    ["O", "MISC", "ORG", "PER"],
-            ),
+            # 1. plain -> plain
             (
                     "plain",
                     ["O", "MISC", "ORG", "PER"],
                     ["O", "MISC", "ORG", "PER"],
             ),
+            # 2. plain -> bio
             (
                     "bio",
                     ["O", "MISC", "ORG", "PER"],
                     ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
             ),
+            # 3. plain -> bilou
             (
                     "bilou",
                     ["O", "MISC", "ORG", "PER"],
@@ -129,11 +127,68 @@ class TestAnnotation:
                      "U-MISC", "U-ORG", "U-PER",
                      ],
             ),
+            # 4. bio -> plain
+            (
+                    "plain",
+                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+                    ["O", "MISC", "ORG", "PER"],
+            ),
+            # 5. bio -> bio
             (
                     "bio",
                     ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
                     ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
             ),
+            # 6. bio -> bilou
+            (
+                    "bilou",
+                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
+            ),
+            # 7. bilou -> plain
+            (
+                    "plain",
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
+                    ["O", "MISC", "ORG", "PER"],
+            ),
+            # 8. bilou -> bio
+            (
+                    "bio",
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
+                    ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],
+            ),
+            # 9. bilou -> bilou
+            (
+                    "bilou",
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
+                    ["O",
+                     "B-MISC", "B-ORG", "B-PER",
+                     "I-MISC", "I-ORG", "I-PER",
+                     "L-MISC", "L-ORG", "L-PER",
+                     "U-MISC", "U-ORG", "U-PER",
+                     ],
+            ),
+            # 10. unknown
             (
                     "xyz",
                     ["O", "B-MISC", "B-ORG", "B-PER", "I-MISC", "I-ORG", "I-PER"],

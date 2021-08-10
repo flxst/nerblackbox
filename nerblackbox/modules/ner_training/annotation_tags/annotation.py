@@ -97,15 +97,15 @@ class Annotation:
             annotation_plain = Annotation(classes_plain)
             return annotation_plain
         elif new_scheme in ["bio", "bilou"]:
-            classes_plain_without_o = [elem for elem in self.classes if elem != "O"]
-            classes_bio = ["O"]
+            classes_plain_without_o = list(set([elem.split("-")[-1] for elem in self.classes if elem != "O"]))
+            classes_bio_bilou = ["O"]
             for elem in classes_plain_without_o:
                 if new_scheme == "bio":
-                    classes_bio += [f"B-{elem}", f"I-{elem}"]
+                    classes_bio_bilou += [f"B-{elem}", f"I-{elem}"]
                 else:  # bilou
-                    classes_bio += [f"B-{elem}", f"I-{elem}", f"L-{elem}", f"U-{elem}"]
+                    classes_bio_bilou += [f"B-{elem}", f"I-{elem}", f"L-{elem}", f"U-{elem}"]
 
-            annotation_bio = Annotation(classes_bio)
-            return annotation_bio
+            annotation_bio_bilou = Annotation(classes_bio_bilou)
+            return annotation_bio_bilou
         else:
             raise Exception(f"ERROR! new_scheme = {new_scheme} is not implemented.")
