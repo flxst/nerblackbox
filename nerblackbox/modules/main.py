@@ -554,7 +554,20 @@ class NerBlackBoxMain:
                 for field in fields:
                     _runs.rename(
                         columns={
-                            ("metrics", field): ("metrics", field.replace("EPOCH_BEST_", "").replace("_FIL_F1_MICRO", ""))
+                            ("metrics", field): ("metrics",
+                                                 field
+                                                 .replace("EPOCH_BEST_", "")
+                                                 .replace("_FIL_F1_MICRO", "_F1")
+                                                 .replace("d_", "D_")
+                                                 .replace("entity_", "TEST_ENT_")
+                                                 .replace("ENTITY", "ENT")
+                                                 .replace("TOKEN", "TOK")
+                                                 .replace("_fil_precision_micro", "_PRE")
+                                                 .replace("_fil_recall_micro", "_REC")
+                                                 ),
+                            ("params", "max_seq_length"): ("params", "max_seq"),
+                            ("params", "lr_schedule"): ("params", "lr_sch"),
+                            ("params", "batch_size"): ("params", "batch_s"),
                         },
                         inplace=True,
                     )
@@ -573,10 +586,16 @@ class NerBlackBoxMain:
                 ("metrics", "epoch_best".upper())
             ]
             best_single_run_epoch_best_val_entity_fil_f1_micro = _df_best_single_run[
-                ("metrics", "val_entity".upper())
+                ("metrics", "val_ent_f1".upper())
             ]
             best_single_run_epoch_best_test_entity_fil_f1_micro = _df_best_single_run[
-                ("metrics", "test_entity".upper())
+                ("metrics", "test_ent_f1".upper())
+            ]
+            best_single_run_epoch_best_test_entity_fil_precision_micro = _df_best_single_run[
+                ("metrics", "test_ent_pre".upper())
+            ]
+            best_single_run_epoch_best_test_entity_fil_recall_micro = _df_best_single_run[
+                ("metrics", "test_ent_rec".upper())
             ]
 
             checkpoint = join(
@@ -587,12 +606,14 @@ class NerBlackBoxMain:
             )
 
             _best_single_run = {
-                "experiment_id": experiment_id,
-                "experiment_name": experiment_name,
+                "exp_id": experiment_id,
+                "exp_name": experiment_name,
                 "run_id": best_single_run_id,
                 "run_name_nr": best_single_run_name_nr,
-                "val_entity".upper(): best_single_run_epoch_best_val_entity_fil_f1_micro,
-                "test_entity".upper(): best_single_run_epoch_best_test_entity_fil_f1_micro,
+                "val_ent_f1".upper(): best_single_run_epoch_best_val_entity_fil_f1_micro,
+                "test_ent_f1".upper(): best_single_run_epoch_best_test_entity_fil_f1_micro,
+                "test_ent_pre".upper(): best_single_run_epoch_best_test_entity_fil_precision_micro,
+                "test_ent_rec".upper(): best_single_run_epoch_best_test_entity_fil_recall_micro,
                 "checkpoint": checkpoint if isfile(checkpoint) else None,
             }
         else:
@@ -605,52 +626,74 @@ class NerBlackBoxMain:
 
             # entity
             best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "val_entity".upper())
+                ("metrics", "val_ent_f1".upper())
             ]
             d_best_average_run_epoch_best_val_entity_fil_f1_micro = (
                 _df_best_average_run[
-                    ("metrics", "d_val_entity".upper())
+                    ("metrics", "d_val_ent_f1".upper())
                 ]
             )
             best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "test_entity".upper())
+                ("metrics", "test_ent_f1".upper())
             ]
             d_best_average_run_epoch_best_test_entity_fil_f1_micro = (
                 _df_best_average_run[
-                    ("metrics", "d_test_entity".upper())
+                    ("metrics", "d_test_ent_f1".upper())
                 ]
             )
 
             # token
             best_average_run_epoch_best_val_token_fil_f1_micro = _df_best_average_run[
-                ("metrics", "val_token".upper())
+                ("metrics", "val_tok_f1".upper())
             ]
             d_best_average_run_epoch_best_val_token_fil_f1_micro = (
                 _df_best_average_run[
-                    ("metrics", "d_val_token".upper())
+                    ("metrics", "d_val_tok_f1".upper())
                 ]
             )
             best_average_run_epoch_best_test_token_fil_f1_micro = _df_best_average_run[
-                ("metrics", "test_token".upper())
+                ("metrics", "test_tok_f1".upper())
             ]
             d_best_average_run_epoch_best_test_token_fil_f1_micro = (
                 _df_best_average_run[
-                    ("metrics", "d_test_token".upper())
+                    ("metrics", "d_test_tok_f1".upper())
+                ]
+            )
+
+            # precision/recall
+            best_average_run_epoch_best_test_entity_fil_precision_micro = _df_best_average_run[
+                ("metrics", "test_ent_pre".upper())
+            ]
+            d_best_average_run_epoch_best_test_entity_fil_precision_micro = (
+                _df_best_average_run[
+                    ("metrics", "d_test_ent_pre".upper())
+                ]
+            )
+            best_average_run_epoch_best_test_entity_fil_recall_micro = _df_best_average_run[
+                ("metrics", "test_ent_rec".upper())
+            ]
+            d_best_average_run_epoch_best_test_entity_fil_recall_micro = (
+                _df_best_average_run[
+                    ("metrics", "d_test_ent_rec".upper())
                 ]
             )
 
             _best_average_run = {
-                "experiment_id": experiment_id,
-                "experiment_name": experiment_name,
+                "exp_id": experiment_id,
+                "exp_name": experiment_name,
                 "run_name": best_average_run_name,
-                "val_entity".upper(): best_average_run_epoch_best_val_entity_fil_f1_micro,
-                "d_val_entity".upper(): d_best_average_run_epoch_best_val_entity_fil_f1_micro,
-                "test_entity".upper(): best_average_run_epoch_best_test_entity_fil_f1_micro,
-                "d_test_entity".upper(): d_best_average_run_epoch_best_test_entity_fil_f1_micro,
-                "val_token".upper(): best_average_run_epoch_best_val_token_fil_f1_micro,
-                "d_val_token".upper(): d_best_average_run_epoch_best_val_token_fil_f1_micro,
-                "test_token".upper(): best_average_run_epoch_best_test_token_fil_f1_micro,
-                "d_test_token".upper(): d_best_average_run_epoch_best_test_token_fil_f1_micro,
+                "val_tok_f1".upper(): best_average_run_epoch_best_val_token_fil_f1_micro,
+                "d_val_tok_f1".upper(): d_best_average_run_epoch_best_val_token_fil_f1_micro,
+                "test_tok_f1".upper(): best_average_run_epoch_best_test_token_fil_f1_micro,
+                "d_test_tok_f1".upper(): d_best_average_run_epoch_best_test_token_fil_f1_micro,
+                "val_ent_f1".upper(): best_average_run_epoch_best_val_entity_fil_f1_micro,
+                "d_val_ent_f1".upper(): d_best_average_run_epoch_best_val_entity_fil_f1_micro,
+                "test_ent_f1".upper(): best_average_run_epoch_best_test_entity_fil_f1_micro,
+                "d_test_ent_f1".upper(): d_best_average_run_epoch_best_test_entity_fil_f1_micro,
+                "test_ent_pre".upper(): best_average_run_epoch_best_test_entity_fil_precision_micro,
+                "d_test_ent_pre".upper(): d_best_average_run_epoch_best_test_entity_fil_precision_micro,
+                "test_ent_rec".upper(): best_average_run_epoch_best_test_entity_fil_recall_micro,
+                "d_test_ent_rec".upper(): d_best_average_run_epoch_best_test_entity_fil_recall_micro,
             }
         else:
             _best_average_run = dict()
@@ -703,6 +746,8 @@ class NerBlackBoxMain:
             "epoch_best_test_entity_fil_f1_micro".upper(),
             "epoch_best_val_token_fil_f1_micro".upper(),
             "epoch_best_test_token_fil_f1_micro".upper(),
+            "entity_fil_precision_micro",
+            "entity_fil_recall_micro",
         ]
 
         ###########################################
@@ -783,6 +828,10 @@ class NerBlackBoxMain:
                         ("metrics", "d_epoch_best_val_token_fil_f1_micro".upper()),
                         ("metrics", "epoch_best_test_token_fil_f1_micro".upper()),
                         ("metrics", "d_epoch_best_test_token_fil_f1_micro".upper()),
+                        ("metrics", "entity_fil_precision_micro"),
+                        ("metrics", "d_entity_fil_precision_micro"),
+                        ("metrics", "entity_fil_recall_micro"),
+                        ("metrics", "d_entity_fil_recall_micro"),
                 ]
                 }
             )
@@ -801,10 +850,15 @@ class NerBlackBoxMain:
                 for run_name in runs_name
             }
 
-            def get_mean_and_dmean(_parameters_runs, phase, level):
+            def get_mean_and_dmean(_parameters_runs, phase, _level, _metric):
+                if _metric == "f1":
+                    metrics_string = f"epoch_best_{phase}_{_level}_fil_{_metric}_micro".upper()
+                else:
+                    metrics_string = f"{_level}_fil_{_metric}_micro"
+
                 values = [
                     _parameters_runs[
-                        ("metrics", f"epoch_best_{phase}_{level}_fil_f1_micro".upper())
+                        ("metrics", metrics_string)
                     ][idx]
                     for idx in indices[run_name]
                 ]
@@ -827,14 +881,23 @@ class NerBlackBoxMain:
 
                 # add ('metrics', *)
                 for level in ["entity", "token"]:
-                    val_mean, val_dmean = get_mean_and_dmean(_parameters_runs, "val", level)
-                    test_mean, test_dmean = get_mean_and_dmean(_parameters_runs, "test", level)
+                    val_mean, val_dmean = get_mean_and_dmean(_parameters_runs, "val", level, "f1")
+                    test_mean, test_dmean = get_mean_and_dmean(_parameters_runs, "test", level, "f1")
                     metrics = {
                         f"epoch_best_val_{level}_fil_f1_micro".upper(): val_mean,
                         f"d_epoch_best_val_{level}_fil_f1_micro".upper(): val_dmean,
                         f"epoch_best_test_{level}_fil_f1_micro".upper(): test_mean,
                         f"d_epoch_best_test_{level}_fil_f1_micro".upper(): test_dmean,
                     }
+                    if level == "entity":
+                        test_precision_mean, test_precision_dmean = get_mean_and_dmean(_parameters_runs, "test", level,
+                                                                                       "precision")
+                        test_recall_mean, test_recall_dmean = get_mean_and_dmean(_parameters_runs, "test", level,
+                                                                                 "recall")
+                        metrics[f"{level}_fil_precision_micro"] = test_precision_mean
+                        metrics[f"d_{level}_fil_precision_micro"] = test_precision_dmean
+                        metrics[f"{level}_fil_recall_micro"] = test_recall_mean
+                        metrics[f"d_{level}_fil_recall_micro"] = test_recall_dmean
                     for k in metrics.keys():
                         key = ("metrics", k)
                         _parameters_runs_average[key].append(metrics[k])
