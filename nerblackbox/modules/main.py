@@ -546,6 +546,24 @@ class NerBlackBoxMain:
             runs,
         )
 
+        # replace column names
+        def _replace_column_names(_runs):
+            if _runs is not None:
+                _runs.columns = _runs.columns.values
+                fields = [elem[1] for elem in _runs.columns if elem[0] == "metrics"]
+                for field in fields:
+                    _runs.rename(
+                        columns={
+                            ("metrics", field): ("metrics", field.replace("EPOCH_BEST_", "").replace("_FIL_F1_MICRO", ""))
+                        },
+                        inplace=True,
+                    )
+                _runs.columns = pd.MultiIndex.from_tuples(_runs.columns)
+            return _runs
+
+        _single_runs = _replace_column_names(_single_runs)
+        _average_runs = _replace_column_names(_average_runs)
+
         # best run
         if _experiment is not None and _single_runs is not None:
             _df_best_single_run = _single_runs.iloc[0, :]
@@ -555,10 +573,10 @@ class NerBlackBoxMain:
                 ("metrics", "epoch_best".upper())
             ]
             best_single_run_epoch_best_val_entity_fil_f1_micro = _df_best_single_run[
-                ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
+                ("metrics", "val_entity".upper())
             ]
             best_single_run_epoch_best_test_entity_fil_f1_micro = _df_best_single_run[
-                ("metrics", "epoch_best_test_entity_fil_f1_micro".upper())
+                ("metrics", "test_entity".upper())
             ]
 
             checkpoint = join(
@@ -573,8 +591,8 @@ class NerBlackBoxMain:
                 "experiment_name": experiment_name,
                 "run_id": best_single_run_id,
                 "run_name_nr": best_single_run_name_nr,
-                "epoch_best_val_entity_fil_f1_micro".upper(): best_single_run_epoch_best_val_entity_fil_f1_micro,
-                "epoch_best_test_entity_fil_f1_micro".upper(): best_single_run_epoch_best_test_entity_fil_f1_micro,
+                "val_entity".upper(): best_single_run_epoch_best_val_entity_fil_f1_micro,
+                "test_entity".upper(): best_single_run_epoch_best_test_entity_fil_f1_micro,
                 "checkpoint": checkpoint if isfile(checkpoint) else None,
             }
         else:
@@ -584,20 +602,40 @@ class NerBlackBoxMain:
         if _experiment is not None and _average_runs is not None:
             _df_best_average_run = _average_runs.iloc[0, :]
             best_average_run_name = _df_best_average_run[("info", "run_name")]
+
+            # entity
             best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
+                ("metrics", "val_entity".upper())
             ]
             d_best_average_run_epoch_best_val_entity_fil_f1_micro = (
                 _df_best_average_run[
-                    ("metrics", "d_epoch_best_val_entity_fil_f1_micro".upper())
+                    ("metrics", "d_val_entity".upper())
                 ]
             )
             best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "epoch_best_test_entity_fil_f1_micro".upper())
+                ("metrics", "test_entity".upper())
             ]
             d_best_average_run_epoch_best_test_entity_fil_f1_micro = (
                 _df_best_average_run[
-                    ("metrics", "d_epoch_best_test_entity_fil_f1_micro".upper())
+                    ("metrics", "d_test_entity".upper())
+                ]
+            )
+
+            # token
+            best_average_run_epoch_best_val_token_fil_f1_micro = _df_best_average_run[
+                ("metrics", "val_token".upper())
+            ]
+            d_best_average_run_epoch_best_val_token_fil_f1_micro = (
+                _df_best_average_run[
+                    ("metrics", "d_val_token".upper())
+                ]
+            )
+            best_average_run_epoch_best_test_token_fil_f1_micro = _df_best_average_run[
+                ("metrics", "test_token".upper())
+            ]
+            d_best_average_run_epoch_best_test_token_fil_f1_micro = (
+                _df_best_average_run[
+                    ("metrics", "d_test_token".upper())
                 ]
             )
 
@@ -605,10 +643,14 @@ class NerBlackBoxMain:
                 "experiment_id": experiment_id,
                 "experiment_name": experiment_name,
                 "run_name": best_average_run_name,
-                "epoch_best_val_entity_fil_f1_micro".upper(): best_average_run_epoch_best_val_entity_fil_f1_micro,
-                "d_epoch_best_val_entity_fil_f1_micro".upper(): d_best_average_run_epoch_best_val_entity_fil_f1_micro,
-                "epoch_best_test_entity_fil_f1_micro".upper(): best_average_run_epoch_best_test_entity_fil_f1_micro,
-                "d_epoch_best_test_entity_fil_f1_micro".upper(): d_best_average_run_epoch_best_test_entity_fil_f1_micro,
+                "val_entity".upper(): best_average_run_epoch_best_val_entity_fil_f1_micro,
+                "d_val_entity".upper(): d_best_average_run_epoch_best_val_entity_fil_f1_micro,
+                "test_entity".upper(): best_average_run_epoch_best_test_entity_fil_f1_micro,
+                "d_test_entity".upper(): d_best_average_run_epoch_best_test_entity_fil_f1_micro,
+                "val_token".upper(): best_average_run_epoch_best_val_token_fil_f1_micro,
+                "d_val_token".upper(): d_best_average_run_epoch_best_val_token_fil_f1_micro,
+                "test_token".upper(): best_average_run_epoch_best_test_token_fil_f1_micro,
+                "d_test_token".upper(): d_best_average_run_epoch_best_test_token_fil_f1_micro,
             }
         else:
             _best_average_run = dict()
@@ -659,6 +701,8 @@ class NerBlackBoxMain:
             "epoch_stopped".upper(),
             "epoch_best_val_entity_fil_f1_micro".upper(),
             "epoch_best_test_entity_fil_f1_micro".upper(),
+            "epoch_best_val_token_fil_f1_micro".upper(),
+            "epoch_best_test_token_fil_f1_micro".upper(),
         ]
 
         ###########################################
@@ -735,7 +779,11 @@ class NerBlackBoxMain:
                         ("metrics", "d_epoch_best_val_entity_fil_f1_micro".upper()),
                         ("metrics", "epoch_best_test_entity_fil_f1_micro".upper()),
                         ("metrics", "d_epoch_best_test_entity_fil_f1_micro".upper()),
-                    ]
+                        ("metrics", "epoch_best_val_token_fil_f1_micro".upper()),
+                        ("metrics", "d_epoch_best_val_token_fil_f1_micro".upper()),
+                        ("metrics", "epoch_best_test_token_fil_f1_micro".upper()),
+                        ("metrics", "d_epoch_best_test_token_fil_f1_micro".upper()),
+                ]
                 }
             )
 
@@ -753,10 +801,10 @@ class NerBlackBoxMain:
                 for run_name in runs_name
             }
 
-            def get_mean_and_dmean(_parameters_runs, phase):
+            def get_mean_and_dmean(_parameters_runs, phase, level):
                 values = [
                     _parameters_runs[
-                        ("metrics", f"epoch_best_{phase}_entity_fil_f1_micro".upper())
+                        ("metrics", f"epoch_best_{phase}_{level}_fil_f1_micro".upper())
                     ][idx]
                     for idx in indices[run_name]
                 ]
@@ -778,17 +826,18 @@ class NerBlackBoxMain:
                     )
 
                 # add ('metrics', *)
-                val_mean, val_dmean = get_mean_and_dmean(_parameters_runs, "val")
-                test_mean, test_dmean = get_mean_and_dmean(_parameters_runs, "test")
-                metrics = {
-                    "epoch_best_val_entity_fil_f1_micro".upper(): val_mean,
-                    "d_epoch_best_val_entity_fil_f1_micro".upper(): val_dmean,
-                    "epoch_best_test_entity_fil_f1_micro".upper(): test_mean,
-                    "d_epoch_best_test_entity_fil_f1_micro".upper(): test_dmean,
-                }
-                for k in metrics.keys():
-                    key = ("metrics", k)
-                    _parameters_runs_average[key].append(metrics[k])
+                for level in ["entity", "token"]:
+                    val_mean, val_dmean = get_mean_and_dmean(_parameters_runs, "val", level)
+                    test_mean, test_dmean = get_mean_and_dmean(_parameters_runs, "test", level)
+                    metrics = {
+                        f"epoch_best_val_{level}_fil_f1_micro".upper(): val_mean,
+                        f"d_epoch_best_val_{level}_fil_f1_micro".upper(): val_dmean,
+                        f"epoch_best_test_{level}_fil_f1_micro".upper(): test_mean,
+                        f"d_epoch_best_test_{level}_fil_f1_micro".upper(): test_dmean,
+                    }
+                    for k in metrics.keys():
+                        key = ("metrics", k)
+                        _parameters_runs_average[key].append(metrics[k])
 
             return _parameters_runs_average
 
