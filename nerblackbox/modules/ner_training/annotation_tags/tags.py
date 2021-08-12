@@ -34,7 +34,7 @@ class Tags:
         else:
             raise Exception(f"ERROR! source scheme = {source_scheme} not implemented.")
 
-        if source_scheme == "plain" and target_scheme == "plain":
+        if source_scheme == target_scheme:  # "plain" and target_scheme == "plain":
             return list(self.tag_list)
         elif source_scheme == "plain" and target_scheme == "bio":
             return self._convert_tags_plain2bio()
@@ -43,11 +43,9 @@ class Tags:
         elif source_scheme in ["bio", "bilou"] and target_scheme == "plain":
             return self._convert_tags_bio2plain()
         elif source_scheme == "bio" and target_scheme == "bilou":
-            return self._restore_annotation_scheme_consistency(scheme=target_scheme)
+            return self._restore_annotation_scheme_consistency(scheme=target_scheme)  # conversion
         elif source_scheme == "bilou" and target_scheme == "bio":
             return self._convert_tags_bilou2bio()
-        elif source_scheme == target_scheme and target_scheme in ["bio", "bilou"]:
-            return self._restore_annotation_scheme_consistency(scheme=target_scheme)
         else:
             raise Exception(f"ERROR! source & target scheme = {source_scheme} & {target_scheme} not implemented.")
 
