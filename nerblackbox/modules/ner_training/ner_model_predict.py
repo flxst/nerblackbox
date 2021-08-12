@@ -95,18 +95,11 @@ class NerModelPredict(NerModel):
         self,
         input_texts: Union[str, List[str]],
         level: str = "entity",
-        autocorrect: bool = True,
+        autocorrect: bool = False,
     ) -> List[List[Dict[str, str]]]:
         """predict tags for input texts. output on entity or word level.
 
         Examples:
-            ```
-            predict(["arbetsförmedlingen finns i stockholm"], level="entity")
-            # [
-            #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "ORG"},
-            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
-            # ]
-            ```
             ```
             predict(["arbetsförmedlingen finns i stockholm"], level="word", autocorrect=False)
             # [
@@ -125,11 +118,24 @@ class NerModelPredict(NerModel):
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "B-LOC"},
             # ]
             ```
+            ```
+            predict(["arbetsförmedlingen finns i stockholm"], level="entity", autocorrect=False)
+            # [
+            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
+            # ]
+            ```
+            ```
+            predict(["arbetsförmedlingen finns i stockholm"], level="entity", autocorrect=True)
+            # [
+            #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "ORG"},
+            #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
+            # ]
+            ```
 
         Args:
             input_texts:   e.g. ["example 1", "example 2"]
             level:         "entity" or "word"
-            autocorrect:   if True, autocorrect annotation scheme (e.g. B- and I- tags). needs to be True if level == "entity".
+            autocorrect:   if True, autocorrect annotation scheme (e.g. B- and I- tags).
 
         Returns:
             predictions: [list] of predictions for the different examples.
@@ -167,7 +173,7 @@ class NerModelPredict(NerModel):
         self,
         input_texts: Union[str, List[str]],
         level: str = "entity",
-        autocorrect: bool = True,
+        autocorrect: bool = False,
         proba: bool = False,
     ) -> List[List[Dict[str, Union[str, Dict]]]]:
         """predict tags or probabilities for tags
@@ -175,7 +181,7 @@ class NerModelPredict(NerModel):
         Args:
             input_texts:  e.g. ["example 1", "example 2"]
             level:        "entity" or "word"
-            autocorrect:  if True, autocorrect annotation scheme (e.g. B- and I- tags). needs to be True if level == "entity".
+            autocorrect:  if True, autocorrect annotation scheme (e.g. B- and I- tags).
             proba:        if True, predict probabilities instead of labels (on word level)
 
         Returns:
@@ -187,10 +193,6 @@ class NerModelPredict(NerModel):
             "entity",
             "word",
         ], f"ERROR! model prediction level = {level} unknown, needs to be entity or word."
-        if level == "entity":
-            assert (
-                autocorrect is True
-            ), f"ERROR! level = entity requires autocorrect = True."
         if proba:
             assert level == "word" and autocorrect is False, (
                 f"ERROR! probability predictions require level = word and autocorrect = False. "

@@ -130,6 +130,7 @@ class TokenTags:
         count = {
             "o_tags": 0,
             "replace": 0,
+            "drop": 0,
             "merge": 0,
             "unmodified": 0,
         }
@@ -145,7 +146,7 @@ class TokenTags:
             else:
                 merged_ner_tag = None
                 if self.scheme == "plain":
-                    if i > plain_threshold:
+                    if i >= plain_threshold:
                         for n in range(i + 1, len(self.token_tag_list)):
                             subsequent_tag = self.token_tag_list[n]["tag"]
                             subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
@@ -156,16 +157,20 @@ class TokenTags:
                                 break
                         merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
                 elif self.scheme == "bio":
-                    if current_tag.startswith("B-"):  # BIO scheme
-                        plain = current_tag.split("-")[-1]
-                        for n in range(i + 1, len(self.token_tag_list)):
-                            subsequent_tag = self.token_tag_list[n]["tag"]
-                            subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
-                            if len(subsequent_tag) > 2 and subsequent_tag[:2] in ["I-"] and subsequent_tag[2:] == plain:
-                                n_tags += 1
-                            else:
-                                break
-                        merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
+                    if i >= plain_threshold:
+                        if current_tag.startswith("B-"):  # BIO scheme
+                            plain = current_tag.split("-")[-1]
+                            for n in range(i + 1, len(self.token_tag_list)):
+                                subsequent_tag = self.token_tag_list[n]["tag"]
+                                subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
+                                if len(subsequent_tag) > 2 and subsequent_tag[:2] in ["I-"] and subsequent_tag[2:] == plain:
+                                    n_tags += 1
+                                else:
+                                    plain_threshold = n
+                                    break
+                            merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
+                        elif current_tag.startswith("I-"):
+                            count["drop"] += 1
                 elif self.scheme == "bilou":
                     if current_tag.startswith("B-"):  # BILOU scheme
                         plain = current_tag.split("-")[-1]
@@ -190,7 +195,7 @@ class TokenTags:
                     else:
                         count["merge"] += 1 + n_tags
 
-        assert count["merge"] + count["replace"] + count["o_tags"] + count[
+        assert count["o_tags"] + count["replace"] + + count["drop"] + count["merge"] + count[
             "unmodified"
         ] == len(
             self.token_tag_list

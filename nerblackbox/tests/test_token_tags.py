@@ -523,7 +523,52 @@ class TestTokenTags:
                         },
                     ],
             ),
-            # 4. PLAIN: 1 single word entity
+            # 4. BIO: 1 single word entities + 1 multiple word entity + 1 "lost" token
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "I-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "B-PER",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "26",
+                            "token": "i",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "B-PER",
+                        },
+                    ],
+                    "arbetsförmedlingen finns i stockholm",
+                    [
+                        {
+                            "char_start": "19",
+                            "char_end": "26",
+                            "token": "finns i",
+                            "tag": "PER",
+                        },
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "PER",
+                        },
+                    ],
+            ),
+            # 5. PLAIN: 1 single word entity
             (
                     "plain",
                     [
