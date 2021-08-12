@@ -70,11 +70,11 @@ class NerMetrics:
             self.true_flat_bio: List[str] = Tags(
                 self.true_flat,
             ).convert_scheme(source_scheme=self.scheme,
-                             target_scheme=self.scheme_entity)  # entity -> bio, bilou (corrected if necessary)
+                             target_scheme=self.scheme_entity)  # entity -> bio, bilou
             self.pred_flat_bio: List[str] = Tags(
                 self.pred_flat
             ).convert_scheme(source_scheme=self.scheme,
-                             target_scheme=self.scheme_entity)  # entity -> bio, bilou (corrected if necessary)
+                             target_scheme=self.scheme_entity)  # entity -> bio, bilou
 
     def results_as_dict(self):
         return asdict(self.results)

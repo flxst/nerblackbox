@@ -27,7 +27,9 @@ class TokenTags:
         assert that tags in self.token_tag_list are in accordance with self.scheme
         """
         tags = [elem["tag"] for elem in self.token_tag_list if elem["tag"] != "O"]
-        if all(["-" not in elem for elem in tags]):
+        if len(tags) == 0:
+            possible_schemes = ["plain", "bio", "bilou"]
+        elif all(["-" not in elem for elem in tags]):
             possible_schemes = ["plain"]
         elif all(["-" in elem for elem in tags]):
             possible_schemes = ["bio", "bilou"]

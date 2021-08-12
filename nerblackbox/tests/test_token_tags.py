@@ -6,6 +6,77 @@ from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTag
 class TestTokenTags:
     ####################################################################################################################
     @pytest.mark.parametrize(
+        "annotation_schemes," "example_word_predictions," "passes",
+        [
+            # 1. plain
+            (
+                    ["plain"],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "ORG",
+                        },
+                    ],
+                    True,
+            ),
+            # 2. bio/bilou
+            (
+                    ["bio", "bilou"],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                    ],
+                    True,
+            ),
+            # 3. plain/bio/bilou
+            (
+                    ["bio", "bilou"],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "O",
+                        },
+                    ],
+                    True,
+            ),
+            # 4. fail
+            (
+                    ["bio", "bilou"],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "ORG",
+                        },
+                    ],
+                    False,
+            ),
+        ],
+    )
+    def test_assert_scheme_consistency(
+            self,
+            annotation_schemes: List[str],
+            example_word_predictions: List[Dict[str, Any]],
+            passes: bool,
+    ):
+        for annotation_scheme in annotation_schemes:
+            if passes:
+                TokenTags(example_word_predictions, scheme=annotation_scheme)
+            else:
+                with pytest.raises(Exception):
+                    TokenTags(example_word_predictions, scheme=annotation_scheme)
+
+    ####################################################################################################################
+    @pytest.mark.parametrize(
         "annotation_scheme," "example_word_predictions," "example_word_predictions_restored",
         [
             # 1. plain: 2 single-token tags
@@ -580,3 +651,10 @@ class TestTokenTags:
             f"{test_example_word_predictions_merged} != "
             f"{example_word_predictions_merged}"
         )
+
+
+if __name__ == "__main__":
+    test_token_tags = TestTokenTags()
+    test_token_tags.test_assert_scheme_consistency()
+    test_token_tags.test_restore_annotatione_scheme_consistency()
+    test_token_tags.test_merge_tokens_to_entities()
