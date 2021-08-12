@@ -287,18 +287,9 @@ class NerModelPredict(NerModel):
         :return: output_token_tensors [list] of [torch tensor] of shape [1, #tags]
         :return: tokens               [list] of [str]
         """
-        (
-            input_ids,  # shape: [1, seq_length]
-            attention_mask,  # shape: [1, seq_length]
-            segment_ids,  # shape: [1, seq_length]
-            label_ids,  # shape: [1, seq_length]
-        ) = sample
-
-        output = self.model(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            token_type_ids=segment_ids,
-        )  # shape: [1 (=#examples), 1 (=#batch_size), seq_length, #tags]
+        input_ids, attention_mask, token_type_ids, labels = self._parse_batch(sample)
+        sample.pop("labels")
+        output = self.model(**sample)  # shape: [1 (=#examples), 1 (=#batch_size), seq_length, #tags]
 
         output_token_tensors = [
             output[0][0][i]  # .detach().numpy()
