@@ -8,6 +8,7 @@ from pkg_resources import Requirement
 from pkg_resources import resource_filename, resource_isdir
 import pandas as pd
 from mlflow.tracking import MlflowClient
+from mlflow.entities import Run
 
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
@@ -533,8 +534,8 @@ class NerBlackBoxMain:
             self.experiment_id2name is not None
         ), f"ERROR! self.experiment_id2name is None."
 
-        experiment_name = self.experiment_id2name[experiment_id]
-        runs = self.client.search_runs(experiment_id)
+        experiment_name: str = self.experiment_id2name[experiment_id]
+        runs: List[Run] = self.client.search_runs(experiment_id)
 
         return ExperimentResults.from_mlflow_runs(
             runs,
