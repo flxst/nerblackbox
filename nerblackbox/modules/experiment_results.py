@@ -29,7 +29,7 @@ class ExperimentResults:
     PARAMS = {
         "max_seq_length": "max_seq",
         "lr_schedule": "lr_sch",
-        "batch_size": "batch_s",
+        "batch_size": "batch_sz",
     }
 
     def __init__(
@@ -44,7 +44,6 @@ class ExperimentResults:
         best_model: Optional[NerModelPredict] = None,
     ):
         """
-
         Args:
             _id: e.g. '1'
             name: e.g. 'my_experiment'
@@ -292,9 +291,7 @@ class ExperimentResults:
                             _parameters_runs_renamed: Dict[Tuple, Any],
                             _metric: str) -> Tuple[float, float]:
         values = [
-            _parameters_runs_renamed[
-                ("metrics", _metric)
-            ][idx]
+            _parameters_runs_renamed[("metrics", _metric)][idx]
             for idx in _indices
         ]
         return compute_mean_and_dmean(values)

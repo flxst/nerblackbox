@@ -1,5 +1,5 @@
 import os
-from typing import Tuple
+from typing import Tuple, List, Optional
 import numpy as np
 from os.path import join
 from argparse import Namespace
@@ -184,7 +184,7 @@ def get_run_name_nr(_run_name, _run_nr):
     return f"{_run_name}-{_run_nr}"
 
 
-def compute_mean_and_dmean(values) -> Tuple[float, float]:
+def compute_mean_and_dmean(values: List[float]) -> Tuple[float, Optional[float]]:
     """
     compute mean and its error dmean = std deviation / sqrt(N)
     ----------------------------------------------------------
@@ -195,6 +195,6 @@ def compute_mean_and_dmean(values) -> Tuple[float, float]:
     if len(values) == 1:
         return values[0], None
     elif len(values) > 1:
-        return np.mean(values), np.std(values) / np.sqrt(len(values))
+        return float(np.mean(values)), float(np.std(values) / np.sqrt(len(values)))
     else:
         raise Exception(f"cannot compute mean and dmean of empty list!")
