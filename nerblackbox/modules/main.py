@@ -282,6 +282,9 @@ class NerBlackBoxMain:
                     experiment_results.best_single_run
                     for experiment_results in experiment_results_list
                 ]
+                for best_single_runs_elem in best_single_runs_overview:
+                    best_single_runs_elem.pop("checkpoint")
+
                 df_single = (
                     pd.DataFrame(best_single_runs_overview)
                     if self.as_df

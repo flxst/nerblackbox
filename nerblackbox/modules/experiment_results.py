@@ -242,10 +242,6 @@ class ExperimentResults:
             [
                 ("metrics", k)
                 for k in cls.METRICS.values()
-            ] + \
-            [
-               ("metrics", f"D_{k}")
-               for k in cls.METRICS.values()
             ]
         _parameters_runs_renamed_average = {k: list() for k in keys}
 
@@ -283,11 +279,12 @@ class ExperimentResults:
             # add ('metrics', *)
             metrics = dict()
             for _metric in cls.METRICS.values():
-                metrics[_metric], metrics[f"D_{_metric}"] = cls._get_mean_and_dmean(
+                _mean, _dmean = cls._get_mean_and_dmean(
                     indices,
                     _parameters_runs_renamed,
                     _metric=_metric,
                 )
+                metrics[_metric] = f"{_mean:.5f} +- {_dmean:.5f}"
             for k in metrics.keys():
                 key = ("metrics", k)
                 _parameters_runs_renamed_average[key].append(metrics[k])
@@ -343,10 +340,6 @@ class ExperimentResults:
             )
 
             fields_info = ["run_id", "run_name_nr"]
-            fields_metrics = [
-                "VAL_ENT_F1", "TEST_ENT_F1",
-                "TEST_ENT_PRE", "TEST_ENT_REC",
-            ]
 
             self.best_single_run = dict(
                 **{
@@ -355,7 +348,7 @@ class ExperimentResults:
                     "checkpoint": checkpoint if isfile(checkpoint) else None
                 },
                 **{field: _df_best_single_run[("info", field)] for field in fields_info},
-                **{field: _df_best_single_run[("metrics", field)] for field in fields_metrics},
+                **{field: _df_best_single_run[("metrics", field)] for field in self.METRICS.values()},
             )
         else:
             self.best_single_run = dict()
@@ -367,20 +360,16 @@ class ExperimentResults:
         if self.experiment is not None and self.average_runs is not None:
             _df_best_average_run = self.average_runs.iloc[0, :]
 
-            fields_metrics = [
-                "VAL_ENT_F1", "TEST_ENT_F1",
-                "VAL_TOK_F1", "TEST_TOK_F1",
-                "TEST_ENT_PRE", "TEST_ENT_REC",
-            ]
-
             self.best_average_run = dict(
                 **{
                     "exp_id": self._id,
                     "exp_name": self.name,
                     "run_name": _df_best_average_run[("info", "run_name")],
                 },
-                **{field: _df_best_average_run[("metrics", field)] for field in fields_metrics},
-                **{f"D_{field}": _df_best_average_run[("metrics", f"D_{field}")] for field in fields_metrics},
+                **{
+                    field: _df_best_average_run[('metrics', field)]
+                    for field in self.METRICS.values()
+                },
             )
         else:
             self.best_average_run = dict()
