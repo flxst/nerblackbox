@@ -36,5 +36,4 @@ nav:
       - Overview: 'python_api/overview.md'
       - 'python_api/nerblackbox.md'
       - 'python_api/experiment_results.md'
-      - 'python_api/experiments_results.md'
       - 'python_api/ner_model_predict.md'

@@ -4,7 +4,6 @@
 
     * [NerBlackBox](../nerblackbox)
     * [ExperimentResults](../experiment_results)
-    * [ExperimentsResults](../experiments_results)
     * [NerModelPredict](../ner_model_predict)
 
 
@@ -13,6 +12,6 @@
 
     === "Python"
         ``` python
-        from nerblackbox import NerBlackBox, ExperimentResults, ExperimentsResults, NerModelPredict
+        from nerblackbox import NerBlackBox, ExperimentResults, NerModelPredict
         ```
 

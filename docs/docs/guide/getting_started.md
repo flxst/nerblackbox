@@ -150,14 +150,14 @@ Once one or more experiments have been run, the following commands can be used t
 ??? note "get overview on experiments' best runs"
     === "CLI"
         ``` bash
-        nerbb get_experiments_results
+        nerbb get_experiment_results all
         ```
     === "Python"
         ``` python
-        experiments_results = nerbb.get_experiments_results()
+        experiment_results_all = nerbb.get_experiment_results("all")  # List[ExperimentResult]
         ```
 
-    Python: see [ExperimentsResults](../../python_api/experiments_results) for details on how to use ``experiments_results``
+    Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results_all``
 
 -----------
 ## 4. Next Steps

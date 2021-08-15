@@ -122,16 +122,6 @@ def get_experiment_results(ctx, experiment_name: str):
     _run_nerblackbox_main(ctx.obj, kwargs)
 
 
-@nerbb.command(name="get_experiments_results")
-@click.pass_context
-def get_experiments_results(ctx):
-    """get results for multiple experiments."""
-    kwargs = {
-        "flag": "get_experiments_results",
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
-
-
 @nerbb.command(name="init")
 @click.pass_context
 def init(ctx):
@@ -212,16 +202,6 @@ def show_experiment_config(ctx, experiment_name: str):
     kwargs = {
         "flag": "show_experiment_config",
         "experiment_name": experiment_name,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
-
-
-@nerbb.command(name="show_experiment_configs")
-@click.pass_context
-def show_experiment_configs(ctx):
-    """show overview on all available experiment configurations."""
-    kwargs = {
-        "flag": "show_experiment_configs",
     }
     _run_nerblackbox_main(ctx.obj, kwargs)
 

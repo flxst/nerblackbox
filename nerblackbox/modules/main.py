@@ -3,7 +3,6 @@ from os.path import join, isfile, isdir
 import glob
 import mlflow
 import shutil
-from argparse import Namespace
 from pkg_resources import Requirement
 from pkg_resources import resource_filename, resource_isdir
 import pandas as pd
@@ -117,12 +116,6 @@ class NerBlackBoxMain:
             self.set_up_dataset(self.dataset_name)
 
         ################################################################################################################
-        # show_experiment_configs
-        ################################################################################################################
-        elif self.flag == "show_experiment_configs":
-            self.show_experiment_configs()
-
-        ################################################################################################################
         # show_experiment_config
         ################################################################################################################
         elif self.flag == "show_experiment_config":
@@ -140,7 +133,6 @@ class NerBlackBoxMain:
         # get_experiment_results
         ################################################################################################################
         elif self.flag == "get_experiment_results":
-            self._assert_flag_arg("experiment_name")
             self._assert_usage()
             return self.get_experiment_results()
 
@@ -150,13 +142,6 @@ class NerBlackBoxMain:
         elif self.flag == "get_experiments":
             self._assert_usage()
             return self.get_experiments()
-
-        ################################################################################################################
-        # get_experiments_best_runs
-        ################################################################################################################
-        elif self.flag == "get_experiments_results":
-            self._assert_usage()
-            return self.get_experiments_results()
 
         ################################################################################################################
         # predict
@@ -248,7 +233,7 @@ class NerBlackBoxMain:
                 else:
                     print("Please enter either y or n")
 
-    def get_experiment_results(self) -> Optional[ExperimentResults]:
+    def get_experiment_results(self) -> Optional[List[ExperimentResults]]:
         """
         :used attr: experiment_name [str], e.g. 'exp0'
         :return: experiment_results [ExperimentResults]
@@ -260,30 +245,73 @@ class NerBlackBoxMain:
         assert (
             self.experiment_id2name is not None
         ), f"ERROR! self.experiment_id2name is None."
-        if self.experiment_name not in self.experiment_name2id.keys():
+        if self.experiment_name == "all":
+            # all experiments
+            assert self.ids is not None, f"ERROR! self.ids is None."
+            experiments_id2name = self._filter_experiments_by_ids(self.ids)
+        elif self.experiment_name in self.experiment_name2id.keys():
+            # single experiment
+            experiments_id2name = {
+                self.experiment_name2id[self.experiment_name]: self.experiment_name
+            }
+        else:
             print(f"no experiment with experiment_name = {self.experiment_name} found")
             print(f"experiments that were found:")
             print(self.experiment_name2id)
-            return ExperimentResults()
+            return [ExperimentResults()]
 
-        experiment_id = self.experiment_name2id[self.experiment_name]
-        experiment_results = self._get_single_experiment_results(experiment_id)
+        # get ExperimentResults
+        experiment_results_list: List[ExperimentResults] = list()
+        for _id in sorted(list(experiments_id2name.keys())):
+            experiment_results_list.append(
+                self._get_single_experiment_results(_id)
+            )
 
+        # return
         if self.usage == "cli":
-            print("### single runs ###")
-            print(experiment_results.single_runs)
-            print()
-            print("### average runs ###")
-            print(experiment_results.average_runs)
+            if self.experiment_name != "all":
+                # single experiment
+                print("### single runs ###")
+                print(experiment_results_list[0].single_runs)
+                print()
+                print("### average runs ###")
+                print(experiment_results_list[0].average_runs)
+            else:
+                # all experiments
+                best_single_runs_overview = [
+                    experiment_results.best_single_run
+                    for experiment_results in experiment_results_list
+                ]
+                df_single = (
+                    pd.DataFrame(best_single_runs_overview)
+                    if self.as_df
+                    else best_single_runs_overview
+                )
+                best_average_runs_overview = [
+                    experiment_results.best_average_run
+                    for experiment_results in experiment_results_list
+                ]
+                df_average = (
+                    pd.DataFrame(best_average_runs_overview)
+                    if self.as_df
+                    else best_average_runs_overview
+                )
+                print("### best single runs ###")
+                print(df_single)
+                print()
+                print("### best average runs ###")
+                print(df_average)
             return None
         else:
-            if experiment_results.best_single_run["checkpoint"] is not None:
-                best_model = NerModelPredict.load_from_checkpoint(
-                    experiment_results.best_single_run["checkpoint"]
-                )
-                experiment_results.set_best_model(best_model)
+            if self.experiment_name != "all":
+                # single experiment
+                if experiment_results_list[0].best_single_run["checkpoint"] is not None:
+                    best_model = NerModelPredict.load_from_checkpoint(
+                        experiment_results_list[0].best_single_run["checkpoint"]
+                    )
+                    experiment_results_list[0]._set_best_model(best_model)
 
-            return experiment_results
+            return experiment_results_list
 
     def get_experiments(self) -> Optional[Union[pd.DataFrame, Dict]]:
         r"""
@@ -309,53 +337,6 @@ class NerBlackBoxMain:
         else:
             return df
 
-    def get_experiments_results(self) -> Optional[Namespace]:
-        r"""
-        :used attr: ids     [tuple] of [str], e.g. ('4', '5')
-        :used attr: as_df   [bool] if True, return [pandas DataFrame], else return [dict]
-        :used attr: verbose [bool]
-        :return: experiments_results: [Namespace] w/ attributes = 'best_single_runs', 'best_average_runs'
-                                                   & values = [pandas DataFrame] or [dict]
-        """
-        assert self.ids is not None, f"ERROR! self.ids is None."
-        experiments_filtered = self._filter_experiments_by_ids(self.ids)
-
-        best_single_runs_overview = list()
-        best_average_runs_overview = list()
-        for _id in sorted(list(experiments_filtered.keys())):
-            experiment_results = self._get_single_experiment_results(
-                _id,
-            )
-            if experiment_results.best_single_run:
-                best_single_runs_overview.append(experiment_results.best_single_run)
-            if experiment_results.best_average_run:
-                best_average_runs_overview.append(experiment_results.best_average_run)
-
-        df_single = (
-            pd.DataFrame(best_single_runs_overview)
-            if self.as_df
-            else best_single_runs_overview
-        )
-        df_average = (
-            pd.DataFrame(best_average_runs_overview)
-            if self.as_df
-            else best_average_runs_overview
-        )
-        if self.usage == "cli":
-            print("### best single runs ###")
-            print(df_single)
-            print()
-            print("### best average runs ###")
-            print(df_average)
-            return None
-        else:
-            return Namespace(
-                **{
-                    "best_single_runs": df_single,
-                    "best_average_runs": df_average,
-                }
-            )
-
     def predict(self) -> Optional[List[List[Dict[str, str]]]]:
         """
         :used attr: experiment_name [str], e.g. 'exp1'
@@ -374,7 +355,7 @@ class NerBlackBoxMain:
         else:
             return predictions
 
-    def predict_proba(self) -> Optional[List[Namespace]]:
+    def predict_proba(self) -> Optional[List[Dict[str, Union[str, Dict]]]]:
         """
         :used attr: experiment_name [str], e.g. 'exp1'
         :used attr: text_input      [str], e.g. 'this is some text that needs to be annotated'
@@ -387,10 +368,10 @@ class NerBlackBoxMain:
         experiment_results = nerbb.main()
         predictions = experiment_results.best_model.predict_proba(self.text_input)
         if self.usage == "cli":
-            print(predictions[0].external)
+            print(predictions[0])
             return None
         else:
-            return predictions
+            return predictions[0]
 
     def run_experiment(self) -> None:
         """
@@ -444,31 +425,30 @@ class NerBlackBoxMain:
         """
         print experiment config
         -----------------------
-        :used attr: experiment_name: [str], e.g. 'exp0'
+        :used attr: experiment_name: [str], e.g. 'exp0' or 'all'
         """
         from nerblackbox.modules.utils.env_variable import env_variable
 
-        path_experiment_config = join(
-            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
-        )
-        with open(path_experiment_config, "r") as file:
-            lines = file.read()
+        if self.experiment_name != "all":
+            path_experiment_config = join(
+                env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+            )
+            with open(path_experiment_config, "r") as file:
+                lines = file.read()
 
-        print(f"> experiment_config = {path_experiment_config}")
-        print()
-        print(lines)
-
-    @staticmethod
-    def show_experiment_configs() -> None:
-        experiment_configs = glob.glob(
-            join(env_variable("DIR_EXPERIMENT_CONFIGS"), "*.ini")
-        )
-        experiment_configs = [
-            elem.split("/")[-1].strip(".ini") for elem in experiment_configs
-        ]
-        experiment_configs = [elem for elem in experiment_configs if elem != "default"]
-        for experiment_config in experiment_configs:
-            print(experiment_config)
+            print(f"> experiment_config = {path_experiment_config}")
+            print()
+            print(lines)
+        else:
+            experiment_configs = glob.glob(
+                join(env_variable("DIR_EXPERIMENT_CONFIGS"), "*.ini")
+            )
+            experiment_configs = [
+                elem.split("/")[-1].strip(".ini") for elem in experiment_configs
+            ]
+            experiment_configs = [elem for elem in experiment_configs if elem != "default"]
+            for experiment_config in experiment_configs:
+                print(experiment_config)
 
     ####################################################################################################################
     # HELPER ###########################################################################################################
@@ -546,7 +526,7 @@ class NerBlackBoxMain:
     ####################################################################################################################
     # HELPER: ALL EXPERIMENTS
     ####################################################################################################################
-    def _filter_experiments_by_ids(self, _ids: Tuple[str, ...]) -> Dict:
+    def _filter_experiments_by_ids(self, _ids: Tuple[str, ...]) -> Dict[str, str]:
         r"""
         get _experiments_id2name [dict] with _ids as keys
         -------------------------------------------------

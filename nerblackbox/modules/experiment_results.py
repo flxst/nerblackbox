@@ -63,7 +63,7 @@ class ExperimentResults:
         self.best_average_run = best_average_run
         self.best_model = best_model
 
-    def set_best_model(self, best_model: NerModelPredict) -> None:
+    def _set_best_model(self, best_model: NerModelPredict) -> None:
         """set best model.
 
         Args:
@@ -76,16 +76,25 @@ class ExperimentResults:
                          _runs: List[Run],
                          _experiment_id: str,
                          _experiment_name: str) -> "ExperimentResults":
+        """
+        Args:
+            _runs: [List of mlflow.entities.Run]
+            _experiment_id: [str], e.g. '0'
+            _experiment_name: [str], e.g. 'my_experiment'
+
+        Returns:
+            ExperimentResults instance
+        """
         experiment_results = ExperimentResults(_id=_experiment_id, name=_experiment_name)
-        experiment_results.parse_and_create_dataframe(_runs)  # attr: experiment, single_runs, average_runs
-        experiment_results.extract_best_single_run()          # attr: best_single_run
-        experiment_results.extract_best_average_run()         # attr: best_average_run
+        experiment_results._parse_and_create_dataframe(_runs)  # attr: experiment, single_runs, average_runs
+        experiment_results.extract_best_single_run()           # attr: best_single_run
+        experiment_results.extract_best_average_run()          # attr: best_average_run
         return experiment_results
 
     ####################################################################################################################
     # 1. PARSE AND CREATE DATAFRAME -> experiment, single_runs, average_runs
     ####################################################################################################################
-    def parse_and_create_dataframe(
+    def _parse_and_create_dataframe(
         self,
         _runs: List[Run],
     ) -> None:

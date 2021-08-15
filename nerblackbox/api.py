@@ -4,6 +4,7 @@ import os
 from os.path import abspath
 from typing import Optional, Dict, List, Union
 import pandas as pd
+from nerblackbox.modules.experiment_results import ExperimentResults
 
 try:
     from nerblackbox.modules.main import NerBlackBoxMain
@@ -63,11 +64,14 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("download")
         nerbb.main()
 
-    def get_experiment_results(self, experiment_name: str):
+    def get_experiment_results(self, experiment_name: str) -> List[ExperimentResults]:
         """get results for a single experiment.
 
         Args:
             experiment_name: e.g. "exp0"
+
+        Returns:
+            see ExperimentResults
         """
         kwargs = self._process_kwargs_optional()
         kwargs["usage"] = "api"
@@ -90,22 +94,6 @@ class NerBlackBox:
         kwargs["usage"] = "api"
 
         nerbb = NerBlackBoxMain("get_experiments", **kwargs)
-        return nerbb.main()
-
-    def get_experiments_results(self, **kwargs_optional: Dict) -> Dict:
-        """get results from multiple experiments.
-
-        Args:
-            kwargs_optional: with optional key-value pairs \
-            {"ids": [tuple of int], "as_df": [bool]}
-
-        Returns:
-            experiments_results: w/ keys = "best_single_runs", "best_average_runs" \
-            & values = [pandas DataFrame] or [dict]
-        """
-        kwargs = self._process_kwargs_optional(kwargs_optional)
-        kwargs["usage"] = "api"
-        nerbb = NerBlackBoxMain("get_experiments_results", **kwargs)
         return nerbb.main()
 
     def init(self):
@@ -164,22 +152,16 @@ class NerBlackBox:
         nerbb.main()
 
     def show_experiment_config(self, experiment_name: str):
-        """show a single experiment configuration in detail.
+        """show a single experiment configuration in detail
+           or an overview on all available experiment configurations.
 
         Args:
-            experiment_name: e.g. "exp0"
+            experiment_name: e.g. "exp0" or "all"
         """
         kwargs = self._process_kwargs_optional()
         kwargs["experiment_name"] = experiment_name
 
         nerbb = NerBlackBoxMain("show_experiment_config", **kwargs)
-        nerbb.main()
-
-    def show_experiment_configs(self):
-        """show overview on all available experiment configurations."""
-        _ = self._process_kwargs_optional()
-
-        nerbb = NerBlackBoxMain("show_experiment_configs")
         nerbb.main()
 
     ####################################################################################################################

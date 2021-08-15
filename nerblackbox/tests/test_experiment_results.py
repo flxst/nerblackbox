@@ -241,7 +241,7 @@ class TestExperimentResults:
 
     def test_parse_and_create_dataframe(self):
         if self.runs is not None:
-            self.experiment_results.parse_and_create_dataframe(self.runs)  # attr: experiment, single_runs, average_runs
+            self.experiment_results._parse_and_create_dataframe(self.runs)  # attr: experiment, single_runs, average_runs
             self.experiment_results.single_runs[("info", "run_id")] = ["<run_id_2>", "<run_id_1>"]
             pd.testing.assert_frame_equal(self.experiment_results.experiment, self.true_experiment), \
                 f"ERROR! test_parse_and_create_dataframe / experiment did not pass test"
