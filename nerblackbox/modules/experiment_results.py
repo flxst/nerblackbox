@@ -14,18 +14,23 @@ from nerblackbox.modules.utils.util_functions import (
 class ExperimentResults:
 
     """class that contains results of a single experiment."""
-    METRICS = [
-        "epoch_best_val_entity_fil_f1_micro".upper(),
-        "epoch_best_test_entity_fil_f1_micro".upper(),
-        "epoch_best_val_token_fil_f1_micro".upper(),
-        "epoch_best_test_token_fil_f1_micro".upper(),
-        "entity_fil_precision_micro",
-        "entity_fil_recall_micro",
-    ]
-    METRICS_ALL = [
-        "epoch_best".upper(),
-        "epoch_stopped".upper(),
-    ] + METRICS
+    METRICS = {
+        "EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO": "VAL_ENT_F1",
+        "EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO": "TEST_ENT_F1",
+        "EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO": "VAL_TOK_F1",
+        "EPOCH_BEST_TEST_TOKEN_FIL_F1_MICRO": "TEST_TOK_F1",
+        "entity_fil_precision_micro": "TEST_ENT_PRE",
+        "entity_fil_recall_micro": "TEST_ENT_REC",
+    }
+    METRICS_ALL = dict(
+        **{field: field for field in ["EPOCH_BEST", "EPOCH_STOPPED"]},
+        **METRICS,
+    )
+    PARAMS = {
+        "max_seq_length": "max_seq",
+        "lr_schedule": "lr_sch",
+        "batch_size": "batch_s",
+    }
 
     def __init__(
         self,
@@ -50,7 +55,6 @@ class ExperimentResults:
             best_average_run: overview on best run parameters & average results
             best_model: best model
         """
-
         self._id = _id
         self.name = name
         self.experiment = experiment
@@ -101,33 +105,23 @@ class ExperimentResults:
         # parameters_experiment & parameters_runs
         ###########################################
         parameters_runs, parameters_experiment = self._parse_runs(_runs)
+
+        ###########################################
+        # rename
+        ###########################################
+        parameters_runs_renamed = self._rename_parameters_runs(parameters_runs)
+
+        ###########################################
+        # average
+        ###########################################
+        parameters_runs_renamed_average = self._average(parameters_runs_renamed)
+
+        ###########################################
+        # dataframes
+        ###########################################
         self.experiment = pd.DataFrame(parameters_experiment, index=["experiment"]).T
-
-        ###########################################
-        # sort
-        ###########################################
-        by = ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
-
-        # single runs
-        try:
-            _single_runs = pd.DataFrame(parameters_runs).sort_values(
-                by=by, ascending=False
-            )
-        except:
-            _single_runs = None
-
-        # average runs
-        try:
-            parameters_runs_average = self._average(parameters_runs)
-            _average_runs = pd.DataFrame(parameters_runs_average).sort_values(
-                by=by, ascending=False
-            )
-        except:
-            _average_runs = None
-
-        # replace column names
-        self.single_runs = self._replace_column_names(_single_runs)
-        self.average_runs = self._replace_column_names(_average_runs)
+        self.single_runs, self.average_runs = self._2_sorted_dataframes(parameters_runs_renamed,
+                                                                        parameters_runs_renamed_average)
 
     @classmethod
     def _parse_runs(cls,
@@ -168,7 +162,7 @@ class ExperimentResults:
                     else:
                         _parameters_runs[("params", k)].append(v)
 
-                for k in cls.METRICS_ALL:
+                for k in cls.METRICS_ALL.keys():
                     if ("metrics", k) not in _parameters_runs.keys():
                         try:
                             _parameters_runs[("metrics", k)] = [_runs[i].data.metrics[k]]
@@ -193,35 +187,66 @@ class ExperimentResults:
         return _parameters_runs, _parameters_experiment
 
     @classmethod
-    def _average(cls,
-                 _parameters_runs: Dict[Tuple, Any]) -> Dict[Tuple, Any]:
+    def _rename_parameters_runs_single(cls,
+                                       _tuple: Tuple[str, str]) -> Tuple[str, str]:
         """
         Args:
-            _parameters_runs:         information on single runs
+            _tuple: e.g. ("metrics", "D_entity_fil_precision_micro")
 
         Returns:
-            _parameters_runs_average: information on averaged single runs
+            _tuple_renamed: ("metrics", "TEST_ENT_PRE")
         """
-        keys = [
-            ("info", "run_name")
-        ] + [
-            k for k in _parameters_runs.keys()
-            if k[0] not in ["info", "metrics"]
-        ] + [
-            ("metrics", k)
-            for k in cls.METRICS
-        ] + [
-           ("metrics", f"D_{k}")
-           for k in cls.METRICS
-        ]
-        _parameters_runs_average = {k: list() for k in keys}
+        _category, _field = _tuple
+        if _category == "params":
+            return "params", cls.PARAMS[_field] if _field in cls.PARAMS.keys() else _field
+        elif _category == "metrics":
+            if _field in cls.METRICS_ALL.keys():
+                return "metrics", cls.METRICS_ALL[_field]
+            elif _field.replace("D_", "") in cls.METRICS_ALL.keys():
+                return "metrics", f"D_{cls.METRICS_ALL[_field.replace('D_', '')]}"
+        else:
+            return _category, _field
 
-        runs_name_nr = _parameters_runs[("info", "run_name_nr")]
+    @classmethod
+    def _rename_parameters_runs(cls,
+                                _parameters_runs: Dict[Tuple[str, str], Any]) -> Dict[Tuple[str, str], Any]:
+        return {
+            cls._rename_parameters_runs_single(k): v
+            for k, v in _parameters_runs.items()
+        }
+
+    @classmethod
+    def _average(cls,
+                 _parameters_runs_renamed: Dict[Tuple[str, str], Any]) -> Dict[Tuple[str, str], Any]:
+        """
+        Args:
+            _parameters_runs_renamed:         information on single runs
+
+        Returns:
+            _parameters_runs_renamed_average: information on averaged single runs
+        """
+        keys = \
+            [("info", "run_name")] + \
+            [
+                k for k in _parameters_runs_renamed.keys()
+                if k[0] not in ["info", "metrics"]
+            ] + \
+            [
+                ("metrics", k)
+                for k in cls.METRICS.values()
+            ] + \
+            [
+               ("metrics", f"D_{k}")
+               for k in cls.METRICS.values()
+            ]
+        _parameters_runs_renamed_average = {k: list() for k in keys}
+
+        runs_name_nr = _parameters_runs_renamed[("info", "run_name_nr")]
         nr_runs = len(runs_name_nr)
         runs_name = list(
             set([get_run_name(run_name_nr) for run_name_nr in runs_name_nr])
         )
-        indices = {
+        run_name_2_indices = {
             run_name: [
                 idx
                 for idx in range(nr_runs)
@@ -235,88 +260,67 @@ class ExperimentResults:
         #######################
         for run_name in runs_name:
             # add ('info', 'run_name')
-            _parameters_runs_average[("info", "run_name")].append(run_name)
+            _parameters_runs_renamed_average[("info", "run_name")].append(run_name)
+
+            indices = run_name_2_indices[run_name]
 
             # add ('params', *)
-            random_index = indices[run_name][0]
-            keys_kept = [k for k in _parameters_runs.keys() if k[0] == "params"]
+            random_index = indices[0]
+            keys_kept = [k for k in _parameters_runs_renamed.keys() if k[0] == "params"]
             for key in keys_kept:
-                _parameters_runs_average[key].append(
-                    _parameters_runs[key][random_index]
+                _parameters_runs_renamed_average[key].append(
+                    _parameters_runs_renamed[key][random_index]
                 )
 
             # add ('metrics', *)
-            for level in ["entity", "token"]:
-                val_mean, val_dmean = cls._get_mean_and_dmean(indices[run_name], _parameters_runs, "val", level, "f1")
-                test_mean, test_dmean = cls._get_mean_and_dmean(indices[run_name], _parameters_runs, "test", level, "f1")
-                metrics = {
-                    f"epoch_best_val_{level}_fil_f1_micro".upper(): val_mean,
-                    f"D_epoch_best_val_{level}_fil_f1_micro".upper(): val_dmean,
-                    f"epoch_best_test_{level}_fil_f1_micro".upper(): test_mean,
-                    f"D_epoch_best_test_{level}_fil_f1_micro".upper(): test_dmean,
-                }
-                if level == "entity":
-                    test_precision_mean, test_precision_dmean = cls._get_mean_and_dmean(indices[run_name],
-                                                                                        _parameters_runs,
-                                                                                        "test",
-                                                                                        level,
-                                                                                        "precision")
-                    test_recall_mean, test_recall_dmean = cls._get_mean_and_dmean(indices[run_name],
-                                                                                  _parameters_runs,
-                                                                                  "test",
-                                                                                  level,
-                                                                                  "recall")
-                    metrics[f"{level}_fil_precision_micro"] = test_precision_mean
-                    metrics[f"D_{level}_fil_precision_micro"] = test_precision_dmean
-                    metrics[f"{level}_fil_recall_micro"] = test_recall_mean
-                    metrics[f"D_{level}_fil_recall_micro"] = test_recall_dmean
-                for k in metrics.keys():
-                    key = ("metrics", k)
-                    _parameters_runs_average[key].append(metrics[k])
+            metrics = dict()
+            for _metric in cls.METRICS.values():
+                metrics[_metric], metrics[f"D_{_metric}"] = cls._get_mean_and_dmean(
+                    indices,
+                    _parameters_runs_renamed,
+                    _metric=_metric,
+                )
+            for k in metrics.keys():
+                key = ("metrics", k)
+                _parameters_runs_renamed_average[key].append(metrics[k])
 
-        return _parameters_runs_average
+        return _parameters_runs_renamed_average
 
-    @staticmethod
-    def _get_mean_and_dmean(_indices_run_name, _parameters_runs, phase, _level, _metric):
-        if _metric == "f1":
-            metrics_string = f"epoch_best_{phase}_{_level}_fil_{_metric}_micro".upper()
-        else:
-            metrics_string = f"{_level}_fil_{_metric}_micro"
-
+    @classmethod
+    def _get_mean_and_dmean(cls,
+                            _indices: List[int],
+                            _parameters_runs_renamed: Dict[Tuple, Any],
+                            _metric: str) -> Tuple[float, float]:
         values = [
-            _parameters_runs[
-                ("metrics", metrics_string)
+            _parameters_runs_renamed[
+                ("metrics", _metric)
             ][idx]
-            for idx in _indices_run_name
+            for idx in _indices
         ]
         return compute_mean_and_dmean(values)
 
-    @staticmethod
-    def _replace_column_names(_runs: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
-        if _runs is not None:
-            _runs.columns = _runs.columns.values
-            fields = [elem[1] for elem in _runs.columns if elem[0] == "metrics"]
-            for field in fields:
-                _runs.rename(
-                    columns={
-                        ("metrics", field): ("metrics",
-                                             field
-                                             .replace("EPOCH_BEST_", "")
-                                             .replace("_FIL_F1_MICRO", "_F1")
-                                             .replace("entity_", "TEST_ENT_")
-                                             .replace("ENTITY", "ENT")
-                                             .replace("TOKEN", "TOK")
-                                             .replace("_fil_precision_micro", "_PRE")
-                                             .replace("_fil_recall_micro", "_REC")
-                                             ),
-                        ("params", "max_seq_length"): ("params", "max_seq"),
-                        ("params", "lr_schedule"): ("params", "lr_sch"),
-                        ("params", "batch_size"): ("params", "batch_s"),
-                    },
-                    inplace=True,
-                )
-            _runs.columns = pd.MultiIndex.from_tuples(_runs.columns)
-        return _runs
+    def _2_sorted_dataframes(self,
+                             _parameters_runs_renamed: Dict[Tuple[str, str], Any],
+                             _parameters_runs_renamed_average: Dict[Tuple[str, str], Any]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        by = ("metrics", self.METRICS_ALL["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])
+
+        # single runs
+        try:
+            _single_runs = pd.DataFrame(_parameters_runs_renamed).sort_values(
+                by=by, ascending=False
+            )
+        except:
+            _single_runs = None
+
+        # average runs
+        try:
+            _average_runs = pd.DataFrame(_parameters_runs_renamed_average).sort_values(
+                by=by, ascending=False
+            )
+        except:
+            _average_runs = None
+
+        return _single_runs, _average_runs
 
     ####################################################################################################################
     # 2a. EXTRACT BEST SINGLE RUN -> best_single_run
@@ -324,42 +328,29 @@ class ExperimentResults:
     def extract_best_single_run(self) -> None:
         if self.experiment is not None and self.single_runs is not None:
             _df_best_single_run = self.single_runs.iloc[0, :]
-            best_single_run_id = _df_best_single_run[("info", "run_id")]
-            best_single_run_name_nr = _df_best_single_run[("info", "run_name_nr")]
-            best_single_run_epoch_best = _df_best_single_run[
-                ("metrics", "epoch_best".upper())
-            ]
-            best_single_run_epoch_best_val_entity_fil_f1_micro = _df_best_single_run[
-                ("metrics", "val_ent_f1".upper())
-            ]
-            best_single_run_epoch_best_test_entity_fil_f1_micro = _df_best_single_run[
-                ("metrics", "test_ent_f1".upper())
-            ]
-            best_single_run_epoch_best_test_entity_fil_precision_micro = _df_best_single_run[
-                ("metrics", "test_ent_pre".upper())
-            ]
-            best_single_run_epoch_best_test_entity_fil_recall_micro = _df_best_single_run[
-                ("metrics", "test_ent_rec".upper())
-            ]
 
             checkpoint = join(
                 env_variable("DIR_CHECKPOINTS"),
                 self.name,
-                best_single_run_name_nr,
-                epoch2checkpoint(best_single_run_epoch_best),
+                _df_best_single_run[("info", "run_name_nr")],
+                epoch2checkpoint(_df_best_single_run[("metrics", "EPOCH_BEST")])
             )
 
-            self.best_single_run = {
-                "exp_id": self._id,
-                "exp_name": self.name,
-                "run_id": best_single_run_id,
-                "run_name_nr": best_single_run_name_nr,
-                "val_ent_f1".upper(): best_single_run_epoch_best_val_entity_fil_f1_micro,
-                "test_ent_f1".upper(): best_single_run_epoch_best_test_entity_fil_f1_micro,
-                "test_ent_pre".upper(): best_single_run_epoch_best_test_entity_fil_precision_micro,
-                "test_ent_rec".upper(): best_single_run_epoch_best_test_entity_fil_recall_micro,
-                "checkpoint": checkpoint if isfile(checkpoint) else None,
-            }
+            fields_info = ["run_id", "run_name_nr"]
+            fields_metrics = [
+                "VAL_ENT_F1", "TEST_ENT_F1",
+                "TEST_ENT_PRE", "TEST_ENT_REC",
+            ]
+
+            self.best_single_run = dict(
+                **{
+                    "exp_id": self._id,
+                    "exp_name": self.name,
+                    "checkpoint": checkpoint if isfile(checkpoint) else None
+                },
+                **{field: _df_best_single_run[("info", field)] for field in fields_info},
+                **{field: _df_best_single_run[("metrics", field)] for field in fields_metrics},
+            )
         else:
             self.best_single_run = dict()
 
@@ -369,78 +360,21 @@ class ExperimentResults:
     def extract_best_average_run(self) -> None:
         if self.experiment is not None and self.average_runs is not None:
             _df_best_average_run = self.average_runs.iloc[0, :]
-            best_average_run_name = _df_best_average_run[("info", "run_name")]
 
-            # entity
-            best_average_run_epoch_best_val_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "val_ent_f1".upper())
+            fields_metrics = [
+                "VAL_ENT_F1", "TEST_ENT_F1",
+                "VAL_TOK_F1", "TEST_TOK_F1",
+                "TEST_ENT_PRE", "TEST_ENT_REC",
             ]
-            d_best_average_run_epoch_best_val_entity_fil_f1_micro = (
-                _df_best_average_run[
-                    ("metrics", "D_val_ent_f1".upper())
-                ]
-            )
-            best_average_run_epoch_best_test_entity_fil_f1_micro = _df_best_average_run[
-                ("metrics", "test_ent_f1".upper())
-            ]
-            d_best_average_run_epoch_best_test_entity_fil_f1_micro = (
-                _df_best_average_run[
-                    ("metrics", "D_test_ent_f1".upper())
-                ]
-            )
 
-            # token
-            best_average_run_epoch_best_val_token_fil_f1_micro = _df_best_average_run[
-                ("metrics", "val_tok_f1".upper())
-            ]
-            d_best_average_run_epoch_best_val_token_fil_f1_micro = (
-                _df_best_average_run[
-                    ("metrics", "D_val_tok_f1".upper())
-                ]
+            self.best_average_run = dict(
+                **{
+                    "exp_id": self._id,
+                    "exp_name": self.name,
+                    "run_name": _df_best_average_run[("info", "run_name")],
+                },
+                **{field: _df_best_average_run[("metrics", field)] for field in fields_metrics},
+                **{f"D_{field}": _df_best_average_run[("metrics", f"D_{field}")] for field in fields_metrics},
             )
-            best_average_run_epoch_best_test_token_fil_f1_micro = _df_best_average_run[
-                ("metrics", "test_tok_f1".upper())
-            ]
-            d_best_average_run_epoch_best_test_token_fil_f1_micro = (
-                _df_best_average_run[
-                    ("metrics", "D_test_tok_f1".upper())
-                ]
-            )
-
-            # precision/recall
-            best_average_run_epoch_best_test_entity_fil_precision_micro = _df_best_average_run[
-                ("metrics", "test_ent_pre".upper())
-            ]
-            d_best_average_run_epoch_best_test_entity_fil_precision_micro = (
-                _df_best_average_run[
-                    ("metrics", "D_test_ent_pre".upper())
-                ]
-            )
-            best_average_run_epoch_best_test_entity_fil_recall_micro = _df_best_average_run[
-                ("metrics", "test_ent_rec".upper())
-            ]
-            d_best_average_run_epoch_best_test_entity_fil_recall_micro = (
-                _df_best_average_run[
-                    ("metrics", "D_test_ent_rec".upper())
-                ]
-            )
-
-            self.best_average_run = {
-                "exp_id": self._id,
-                "exp_name": self.name,
-                "run_name": best_average_run_name,
-                "val_tok_f1".upper(): best_average_run_epoch_best_val_token_fil_f1_micro,
-                "D_val_tok_f1".upper(): d_best_average_run_epoch_best_val_token_fil_f1_micro,
-                "test_tok_f1".upper(): best_average_run_epoch_best_test_token_fil_f1_micro,
-                "D_test_tok_f1".upper(): d_best_average_run_epoch_best_test_token_fil_f1_micro,
-                "val_ent_f1".upper(): best_average_run_epoch_best_val_entity_fil_f1_micro,
-                "D_val_ent_f1".upper(): d_best_average_run_epoch_best_val_entity_fil_f1_micro,
-                "test_ent_f1".upper(): best_average_run_epoch_best_test_entity_fil_f1_micro,
-                "D_test_ent_f1".upper(): d_best_average_run_epoch_best_test_entity_fil_f1_micro,
-                "test_ent_pre".upper(): best_average_run_epoch_best_test_entity_fil_precision_micro,
-                "D_test_ent_pre".upper(): d_best_average_run_epoch_best_test_entity_fil_precision_micro,
-                "test_ent_rec".upper(): best_average_run_epoch_best_test_entity_fil_recall_micro,
-                "D_test_ent_rec".upper(): d_best_average_run_epoch_best_test_entity_fil_recall_micro,
-            }
         else:
             self.best_average_run = dict()

@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 import numpy as np
 from os.path import join
 from argparse import Namespace
@@ -183,7 +184,7 @@ def get_run_name_nr(_run_name, _run_nr):
     return f"{_run_name}-{_run_nr}"
 
 
-def compute_mean_and_dmean(values):
+def compute_mean_and_dmean(values) -> Tuple[float, float]:
     """
     compute mean and its error dmean = std deviation / sqrt(N)
     ----------------------------------------------------------

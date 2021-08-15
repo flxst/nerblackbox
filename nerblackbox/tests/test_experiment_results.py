@@ -35,22 +35,6 @@ class TestExperimentResults:
     experiment_results = ExperimentResults(_id=experiment_id, name=experiment_name)
 
     # results: intermediate
-    true_parameters_runs: Dict[Tuple, Any] = {
-        ('info', 'run_id'): ['<run_id_2>', '<run_id_1>'],
-        ('info', 'run_name_nr'): ['runA-2', 'runA-1'],
-        ('params', 'max_seq_length'): ['64', '64'],
-        ('params', 'lr_max'): ['2e-05', '2e-05'],
-        ('params', 'lr_schedule'): ['constant', 'constant'],
-        ('params', 'batch_size'): ['16', '16'],
-        ('metrics', 'EPOCH_BEST'): [1, 2],
-        ('metrics', 'EPOCH_STOPPED'): [2, 2],
-        ('metrics', 'EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO'): [0.7465069860279442, 0.7784431137724552],
-        ('metrics', 'EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO'): [0.717741935483871, 0.710843373493976],
-        ('metrics', 'EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO'): [0.7936507936507936, 0.8248914616497828],
-        ('metrics', 'EPOCH_BEST_TEST_TOKEN_FIL_F1_MICRO'): [0.7588152327221439, 0.7605633802816902],
-        ('metrics', 'entity_fil_precision_micro'): [0.7325102880658436, 0.7224489795918367],
-        ('metrics', 'entity_fil_recall_micro'): [0.7035573122529645, 0.6996047430830039],
-    }
     true_parameters_experiment: Dict[Tuple, Any] = {
         'early_stopping': ['True'],
         'prune_ratio_test': ['0.2'],
@@ -76,24 +60,56 @@ class TestExperimentResults:
         'fp16': ['0'],
         'logging_level': ['info']
     }
-    true_parameters_runs_average: Dict[Tuple, Any] = {
+    true_parameters_runs: Dict[Tuple, Any] = {
+        ('info', 'run_id'): ['<run_id_2>', '<run_id_1>'],
+        ('info', 'run_name_nr'): ['runA-2', 'runA-1'],
+        ('params', 'max_seq_length'): ['64', '64'],
+        ('params', 'lr_max'): ['2e-05', '2e-05'],
+        ('params', 'lr_schedule'): ['constant', 'constant'],
+        ('params', 'batch_size'): ['16', '16'],
+        ('metrics', 'EPOCH_BEST'): [1, 2],
+        ('metrics', 'EPOCH_STOPPED'): [2, 2],
+        ('metrics', 'EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO'): [0.7465069860279442, 0.7784431137724552],
+        ('metrics', 'EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO'): [0.717741935483871, 0.710843373493976],
+        ('metrics', 'EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO'): [0.7936507936507936, 0.8248914616497828],
+        ('metrics', 'EPOCH_BEST_TEST_TOKEN_FIL_F1_MICRO'): [0.7588152327221439, 0.7605633802816902],
+        ('metrics', 'entity_fil_precision_micro'): [0.7325102880658436, 0.7224489795918367],
+        ('metrics', 'entity_fil_recall_micro'): [0.7035573122529645, 0.6996047430830039],
+    }
+    true_parameters_runs_renamed = {
+        ('info', 'run_id'): ['<run_id_2>', '<run_id_1>'],
+        ('info', 'run_name_nr'): ['runA-2', 'runA-1'],
+        ('params', 'max_seq'): ['64', '64'],
+        ('params', 'lr_max'): ['2e-05', '2e-05'],
+        ('params', 'lr_sch'): ['constant', 'constant'],
+        ('params', 'batch_s'): ['16', '16'],
+        ('metrics', 'EPOCH_BEST'): [1, 2],
+        ('metrics', 'EPOCH_STOPPED'): [2, 2],
+        ('metrics', 'VAL_ENT_F1'): [0.7465069860279442, 0.7784431137724552],
+        ('metrics', 'TEST_ENT_F1'): [0.717741935483871, 0.710843373493976],
+        ('metrics', 'VAL_TOK_F1'): [0.7936507936507936, 0.8248914616497828],
+        ('metrics', 'TEST_TOK_F1'): [0.7588152327221439, 0.7605633802816902],
+        ('metrics', 'TEST_ENT_PRE'): [0.7325102880658436, 0.7224489795918367],
+        ('metrics', 'TEST_ENT_REC'): [0.7035573122529645, 0.6996047430830039],
+     }
+    true_parameters_runs_renamed_average: Dict[Tuple, Any] = {
         ('info', 'run_name'): ['runA'],
-        ('params', 'max_seq_length'): ['64'],
+        ('params', 'max_seq'): ['64'],
         ('params', 'lr_max'): ['2e-05'],
-        ('params', 'lr_schedule'): ['constant'],
-        ('params', 'batch_size'): ['16'],
-        ('metrics', 'EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO'): [0.7624750499001998],
-        ('metrics', 'EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO'): [0.7142926544889234],
-        ('metrics', 'EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO'): [0.8092711276502882],
-        ('metrics', 'EPOCH_BEST_TEST_TOKEN_FIL_F1_MICRO'): [0.759689306501917],
-        ('metrics', 'entity_fil_precision_micro'): [0.7274796338288402],
-        ('metrics', 'entity_fil_recall_micro'): [0.7015810276679841],
-        ('metrics', 'D_EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO'): [0.0112911262464918],
-        ('metrics', 'D_EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO'): [0.0024390099817452673],
-        ('metrics', 'D_EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO'): [0.011045244095441406],
-        ('metrics', 'D_EPOCH_BEST_TEST_TOKEN_FIL_F1_MICRO'): [0.0006180634969349623],
-        ('metrics', 'D_entity_fil_precision_micro'): [0.0035572097247899693],
-        ('metrics', 'D_entity_fil_recall_micro'): [0.0013974442315939986],
+        ('params', 'lr_sch'): ['constant'],
+        ('params', 'batch_s'): ['16'],
+        ('metrics', 'VAL_ENT_F1'): [0.7624750499001998],
+        ('metrics', 'TEST_ENT_F1'): [0.7142926544889234],
+        ('metrics', 'VAL_TOK_F1'): [0.8092711276502882],
+        ('metrics', 'TEST_TOK_F1'): [0.759689306501917],
+        ('metrics', 'TEST_ENT_PRE'): [0.7274796338288402],
+        ('metrics', 'TEST_ENT_REC'): [0.7015810276679841],
+        ('metrics', 'D_VAL_ENT_F1'): [0.0112911262464918],
+        ('metrics', 'D_TEST_ENT_F1'): [0.0024390099817452673],
+        ('metrics', 'D_VAL_TOK_F1'): [0.011045244095441406],
+        ('metrics', 'D_TEST_TOK_F1'): [0.0006180634969349623],
+        ('metrics', 'D_TEST_ENT_PRE'): [0.0035572097247899693],
+        ('metrics', 'D_TEST_ENT_REC'): [0.0013974442315939986],
     }
 
     # results: ExperimentResults attributes
@@ -208,33 +224,20 @@ class TestExperimentResults:
                 assert test_parameters_experiment[k] == self.true_parameters_experiment[k], \
                     f"ERROR! test_parameter_experiment[{k}] = {test_parameters_experiment[k]} != {self.true_parameters_experiment[k]}"
 
+    def test_rename_parameters_runs(self):
+        if self.runs is not None:
+            test_parameters_runs_renamed = self.experiment_results._rename_parameters_runs(self.true_parameters_runs)
+
+            for k in self.true_parameters_runs_renamed.keys():
+                assert test_parameters_runs_renamed[k] == self.true_parameters_runs_renamed[k], \
+                    f"ERROR! test_parameter_runs_renamed[{k}] = {test_parameters_runs_renamed[k]} != {self.true_parameters_runs_renamed[k]}"
+
     def test_average(self):
         if self.runs is not None:
-            test_parameters_runs_average = self.experiment_results._average(self.true_parameters_runs)
-            for k in self.true_parameters_runs_average.keys():
-                assert test_parameters_runs_average[k] == self.true_parameters_runs_average[k], \
-                    f"ERROR! test_parameter_runs_average[{k}] = {test_parameters_runs_average[k]} != {self.true_parameters_runs_average[k]}"
-
-    def test_replace_column_names(self):
-        if self.runs is not None:
-            by = ("metrics", "epoch_best_val_entity_fil_f1_micro".upper())
-
-            # single runs
-            _single_runs = pd.DataFrame(self.true_parameters_runs).sort_values(
-                by=by, ascending=False
-            )
-            test_single_runs = self.experiment_results._replace_column_names(_single_runs)
-            test_single_runs[("info", "run_id")] = ["<run_id_2>", "<run_id_1>"]
-            pd.testing.assert_frame_equal(test_single_runs, self.true_single_runs), \
-                f"ERROR! experiment_results._replace_column_names / single_runs did not pass test"
-
-            # average runs
-            _average_runs = pd.DataFrame(self.true_parameters_runs_average).sort_values(
-                by=by, ascending=False
-            )
-            test_average_runs = self.experiment_results._replace_column_names(_average_runs)
-            pd.testing.assert_frame_equal(test_average_runs, self.true_average_runs), \
-                f"ERROR! experiment_results._replace_column_names / average_runs did not pass test"
+            test_parameters_runs_renamed_average = self.experiment_results._average(self.true_parameters_runs_renamed)
+            for k in self.true_parameters_runs_renamed_average.keys():
+                assert test_parameters_runs_renamed_average[k] == self.true_parameters_runs_renamed_average[k], \
+                    f"ERROR! test_parameter_runs_renamed_average[{k}] = {test_parameters_runs_renamed_average[k]} != {self.true_parameters_runs_renamed_average[k]}"
 
     def test_parse_and_create_dataframe(self):
         if self.runs is not None:
