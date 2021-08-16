@@ -20,7 +20,7 @@ class TestLoggedMetrics:
                 ["train"],
                 None,
                 None,
-                ["numberofclasses"],
+                ["numberofclasses", "asr_precision", "asr_recall", "asr_f1", "asr_abidance"],
                 ["loss", "acc"],
             ),
             (
@@ -68,7 +68,7 @@ class TestLoggedMetrics:
                 None,
                 ["entity"],
                 None,
-                ["numberofclasses"],
+                ["numberofclasses", "asr_precision", "asr_recall", "asr_f1", "asr_abidance"],
                 ["precision", "recall", "f1"],
             ),
             (
@@ -76,7 +76,7 @@ class TestLoggedMetrics:
                 None,
                 None,
                 None,
-                ["numberofclasses"],
+                ["numberofclasses", "asr_precision", "asr_recall", "asr_f1", "asr_abidance"],
                 ["loss", "acc", "precision", "recall", "f1"],
             ),
             (
@@ -85,7 +85,7 @@ class TestLoggedMetrics:
                 None,
                 None,
                 None,
-                ["loss", "acc", "precision", "recall", "f1", "numberofclasses"],
+                ["loss", "acc", "precision", "recall", "f1", "numberofclasses", "asr_precision", "asr_recall", "asr_f1", "asr_abidance"],
             ),
             (
                 None,
@@ -94,6 +94,22 @@ class TestLoggedMetrics:
                 ["macro"],
                 None,
                 ["precision", "recall", "f1", "numberofclasses"],
+            ),
+            (
+                None,
+                None,
+                ["entity"],
+                ["micro"],
+                None,
+                ["precision", "recall", "f1", "asr_precision", "asr_recall", "asr_f1"],
+            ),
+            (
+                None,
+                None,
+                ["entity"],
+                ["simple"],
+                None,
+                ["asr_abidance"],
             ),
         ],
     )
@@ -124,6 +140,10 @@ class TestLoggedMetrics:
             (
                 [
                     "entity_fil_numberofclasses_macro",
+                    "entity_fil_asr_precision_micro",
+                    "entity_fil_asr_recall_micro",
+                    "entity_fil_asr_f1_micro",
+                    "entity_fil_asr_abidance",
                     "entity_fil_precision_micro",
                     "entity_fil_precision_macro",
                     "entity_fil_recall_micro",

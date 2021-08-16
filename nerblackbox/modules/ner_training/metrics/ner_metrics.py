@@ -71,10 +71,17 @@ class NerMetrics:
                 self.true_flat,
             ).convert_scheme(source_scheme=self.scheme,
                              target_scheme=self.scheme_entity)  # entity -> bio, bilou
+
             self.pred_flat_bio: List[str] = Tags(
                 self.pred_flat
             ).convert_scheme(source_scheme=self.scheme,
                              target_scheme=self.scheme_entity)  # entity -> bio, bilou
+
+            # ASR
+            self.pred_flat_bio_corrected: List[str]
+            self.pred_flat_bio_corrected, self.results.asr_abidance = Tags(
+                self.pred_flat_bio
+            ).restore_annotation_scheme_consistency(scheme=self.scheme_entity)  # entity -> bio, bilou
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -99,6 +106,12 @@ class NerMetrics:
                 self.recall()
             if "f1" in _metrics:
                 self.f1_score()
+
+        if "asr_abidance" in _metrics \
+                or "asr_precision" in _metrics \
+                or "asr_recall" in _metrics \
+                or "asr_f1" in _metrics:
+            self.compute_asr_results()
 
         warnings.resetwarnings()
 
@@ -178,6 +191,33 @@ class NerMetrics:
             self.results.f1_micro, self.results.f1_macro = self._entity_evaluation_f1(
                 evaluation_function=f1_seqeval, restrict_macro=True
             )
+
+    def compute_asr_results(self):
+        """
+        computes
+        - self.results.asr_precision_micro
+        - self.results.asr_recall_micro
+        - self.results.asr_f1_micro
+        """
+        def _entity_evaluation_micro_asr(evaluation_function: Callable) -> float:
+            """ helper function """
+            try:
+                metric = evaluation_function(
+                    [self.true_flat_bio],
+                    [self.pred_flat_bio_corrected],  # corrected !!!
+                    average="micro",
+                    mode='strict',
+                    scheme=self.scheme_entity_seqeval,
+                )
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                metric = self.failure_value
+            return metric
+
+        self.results.asr_precision_micro = _entity_evaluation_micro_asr(evaluation_function=precision_seqeval)
+        self.results.asr_recall_micro = _entity_evaluation_micro_asr(evaluation_function=recall_seqeval)
+        self.results.asr_f1_micro = _entity_evaluation_micro_asr(evaluation_function=f1_seqeval)
 
     def _token_evaluation(self, evaluation_function: Callable, average: str) -> float:
         """
@@ -514,3 +554,7 @@ class Results:
     f1_macro: float = -1
     classindices_macro: Tuple[float, ...] = ()
     numberofclasses_macro: float = -1
+    asr_abidance: float = -1
+    asr_precision_micro: float = -1
+    asr_recall_micro: float = -1
+    asr_f1_micro: float = -1

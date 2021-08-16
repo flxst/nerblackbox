@@ -28,13 +28,12 @@ class LoggedMetrics:
         ("f1", ["test"], ["fil"], ["token", "entity"], ["micro", "macro"]),
         ("f1", ["test"], ["ind"], ["token", "entity"], ["micro"]),
         ("f1", ["test"], ["O"], ["token"], ["micro"]),
-        (
-            "numberofclasses",
-            ["test"],
-            ["fil"],
-            ["token", "entity"],
-            ["macro"],
-        ),  # special
+        # special:
+        ("numberofclasses", ["test"], ["fil"], ["token", "entity"], ["macro"]),
+        ("asr_precision", ["test"], ["fil"], ["entity"], ["micro"]),
+        ("asr_recall", ["test"], ["fil"], ["entity"], ["micro"]),
+        ("asr_f1", ["test"], ["fil"], ["entity"], ["micro"]),
+        ("asr_abidance", ["test"], ["fil"], ["entity"], ["simple"]),
     ]
 
     @classmethod

@@ -272,10 +272,10 @@ class NerBlackBoxMain:
             if self.experiment_name != "all":
                 # single experiment
                 print("### single runs ###")
-                print(experiment_results_list[0].single_runs)
+                print(experiment_results_list[0].single_runs.T)
                 print()
                 print("### average runs ###")
-                print(experiment_results_list[0].average_runs)
+                print(experiment_results_list[0].average_runs.T)
             else:
                 # all experiments
                 best_single_runs_overview = [
@@ -283,7 +283,8 @@ class NerBlackBoxMain:
                     for experiment_results in experiment_results_list
                 ]
                 for best_single_runs_elem in best_single_runs_overview:
-                    best_single_runs_elem.pop("checkpoint")
+                    if "checkpoint" in best_single_runs_elem.keys():
+                        best_single_runs_elem.pop("checkpoint")
 
                 df_single = (
                     pd.DataFrame(best_single_runs_overview)
@@ -300,10 +301,10 @@ class NerBlackBoxMain:
                     else best_average_runs_overview
                 )
                 print("### best single runs ###")
-                print(df_single)
+                print(df_single.T)
                 print()
                 print("### best average runs ###")
-                print(df_average)
+                print(df_average.T)
             return None
         else:
             if self.experiment_name != "all":
@@ -351,7 +352,7 @@ class NerBlackBoxMain:
             "get_experiment_results", experiment_name=self.experiment_name, usage="api"
         )
         experiment_results = nerbb.main()
-        predictions = experiment_results.best_model.predict(self.text_input)
+        predictions = experiment_results[0].best_model.predict(self.text_input)
         if self.usage == "cli":
             print(predictions[0])
             return None

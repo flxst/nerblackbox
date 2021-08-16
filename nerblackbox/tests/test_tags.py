@@ -255,13 +255,13 @@ class TestTags:
             output_sequence: List[str],
     ):
         if output_sequence is not None:
-            test_output_sequence = Tags(input_sequence)._restore_annotation_scheme_consistency(target_scheme)
+            test_output_sequence = Tags(input_sequence).restore_annotation_scheme_consistency(target_scheme)
             assert (
                     test_output_sequence == output_sequence
             ), f"{test_output_sequence} != {output_sequence}"
         else:
             with pytest.raises(Exception):
-                Tags(input_sequence)._restore_annotation_scheme_consistency(target_scheme)
+                Tags(input_sequence).restore_annotation_scheme_consistency(target_scheme)
 
 
 if __name__ == "__main__":

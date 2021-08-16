@@ -1,5 +1,6 @@
 
-from typing import List, Optional
+import numpy as np
+from typing import List, Optional, Tuple
 
 
 class Tags:
@@ -20,10 +21,10 @@ class Tags:
             target_scheme: e.g. 'bio', 'plain'
 
         Uses:
-            tag_list:       e.g. ['O',   'ORG',   'ORG'] or ['O', 'B-ORG', 'I-ORG']
+            tag_list:           e.g. ['O',   'ORG',   'ORG'] or ['O', 'B-ORG', 'I-ORG']
 
         Returns:
-            tag_list_plain: e.g. ['O', 'B-ORG', 'I-ORG'] or ['O',   'ORG',   'ORG']
+            tag_list_converted: e.g. ['O', 'B-ORG', 'I-ORG'] or ['O',   'ORG',   'ORG']
         """
         if source_scheme == "plain":
             self._assert_plain_tags()
@@ -43,11 +44,24 @@ class Tags:
         elif source_scheme in ["bio", "bilou"] and target_scheme == "plain":
             return self._convert_tags_bio2plain()
         elif source_scheme == "bio" and target_scheme == "bilou":
-            return self._restore_annotation_scheme_consistency(scheme=target_scheme)  # conversion
+            return self.restore_annotation_scheme_consistency(scheme=target_scheme)[0]  # conversion
         elif source_scheme == "bilou" and target_scheme == "bio":
             return self._convert_tags_bilou2bio()
         else:
             raise Exception(f"ERROR! source & target scheme = {source_scheme} & {target_scheme} not implemented.")
+
+    def get_annotation_scheme_abidance(self, scheme: str) -> float:  # Tuple[int, int, float]:
+        """
+        compute how many tokens in self.tag_list abide to the annotation scheme
+
+        Returns:
+            annotation_scheme_abidance:
+                - absolute number of correct tokens
+                - total number of tokens
+                - relative number of correct tokens
+        """
+        # return 49.0, 50.0, 0.98
+        return 0.98
 
     ####################################################################################################################
     # 2. HELPER METHODS
@@ -195,15 +209,29 @@ class Tags:
             elif tag.startswith("L-"):
                 return f"I-{plain}"
 
-    def _restore_annotation_scheme_consistency(self, scheme: str):
+    def restore_annotation_scheme_consistency(self, scheme: str) -> Tuple[List[str], float]:
+        """
+
+        Args:
+            scheme:
+
+        Uses:
+            tag_list:           e.g. ['O',   'ORG',   'ORG'] or ['O', 'B-ORG', 'I-ORG']
+
+        Returns:
+            tag_list_converted: e.g. ['O', 'B-ORG', 'I-ORG'] or ['O',   'ORG',   'ORG']
+            asr_abidance:       e.g. 0.98
+                = how many tokens in self.tag_list abide to the annotation scheme
+                = absolute number of correct tokens / total number of tokens
+        """
         if scheme == "bio":
-            return [
+            converted_tuples = [
                 self.convert_tag_bio2bio(self.tag_list[i],
                                          previous=self.tag_list[i - 1] if i > 0 else None)
                 for i in range(len(self.tag_list))
             ]
         elif scheme == "bilou":
-            return [
+            converted_tuples = [
                 self.convert_tag_bilou2bilou(self.tag_list[i],
                                              previous=self.tag_list[i - 1] if i > 0 else None,
                                              subsequent=self.tag_list[i + 1] if i < len(self.tag_list) - 1 else None)
@@ -212,13 +240,17 @@ class Tags:
         else:
             raise Exception(f"ERROR! restore annotation scheme consistency not implemented for scheme = {scheme}.")
 
+        tag_list_converted = [tup[0] for tup in converted_tuples]
+        asr_abidance = 1 - np.average([tup[1] for tup in converted_tuples])
+        return tag_list_converted, asr_abidance
+
     ####################################################################################################################
     # 3. CLASS METHODS
     ####################################################################################################################
     @classmethod
     def convert_tag_bio2bio(cls,
                             current: str,
-                            previous: Optional[str] = None) -> str:
+                            previous: Optional[str] = None) -> Tuple[str, bool]:
         """
         correct bio prefix, depending on previous tag
 
@@ -228,9 +260,10 @@ class Tags:
 
         Returns:
             current_corrected:  e.g. 'B-ORG'
+            bool_corrected:     e.g. True
         """
         if current == "O" or current.startswith("B-"):
-            return current
+            return current, False
         else:
             assert current[0] in ["I"] and current[1] == "-", \
                 f"ERROR! bio tag {current} should be of the format O, B-*, I-*"
@@ -240,15 +273,15 @@ class Tags:
 
             if condition_previous:
                 # rule 1: !I/!B + I -> B
-                return f"B-{plain}"
+                return f"B-{plain}", True
             else:
-                return f"I-{plain}"
+                return f"I-{plain}", False
 
     @classmethod
     def convert_tag_bilou2bilou(cls,
                                 current: str,
                                 previous: Optional[str] = None,
-                                subsequent: Optional[str] = None) -> str:
+                                subsequent: Optional[str] = None) -> Tuple[str, bool]:
         """
         correct bilou prefix, depending on previous and next tag
 
@@ -259,9 +292,10 @@ class Tags:
 
         Returns:
             current_corrected:  e.g. 'U-ORG'
+            bool_corrected:     e.g. True
         """
         if current == "O" or current.startswith("U-"):
-            return current
+            return current, False
         else:
             assert current[0] in ["B", "I", "L"] and current[1] == "-", \
                 f"ERROR! bilou tag {current} should be of the format O, B-*, I-*, L-*, U-*"
@@ -269,26 +303,31 @@ class Tags:
             plain = current.split("-")[-1]
             condition_previous = previous is None or previous not in [f"B-{plain}", f"I-{plain}"]
             condition_subsequent = subsequent is None or subsequent not in [f"I-{plain}", f"L-{plain}"]
+            bool_corrected = False
             while 1:
                 if current.startswith("I-"):
                     if condition_subsequent:
                         # rule 1: I + !I/!L -> L
                         current = f"L-{plain}"
+                        bool_corrected = True
                     elif condition_previous:
                         # rule 2: !B/!I + I -> B
                         current = f"B-{plain}"
+                        bool_corrected = True
                     else:
                         break
                 elif current.startswith("L-"):
                     if condition_previous:
                         # rule 3: !B/!I + L -> B
                         current = f"B-{plain}"
+                        bool_corrected = True
                     else:
                         break
                 elif current.startswith("B-"):
                     if condition_subsequent:
                         # rule 4: B + !I/!L -> U
                         current = f"U-{plain}"
+                        bool_corrected = True
                     else:
                         break
                 elif current.startswith("U-"):
@@ -296,4 +335,4 @@ class Tags:
                 else:
                     raise Exception(f"ERROR! this should not happen. current = {current}")
 
-            return current
+            return current, bool_corrected

@@ -201,6 +201,7 @@ class TokenTags:
             self.token_tag_list
         ), f"{count} -> {sum(count.values())} != {len(self.token_tag_list)} | {self.token_tag_list}"
 
+        """
         if count["merge"] > 0 or count["replace"] > 0:
             assert (
                     count["unmodified"] == 0
@@ -213,12 +214,17 @@ class TokenTags:
             assert (
                     count["replace"] == 0
             ), f"{count} -> if unmodified is > 0, replace should be == 0."
+        """
 
         token_tag_list_merged = merged_ner_tags
         if verbose:
             print(
                 f"> merged {len(token_tag_list_merged)} BIO-tags "
-                f"(simple replace: {count['replace']}, merge: {count['merge']}, O-tags: {count['o_tags']}, unmodified: {count['unmodified']}).\n"
+                f"(simple replace: {count['replace']}, "
+                f"merge: {count['merge']}, "
+                f"O-tags: {count['o_tags']}, "
+                f"drop: {count['drop']}, "
+                f"unmodified: {count['unmodified']}).\n"
             )
 
         self.token_tag_list = token_tag_list_merged

@@ -21,6 +21,10 @@ class ExperimentResults:
         "EPOCH_BEST_TEST_TOKEN_FIL_F1_MICRO": "TEST_TOK_F1",
         "entity_fil_precision_micro": "TEST_ENT_PRE",
         "entity_fil_recall_micro": "TEST_ENT_REC",
+        "entity_fil_asr_abidance": "TEST_ENT_ASR_ABI",
+        "entity_fil_asr_precision_micro": "TEST_ENT_ASR_PRE",
+        "entity_fil_asr_recall_micro": "TEST_ENT_ASR_REC",
+        "entity_fil_asr_f1_micro": "TEST_ENT_ASR_F1",
     }
     METRICS_ALL = dict(
         **{field: field for field in ["EPOCH_BEST", "EPOCH_STOPPED"]},
@@ -284,7 +288,8 @@ class ExperimentResults:
                     _parameters_runs_renamed,
                     _metric=_metric,
                 )
-                metrics[_metric] = f"{_mean:.5f} +- {_dmean:.5f}"
+                metrics[_metric] = f"{_mean:.5f} +- "
+                metrics[_metric] += f"{_dmean:.5f}" if _dmean is not None else "###"
             for k in metrics.keys():
                 key = ("metrics", k)
                 _parameters_runs_renamed_average[key].append(metrics[k])
@@ -296,10 +301,13 @@ class ExperimentResults:
                             _indices: List[int],
                             _parameters_runs_renamed: Dict[Tuple, Any],
                             _metric: str) -> Tuple[float, float]:
-        values = [
-            _parameters_runs_renamed[("metrics", _metric)][idx]
-            for idx in _indices
-        ]
+        try:
+            values = [
+                _parameters_runs_renamed[("metrics", _metric)][idx]
+                for idx in _indices
+            ]
+        except IndexError:
+            values = [-1 for _ in _indices]
         return compute_mean_and_dmean(values)
 
     def _2_sorted_dataframes(self,
