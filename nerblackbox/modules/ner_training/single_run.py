@@ -6,7 +6,6 @@ from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
-# from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.utilities.seed import seed_everything
 
 from nerblackbox.modules.ner_training.ner_model_train import (
@@ -62,7 +61,10 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
         callback_info = get_callback_info(callbacks, params, hparams)
 
         default_logger.log_info(
-            "--- LOAD BEST CHECKPOINT FOR TESTING AND DETAILED RESULTS ---"
+            f"---\n"
+            f"LOAD BEST CHECKPOINT {callback_info['checkpoint_best']}\n"
+            f"FOR TESTING AND DETAILED RESULTS\n"
+            f"---"
         )
         model_best = NerModelTrain.load_from_checkpoint(
             checkpoint_path=callback_info["checkpoint_best"]
@@ -129,7 +131,7 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info(f"> mode:               {_hparams.mode}")
     _logger.log_info(f"> lr_max:             {_hparams.lr_max}")
     _logger.log_info(f"> lr_warmup_epochs:   {_hparams.lr_warmup_epochs}")
-    _logger.log_info(f"> lr_cooldown:        {_hparams.lr_cooldown} ({_hparams.patience-1} epochs)")
+    _logger.log_info(f"> lr_cooldown:        {_hparams.lr_cooldown} ({max(_hparams.patience-1, 0)} epochs)")
     _logger.log_info(f"> lr_schedule:        {_hparams.lr_schedule}")
     _logger.log_info(f"> lr_num_cycles:      {_hparams.lr_num_cycles}")
     _logger.log_info("")
@@ -187,10 +189,7 @@ def get_callback_info(_callbacks, _params, _hparams):
     callback_info = dict()
 
     early_stopping = hasattr(_callbacks[1], 'stopped_epoch')
-    if early_stopping:
-        checkpoint_best = list(_callbacks[0].best_k_models.keys())[0]
-    else:
-        checkpoint_best = _callbacks[0].last_model_path
+    checkpoint_best = _callbacks[0].last_model_path
 
     if early_stopping and _callbacks[1].stopped_epoch:
         callback_info["epoch_stopped"] = (

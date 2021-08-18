@@ -7,7 +7,7 @@ class CustomEarlyStopping(EarlyStopping):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.flag_cooldown = False  # Custom
-        self._lr_max_epochs = self.patience - 1
+        self._lr_max_epochs = max(self.patience - 1, 0)
 
     def on_validation_end(self, trainer, pl_module):
         # Original
