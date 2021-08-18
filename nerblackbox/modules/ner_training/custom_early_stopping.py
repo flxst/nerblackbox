@@ -19,7 +19,6 @@ class CustomEarlyStopping(EarlyStopping):
         # Custom
         use_cooldown = pl_module._hparams.lr_schedule == "constant" and pl_module._hparams.lr_cooldown is True
         if use_cooldown:
-            print("=== CUSTOM EARLY STOPPING:")
             if self.wait_count == 1:
                 # NO IMPROVEMENT
                 print(f"> Custom Early Stopping: change LR to linear cool-down with {self._lr_max_epochs} epochs.")

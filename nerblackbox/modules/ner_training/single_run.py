@@ -152,31 +152,27 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
     """
     early_stopping = vars(_hparams)["early_stopping"]
 
+    model_checkpoint = ModelCheckpoint(
+        dirpath=_get_model_checkpoint_directory(_params),
+        filename="{epoch}",
+        monitor=vars(_hparams)["monitor"],
+        verbose=True,
+        save_last=True,
+    )
+    model_checkpoint.CHECKPOINT_NAME_LAST = "{epoch}"
+
     if early_stopping:
         early_stopping_params = {
             k: vars(_hparams)[k] for k in ["monitor", "min_delta", "patience", "mode"]
         }
         _callbacks = (
-            ModelCheckpoint(
-                dirpath=_get_model_checkpoint_directory(_params),
-                filename="{epoch}",
-                monitor=vars(_hparams)["monitor"],
-                verbose=True,
-            ),
+            model_checkpoint,
             CustomEarlyStopping(**early_stopping_params, verbose=True),
         )
     else:
         _callbacks = (
-            ModelCheckpoint(
-                dirpath=_get_model_checkpoint_directory(_params),
-                filename="{epoch}",
-                monitor=None,
-                verbose=True,
-                save_top_k=0,
-                save_last=True,
-            ),
+            model_checkpoint,
         )
-        _callbacks[0].CHECKPOINT_NAME_LAST = "{epoch}"
 
     return _callbacks
 
