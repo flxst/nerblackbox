@@ -314,13 +314,14 @@ class NerModel(pl.LightningModule, ABC):
         return optimizer
 
     def _create_scheduler(
-        self, _lr_warmup_epochs, _lr_schedule, _lr_num_cycles=None
+        self, _lr_warmup_epochs, _lr_schedule, _lr_max_epochs=None, _lr_num_cycles=None
     ) -> LambdaLR:
         """
         create scheduler with warmup
         ----------------------------
         :param _lr_warmup_epochs:   [int]
         :param _lr_schedule:        [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
+        :param _lr_max_epochs:      [int, optional] needed for _lr_schedule != 'constant'
         :param _lr_num_cycles:      [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules
         :return: scheduler          [torch LambdaLR] learning rate scheduler
         """
@@ -332,7 +333,6 @@ class NerModel(pl.LightningModule, ABC):
         ]:
             raise Exception(f"lr_schedule = {_lr_schedule} not implemented.")
 
-        num_training_steps = self._get_steps(self.hyperparameters.max_epochs)
         num_warmup_steps = self._get_steps(_lr_warmup_epochs)
 
         scheduler_params = {
@@ -343,6 +343,9 @@ class NerModel(pl.LightningModule, ABC):
         if _lr_schedule == "constant":
             return get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
         else:
+            assert _lr_max_epochs is not None, \
+                f"ERROR! need to specify _lr_max_epochs for _lr_schedule = {_lr_schedule}"
+            num_training_steps = self._get_steps(_lr_max_epochs)
             scheduler_params["num_training_steps"] = num_training_steps
 
             if _lr_schedule == "linear":

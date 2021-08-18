@@ -134,5 +134,6 @@ class NerModelTrain(NerModel):
         self.scheduler: LambdaLR = self._create_scheduler(
             self._hparams.lr_warmup_epochs,
             self._hparams.lr_schedule,
+            self.hyperparameters.max_epochs,
             self._hparams.lr_num_cycles,
         )

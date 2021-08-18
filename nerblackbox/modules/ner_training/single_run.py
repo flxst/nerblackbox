@@ -1,11 +1,12 @@
 import torch
 import mlflow
 import os
+from typing import Tuple
 from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+# from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.utilities.seed import seed_everything
 
 from nerblackbox.modules.ner_training.ner_model_train import (
@@ -19,6 +20,7 @@ from nerblackbox.modules.utils.util_functions import (
     checkpoint2epoch,
     epoch2checkpoint,
 )
+from nerblackbox.modules.ner_training.custom_early_stopping import CustomEarlyStopping
 
 
 def execute_single_run(params, hparams, log_dirs, experiment: bool):
@@ -54,7 +56,7 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
             precision=16 if (params.fp16 and params.device.type == "cuda") else 32,
             amp_level="O1",
             logger=tb_logger,
-            callbacks=callbacks,
+            callbacks=list(callbacks),
         )
         trainer.fit(model)
         callback_info = get_callback_info(callbacks, params, hparams)
@@ -117,18 +119,19 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info(f"> seed:                  {_seed}")
     _logger.log_info("")
     _logger.log_info("- HPARAMS ----------------------------------------")
-    _logger.log_info(f"> batch_size:       {_hparams.batch_size}")
-    _logger.log_info(f"> max_seq_length:   {_hparams.max_seq_length}")
-    _logger.log_info(f"> max_epochs:       {_hparams.max_epochs}")
-    _logger.log_info(f"> early_stopping:   {_hparams.early_stopping}")
-    _logger.log_info(f"> monitor:          {_hparams.monitor}")
-    _logger.log_info(f"> min_delta:        {_hparams.min_delta}")
-    _logger.log_info(f"> patience:         {_hparams.patience}")
-    _logger.log_info(f"> mode:             {_hparams.mode}")
-    _logger.log_info(f"> lr_max:           {_hparams.lr_max}")
-    _logger.log_info(f"> lr_warmup_epochs: {_hparams.lr_warmup_epochs}")
-    _logger.log_info(f"> lr_schedule:      {_hparams.lr_schedule}")
-    _logger.log_info(f"> lr_num_cycles:    {_hparams.lr_num_cycles}")
+    _logger.log_info(f"> batch_size:         {_hparams.batch_size}")
+    _logger.log_info(f"> max_seq_length:     {_hparams.max_seq_length}")
+    _logger.log_info(f"> max_epochs:         {_hparams.max_epochs}")
+    _logger.log_info(f"> early_stopping:     {_hparams.early_stopping}")
+    _logger.log_info(f"> monitor:            {_hparams.monitor}")
+    _logger.log_info(f"> min_delta:          {_hparams.min_delta}")
+    _logger.log_info(f"> patience:           {_hparams.patience}")
+    _logger.log_info(f"> mode:               {_hparams.mode}")
+    _logger.log_info(f"> lr_max:             {_hparams.lr_max}")
+    _logger.log_info(f"> lr_warmup_epochs:   {_hparams.lr_warmup_epochs}")
+    _logger.log_info(f"> lr_cooldown:        {_hparams.lr_cooldown} ({_hparams.patience-1} epochs)")
+    _logger.log_info(f"> lr_schedule:        {_hparams.lr_schedule}")
+    _logger.log_info(f"> lr_num_cycles:      {_hparams.lr_num_cycles}")
     _logger.log_info("")
 
 
@@ -140,7 +143,7 @@ def _get_model_checkpoint_directory(_params):
     return join(env_variable("DIR_CHECKPOINTS"), _params.experiment_run_name_nr)
 
 
-def get_callbacks(_params, _hparams, _log_dirs):
+def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, CustomEarlyStopping]:
     """
     :param _params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param _hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
@@ -153,17 +156,17 @@ def get_callbacks(_params, _hparams, _log_dirs):
         early_stopping_params = {
             k: vars(_hparams)[k] for k in ["monitor", "min_delta", "patience", "mode"]
         }
-        _callbacks = [
+        _callbacks = (
             ModelCheckpoint(
                 dirpath=_get_model_checkpoint_directory(_params),
                 filename="{epoch}",
                 monitor=vars(_hparams)["monitor"],
                 verbose=True,
             ),
-            EarlyStopping(**early_stopping_params, verbose=True),
-        ]
+            CustomEarlyStopping(**early_stopping_params, verbose=True),
+        )
     else:
-        _callbacks = [
+        _callbacks = (
             ModelCheckpoint(
                 dirpath=_get_model_checkpoint_directory(_params),
                 filename="{epoch}",
@@ -172,7 +175,7 @@ def get_callbacks(_params, _hparams, _log_dirs):
                 save_top_k=0,
                 save_last=True,
             ),
-        ]
+        )
         _callbacks[0].CHECKPOINT_NAME_LAST = "{epoch}"
 
     return _callbacks
