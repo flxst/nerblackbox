@@ -181,14 +181,14 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
 
 def get_callback_info(_callbacks, _params, _hparams):
     """
-    :param _callbacks: [dict] w/ keys 'checkpoint', 'early_stop' & values = [pytorch lightning callback]
+    :param _callbacks: [Tuple], either (ModelCheckpoint) or (ModelCheckpoint, EarlyStopping)
     :param _params:    [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     """
     callback_info = dict()
 
-    early_stopping = hasattr(_callbacks[1], 'stopped_epoch')
+    early_stopping = len(_callbacks) > 1 and hasattr(_callbacks[1], 'stopped_epoch')
     checkpoint_best = _callbacks[0].last_model_path
 
     if early_stopping and _callbacks[1].stopped_epoch:
