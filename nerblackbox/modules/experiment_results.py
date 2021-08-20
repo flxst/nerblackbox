@@ -15,6 +15,8 @@ class ExperimentResults:
 
     """class that contains results of a single experiment."""
     METRICS = {
+        "EPOCH_BEST": "EPOCH_BEST",
+        "EPOCH_STOPPED": "EPOCH_STOPPED",
         "EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO": "VAL_ENT_F1",
         "EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO": "TEST_ENT_F1",
         "EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO": "VAL_TOK_F1",
@@ -26,10 +28,6 @@ class ExperimentResults:
         "entity_fil_asr_recall_micro": "TEST_ENT_ASR_REC",
         "entity_fil_asr_f1_micro": "TEST_ENT_ASR_F1",
     }
-    METRICS_ALL = dict(
-        **{field: field for field in ["EPOCH_BEST", "EPOCH_STOPPED"]},
-        **METRICS,
-    )
     PARAMS = {
         "max_seq_length": "max_seq",
         "lr_schedule": "lr_sch",
@@ -174,7 +172,7 @@ class ExperimentResults:
                     else:
                         _parameters_runs[("params", k)].append(v)
 
-                for k in cls.METRICS_ALL.keys():
+                for k in cls.METRICS.keys():
                     if ("metrics", k) not in _parameters_runs.keys():
                         try:
                             _parameters_runs[("metrics", k)] = [_runs[i].data.metrics[k]]
@@ -212,10 +210,10 @@ class ExperimentResults:
         if _category == "params":
             return "params", cls.PARAMS[_field] if _field in cls.PARAMS.keys() else _field
         elif _category == "metrics":
-            if _field in cls.METRICS_ALL.keys():
-                return "metrics", cls.METRICS_ALL[_field]
-            elif _field.replace("D_", "") in cls.METRICS_ALL.keys():
-                return "metrics", f"D_{cls.METRICS_ALL[_field.replace('D_', '')]}"
+            if _field in cls.METRICS.keys():
+                return "metrics", cls.METRICS[_field]
+            elif _field.replace("D_", "") in cls.METRICS.keys():
+                return "metrics", f"D_{cls.METRICS[_field.replace('D_', '')]}"
         else:
             return _category, _field
 
@@ -313,7 +311,7 @@ class ExperimentResults:
     def _2_sorted_dataframes(self,
                              _parameters_runs_renamed: Dict[Tuple[str, str], Any],
                              _parameters_runs_renamed_average: Dict[Tuple[str, str], Any]) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        by = ("metrics", self.METRICS_ALL["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])
+        by = ("metrics", self.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])
 
         # single runs
         try:
