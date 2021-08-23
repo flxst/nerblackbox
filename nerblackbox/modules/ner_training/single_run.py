@@ -188,21 +188,19 @@ def get_callback_info(_callbacks, _params, _hparams):
     """
     callback_info = dict()
 
-    early_stopping = len(_callbacks) > 1 and hasattr(_callbacks[1], 'stopped_epoch')
     checkpoint_best = _callbacks[0].last_model_path
-
-    if early_stopping and _callbacks[1].stopped_epoch:
-        callback_info["epoch_stopped"] = (
-            _callbacks[1].stopped_epoch
-        )
-    else:
-        callback_info["epoch_stopped"] = _hparams.max_epochs - 1
-
     callback_info["epoch_best"] = checkpoint2epoch(checkpoint_best)
+
     callback_info["checkpoint_best"] = join(
         _get_model_checkpoint_directory(_params),
         epoch2checkpoint(callback_info["epoch_best"]),
     )
+
+    early_stopping = len(_callbacks) > 1 and hasattr(_callbacks[1], 'stopped_epoch')
+    if early_stopping:
+        callback_info["epoch_stopped"] = callback_info["epoch_best"] - _hparams.patience + 1
+    else:
+        callback_info["epoch_stopped"] = _hparams.max_epochs - 1
 
     return callback_info
 
