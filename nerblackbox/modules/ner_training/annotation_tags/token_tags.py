@@ -76,13 +76,13 @@ class TokenTags:
                 if self.scheme == "bio":
                     example_word_prediction_restored["tag"] = \
                         Tags.convert_tag_bio2bio(current_tag,
-                                                 previous=previous_tag)
+                                                 previous=previous_tag)[0]
                 else:
                     subsequent_tag = self.token_tag_list[i + 1]["tag"] if i < len(self.token_tag_list) - 1 else None
                     example_word_prediction_restored["tag"] = \
                         Tags.convert_tag_bilou2bilou(current_tag,
                                                      previous=previous_tag,
-                                                     subsequent=subsequent_tag)
+                                                     subsequent=subsequent_tag)[0]
 
                 token_tag_list_restored.append(example_word_prediction_restored)
 

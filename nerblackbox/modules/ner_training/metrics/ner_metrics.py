@@ -146,7 +146,7 @@ class NerMetrics:
                 evaluation_function=precision_seqeval
             )
             self.results.precision_macro = self._entity_evaluation_macro(
-                evaluation_function=precision_seqeval, restrict_macro=True
+                evaluation_function=precision_seqeval,
             )
 
     def recall(self):
@@ -169,7 +169,7 @@ class NerMetrics:
                 evaluation_function=recall_seqeval
             )
             self.results.recall_macro = self._entity_evaluation_macro(
-                evaluation_function=recall_seqeval, restrict_macro=True
+                evaluation_function=recall_seqeval
             )
 
     def f1_score(self):
@@ -189,7 +189,7 @@ class NerMetrics:
             )
         elif self.level == "entity":
             self.results.f1_micro, self.results.f1_macro = self._entity_evaluation_f1(
-                evaluation_function=f1_seqeval, restrict_macro=True
+                evaluation_function=f1_seqeval,
             )
 
     def compute_asr_results(self):
@@ -237,13 +237,15 @@ class NerMetrics:
         ], f"evaluation function = {evaluation_function} unknown / not allowed."
         assert average in ["micro", "macro"], f"average = {average} unknown."
 
-        try:
+        if self.classes is None or len(self.classes) > 1:  # "all" / "fil"
             if evaluation_function != prf_sklearn:
                 metric = evaluation_function(
                     self.true_flat,
                     self.pred_flat,
                     labels=self.classes,
                     average=average,
+                    zero_division=0,
+
                 )
             else:
                 _, _, metric, _ = prf_sklearn(
@@ -251,12 +253,31 @@ class NerMetrics:
                     self.pred_flat,
                     labels=self.classes,
                     average=average,
-                    warn_for=("precision", "recall", "f-score"),
+                    zero_division=0,
                 )
-        except UndefinedMetricWarning as e:
-            if self.verbose:
-                print(e)
-            metric = self.failure_value
+        else:
+            try:
+                if evaluation_function != prf_sklearn:
+                    metric = evaluation_function(
+                        self.true_flat,
+                        self.pred_flat,
+                        labels=self.classes,
+                        average=average,
+                        zero_division="warn",
+                    )
+                else:
+                    _, _, metric, _ = prf_sklearn(
+                        self.true_flat,
+                        self.pred_flat,
+                        labels=self.classes,
+                        average=average,
+                        warn_for=("precision", "recall", "f-score"),
+                        zero_division="warn",
+                    )
+            except UndefinedMetricWarning as e:
+                if self.verbose:
+                    print(e)
+                metric = self.failure_value
 
         return metric
 
@@ -410,15 +431,13 @@ class NerMetrics:
             self.results.numberofclasses_macro = len(self.results.classindices_macro)
 
     def _entity_evaluation_macro(
-        self, evaluation_function: Callable, restrict_macro: bool = True
+        self, evaluation_function: Callable,
     ) -> float:
         """
         compute precision/recall macro average on entity level
 
         Args:
             evaluation_function: precision_seqeval, recall_seqeval
-            restrict_macro: if True,  compute macro-average only on well-defined labels
-                            if False, compute macro-average on all labels (replacing the ill-defined ones by 0)
 
         Returns:
             metric: precision/recall on entity level, 'macro' averaged on well-defined classes
@@ -428,49 +447,24 @@ class NerMetrics:
             recall_seqeval,
         ], f"evaluation function = {evaluation_function} unknown / not allowed."
 
-        if restrict_macro:
-            metric_list = evaluation_function(
-                [self.true_flat_bio],
-                [self.pred_flat_bio],
-                mode='strict',
-                scheme=self.scheme_entity_seqeval,
-                average=None,
-                zero_division=0,
-            )
-            metric_list_filtered = [
-                metric_list[index] for index in self.results.classindices_macro
-            ]
-            metric = (
-                np.average(metric_list_filtered)
-                if len(metric_list_filtered)
-                else self.failure_value
-            )
-        else:
-            try:
-                metric = evaluation_function(
-                    [self.true_flat_bio], 
-                    [self.pred_flat_bio], 
-                    average="macro", 
-                    mode='strict', 
-                    scheme=self.scheme_entity_seqeval,
-                )
-            except UndefinedMetricWarning as e:
-                if self.verbose:
-                    print(e)
-                metric = self.failure_value
-
+        metric = evaluation_function(
+            [self.true_flat_bio],
+            [self.pred_flat_bio],
+            mode='strict',
+            scheme=self.scheme_entity_seqeval,
+            average='macro',
+            zero_division=0,
+        )
         return metric
 
     def _entity_evaluation_f1(
-        self, evaluation_function: Callable, restrict_macro: bool = True
+        self, evaluation_function: Callable
     ) -> Tuple[float, float]:
         """
         compute f1 micro or macro average on entity level
 
         Args:
             evaluation_function: f1_seqeval
-            restrict_macro: if True,  compute macro-average only on well-defined labels
-                            if False, compute macro-average on all labels (replacing the ill-defined ones by 0)
 
         Returns:
             f1_micro: f1 on entity level, 'micro' averaged
@@ -517,26 +511,14 @@ class NerMetrics:
             f1_macro = self.failure_value
         else:
             if self.class_index is None:  # "fil"
-                if restrict_macro:
-                    metric_list = evaluation_function(
-                        [self.true_flat_bio],
-                        [self.pred_flat_bio],
-                        mode='strict',
-                        scheme=self.scheme_entity_seqeval,
-                        average=None,
-                    )
-                    metric_list_filtered = [
-                        metric_list[index] for index in self.results.classindices_macro
-                    ]
-                    f1_macro = np.average(metric_list_filtered)
-                else:
-                    f1_macro = evaluation_function(
-                        [self.true_flat_bio], 
-                        [self.pred_flat_bio], 
-                        average="macro", 
-                        mode='strict', 
-                        scheme=self.scheme_entity_seqeval,
-                    )
+                metric_list = evaluation_function(
+                    [self.true_flat_bio],
+                    [self.pred_flat_bio],
+                    mode='strict',
+                    scheme=self.scheme_entity_seqeval,
+                    average=None,
+                )
+                f1_macro = np.average(metric_list)
             else:  # "ind"
                 f1_macro = self.failure_value
 

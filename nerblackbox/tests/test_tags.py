@@ -255,7 +255,7 @@ class TestTags:
             output_sequence: List[str],
     ):
         if output_sequence is not None:
-            test_output_sequence = Tags(input_sequence).restore_annotation_scheme_consistency(target_scheme)
+            test_output_sequence = Tags(input_sequence).restore_annotation_scheme_consistency(target_scheme)[0]
             assert (
                     test_output_sequence == output_sequence
             ), f"{test_output_sequence} != {output_sequence}"

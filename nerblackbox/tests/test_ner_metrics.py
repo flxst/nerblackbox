@@ -87,7 +87,7 @@ class TestNerMetricsTable:
             if _labels == "all":
                 return None
             elif _labels == "fil":
-                return ["A", "B"]
+                return ["A", "B", "C"]
             else:
                 return _labels
 
