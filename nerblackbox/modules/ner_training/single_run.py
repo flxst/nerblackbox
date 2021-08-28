@@ -121,19 +121,20 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info(f"> seed:                  {_seed}")
     _logger.log_info("")
     _logger.log_info("- HPARAMS ----------------------------------------")
-    _logger.log_info(f"> batch_size:         {_hparams.batch_size}")
-    _logger.log_info(f"> max_seq_length:     {_hparams.max_seq_length}")
-    _logger.log_info(f"> max_epochs:         {_hparams.max_epochs}")
-    _logger.log_info(f"> early_stopping:     {_hparams.early_stopping}")
-    _logger.log_info(f"> monitor:            {_hparams.monitor}")
-    _logger.log_info(f"> min_delta:          {_hparams.min_delta}")
-    _logger.log_info(f"> patience:           {_hparams.patience}")
-    _logger.log_info(f"> mode:               {_hparams.mode}")
-    _logger.log_info(f"> lr_max:             {_hparams.lr_max}")
-    _logger.log_info(f"> lr_warmup_epochs:   {_hparams.lr_warmup_epochs}")
-    _logger.log_info(f"> lr_cooldown:        {_hparams.lr_cooldown} ({max(_hparams.patience-1, 0)} epochs)")
-    _logger.log_info(f"> lr_schedule:        {_hparams.lr_schedule}")
-    _logger.log_info(f"> lr_num_cycles:      {_hparams.lr_num_cycles}")
+    _logger.log_info(f"> batch_size:           {_hparams.batch_size}")
+    _logger.log_info(f"> max_seq_length:       {_hparams.max_seq_length}")
+    _logger.log_info(f"> max_epochs:           {_hparams.max_epochs}")
+    _logger.log_info(f"> early_stopping:       {_hparams.early_stopping}")
+    _logger.log_info(f"> monitor:              {_hparams.monitor}")
+    _logger.log_info(f"> min_delta:            {_hparams.min_delta}")
+    _logger.log_info(f"> patience:             {_hparams.patience}")
+    _logger.log_info(f"> mode:                 {_hparams.mode}")
+    _logger.log_info(f"> lr_max:               {_hparams.lr_max}")
+    _logger.log_info(f"> lr_warmup_epochs:     {_hparams.lr_warmup_epochs}")
+    _logger.log_info(f"> lr_cooldown_epochs:   {_hparams.lr_cooldown_epochs}")
+    _logger.log_info(f"> lr_cooldown_restarts: {_hparams.lr_cooldown_restarts}")
+    _logger.log_info(f"> lr_schedule:          {_hparams.lr_schedule}")
+    _logger.log_info(f"> lr_num_cycles:        {_hparams.lr_num_cycles}")
     _logger.log_info("")
 
 
@@ -165,11 +166,25 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
 
     if early_stopping:
         early_stopping_params = {
-            k: vars(_hparams)[k] for k in ["monitor", "min_delta", "patience", "mode"]
+            k: vars(_hparams)[k] for k in [
+                "monitor",
+                "min_delta",
+                "patience",
+                "mode",
+                "lr_schedule",
+                "lr_cooldown_epochs",
+                "lr_cooldown_restarts",
+            ]
         }
+        # e.g. patience = 0, lr_cooldown_epochs = 3 -> patience = 4
+        early_stopping_params["patience"] += vars(_hparams)["lr_cooldown_epochs"] + 1
+
         _callbacks = (
             model_checkpoint,
-            CustomEarlyStopping(**early_stopping_params, verbose=True),
+            CustomEarlyStopping(
+                **early_stopping_params,
+                verbose=True,
+            ),
         )
     else:
         _callbacks = (
@@ -198,7 +213,7 @@ def get_callback_info(_callbacks, _params, _hparams):
 
     early_stopping = len(_callbacks) > 1 and hasattr(_callbacks[1], 'stopped_epoch')
     if early_stopping:
-        callback_info["epoch_stopped"] = callback_info["epoch_best"] - _hparams.patience + 1
+        callback_info["epoch_stopped"] = callback_info["epoch_best"] - _hparams.lr_cooldown_epochs
     else:
         callback_info["epoch_stopped"] = _hparams.max_epochs - 1
 

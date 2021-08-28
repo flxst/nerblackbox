@@ -74,7 +74,8 @@ def get_hardcoded_parameters(keys=False):
         "lr_max": "float",
         "lr_schedule": "str",
         "lr_warmup_epochs": "int",
-        "lr_cooldown": "bool",
+        "lr_cooldown_epochs": "int",
+        "lr_cooldown_restarts": "bool",
         "lr_num_cycles": "int",
     }
     _log_dirs = {
