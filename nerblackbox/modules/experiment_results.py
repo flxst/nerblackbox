@@ -243,7 +243,7 @@ class ExperimentResults:
             ] + \
             [
                 ("metrics", k)
-                for k in cls.METRICS.values()
+                for k in ["CONVERGENCE"] + list(cls.METRICS.values())
             ]
         _parameters_runs_renamed_average = {k: list() for k in keys}
 
@@ -281,11 +281,13 @@ class ExperimentResults:
             # add ('metrics', *)
             metrics = dict()
             for _metric in cls.METRICS.values():
-                _mean, _dmean = cls._get_mean_and_dmean(
+                _mean, _dmean, _convergence_str = cls._get_mean_and_dmean(
                     indices,
                     _parameters_runs_renamed,
                     _metric=_metric,
                 )
+                if _metric == cls.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"]:
+                    _parameters_runs_renamed_average[("metrics", "CONVERGENCE")].append(_convergence_str)
                 metrics[_metric] = f"{_mean:.5f} +- "
                 metrics[_metric] += f"{_dmean:.5f}" if _dmean is not None else "###"
             for k in metrics.keys():
@@ -298,7 +300,7 @@ class ExperimentResults:
     def _get_mean_and_dmean(cls,
                             _indices: List[int],
                             _parameters_runs_renamed: Dict[Tuple, Any],
-                            _metric: str) -> Tuple[float, float]:
+                            _metric: str) -> Tuple[float, Optional[float], str]:
         try:
             values = [
                 _parameters_runs_renamed[("metrics", _metric)][idx]
@@ -374,7 +376,7 @@ class ExperimentResults:
                 },
                 **{
                     field: _df_best_average_run[('metrics', field)]
-                    for field in self.METRICS.values()
+                    for field in list(self.METRICS.values()) + ["CONVERGENCE"]
                 },
             )
         else:
