@@ -280,14 +280,21 @@ class ExperimentResults:
 
             # add ('metrics', *)
             metrics = dict()
+
+            indices_converged = [
+                idx
+                for idx in indices
+                if _parameters_runs_renamed[("metrics", cls.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])][idx] > 0
+            ]
+            convergence_str = f"{len(indices_converged)}/{len(indices)}"
+            _parameters_runs_renamed_average[("metrics", "CONVERGENCE")].append(convergence_str)
+
             for _metric in cls.METRICS.values():
-                _mean, _dmean, _convergence_str = cls._get_mean_and_dmean(
-                    indices,
+                _mean, _dmean = cls._get_mean_and_dmean(
+                    indices_converged,
                     _parameters_runs_renamed,
                     _metric=_metric,
                 )
-                if _metric == cls.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"]:
-                    _parameters_runs_renamed_average[("metrics", "CONVERGENCE")].append(_convergence_str)
                 metrics[_metric] = f"{_mean:.5f} +- "
                 metrics[_metric] += f"{_dmean:.5f}" if _dmean is not None else "###"
             for k in metrics.keys():
@@ -300,7 +307,7 @@ class ExperimentResults:
     def _get_mean_and_dmean(cls,
                             _indices: List[int],
                             _parameters_runs_renamed: Dict[Tuple, Any],
-                            _metric: str) -> Tuple[float, Optional[float], str]:
+                            _metric: str) -> Tuple[float, Optional[float]]:
         try:
             values = [
                 _parameters_runs_renamed[("metrics", _metric)][idx]

@@ -186,26 +186,17 @@ def get_run_name_nr(_run_name, _run_nr):
     return f"{_run_name}-{_run_nr}"
 
 
-def compute_mean_and_dmean(values: List[float]) -> Tuple[float, Optional[float], str]:
+def compute_mean_and_dmean(values: List[float]) -> Tuple[float, Optional[float]]:
     """
     compute mean and its error dmean = std deviation / sqrt(N)
     ----------------------------------------------------------
     :param values: [list / np array] of [float]
     :return: mean  [float]
     :return: dmean [float]
-    :return: convergence_str [str] e.g. "3/5" (i.e. 3 of 5 runs converged)
     """
     if len(values) == 0:
-        raise Exception(f"cannot compute mean and dmean of empty list!")
-    else:
-        convergence_runs = int(sum([1 for value in values if value != -1]))
-        convergence_values = [value for value in values if value != -1]
-        convergence_str = f"{convergence_runs}/{len(values)}"
-        if len(convergence_values) == 0:
-            return -1, None, convergence_str
-        if len(values) == 1:
-            return convergence_values[0], None, convergence_str
-        elif len(values) > 1:
-            return float(np.mean(convergence_values)), \
-                   float(np.std(convergence_values) / np.sqrt(len(convergence_values))), \
-                   convergence_str
+        return -1, None
+    elif len(values) == 1:
+        return values[0], None
+    elif len(values) > 1:
+        return float(np.mean(values)), float(np.std(values) / np.sqrt(len(values)))
