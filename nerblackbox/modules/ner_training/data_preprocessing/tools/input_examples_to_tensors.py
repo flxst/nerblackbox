@@ -94,9 +94,7 @@ class InputExamplesToTensors:
         tags_split_into_words = input_example.tags.split()
         assert len(tokens_split_into_words) == len(
             tags_split_into_words
-        ), f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)} ---" \
-           f"\ntokens = {tokens_split_into_words}" \
-           f"\ntags = {tags_split_into_words}"
+        ), f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)}"
 
         encodings = self.tokenizer(
             tokens_split_into_words,
