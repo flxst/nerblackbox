@@ -8,12 +8,13 @@ for **built-in** datasets and models.
 -----------
 ## Built-in Datasets 
 
-| Name               | Language | Open Source | Sample Type  | #Samples (Train, Val, Test) | Directory Name     | Required Files | Source |               
-|---                 |---       |---          |---           |---                          |---                 |---             |---     |
-| CoNLL 2003         | English  | Yes         | Sentence     | (14040, 3249, 3452)         | conll2003          | ---            | [Description](https://www.clips.uantwerpen.be/conll2003/ner/); [Data](https://github.com/patverga/torch-ner-nlp-from-scratch/tree/master/data/conll2003)   |
-| Swedish NER Corpus | Swedish  | Yes         | Sentence     | (4819, 2065, 2452)          | swedish_ner_corpus | ---            | [Description+Data](https://github.com/klintan/swedish-ner-corpus)   |
-| SIC                | Swedish  | Yes         | Sentence     | (437, 187, 268)             | sic                | ---            | [Description+Data](https://www.ling.su.se/english/nlp/corpora-and-resources/sic)   |
-| SUC 3.0            | Swedish  | No          | Sentence     | (71046, 1546, 1568)         | suc                | `suc-*.conll`  | [Description](https://www.ling.su.se/english/nlp/corpora-and-resources/suc)   |
+| Name               | Language | Open Source | Annotation Scheme | Sample Type  | #Samples (Train, Val, Test) | Directory Name     | Required Files | Source |               
+|---                 |---       |---          |---                |---           |---                          |---                 |---             |---     |
+| CoNLL 2003         | English  | Yes         | BIO               | Sentence     | (14040, 3249, 3452)         | conll2003          | ---            | [Description](https://www.clips.uantwerpen.be/conll2003/ner/); [Data](https://github.com/patverga/torch-ner-nlp-from-scratch/tree/master/data/conll2003)   |
+| Swedish NER Corpus | Swedish  | Yes         |  IO               | Sentence     | (4819, 2065, 2452)          | swedish_ner_corpus | ---            | [Description+Data](https://github.com/klintan/swedish-ner-corpus)   |
+| SIC                | Swedish  | Yes         | BIO               | Sentence     | (437, 187, 268)             | sic                | ---            | [Description+Data](https://www.ling.su.se/english/nlp/corpora-and-resources/sic)   |
+| SUC 3.0            | Swedish  | No          | BIO               | Sentence     | (71046, 1546, 1568)         | suc                | `suc-*.conll`  | [Description](https://www.ling.su.se/english/nlp/corpora-and-resources/suc)   |
+| Swe-NERC           | Swedish  | Yes         | BIO               | Sentence     | (4224, 1810, 2586)          | swe_nerc           | ---            | [Description](https://gubox.app.box.com/v/SLTC-2020-paper-17); [Data](https://spraakbanken.gu.se/lb/resurser/swe-nerc/)   |
 
 - Datasets are pre-processed and made available by:
 

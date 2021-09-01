@@ -17,6 +17,7 @@ DATASETS_DOWNLOAD = [
     "conll2003",
     "swedish_ner_corpus",
     "sic",
+    "swe_nerc",
 ]
 
 

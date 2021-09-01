@@ -7,6 +7,7 @@ from nerblackbox.modules.datasets.formatter.conll2003_formatter import (
     CoNLL2003Formatter,
 )
 from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
+from nerblackbox.modules.datasets.formatter.swe_nerc_formatter import SweNercFormatter
 
 
 class AutoFormatter:
@@ -20,5 +21,7 @@ class AutoFormatter:
             return SICFormatter()
         elif ner_dataset == "suc":
             return SUCFormatter()
+        elif ner_dataset == "swe_nerc":
+            return SweNercFormatter()
         else:
             raise Exception(f"ner_dataset = {ner_dataset} unknown.")
