@@ -31,8 +31,15 @@ class SweNercFormatter(BaseFormatter):
             f"mv {env_variable('DIR_DATASETS')}/_swe_nerc/Swe-NERC-v1.0/manually-tagged-part/*.tsv {env_variable('DIR_DATASETS')}/swe_nerc/raw_data",
             f"rm -r {env_variable('DIR_DATASETS')}/_swe_nerc",
             f"echo '\t\t' | tee -a {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*.tsv",
-            f"cat {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*.tsv "
+            #####
+            f"cat {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*-01.tsv "
+            f"> {env_variable('DIR_DATASETS')}/swe_nerc/swe_nerc-val.tsv",
+            f"cat {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*-02.tsv "
+            f"> {env_variable('DIR_DATASETS')}/swe_nerc/swe_nerc-test.tsv",
+            f"cat {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*-0[!12].tsv "
             f"> {env_variable('DIR_DATASETS')}/swe_nerc/swe_nerc-train.tsv",
+            f"cat {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*-[!0]?.tsv "
+            f">> {env_variable('DIR_DATASETS')}/swe_nerc/swe_nerc-train.tsv",
         ]
 
         for bash_cmd in bash_cmds:
@@ -58,7 +65,7 @@ class SweNercFormatter(BaseFormatter):
         ----------------
         :return: -
         """
-        for phase in ["train"]:
+        for phase in ["train", "val", "test"]:
             rows = self._read_original_file(phase)
             rows_iob2 = self._convert_iob1_to_iob2(rows)
             self._write_formatted_csv(phase, rows_iob2)
@@ -70,14 +77,16 @@ class SweNercFormatter(BaseFormatter):
         :param val_fraction: [float], e.g. 0.3
         :return: -
         """
-        # train -> train, val, test
-        df_train_val_test = self._read_formatted_csvs(["train"])
-        df_train_val, df_test = self._split_off_validation_set(
-            df_train_val_test, val_fraction
-        )
-        df_train, df_val = self._split_off_validation_set(df_train_val, val_fraction)
+        # train -> train
+        df_train = self._read_formatted_csvs(["train"])
         self._write_final_csv("train", df_train)
+
+        # val  -> val
+        df_val = self._read_formatted_csvs(["val"])
         self._write_final_csv("val", df_val)
+
+        # test  -> test
+        df_test = self._read_formatted_csvs(["test"])
         self._write_final_csv("test", df_test)
 
     ####################################################################################################################
@@ -91,7 +100,8 @@ class SweNercFormatter(BaseFormatter):
         :return: _rows: [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
         """
         file_name = {
-            "train": "swe_nerc-train.tsv",
+            phase: f"swe_nerc-{phase}.tsv"
+            for phase in ["train", "val", "test"]
         }
         file_path_original = join(self.dataset_path, file_name[phase])
 
