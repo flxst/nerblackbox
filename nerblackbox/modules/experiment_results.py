@@ -28,6 +28,7 @@ class ExperimentResults:
         "entity_fil_asr_recall_micro": "TEST_ENT_ASR_REC",
         "entity_fil_asr_f1_micro": "TEST_ENT_ASR_F1",
     }
+    METRICS_PLUS = dict(**{"EPOCHS": "EPOCHS"}, **METRICS)
     PARAMS = {
         "max_seq_length": "max_seq",
         "lr_schedule": "lr_sch",
@@ -172,7 +173,7 @@ class ExperimentResults:
                     else:
                         _parameters_runs[("params", k)].append(v)
 
-                for k in cls.METRICS.keys():
+                for k in cls.METRICS_PLUS.keys():
                     if ("metrics", k) not in _parameters_runs.keys():
                         try:
                             _parameters_runs[("metrics", k)] = [_runs[i].data.metrics[k]]
@@ -194,6 +195,10 @@ class ExperimentResults:
             except:
                 _parameters_runs[("metrics", k)] = [-1]
 
+        if _parameters_runs[("metrics", "epoch_best".upper())] != [-1]:
+            _parameters_runs[("metrics", "epochs".upper())] = \
+                [elem + 1 for elem in _parameters_runs[("metrics", "epoch_best".upper())]]
+
         return _parameters_runs, _parameters_experiment
 
     @classmethod
@@ -210,10 +215,10 @@ class ExperimentResults:
         if _category == "params":
             return "params", cls.PARAMS[_field] if _field in cls.PARAMS.keys() else _field
         elif _category == "metrics":
-            if _field in cls.METRICS.keys():
-                return "metrics", cls.METRICS[_field]
-            elif _field.replace("D_", "") in cls.METRICS.keys():
-                return "metrics", f"D_{cls.METRICS[_field.replace('D_', '')]}"
+            if _field in cls.METRICS_PLUS.keys():
+                return "metrics", cls.METRICS_PLUS[_field]
+            elif _field.replace("D_", "") in cls.METRICS_PLUS.keys():
+                return "metrics", f"D_{cls.METRICS_PLUS[_field.replace('D_', '')]}"
         else:
             return _category, _field
 
@@ -243,7 +248,7 @@ class ExperimentResults:
             ] + \
             [
                 ("metrics", k)
-                for k in ["CONVERGENCE"] + list(cls.METRICS.values())
+                for k in ["CONVERGENCE"] + list(cls.METRICS_PLUS.values())
             ]
         _parameters_runs_renamed_average = {k: list() for k in keys}
 
@@ -289,7 +294,7 @@ class ExperimentResults:
             convergence_str = f"{len(indices_converged)}/{len(indices)}"
             _parameters_runs_renamed_average[("metrics", "CONVERGENCE")].append(convergence_str)
 
-            for _metric in cls.METRICS.values():
+            for _metric in cls.METRICS_PLUS.values():
                 _mean, _dmean = cls._get_mean_and_dmean(
                     indices_converged,
                     _parameters_runs_renamed,
