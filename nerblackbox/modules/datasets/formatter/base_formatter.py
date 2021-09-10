@@ -225,7 +225,7 @@ class BaseFormatter(ABC):
         columns = ["O"] + self.ner_tag_list
 
         try:
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep="\t", header=None, names=["labels", "text"])
         except pd.io.common.EmptyDataError:
             df = None
 

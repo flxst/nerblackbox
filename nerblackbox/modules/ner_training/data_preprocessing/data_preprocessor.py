@@ -140,6 +140,9 @@ class DataPreprocessor:
 
         _dataloader = dict()
         for phase in input_examples.keys():
+            self.default_logger.log_info(
+                f"[before preprocessing] {phase.ljust(5)} data: {len(input_examples[phase])} examples"
+            )
             encodings = input_examples_to_tensors(
                 input_examples[phase], predict=phase == "predict"
             )
@@ -150,7 +153,7 @@ class DataPreprocessor:
             )  # data[j] = 4 torch tensors corresponding to EncodingKeys
             if self.default_logger:
                 self.default_logger.log_info(
-                    f"[after pre-preprocessing] {phase.ljust(5)} data: {len(data)} examples"
+                    f"[after  preprocessing] {phase.ljust(5)} data: {len(data)} examples"
                 )
 
             assert phase in [
