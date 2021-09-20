@@ -320,7 +320,7 @@ class NerModel(pl.LightningModule, ABC):
         create scheduler with warmup
         ----------------------------
         :param _lr_warmup_epochs:   [int]
-        :param _lr_schedule:        [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets'
+        :param _lr_schedule:        [str], 'linear', 'constant', 'cosine', 'cosine_with_hard_resets', 'hybrid'
         :param _lr_max_epochs:      [int, optional] needed for _lr_schedule != 'constant'
         :param _lr_num_cycles:      [float, optional], e.g. 0.5, 1.0, only for cosine learning rate schedules
         :return: scheduler          [torch LambdaLR] learning rate scheduler
@@ -330,6 +330,7 @@ class NerModel(pl.LightningModule, ABC):
             "linear",
             "cosine",
             "cosine_with_hard_restarts",
+            "hybrid",
         ]:
             raise Exception(f"lr_schedule = {_lr_schedule} not implemented.")
 
@@ -340,7 +341,7 @@ class NerModel(pl.LightningModule, ABC):
             "last_epoch": -1,
         }
 
-        if _lr_schedule == "constant":
+        if _lr_schedule in ["constant", "hybrid"]:
             return get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
         else:
             assert _lr_max_epochs is not None, \

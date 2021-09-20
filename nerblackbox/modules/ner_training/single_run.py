@@ -19,7 +19,8 @@ from nerblackbox.modules.utils.util_functions import (
     checkpoint2epoch,
     epoch2checkpoint,
 )
-from nerblackbox.modules.ner_training.custom_early_stopping import CustomEarlyStopping
+from nerblackbox.modules.ner_training.callbacks.custom_early_stopping import CustomEarlyStopping
+from nerblackbox.modules.ner_training.callbacks.learning_rate_changer import LearningRateChanger
 
 
 def execute_single_run(params, hparams, log_dirs, experiment: bool):
@@ -154,6 +155,9 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
     :return: _callbacks: [list] w/ [pytorch lightning callback]
     """
     early_stopping = vars(_hparams)["early_stopping"]
+    lr_schedule_hybrid = vars(_hparams)["lr_schedule"] == "hybrid"
+    assert not early_stopping and lr_schedule_hybrid, \
+        f"ERROR! early_stopping and lr_schedule_hybrid cannot both be True."
 
     model_checkpoint = ModelCheckpoint(
         dirpath=_get_model_checkpoint_directory(_params),
@@ -184,6 +188,19 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
             CustomEarlyStopping(
                 **early_stopping_params,
                 verbose=True,
+            ),
+        )
+    elif lr_schedule_hybrid:
+        learning_rate_changer_params = {
+            k: vars(_hparams)[k] for k in [
+                "max_epochs",
+                "lr_cooldown_epochs",
+            ]
+        }
+        _callbacks = (
+            model_checkpoint,
+            LearningRateChanger(
+                **learning_rate_changer_params,
             ),
         )
     else:
