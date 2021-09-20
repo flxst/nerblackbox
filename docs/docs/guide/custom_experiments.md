@@ -29,18 +29,20 @@ Create your own **custom experiment configuration** with ``<experiment_name> = c
     min_delta = 0.0
     patience = 2
     mode = min
+    lr_cooldown_restarts = True
+    lr_cooldown_epochs = 3
     lr_warmup_epochs = 1
     lr_num_cycles = 4
 
     [runA]
     batch_size = 16
-    max_seq_length = 64
+    max_seq_length = 128
     lr_max = 2e-5
     lr_schedule = constant
 
     [runB]
     batch_size = 32
-    max_seq_length = 128
+    max_seq_length = 64
     lr_max = 3e-5
     lr_schedule = cosine
     ```
@@ -56,8 +58,7 @@ An experiment configuration contains the following **parameter groups**:
 1. Dataset
 2. Model
 3. Settings
-4. Hyperparameters (Optional)
-5. Hyperparameters (Mandatory)
+4. Hyperparameters
 
 Some parameters are **mandatory** (i.e. they have to be included in an experiment configuration), 
 others are **optional** and are set to default values if not specified.
@@ -102,7 +103,7 @@ others are **optional** and are set to default values if not specified.
 |---                |---        |---            |---    |---             |---                                                                                                   |
 | checkpoints       | No        | True          | bool  | True, False    | whether to save model checkpoints                                                                    |
 | logging_level     | No        | info          | str   | info, debug    | choose [logging level](https://docs.python.org/3/library/logging.html#levels), debug is more verbose |
-| multiple_runs     | No        | 1             | int   | 1+             | choose how often each hyperparameter run is executed (to control for statistical uncertainties)      |
+| multiple_runs     | No        | 3             | int   | 1+             | choose how often each hyperparameter run is executed (to control for statistical uncertainties)      |
 | seed              | No        | 42            | int   | 1+             | for reproducibility. multiple runs get different seeds.                                                                   |
 
 ??? example "Example: custom_experiment.ini (Settings)"
@@ -115,20 +116,26 @@ others are **optional** and are set to default values if not specified.
     ```
 
 -----------
-### 4. Hyperparameters (Optional)
+### 4. Hyperparameters
 
-| Key               | Mandatory | Default Value | Type  | Values                   | Comment                                                                                                                |          
-|---                |---        |---            |---    |---                       |---                                                                                                                     |
-| max_epochs        | No        | 20            | int   | 1+                       | (maximum) amount of training epochs                                                                                    |
-| early_stopping    | No        | True          | bool  | True, False              | whether to use early stopping                                                                                          |
-| monitor           | No        | val_loss      | str   | val_loss, val_acc        | if early stopping is True: metric to monitor (acc = accuracy)                                                                     |
-| min_delta         | No        | 0.0           | float | 0.0+                     | if early stopping is True: minimum amount of improvement (w.r.t. monitored metric) required to continue training                  |
-| patience          | No        | 2             | int   | 0+                       | if early stopping is True: number of epochs to wait for improvement w.r.t. monitored metric until training is stopped             |
-| mode              | No        | min           | str   | min, max                 | if early stopping is True: whether the optimum for the monitored metric is the minimum (val_loss) or maximum (val_acc) value      |
-| lr_warmup_epochs  | No        | 1             | int   | 0+                       | number of epochs to gradually increase the learning rate during the warm-up phase, gets translated to [num_warmup_steps](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_scheduler)                          |
-| lr_num_cycles     | No        | 4             | int   | 1+                       | num_cycles for [lr_schedule = cosine](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_schedule_with_warmup) or [lr_schedule = cosine_with_hard_restarts](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_with_hard_restarts_schedule_with_warmup)                                                                                |
+| Key                  | Mandatory | Default Value | Type  | Values                   | Comment                                                                                                                |          
+|---                   |---        |---            |---    |---                       |---                                                                                                                     |
+| batch_size           | No        | 16            | int   | e.g. 16, 32, 64          | number of training samples in one batch             |
+| max_seq_length       | No        | 128           | int   | e.g. 64, 128, 256        | maximum sequence length used for model's input data |
+| max_epochs           | No        | 50            | int   | 1+                       | (maximum) amount of training epochs                                                                                    |
+| early_stopping       | No        | True          | bool  | True, False              | whether to use early stopping                                                                                          |
+| monitor              | No        | val_loss      | str   | val_loss, val_acc        | if early stopping is True: metric to monitor (acc = accuracy)                                                                     |
+| min_delta            | No        | 0.0           | float | 0.0+                     | if early stopping is True: minimum amount of improvement (w.r.t. monitored metric) required to continue training                  |
+| patience             | No        | 0             | int   | 0+                       | if early stopping is True: number of epochs to wait for improvement w.r.t. monitored metric until training is stopped             |
+| mode                 | No        | min           | str   | min, max                 | if early stopping is True: whether the optimum for the monitored metric is the minimum (val_loss) or maximum (val_acc) value      |
+| lr_cooldown_restarts | No        | True          | bool  | True, False              | if early stopping is True: whether to restart normal training if monitored metric improves during cool-down phase                          |
+| lr_cooldown_epochs   | No        | 3             | int   | 0+                       | if early stopping is True: number of epochs to linearly decrease the learning rate during the cool-down phase, gets translated to [num_warmup_steps](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_scheduler)                          |
+| lr_warmup_epochs     | No        | 2             | int   | 0+                       | number of epochs to linearly increase the learning rate during the warm-up phase, gets translated to [num_warmup_steps](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_scheduler)                          |
+| lr_max               | No        | 2e-5          | float | e.g. 2e-5, 3e-5          | maximum learning rate (after warm-up) for [AdamW optimizer](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.AdamW)                |
+| lr_schedule          | No        | constant      | str   | constant, linear, cosine, cosine_with_hard_restarts | [Learning Rate Schedule](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#schedules), i.e. how to vary the learning rate (after warm-up)       |
+| lr_num_cycles        | No        | 4             | int   | 1+                       | num_cycles for [lr_schedule = cosine](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_schedule_with_warmup) or [lr_schedule = cosine_with_hard_restarts](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_with_hard_restarts_schedule_with_warmup)                                                                                |
 
-??? example "Example: custom_experiment.ini (Hyperparameters Optional)"
+??? example "Example: custom_experiment.ini (Hyperparameters)"
     ``` markdown
     [hparams]
     max_epochs = 20
@@ -137,31 +144,20 @@ others are **optional** and are set to default values if not specified.
     min_delta = 0.0
     patience = 2
     mode = min
+    lr_cooldown_restarts = True
+    lr_cooldown_epochs = 3
     lr_warmup_epochs = 1
     lr_num_cycles = 4
-    ```
 
------------
-### 5. Hyperparameters (Mandatory)
-
-| Key               | Mandatory | Default Value | Type  | Values                                              | Comment                                             |          
-|---                |---        |---            |---    |---                                                  |---                                                  |
-| batch_size        | Yes       | ---           | int   | e.g. 16, 32, 64                                     | number of training samples in one batch             |
-| max_seq_length    | Yes       | ---           | int   | e.g. 64, 128, 256                                   | maximum sequence length used for model's input data |
-| lr_max            | Yes       | ---           | float | e.g. 2e-5, 3e-5                                     | maximum learning rate (after warm-up) for [AdamW optimizer](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.AdamW)                |
-| lr_schedule       | Yes       | ---           | str   | constant, linear, cosine, cosine_with_hard_restarts | [Learning Rate Schedule](https://huggingface.co/transformers/main_classes/optimizer_schedules.html#schedules), i.e. how to vary the learning rate (after warm-up)       |
-
-???+ example "Example: custom_experiment.ini (Hyperparameters Mandatory)"
-    ``` markdown
     [runA]
     batch_size = 16
-    max_seq_length = 64
+    max_seq_length = 128
     lr_max = 2e-5
     lr_schedule = constant
 
     [runB]
     batch_size = 32
-    max_seq_length = 128
+    max_seq_length = 64
     lr_max = 3e-5
     lr_schedule = cosine
     ```
