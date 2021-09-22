@@ -12,6 +12,7 @@ Create your own **custom experiment configuration** with ``<experiment_name> = c
     prune_ratio_train = 0.1  # for testing
     prune_ratio_val = 1.0
     prune_ratio_test = 1.0
+    train_on_val = False
 
     [model]
     pretrained_model_name = af-ai-center/bert-base-swedish-uncased
@@ -73,6 +74,7 @@ others are **optional** and are set to default values if not specified.
 | prune_ratio_train | No        | 1.0           | float | 0.0 - 1.0        | fraction of train dataset to be used                                                                                                                           |
 | prune_ratio_val   | No        | 1.0           | float | 0.0 - 1.0        | fraction of val   dataset to be used                                                                                                                           | 
 | prune_ratio_test  | No        | 1.0           | float | 0.0 - 1.0        | fraction of test  dataset to be used                                                                                                                           |
+| train_on_val      | No        | False         | bool  | True, False      | whether to train on both training and validation dataset instead of only the training dataset                                                                                                           |
 
 ??? example "Example: custom_experiment.ini (Dataset)"
     ``` markdown
@@ -82,6 +84,7 @@ others are **optional** and are set to default values if not specified.
     prune_ratio_train = 0.1  # for testing
     prune_ratio_val = 1.0
     prune_ratio_test = 1.0
+    train_on_val = False
     ```
 
 -----------

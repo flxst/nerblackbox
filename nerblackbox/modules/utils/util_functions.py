@@ -55,6 +55,7 @@ def get_hardcoded_parameters(keys=False):
         "prune_ratio_train": "float",
         "prune_ratio_val": "float",
         "prune_ratio_test": "float",
+        "train_on_val": "bool",
         "pretrained_model_name": "str",
         "uncased": "bool",
         "checkpoints": "bool",

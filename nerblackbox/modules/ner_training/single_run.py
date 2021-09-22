@@ -112,6 +112,7 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info(f"> prune_ratio_train:     {_params.prune_ratio_train}")
     _logger.log_info(f"> prune_ratio_val:       {_params.prune_ratio_val}")
     _logger.log_info(f"> prune_ratio_test:      {_params.prune_ratio_test}")
+    _logger.log_info(f"> train_on_val:          {_params.train_on_val}")
     _logger.log_info("..")
     _logger.log_info(f"> pretrained_model_name: {_params.pretrained_model_name}")
     _logger.log_info(f"> uncased:               {_params.uncased}")
