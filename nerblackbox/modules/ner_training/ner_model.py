@@ -25,8 +25,7 @@ from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvalua
 from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
-
-NEWLINE_TOKENS = ["[newline]", "[NEWLINE]"]
+from nerblackbox.modules.utils.util_functions import read_special_tokens
 
 
 class NerModel(pl.LightningModule, ABC):
@@ -99,10 +98,13 @@ class NerModel(pl.LightningModule, ABC):
             )
 
         # 2. tokenizer
+        special_tokens = read_special_tokens(self.params.dataset_name)
+        self.default_logger.log_info(f"> read special tokens: {special_tokens}")
+
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.pretrained_model_name,
             do_lower_case=False,
-            additional_special_tokens=NEWLINE_TOKENS,
+            additional_special_tokens=special_tokens,
             use_fast=True,
         )  # do_lower_case needs to be False !!
 

@@ -1,7 +1,8 @@
 import os
 from typing import Tuple, List, Optional
 import numpy as np
-from os.path import join
+from os.path import join, isfile
+import json
 from argparse import Namespace
 import pkg_resources
 from omegaconf import OmegaConf
@@ -31,6 +32,28 @@ def get_dataset_path(dataset):
     :return: dataset_path: [str] path to dataset directory
     """
     return join(env_variable("DIR_DATASETS"), dataset)
+
+
+def read_special_tokens(dataset: str) -> List[str]:
+    """
+    if the file "special_tokens.json" exists for the dataset, read it and return its content
+    ----------------------------------------------------------------------------------------
+
+    Args:
+        dataset: e.g. 'swedish_ner_corpus'
+
+    Returns:
+        special_tokens: e.g. ["[NEWLINE]", "[TAB]"]
+    """
+    path_special_tokens = join(get_dataset_path(dataset), "special_tokens.json")
+    if isfile(path_special_tokens):
+        with open(path_special_tokens, "r") as file:
+            special_tokens = json.load(file)
+        assert isinstance(special_tokens, list), \
+            f"ERROR! {path_special_tokens} seems to contain a {type(special_tokens)}, should be list."
+    else:
+        special_tokens = list()
+    return special_tokens
 
 
 def get_hardcoded_parameters(keys=False):
