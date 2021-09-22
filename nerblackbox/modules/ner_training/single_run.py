@@ -156,7 +156,7 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
     """
     early_stopping = vars(_hparams)["early_stopping"]
     lr_schedule_hybrid = vars(_hparams)["lr_schedule"] == "hybrid"
-    assert not early_stopping and lr_schedule_hybrid, \
+    assert early_stopping is False or lr_schedule_hybrid is False, \
         f"ERROR! early_stopping and lr_schedule_hybrid cannot both be True."
 
     model_checkpoint = ModelCheckpoint(
