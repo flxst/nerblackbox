@@ -92,6 +92,7 @@ class NerModelTrain(NerModel):
             },
             dataset_name=self.params.dataset_name,
             train_on_val=self.params.train_on_val,
+            train_on_test=self.params.train_on_test,
         )
         self.default_logger.log_info(f"> annotation scheme found: {self.annotation.scheme}")
         if self.params.annotation_scheme == "auto":

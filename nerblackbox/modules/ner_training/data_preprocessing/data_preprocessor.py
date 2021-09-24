@@ -42,7 +42,8 @@ class DataPreprocessor:
         self.max_seq_length = max_seq_length
 
     def get_input_examples_train(
-        self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None, train_on_val: Optional[bool] = None,
+        self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None,
+            train_on_val: Optional[bool] = None, train_on_test: Optional[bool] = None,
     ) -> Tuple[Dict[str, InputExamples], Annotation]:
         """
         - get input examples for TRAIN from csv files
@@ -50,7 +51,8 @@ class DataPreprocessor:
         Args:
             prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
             dataset_name:     [str], e.g. 'suc'
-            train_on_val:     [bool] if True, train on training and validation set
+            train_on_val:     [bool] if True, train additionally on validation set
+            train_on_test:    [bool] if True, train additionally on test set
 
         Returns:
             input_examples:          [dict] w/ keys = 'train', 'val', 'test' & values = [list] of [InputExample]
@@ -79,6 +81,8 @@ class DataPreprocessor:
 
         if train_on_val:
             input_examples["train"] += input_examples["val"]
+        if train_on_test:
+            input_examples["train"] += input_examples["test"]
 
         annotation = Annotation(csv_reader.annotation_classes)
 
