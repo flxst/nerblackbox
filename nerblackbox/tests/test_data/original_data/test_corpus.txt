@@ -1,0 +1,12 @@
+Det   PER
+här   0
+är   0
+ett   LOC
+test   0
+
+Med   0
+två   0
+meningar   LOC
+.   0
+ignore this row 0
+

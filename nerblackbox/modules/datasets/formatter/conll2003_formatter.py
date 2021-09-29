@@ -1,8 +1,9 @@
-import os
 import requests
 from os.path import join, isfile
+from typing import Dict, List, Optional, Tuple
+import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
+from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
 
 
 class CoNLL2003Formatter(BaseFormatter):
@@ -14,12 +15,12 @@ class CoNLL2003Formatter(BaseFormatter):
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
-    def get_data(self, verbose: bool):
+    def get_data(self, verbose: bool) -> None:  # pragma: no cover
         """
         I: get data
-        -----------
-        :param verbose: [bool]
-        :return: -
+
+        Args:
+            verbose: [bool]
         """
         url_base = "https://raw.githubusercontent.com/patverga/torch-ner-nlp-from-scratch/master/data/conll2003/"
         targets = ["eng.train", "eng.testa", "eng.testb"]
@@ -38,71 +39,108 @@ class CoNLL2003Formatter(BaseFormatter):
                 if verbose:
                     print(f".. file fetched from {url} and saved at {target_file}")
 
-    def create_ner_tag_mapping(self):
+    def create_ner_tag_mapping(self) -> Dict[str, str]:
         """
         II: customize ner_training tag mapping if wanted
-        -------------------------------------
-        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
+
+        Returns:
+            ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         return dict()
 
-    def format_data(self):
+    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
-        ----------------
-        :return: -
+
+        Args:
+            shuffle: whether to shuffle rows of dataset
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+
+        Returns:
+            sentences_rows_iob2: only if write_csv = False
         """
         for phase in ["train", "val", "test"]:
-            rows = self._read_original_file(phase)
-            rows_iob2 = self._convert_iob1_to_iob2(rows)
-            self._write_formatted_csv(phase, rows_iob2)
+            sentences_rows_iob1 = self._read_original_file(phase)
+            if shuffle:
+                sentences_rows_iob1 = self._shuffle_dataset(phase, sentences_rows_iob1)
 
-    def resplit_data(self, val_fraction: float):
-        """
-        IV: resplit data
-        ----------------
-        :param val_fraction: [float]
-        :return: -
-        """
-        # train -> train
-        df_train = self._read_formatted_csvs(["train"])
-        self._write_final_csv("train", df_train)
+            sentences_rows_iob2 = self._convert_iob1_to_iob2(sentences_rows_iob1)
+            if write_csv:  # pragma: no cover
+                self._write_formatted_csv(phase, sentences_rows_iob2)
+            else:
+                return sentences_rows_iob2
 
-        # val  -> val
-        df_val = self._read_formatted_csvs(["val"])
-        self._write_final_csv("val", df_val)
-
-        # test  -> test
-        df_test = self._read_formatted_csvs(["test"])
-        self._write_final_csv("test", df_test)
-
-    ####################################################################################################################
-    # HELPER FUNCTIONS
-    ####################################################################################################################
-    def _read_original_file(self, phase):
+    def set_original_file_paths(self) -> None:
         """
         III: format data
-        ---------------------------------------------
-        :param phase:   [str] 'train' or 'test'
-        :return: _rows: [list] of [list] of [str], e.g. [[], ['Inger', 'PER'], ['säger', '0'], ..]
+
+        Changed Attributes:
+            file_paths: [Dict[str, str]], e.g. {'train': <path_to_train_csv>, 'val': ..}
+
+        Returns: -
         """
-        file_name = {
+        self.file_name = {
             "train": "eng.train",
             "val": "eng.testa",
             "test": "eng.testb",
         }
-        file_path_original = join(self.dataset_path, file_name[phase])
 
-        _rows = list()
-        if os.path.isfile(file_path_original):
-            with open(file_path_original) as f:
-                for i, row in enumerate(f.readlines()):
-                    _rows.append(row.strip().split())
-            print(f"\n> read {file_path_original}")
+    def _parse_row(self, _row: str) -> List[str]:
+        """
+        III: format data
 
-        _rows = [
-            [row[0], row[-1]] if (len(row) == 4 and row[0] != "-DOCSTART-") else list()
-            for row in _rows
-        ]
+        Args:
+            _row: e.g. "Det PER X B"
 
-        return _rows
+        Returns:
+            _row_list: e.g. ["Det", "PER", "X", "B"]
+        """
+        return _row.strip().split()
+
+    def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:
+        """
+        III: format data
+
+        Args:
+            _row_list: e.g. ["test", "PER", "X", "B"]
+
+        Returns:
+            _row_list_formatted: e.g. ["test", "B-PER"]
+        """
+        if not len(_row_list) in [4]:  # pragma: no cover
+            raise Exception(f"ERROR! row_list = {_row_list} should consist of 4 parts!")
+
+        if _row_list[0] != "-DOCSTART-":
+            _row_list_formatted = [_row_list[0], _row_list[-1]]
+            return _row_list_formatted
+        else:
+            return None
+
+    def resplit_data(self, val_fraction: float = 0.0, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
+        """
+        IV: resplit data
+
+        Args:
+            val_fraction: [float], e.g. 0.3
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+
+        Returns:
+            df_train: only if write_csv = False
+            df_val:   only if write_csv = False
+            df_test:  only if write_csv = False
+        """
+        # train -> train
+        df_train = self._read_formatted_csvs(["train"])
+
+        # val  -> val
+        df_val = self._read_formatted_csvs(["val"])
+
+        # test  -> test
+        df_test = self._read_formatted_csvs(["test"])
+
+        if write_csv:  # pragma: no cover
+            self._write_final_csv("val", df_val)
+            self._write_final_csv("train", df_train)
+            self._write_final_csv("test", df_test)
+        else:
+            return df_train, df_val, df_test

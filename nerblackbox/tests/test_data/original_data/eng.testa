@@ -1,0 +1,13 @@
+-DOCSTART- -X- -X- O
+
+Det NNP I-NP I-PER
+här : O O
+är NNP I-NP O
+ett NNP I-NP I-LOC
+test IN I-PP O
+
+Med NNP I-NP O
+två NNP I-NP O
+meningar NNP I-NP I-LOC
+. NN I-NP O
+

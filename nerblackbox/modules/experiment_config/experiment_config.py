@@ -1,8 +1,8 @@
 import os
 from os.path import join
 from configparser import ConfigParser
-from nerblackbox.modules.utils.util_functions import get_hardcoded_parameters
-from nerblackbox.modules.utils.util_functions import env_variable
+from nerblackbox.modules.utils.parameters import PARAMS, HPARAMS
+from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.utils.util_functions import get_run_name, get_run_name_nr
 from itertools import product
 from typing import Union, Tuple, Any, Dict, Optional, List
@@ -12,8 +12,6 @@ class ExperimentConfig:
     """
     class that parses <experiment_name>.ini files
     """
-
-    _, params, hparams, _ = get_hardcoded_parameters(keys=False)
 
     def __init__(self, experiment_name: str, run_name: str, device, fp16: bool):
         """
@@ -130,9 +128,9 @@ class ExperimentConfig:
             _run_hparams.update(config_dict["hparams"])
 
             for k, v in config_dict[run_name].items():
-                if k in self.params:
+                if k in PARAMS:
                     _run_params[k] = v
-                elif k in self.hparams:
+                elif k in HPARAMS:
                     _run_hparams[k] = v
                 else:
                     raise Exception(f"parameter = {k} is unknown.")
@@ -199,10 +197,10 @@ class ExperimentConfig:
         :param _input_value:      [str],                e.g. 'constant'    or '0.01'              or 'False'
         :return: converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01               or  False
         """
-        if _input_key in self.params.keys():
-            convert_to = self.params[_input_key]
-        elif _input_key in self.hparams.keys():
-            convert_to = self.hparams[_input_key]
+        if _input_key in PARAMS.keys():
+            convert_to = PARAMS[_input_key]
+        elif _input_key in HPARAMS.keys():
+            convert_to = HPARAMS[_input_key]
         else:
             raise Exception(f"_input_key = {_input_key} unknown.")
 
