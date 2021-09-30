@@ -32,7 +32,7 @@ class NerBlackBoxMain:
         verbose: bool = False,
         experiment_name: Optional[str] = None,
         run_name: Optional[str] = None,  # run_experiment
-        device: Any = "gpu",  # run_experiment
+        device: str = "gpu",  # run_experiment
         fp16: bool = False,  # run_experiment
         text_input: Optional[str] = None,  # predict
         ids: Tuple[str, ...] = (),  # get_experiments, get_experiments_results
@@ -48,7 +48,7 @@ class NerBlackBoxMain:
         :param verbose:         [bool]
         :param experiment_name: [str], e.g. 'exp0'
         :param run_name:        [str or None], e.g. 'runA'
-        :param device:          [torch device]
+        :param device:          [str]
         :param fp16:            [bool]
         :param text_input:      [str], e.g. 'this is some text that needs to be annotated'
         :param ids:             [tuple of str], experiment_ids to include
@@ -382,7 +382,7 @@ class NerBlackBoxMain:
         """
         :used attr: experiment_name [str],         e.g. 'exp1'
         :used attr: run_name        [str] or None, e.g. 'runA'
-        :used attr: device          [torch device]
+        :used attr: device          [str]
         :used attr: fp16            [bool]
         """
         _parameters = {

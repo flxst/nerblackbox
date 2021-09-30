@@ -17,11 +17,13 @@ logging.basicConfig(
 warnings.filterwarnings("ignore")
 
 
-def main(params, log_dirs):
+def main(params: argparse.Namespace, log_dirs: argparse.Namespace) -> None:
     """
-    :param params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16, experiment_run_name_nr
-    :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
-    :return: -
+    Args:
+        params: w/ keys experiment_name, run_name, device, fp16, experiment_run_name_nr
+        log_dirs: w/ keys mlflow, tensorboard
+
+    Returns: -
     """
     assert_that_experiment_hasnt_been_run_before(params.experiment_name)
 

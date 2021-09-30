@@ -13,12 +13,13 @@ class ExperimentConfig:
     class that parses <experiment_name>.ini files
     """
 
-    def __init__(self, experiment_name: str, run_name: str, device, fp16: bool):
+    def __init__(self, experiment_name: str, run_name: Optional[str], device: str, fp16: bool):
         """
-        :param experiment_name: [str],         e.g. 'exp1'
-        :param run_name:        [str or None], e.g. 'runA'
-        :param device:          [torch device]
-        :param fp16:            [bool]
+        Args:
+            experiment_name: e.g. 'exp1'
+            run_name:        e.g. 'runA'
+            device:          e.g. 'gpu'
+            fp16:
         """
         self.experiment_name = experiment_name
         self.run_name = run_name
@@ -34,21 +35,24 @@ class ExperimentConfig:
         self.config_path_default = join(
             env_variable("DIR_EXPERIMENT_CONFIGS"), "default.ini"
         )
-        if not os.path.isfile(self.config_path_default):
+        if not os.path.isfile(self.config_path_default):  # pragma: no cover
             raise Exception(
                 f"default config file at {self.config_path_default} does not exist"
             )
 
     def get_params_and_hparams(
         self, run_name_nr: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> Dict[str, Union[str, int, float, bool]]:
         """
         get dictionary of all parameters & their values that belong to
         either generally    to experiment (run_name == None)
         or     specifically to run        (run_name != None)
-        --------------------------------------------------------------
-        :param run_name_nr:          [str]  e.g. 'runA-1'
-        :return: params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
+
+        Args:
+            run_name_nr:        [str]  e.g. 'runA-1'
+
+        Returns:
+            params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
         """
         _, config_dict_default = self._get_config(default=True)
         config, config_dict = self._get_config(default=False)
@@ -64,16 +68,20 @@ class ExperimentConfig:
 
         return params_and_hparams
 
-    def parse(self) -> Tuple[List[str], Dict[str, Dict], Dict[str, Dict]]:
+    def parse(self) -> Tuple[List[str],
+                             Dict[str, Dict[str, Union[str, int, float, bool]]],
+                             Dict[str, Dict[str, Union[str, int, float, bool]]]]:
         """
         parse <experiment_name>.ini files
         if self.run_name is specified, parse only that run. else parse all runs.
-        ------------------------------------------------------------------------
-        :return: _runs_name_nr [list] of [str], e.g. ['runA-1', 'runA-2', 'runB-1', 'runB-2']
-                 _runs_params  [dict] w/ keys = run [str], values = params [dict],
-                                      e.g. {'runA-1': {'patience': 2, 'mode': 'min', ..}, ..}
-                 _runs_hparams [dict] w/ keys = run [str], values = hparams [dict],
-                                      e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
+
+        Returns:
+            _runs_name_nr [list] of [str],
+                                 e.g. ['runA-1', 'runA-2', 'runB-1', 'runB-2']
+            _runs_params  [dict] w/ keys = run [str], values = params [dict],
+                                 e.g. {'runA-1': {'patience': 2, 'mode': 'min', ..}, ..}
+            _runs_hparams [dict] w/ keys = run [str], values = hparams [dict],
+                                 e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         _, config_dict_default = self._get_config(default=True)
         config, config_dict = self._get_config(default=False)
@@ -107,7 +115,7 @@ class ExperimentConfig:
             assert len(run_names) == 1
 
         _runs_name_nr = list()
-        for run_name, run_nr in product(run_names, list(range(1, multiple_runs + 1))):
+        for run_name, run_nr in product(run_names, list(range(1, int(multiple_runs) + 1))):
             run_name_nr = get_run_name_nr(run_name, run_nr)
 
             # _run_params
@@ -146,13 +154,16 @@ class ExperimentConfig:
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
-    def _get_config(self, default: bool = False) -> Tuple[ConfigParser, Dict]:
+    def _get_config(self, default: bool = False) -> Tuple[ConfigParser, Dict[str, Dict[str, str]]]:
         """
         get ConfigParser instance and derive config dictionary from it
-        --------------------------------------------------------------
-        :param default:        [bool] if True, get default configuration instead of experiment
-        :return: _config:      [ConfigParser instance]
-        :return: _config_dict: [dict] w/ keys = sections [str], values = [dict] w/ params: values
+
+        Args:
+            default: if True, get default configuration instead of experiment
+
+        Returns:
+            _config:      [ConfigParser instance]
+            _config_dict: w/ keys = sections [str], values = [dict] w/ key: value = params: values
         """
         _config = ConfigParser()
         _config.read(self.config_path_default if default else self.config_path)
@@ -187,15 +198,19 @@ class ExperimentConfig:
 
         return _config, _config_dict
 
+    @staticmethod
     def _convert(
-        self, _input_key: str, _input_value: str
+        _input_key: str, _input_value: str
     ) -> Union[str, int, float, bool]:
         """
         convert _input string to str/int/float/bool
-        -------------------------------------------
-        :param _input_key:        [str],                e.g. 'lr_schedule' or 'prune_ratio_train' or 'checkpoints'
-        :param _input_value:      [str],                e.g. 'constant'    or '0.01'              or 'False'
-        :return: converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01               or  False
+
+        Args:
+            _input_key:        [str],              e.g. 'lr_schedule' or 'prune_ratio_train' or 'checkpoints'
+            _input_value:      [str],              e.g. 'constant'    or '0.01'              or 'False'
+
+        Returns:
+            converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01               or  False
         """
         if _input_key in PARAMS.keys():
             convert_to = PARAMS[_input_key]
@@ -212,5 +227,5 @@ class ExperimentConfig:
             return float(_input_value)
         elif convert_to == "bool":
             return _input_value not in ["False", "false"]
-        else:
+        else:  # pragma: no cover
             raise Exception(f"convert_to = {convert_to} not known.")
