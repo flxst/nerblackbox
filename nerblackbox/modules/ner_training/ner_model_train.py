@@ -9,6 +9,7 @@ from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 from nerblackbox.modules.ner_training.ner_model import NerModel
 from nerblackbox.modules.ner_training.annotation_tags.input_examples_utils import InputExamplesUtils
+from nerblackbox.modules.utils.util_functions import read_special_tokens
 
 
 class NerModelTrain(NerModel):
@@ -26,6 +27,7 @@ class NerModelTrain(NerModel):
         :created attr: default_logger    [DefaultLogger]
         :created attr: logged_metrics    [LoggedMetrics]
         :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :created attr: data_preprocessor [DataPreprocessor]
         :created attr: annotation        [Annotation]
         :created attr: model             [transformers AutoModelForTokenClassification]
@@ -52,6 +54,7 @@ class NerModelTrain(NerModel):
         :created attr: mlflow_client          [MLflowClient]
         :created attr: epoch_metrics          [dict] w/ keys = 'val', 'test' & values = [dict]
         :created attr: classification_reports [dict] w/ keys = 'val', 'test' & values = [dict]
+        :created attr: special_tokens         [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :return: -
         """
         self.default_logger = DefaultLogger(
@@ -73,6 +76,9 @@ class NerModelTrain(NerModel):
 
         self.epoch_metrics = {"val": dict(), "test": dict()}
         self.classification_reports = {"val": dict(), "test": dict()}
+
+        self.special_tokens = read_special_tokens(self.params.dataset_name)
+        self.default_logger.log_info(f"> read special tokens: {self.special_tokens}")
 
     def _preparations_data_train(self):
         """
@@ -106,9 +112,13 @@ class NerModelTrain(NerModel):
             self.default_logger.log_info(f"> annotation scheme converted to {self.params.annotation_scheme}")
 
         self.default_logger.log_debug("> self.annotation.classes:", self.annotation.classes)
+
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes
-        )  # save for PREDICT (see below)
+        )  # save for NerModelPredict
+        self.hparams.special_tokens = json.dumps(
+            self.special_tokens
+        )  # save for NerModelPredict
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(
@@ -118,7 +128,7 @@ class NerModelTrain(NerModel):
         )
         self.model.resize_token_embeddings(
             len(self.tokenizer)
-        )  # due to additional_special_tokens = NEWLINE_TOKENS
+        )  # due to additional_special_tokens
 
         # dataloader
         self.dataloader = self.data_preprocessor.to_dataloader(

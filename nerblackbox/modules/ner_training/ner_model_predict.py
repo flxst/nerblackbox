@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 from nerblackbox.modules.ner_training.ner_model import NerModel
 from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
+from nerblackbox.tests.utils import PseudoDefaultLogger
 
 from transformers import logging
 
@@ -52,6 +53,7 @@ class NerModelPredict(NerModel):
         :created attr: default_logger    [DefaultLogger]
         :created attr: logged_metrics    [LoggedMetrics]
         :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :created attr: data_preprocessor [DataPreprocessor]
         :created attr: annotation        [Annotation]
         :created attr: model             [transformers AutoModelForTokenClassification]
@@ -64,10 +66,14 @@ class NerModelPredict(NerModel):
 
     def _preparations_predict(self):
         """
-        :created attr: default_logger         [None]
+        :created attr: default_logger    [None]
+        :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :return: -
         """
-        self.default_logger = None
+        self.default_logger = PseudoDefaultLogger()
+
+        # special tokens
+        self.special_tokens = json.loads(self.hparams.special_tokens)
 
     def _preparations_data_predict(self):
         """
@@ -86,7 +92,7 @@ class NerModelPredict(NerModel):
         )
         self.model.resize_token_embeddings(
             len(self.tokenizer)
-        )  # due to addtional_special_tokens = NEWLINE_TOKENS
+        )  # due to addtional_special_tokens
 
     ####################################################################################################################
     # PREDICT
