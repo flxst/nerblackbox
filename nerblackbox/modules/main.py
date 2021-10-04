@@ -31,6 +31,7 @@ class NerBlackBoxMain:
         val_fraction: float = 0.3,  # set_up_dataset
         verbose: bool = False,
         experiment_name: Optional[str] = None,
+        from_config: bool = True,  # run_experiment
         run_name: Optional[str] = None,  # run_experiment
         device: str = "gpu",  # run_experiment
         fp16: bool = False,  # run_experiment
@@ -47,6 +48,7 @@ class NerBlackBoxMain:
         :param val_fraction:    [float] e.g. 0.3
         :param verbose:         [bool]
         :param experiment_name: [str], e.g. 'exp0'
+        :param from_config:     [bool] if True, get experiment params & hparams from config file
         :param run_name:        [str or None], e.g. 'runA'
         :param device:          [str]
         :param fp16:            [bool]
@@ -66,6 +68,7 @@ class NerBlackBoxMain:
         self.val_fraction = val_fraction  # set_up_dataset
         self.verbose = verbose
         self.experiment_name = experiment_name
+        self.from_config = from_config
         self.run_name = run_name  # run_experiment
         self.device = device  # run_experiment
         self.fp16 = fp16  # run_experiment
@@ -387,6 +390,7 @@ class NerBlackBoxMain:
         """
         _parameters = {
             "experiment_name": self.experiment_name,
+            "from_config": int(self.from_config),
             "run_name": self.run_name if self.run_name else "",
             "device": self.device,
             "fp16": int(self.fp16),

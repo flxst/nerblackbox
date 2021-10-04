@@ -6,12 +6,14 @@ entry_points:
   run_experiment:
     parameters:
       experiment_name: {type: string}
+      from_config: {type: int}
       run_name: {type: string}
       device: {type: string}
       fp16: {type: int}
     command: |
         python modules/scripts/script_run_experiment.py \
         --experiment_name {experiment_name} \
+        --from_config {from_config} \
         --run_name {run_name} \
         --device {device} \
         --fp16 {fp16}

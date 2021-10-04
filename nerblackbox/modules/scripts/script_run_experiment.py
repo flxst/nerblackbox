@@ -10,7 +10,6 @@ import warnings
 from nerblackbox.modules.ner_training.single_run import execute_single_run
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_config.experiment import Experiment
-from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
 
 logging.basicConfig(
     level=logging.WARNING
@@ -30,21 +29,20 @@ def main(params: argparse.Namespace, log_dirs: argparse.Namespace) -> None:
 
     experiment = Experiment(
         experiment_name=params.experiment_name,
-        from_config=True,
+        from_config=params.from_config,
         run_name=params.run_name,
         device=params.device,
         fp16=params.fp16,
     )
-    runs_name_nr, runs_params, runs_hparams = experiment.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
-        for k, v in experiment.get_params_and_hparams(run_name_nr=None).items():
+        for k, v in experiment.params_and_hparams["general"].items():
             mlflow.log_param(k, v)
 
-        for run_name_nr in runs_name_nr:
+        for run_name_nr in experiment.runs_name_nr:
             # params & hparams: dict -> namespace
-            params = argparse.Namespace(**runs_params[run_name_nr])
-            hparams = argparse.Namespace(**runs_hparams[run_name_nr])
+            params = argparse.Namespace(**experiment.runs_params[run_name_nr])
+            hparams = argparse.Namespace(**experiment.runs_hparams[run_name_nr])
 
             # execute single run
             execute_single_run(params, hparams, log_dirs, experiment=True)
@@ -119,6 +117,7 @@ def _parse_args(_parser, _args):
                 if group_dict["fp16"] and group_dict["device"].type == "cuda"
                 else False
             )
+            group_dict["from_config"] = bool(group_dict["from_config"])
             if len(group_dict["run_name"]) == 0:
                 group_dict["run_name"] = None
             _params = argparse.Namespace(**group_dict)
@@ -143,6 +142,9 @@ if __name__ == "__main__":
     args_general = parser.add_argument_group("args_general")
     args_general.add_argument(
         "--experiment_name", type=str, required=True
+    )  # .. logging w/ mlflow & tensorboard
+    args_general.add_argument(
+        "--from_config", type=int, required=True
     )  # .. logging w/ mlflow & tensorboard
     args_general.add_argument(
         "--run_name", type=str, required=True

@@ -101,6 +101,7 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info(f">>> NER BLACK BOX VERSION: {get_package_version()}")
     _logger.log_info("- PARAMS -----------------------------------------")
     _logger.log_info(f"> experiment_name: {_params.experiment_name}")
+    _logger.log_info(f"> from_config:     {_params.from_config}")
     _logger.log_info(f"> run_name_nr:     {_params.run_name_nr}")
     _logger.log_info("..")
     _logger.log_info(f"> available GPUs: {torch.cuda.device_count()}")

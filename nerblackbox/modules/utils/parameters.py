@@ -1,6 +1,7 @@
 
 GENERAL = {
     "experiment_name": "str",
+    "from_config": "bool",
     "run_name": "str",
     "run_name_nr": "str",
     "device": "str",

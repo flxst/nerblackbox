@@ -1,9 +1,9 @@
 
 from itertools import product
-from typing import Optional, Dict, Union, Tuple, List
+from typing import Optional, Dict, Union, List
 from nerblackbox.modules.utils.parameters import PARAMS, HPARAMS
 from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
-from nerblackbox.modules.utils.util_functions import get_run_name, get_run_name_nr
+from nerblackbox.modules.utils.util_functions import get_run_name_nr
 
 
 class Experiment:
@@ -28,56 +28,34 @@ class Experiment:
         self.device = device
         self.fp16 = fp16
 
-        # def from_config(self):
-            # pass
-
         self.exp_default = ExperimentConfig("default")
         if self.from_config:
             self.exp = ExperimentConfig(self.experiment_name)
         else:
             raise Exception(f"self.from_config = False currently not implemented!")
 
-    def get_params_and_hparams(
-            self, run_name_nr: Optional[str] = None
-    ) -> Dict[str, Union[str, int, float, bool]]:
-        """
-        get dictionary of all parameters & their values that belong to
-        either generally    to experiment (run_name == None)
-        or     specifically to run        (run_name != None)
+        # info for runs
+        self.runs_name_nr: List[str] = list()
+        self.runs_params: Dict[str, Dict[str, Union[str, int, float, bool]]] = dict()
+        self.runs_hparams: Dict[str, Dict[str, Union[str, int, float, bool]]] = dict()
+        self._create_info_for_runs()
 
-        Args:
-            run_name_nr:        [str]  e.g. 'runA-1'
+        # info for mlflow
+        self.params_and_hparams: Dict[Dict[str, Union[str, int, float, bool]]]
+        self._create_info_for_mlflow()
 
-        Returns:
-            params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
-        """
-
-        params_and_hparams = {}
-        if run_name_nr is None:
-            params_and_hparams.update(self.exp_default.config["params"])
-            params_and_hparams.update(self.exp_default.config["hparams"])
-            params_and_hparams.update(self.exp.config["params"])
-            params_and_hparams.update(self.exp.config["hparams"])
-        else:
-            run_name = get_run_name(run_name_nr)
-            params_and_hparams.update(self.exp.config[run_name])
-
-        return params_and_hparams
-
-    def parse(self) -> Tuple[List[str],
-                             Dict[str, Dict[str, Union[str, int, float, bool]]],
-                             Dict[str, Dict[str, Union[str, int, float, bool]]]]:
+    def _create_info_for_runs(self) -> None:
         """
         parse <experiment_name>.ini files
         if self.run_name is specified, parse only that run. else parse all runs.
 
-        Returns:
-            _runs_name_nr [list] of [str],
-                                 e.g. ['runA-1', 'runA-2', 'runB-1', 'runB-2']
-            _runs_params  [dict] w/ keys = run [str], values = params [dict],
-                                 e.g. {'runA-1': {'patience': 2, 'mode': 'min', ..}, ..}
-            _runs_hparams [dict] w/ keys = run [str], values = hparams [dict],
-                                 e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
+        Created Attr:
+            runs_name_nr [list] of [str],
+                         e.g. ['runA-1', 'runA-2', 'runB-1', 'runB-2']
+            runs_params  [dict] w/ keys = run [str], values = params [dict],
+                         e.g. {'runA-1': {'patience': 2, 'mode': 'min', ..}, ..}
+            runs_hparams [dict] w/ keys = run [str], values = hparams [dict],
+                         e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         if (
                 "params" in self.exp.config.keys()
@@ -106,13 +84,13 @@ class Experiment:
             ]
             assert len(run_names) == 1
 
-        _runs_name_nr = list()
         for run_name, run_nr in product(run_names, list(range(1, int(multiple_runs) + 1))):
             run_name_nr = get_run_name_nr(run_name, run_nr)
 
             # _run_params
             _run_params = {
                 "experiment_name": self.experiment_name,
+                "from_config": self.from_config,
                 "run_name": run_name,
                 "run_name_nr": run_name_nr,
                 "device": self.device,
@@ -135,10 +113,33 @@ class Experiment:
                 else:
                     raise Exception(f"parameter = {k} is unknown.")
 
-            _runs_name_nr.append(run_name_nr)
-            _runs_params[run_name_nr] = _run_params
-            _runs_hparams[run_name_nr] = _run_hparams
+            self.runs_name_nr.append(run_name_nr)
+            self.runs_params[run_name_nr] = _run_params
+            self.runs_hparams[run_name_nr] = _run_hparams
 
-        assert set(_runs_params.keys()) == set(_runs_hparams.keys())
+        assert set(self.runs_params.keys()) == set(self.runs_hparams.keys())
 
-        return _runs_name_nr, _runs_params, _runs_hparams
+    def _create_info_for_mlflow(
+            self
+    ) -> None:
+        """
+        get dictionary of all parameters & their values that belong to
+        either generally    to experiment (key = "general")
+        or     specifically to run        (key = run_name)
+
+        Create Attr:
+            params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
+
+        Returns: -
+        """
+
+        self.params_and_hparams = {
+            "general": {},
+        }
+        self.params_and_hparams["general"].update(self.exp_default.config["params"])
+        self.params_and_hparams["general"].update(self.exp_default.config["hparams"])
+        self.params_and_hparams["general"].update(self.exp.config["params"])
+        self.params_and_hparams["general"].update(self.exp.config["hparams"])
+
+        for run_name in self.exp.run_names:
+            self.params_and_hparams[run_name] = self.exp.config[run_name]
