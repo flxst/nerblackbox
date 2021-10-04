@@ -3,9 +3,7 @@ from os.path import join
 from configparser import ConfigParser
 from nerblackbox.modules.utils.parameters import PARAMS, HPARAMS
 from nerblackbox.modules.utils.env_variable import env_variable
-from nerblackbox.modules.utils.util_functions import get_run_name, get_run_name_nr
-from itertools import product
-from typing import Union, Tuple, Any, Dict, Optional, List
+from typing import Union, Tuple, Any, Dict, List
 
 
 class ExperimentConfig:
@@ -13,160 +11,37 @@ class ExperimentConfig:
     class that parses <experiment_name>.ini files
     """
 
-    def __init__(self, experiment_name: str, run_name: Optional[str], device: str, fp16: bool):
+    def __init__(self, experiment_name: str):
         """
         Args:
-            experiment_name: e.g. 'exp1'
-            run_name:        e.g. 'runA'
-            device:          e.g. 'gpu'
-            fp16:
+            experiment_name: e.g. 'exp1', 'default
         """
-        self.experiment_name = experiment_name
-        self.run_name = run_name
-        self.device = device
-        self.fp16 = fp16
-
-        self.config_path = join(
-            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
-        )
-        if not os.path.isfile(self.config_path):
-            raise Exception(f"config file at {self.config_path} does not exist")
-
-        self.config_path_default = join(
-            env_variable("DIR_EXPERIMENT_CONFIGS"), "default.ini"
-        )
-        if not os.path.isfile(self.config_path_default):  # pragma: no cover
-            raise Exception(
-                f"default config file at {self.config_path_default} does not exist"
-            )
-
-    def get_params_and_hparams(
-        self, run_name_nr: Optional[str] = None
-    ) -> Dict[str, Union[str, int, float, bool]]:
-        """
-        get dictionary of all parameters & their values that belong to
-        either generally    to experiment (run_name == None)
-        or     specifically to run        (run_name != None)
-
-        Args:
-            run_name_nr:        [str]  e.g. 'runA-1'
-
-        Returns:
-            params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
-        """
-        _, config_dict_default = self._get_config(default=True)
-        config, config_dict = self._get_config(default=False)
-
-        if run_name_nr is None:
-            params_and_hparams = config_dict_default["params"]
-            params_and_hparams.update(config_dict_default["hparams"])
-            params_and_hparams.update(config_dict["params"])
-            params_and_hparams.update(config_dict["hparams"])
-        else:
-            run_name = get_run_name(run_name_nr)
-            params_and_hparams = config_dict[run_name]
-
-        return params_and_hparams
-
-    def parse(self) -> Tuple[List[str],
-                             Dict[str, Dict[str, Union[str, int, float, bool]]],
-                             Dict[str, Dict[str, Union[str, int, float, bool]]]]:
-        """
-        parse <experiment_name>.ini files
-        if self.run_name is specified, parse only that run. else parse all runs.
-
-        Returns:
-            _runs_name_nr [list] of [str],
-                                 e.g. ['runA-1', 'runA-2', 'runB-1', 'runB-2']
-            _runs_params  [dict] w/ keys = run [str], values = params [dict],
-                                 e.g. {'runA-1': {'patience': 2, 'mode': 'min', ..}, ..}
-            _runs_hparams [dict] w/ keys = run [str], values = hparams [dict],
-                                 e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
-        """
-        _, config_dict_default = self._get_config(default=True)
-        config, config_dict = self._get_config(default=False)
-        if (
-            "params" in config_dict.keys()
-            and "multiple_runs" in config_dict["params"].keys()
-        ):
-            multiple_runs = config_dict["params"]["multiple_runs"]
-        elif (
-            "params" in config_dict_default.keys()
-            and "multiple_runs" in config_dict_default["params"].keys()
-        ):
-            multiple_runs = config_dict_default["params"]["multiple_runs"]
-        else:
-            raise Exception(
-                f"multiple runs is neither specified in the experiment config nor in the default config."
-            )
-
-        # _params_config & _hparams_config
-        _runs_params = dict()
-        _runs_hparams = dict()
-
-        if self.run_name is None:  # multiple runs
-            run_names = [
-                run_name for run_name in config.sections() if run_name.startswith("run")
-            ]
-        else:
-            run_names = [
-                run_name for run_name in config.sections() if run_name == self.run_name
-            ]
-            assert len(run_names) == 1
-
-        _runs_name_nr = list()
-        for run_name, run_nr in product(run_names, list(range(1, int(multiple_runs) + 1))):
-            run_name_nr = get_run_name_nr(run_name, run_nr)
-
-            # _run_params
-            _run_params = {
-                "experiment_name": self.experiment_name,
-                "run_name": run_name,
-                "run_name_nr": run_name_nr,
-                "device": self.device,
-                "fp16": self.fp16,
-                "experiment_run_name_nr": f"{self.experiment_name}/{run_name_nr}",
-            }
-            _run_params.update(config_dict_default["params"])
-            _run_params.update(config_dict["params"])
-
-            # _run_hparams
-            _run_hparams = dict()
-            _run_hparams.update(config_dict_default["hparams"])
-            _run_hparams.update(config_dict["hparams"])
-
-            for k, v in config_dict[run_name].items():
-                if k in PARAMS:
-                    _run_params[k] = v
-                elif k in HPARAMS:
-                    _run_hparams[k] = v
-                else:
-                    raise Exception(f"parameter = {k} is unknown.")
-
-            _runs_name_nr.append(run_name_nr)
-            _runs_params[run_name_nr] = _run_params
-            _runs_hparams[run_name_nr] = _run_hparams
-
-        assert set(_runs_params.keys()) == set(_runs_hparams.keys())
-
-        return _runs_name_nr, _runs_params, _runs_hparams
+        self.config: Dict[str, Dict[str, str]]
+        self.run_names: List[str]
+        self.config, self.run_names = self._get_config(experiment_name)
 
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
-    def _get_config(self, default: bool = False) -> Tuple[ConfigParser, Dict[str, Dict[str, str]]]:
+    def _get_config(self, experiment_name: str) -> Tuple[Dict[str, Dict[str, str]], List[str]]:
         """
         get ConfigParser instance and derive config dictionary from it
 
         Args:
-            default: if True, get default configuration instead of experiment
+            experiment_name: e.g. 'exp1', 'default
 
         Returns:
-            _config:      [ConfigParser instance]
             _config_dict: w/ keys = sections [str], values = [dict] w/ key: value = params: values
+            _run_names: e.g. ["runA", "runB"]
         """
+        config_path = join(
+            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{experiment_name}.ini"
+        )
+        if not os.path.isfile(config_path):
+            raise Exception(f"config file at {config_path} does not exist")
+
         _config = ConfigParser()
-        _config.read(self.config_path_default if default else self.config_path)
+        _config.read(config_path)
         _config_dict: Dict[str, Dict[str, Any]] = {
             s: dict(_config.items(s)) for s in _config.sections()
         }  # {'hparams': {'monitor': 'val_loss'}}
@@ -196,11 +71,15 @@ class ExperimentConfig:
                 print("ATTENTION! could not derive uncased = True/False from pretrained_model_name."
                       " => assume model is cased")
 
-        return _config, _config_dict
+        _run_names = [
+            run_name for run_name in _config.sections() if run_name.startswith("run")
+        ]
+
+        return _config_dict, _run_names
 
     @staticmethod
     def _convert(
-        _input_key: str, _input_value: str
+            _input_key: str, _input_value: str
     ) -> Union[str, int, float, bool]:
         """
         convert _input string to str/int/float/bool

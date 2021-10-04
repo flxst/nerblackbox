@@ -9,6 +9,7 @@ import warnings
 
 from nerblackbox.modules.ner_training.single_run import execute_single_run
 from nerblackbox.modules.utils.env_variable import env_variable
+from nerblackbox.modules.experiment_config.experiment import Experiment
 from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
 
 logging.basicConfig(
@@ -27,16 +28,17 @@ def main(params: argparse.Namespace, log_dirs: argparse.Namespace) -> None:
     """
     assert_that_experiment_hasnt_been_run_before(params.experiment_name)
 
-    experiment_config = ExperimentConfig(
+    experiment = Experiment(
         experiment_name=params.experiment_name,
+        from_config=True,
         run_name=params.run_name,
         device=params.device,
         fp16=params.fp16,
     )
-    runs_name_nr, runs_params, runs_hparams = experiment_config.parse()
+    runs_name_nr, runs_params, runs_hparams = experiment.parse()
 
     with mlflow.start_run(run_name=params.experiment_name):
-        for k, v in experiment_config.get_params_and_hparams(run_name_nr=None).items():
+        for k, v in experiment.get_params_and_hparams(run_name_nr=None).items():
             mlflow.log_param(k, v)
 
         for run_name_nr in runs_name_nr:

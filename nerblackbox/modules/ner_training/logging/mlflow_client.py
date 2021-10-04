@@ -19,7 +19,7 @@ class MLflowClient:
         self.default_logger = default_logger
 
     @staticmethod
-    def log_params(params, hparams, experiment=False):
+    def log_params(params, hparams, experiment: bool = False):
         """
         mlflow hyperparameter logging
         -----------------------------
