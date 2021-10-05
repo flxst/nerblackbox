@@ -66,7 +66,7 @@ class ExperimentResults:
         self.best_average_run = best_average_run
         self.best_model = best_model
 
-    def _set_best_model(self, best_model: NerModelPredict) -> None:
+    def set_best_model(self, best_model: NerModelPredict) -> None:
         """set best model.
 
         Args:

@@ -239,8 +239,11 @@ class NerBlackBoxMain:
 
     def get_experiment_results(self) -> Optional[List[ExperimentResults]]:
         """
-        :used attr: experiment_name [str], e.g. 'exp0'
-        :return: experiment_results [ExperimentResults]
+        Used Attr:
+            experiment_name: e.g. 'all', 'exp0'
+
+        Returns:
+            experiment_results_list: returned for API, not CLI
         """
         from nerblackbox.modules.ner_training.ner_model_predict import (
             NerModelPredict,
@@ -317,7 +320,7 @@ class NerBlackBoxMain:
                     best_model = NerModelPredict.load_from_checkpoint(
                         experiment_results_list[0].best_single_run["checkpoint"]
                     )
-                    experiment_results_list[0]._set_best_model(best_model)
+                    experiment_results_list[0].set_best_model(best_model)
 
             return experiment_results_list
 
@@ -384,6 +387,7 @@ class NerBlackBoxMain:
     def run_experiment(self) -> None:
         """
         :used attr: experiment_name [str],         e.g. 'exp1'
+        :used attr: from_config     [bool]
         :used attr: run_name        [str] or None, e.g. 'runA'
         :used attr: device          [str]
         :used attr: fp16            [bool]
