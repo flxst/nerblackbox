@@ -1,8 +1,8 @@
-import os
 import subprocess
-from os.path import join
+from typing import List, Dict, Optional, Tuple
+import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
+from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
@@ -15,12 +15,12 @@ class SweNercFormatter(BaseFormatter):
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
-    def get_data(self, verbose: bool):
+    def get_data(self, verbose: bool) -> None:  # pragma: no cover
         """
         I: get data
-        -----------
-        :param verbose: [bool]
-        :return: -
+
+        Args:
+            verbose: [bool]
         """
         bash_cmds = [
             f"mkdir {env_variable('DIR_DATASETS')}/_swe_nerc",
@@ -28,7 +28,8 @@ class SweNercFormatter(BaseFormatter):
             "https://spraakbanken.gu.se/lb/resurser/swe-nerc/Swe-NERC-v1.0.tar.gz",
             f"cd {env_variable('DIR_DATASETS')}/_swe_nerc && tar -xzf swe_nerc.tar.gz",
             f"mkdir {env_variable('DIR_DATASETS')}/swe_nerc/raw_data",
-            f"mv {env_variable('DIR_DATASETS')}/_swe_nerc/Swe-NERC-v1.0/manually-tagged-part/*.tsv {env_variable('DIR_DATASETS')}/swe_nerc/raw_data",
+            f"mv {env_variable('DIR_DATASETS')}/_swe_nerc/Swe-NERC-v1.0/manually-tagged-part/*.tsv "
+            f"{env_variable('DIR_DATASETS')}/swe_nerc/raw_data",
             f"rm -r {env_variable('DIR_DATASETS')}/_swe_nerc",
             f"echo '\t\t' | tee -a {env_variable('DIR_DATASETS')}/swe_nerc/raw_data/*.tsv",
             #####
@@ -51,91 +52,142 @@ class SweNercFormatter(BaseFormatter):
             except subprocess.CalledProcessError as e:
                 print(e)
 
-    def create_ner_tag_mapping(self):
+    def create_ner_tag_mapping(self) -> Dict[str, str]:
         """
         II: customize ner_training tag mapping if wanted
-        -------------------------------------
-        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
+
+        Returns:
+            ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         return dict()
 
-    def format_data(self):
+    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
-        ----------------
-        :return: -
+
+        Args:
+            shuffle: whether to shuffle rows of dataset
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+
+        Returns:
+            sentences_rows_iob2: only if write_csv = False
         """
         for phase in ["train", "val", "test"]:
-            rows = self._read_original_file(phase)
-            rows_iob2 = self._convert_iob1_to_iob2(rows)
-            self._write_formatted_csv(phase, rows_iob2)
+            sentences_rows_iob1 = self._read_original_file(phase)
+            if shuffle:
+                sentences_rows_iob1 = self._shuffle_dataset(phase, sentences_rows_iob1)
 
-    def resplit_data(self, val_fraction: float):
+            sentences_rows_iob2 = self._convert_iob1_to_iob2(sentences_rows_iob1)
+            if write_csv:  # pragma: no cover
+                self._write_formatted_csv(phase, sentences_rows_iob2)
+            else:
+                return sentences_rows_iob2
+
+    def set_original_file_paths(self) -> None:
+        """
+        III: format data
+
+        Changed Attributes:
+            file_paths: [Dict[str, str]], e.g. {'train': <path_to_train_csv>, 'val': ..}
+
+        Returns: -
+        """
+        self.file_name = {
+            phase: f"swe_nerc-{phase}.tsv"
+            for phase in ["train", "val", "test"]
+        }
+
+    def _parse_row(self, _row: str) -> List[str]:
+        """
+        III: format data
+
+        Args:
+            _row: e.g. "Det PER X B"
+
+        Returns:
+            _row_list: e.g. ["Det", "PER", "X", "B"]
+        """
+        _row_list_raw = _row.replace("\t", " ").strip().split(" ")
+        if (len(_row_list_raw) == 4 and _row_list_raw[-1] == "B") or (len(_row_list_raw) == 3):
+            return _row_list_raw
+        elif len(_row_list_raw) > 2:
+            return [" ".join(_row_list_raw[:-2]), _row_list_raw[-2], _row_list_raw[-1]]
+        elif _row in ["\n", "\t\t\n"] or len(_row) == 0:
+            return []
+        elif _row.startswith("\t"):
+            print(f"ATTENTION! row = {repr(_row)} observed -> will be skipped")
+            return ["SKIP-THIS-TOKEN", "0", "PAD"]
+        else:  # pragma: no cover
+            raise Exception(f"ERROR! could not parse row = {repr(_row)}")
+
+    def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:
+        """
+        III: format data
+
+        Args:
+            _row_list: e.g. ["test", "PER", "X", "B"]
+
+        Returns:
+            _row_list_formatted: e.g. ["test", "B-PER"]
+        """
+        if not len(_row_list) in [3, 4]:  # pragma: no cover
+            raise Exception(f"ERROR! row_list = {_row_list} should consist of 3 or 4 parts!")
+
+        if _row_list[0] != "SKIP-THIS-TOKEN":
+            _row_list_formatted = [" ".join(_row_list[0].split(" ")), self.transform_tags(_row_list)]
+            return _row_list_formatted
+        else:
+            return None
+
+    def resplit_data(self, val_fraction: float = 0.0, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
-        ----------------
-        :param val_fraction: [float], e.g. 0.3
-        :return: -
+
+        Args:
+            val_fraction: [float], e.g. 0.3
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+
+        Returns:
+            df_train: only if write_csv = False
+            df_val:   only if write_csv = False
+            df_test:  only if write_csv = False
         """
         # train -> train
         df_train = self._read_formatted_csvs(["train"])
-        self._write_final_csv("train", df_train)
 
         # val  -> val
         df_val = self._read_formatted_csvs(["val"])
-        self._write_final_csv("val", df_val)
 
         # test  -> test
         df_test = self._read_formatted_csvs(["test"])
-        self._write_final_csv("test", df_test)
+
+        if write_csv:  # pragma: no cover
+            self._write_final_csv("train", df_train)
+            self._write_final_csv("val", df_val)
+            self._write_final_csv("test", df_test)
+        else:
+            return df_train, df_val, df_test
 
     ####################################################################################################################
     # HELPER: READ ORIGINAL
     ####################################################################################################################
-    def _read_original_file(self, phase):
-        """
-        - read original text files
-        ---------------------------------------------
-        :param phase:   [str] 'train' or 'test'
-        :return: _rows: [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
-        """
-        file_name = {
-            phase: f"swe_nerc-{phase}.tsv"
-            for phase in ["train", "val", "test"]
-        }
-        file_path_original = join(self.dataset_path, file_name[phase])
-
-        _rows = list()
-        if os.path.isfile(file_path_original):
-            with open(file_path_original) as f:
-                for i, row in enumerate(f.readlines()):
-                    _rows.append(row.split("\t"))
-            print(f"\n> read {file_path_original}")
-        else:
-            raise Exception(f"> original file {file_path_original} could not be found.")
-
-        _rows = [
-            [
-                "".join(row[0].split()),  # this replaces unwanted nbsp characters
-                self.transform_tags(row)
-            ]
-            if len(row[0]) > 0 and len(row) > 1
-            else list()
-            for row in _rows
-        ]
-
-        return _rows
-
     @staticmethod
-    def transform_tags(_row):
-        assert len(_row) in [3, 4], f"ERROR! encountered row = {_row} that cannot be parsed."
-        plain_tag = _row[1]
+    def transform_tags(_row_list: List[str]) -> str:
+        """
+        Args:
+            _row_list: ["test", "O", "XYZ"], ["test-2", "PER", "XYZ"] or ["test-3", "PER", "XYZ", "B"]
+
+        Return:
+            tag: e.g. "O", "I-PER" or "B-PER"
+        """
+        assert len(_row_list) in [3, 4], f"ERROR! encountered row_list = {_row_list} that cannot be parsed."
+        plain_tag = _row_list[1]
         if plain_tag == "O":
             return plain_tag
         else:
-            if len(_row) == 3:
+            if len(_row_list) == 3:
                 return f"I-{plain_tag}"
-            elif _row[3] == "B":
+            elif _row_list[3] == "B":
                 return f"B-{plain_tag}"
             else:
-                raise Exception(f"ERROR! encountered row = {_row} that cannot be parsed.")
+                raise Exception(f"ERROR! encountered row_list = {_row_list} that cannot be parsed.")

@@ -1,5 +1,6 @@
 import mlflow
-from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
+from nerblackbox.modules.experiment_config.experiment import Experiment
+from nerblackbox.modules.utils.util_functions import get_run_name
 
 
 class MLflowClient:
@@ -19,7 +20,7 @@ class MLflowClient:
         self.default_logger = default_logger
 
     @staticmethod
-    def log_params(params, hparams, experiment=False):
+    def log_params(params, hparams, experiment: bool = False):
         """
         mlflow hyperparameter logging
         -----------------------------
@@ -30,15 +31,14 @@ class MLflowClient:
         """
         if experiment:
             # log only run (hyper)parameters
-            experiment_config = ExperimentConfig(
+            experiment_config = Experiment(
                 experiment_name=params.experiment_name,
+                from_config=params.from_config,
                 run_name=params.run_name,
                 device=params.device,
                 fp16=params.fp16,
             )
-            for k, v in experiment_config.get_params_and_hparams(
-                run_name_nr=params.run_name_nr
-            ).items():
+            for k, v in experiment_config.params_and_hparams[get_run_name(params.run_name_nr)].items():
                 mlflow.log_param(k, v)
         else:
             # log hardcoded set of (hyper)parameters

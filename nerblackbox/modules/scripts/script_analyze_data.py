@@ -13,8 +13,8 @@ def main(args):
     """
     with mlflow.start_run(run_name="Default"):
         formatter = AutoFormatter.for_dataset(args.ner_dataset)
-        formatter.analyze_data()  # IV: analyze data
-        formatter.plot_data()  # IV: analyze data
+        formatter.analyzer.analyze_data()  # IV: analyze data
+        formatter.analyzer.plot_data()  # IV: analyze data
 
 
 if __name__ == "__main__":

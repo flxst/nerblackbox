@@ -31,8 +31,9 @@ class NerBlackBoxMain:
         val_fraction: float = 0.3,  # set_up_dataset
         verbose: bool = False,
         experiment_name: Optional[str] = None,
+        from_config: bool = True,  # run_experiment
         run_name: Optional[str] = None,  # run_experiment
-        device: Any = "gpu",  # run_experiment
+        device: str = "gpu",  # run_experiment
         fp16: bool = False,  # run_experiment
         text_input: Optional[str] = None,  # predict
         ids: Tuple[str, ...] = (),  # get_experiments, get_experiments_results
@@ -47,8 +48,9 @@ class NerBlackBoxMain:
         :param val_fraction:    [float] e.g. 0.3
         :param verbose:         [bool]
         :param experiment_name: [str], e.g. 'exp0'
+        :param from_config:     [bool] if True, get experiment params & hparams from config file
         :param run_name:        [str or None], e.g. 'runA'
-        :param device:          [torch device]
+        :param device:          [str]
         :param fp16:            [bool]
         :param text_input:      [str], e.g. 'this is some text that needs to be annotated'
         :param ids:             [tuple of str], experiment_ids to include
@@ -66,6 +68,7 @@ class NerBlackBoxMain:
         self.val_fraction = val_fraction  # set_up_dataset
         self.verbose = verbose
         self.experiment_name = experiment_name
+        self.from_config = from_config
         self.run_name = run_name  # run_experiment
         self.device = device  # run_experiment
         self.fp16 = fp16  # run_experiment
@@ -236,8 +239,11 @@ class NerBlackBoxMain:
 
     def get_experiment_results(self) -> Optional[List[ExperimentResults]]:
         """
-        :used attr: experiment_name [str], e.g. 'exp0'
-        :return: experiment_results [ExperimentResults]
+        Used Attr:
+            experiment_name: e.g. 'all', 'exp0'
+
+        Returns:
+            experiment_results_list: returned for API, not CLI
         """
         from nerblackbox.modules.ner_training.ner_model_predict import (
             NerModelPredict,
@@ -314,7 +320,7 @@ class NerBlackBoxMain:
                     best_model = NerModelPredict.load_from_checkpoint(
                         experiment_results_list[0].best_single_run["checkpoint"]
                     )
-                    experiment_results_list[0]._set_best_model(best_model)
+                    experiment_results_list[0].set_best_model(best_model)
 
             return experiment_results_list
 
@@ -381,12 +387,14 @@ class NerBlackBoxMain:
     def run_experiment(self) -> None:
         """
         :used attr: experiment_name [str],         e.g. 'exp1'
+        :used attr: from_config     [bool]
         :used attr: run_name        [str] or None, e.g. 'runA'
-        :used attr: device          [torch device]
+        :used attr: device          [str]
         :used attr: fp16            [bool]
         """
         _parameters = {
             "experiment_name": self.experiment_name,
+            "from_config": int(self.from_config),
             "run_name": self.run_name if self.run_name else "",
             "device": self.device,
             "fp16": int(self.fp16),

@@ -1,81 +1,125 @@
 import os
+from os.path import join, isfile
 import subprocess
 import json
 import pandas as pd
 from abc import ABC, abstractmethod
-from typing import List
-
-from os.path import join
+from typing import List, Dict, Tuple, Optional
+import random
 
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from nerblackbox.modules.utils.env_variable import env_variable
-from nerblackbox.modules.datasets.plots import Plots
 from nerblackbox.modules.datasets.formatter.util_functions import get_ner_tag_mapping
-from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
+from nerblackbox.modules.datasets.analyzer import Analyzer
+
+SEED_SHUFFLE = {
+    "train": 4,
+    "val": 5,
+    "test": 6,
+}
+
+SENTENCES_ROWS = List[List[List[str]]]
 
 
 class BaseFormatter(ABC):
-    def __init__(self, ner_dataset, ner_tag_list):
+    def __init__(self, ner_dataset: str, ner_tag_list: List[str]):
         """
-        :param ner_dataset:  [str] 'swedish_ner_corpus' or 'suc'
-        :param ner_tag_list: [list] of [str], e.g. ['PER', 'LOC', ..]
+        Args:
+            ner_dataset:  'swedish_ner_corpus' or 'suc'
+            ner_tag_list: e.g. ['PER', 'LOC', ..]
         """
-        self.ner_dataset = ner_dataset
-        self.ner_tag_list = ner_tag_list
-        self.dataset_path = get_dataset_path(ner_dataset)
-        self.stats_aggregated = None
-        self.num_tokens = None
-        self.num_sentences = None
+        self.ner_dataset: str = ner_dataset
+        self.ner_tag_list: List[str] = ner_tag_list
+        self.dataset_path: str = get_dataset_path(ner_dataset)
+        self.file_name = None     # Dict[str, str]
+        self.analyzer = Analyzer(self.ner_dataset, self.ner_tag_list, self.dataset_path)
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
     @abstractmethod
-    def get_data(self, verbose: bool):
+    def get_data(self, verbose: bool) -> None:  # pragma: no cover
         """
         I: get data
-        -----------
-        :param verbose: [bool]
-        :return: -
+
+        Args:
+            verbose: [bool]
         """
         pass
 
     @abstractmethod
-    def create_ner_tag_mapping(self):
+    def create_ner_tag_mapping(self) -> Dict[str, str]:  # pragma: no cover
         """
         II: customize ner_training tag mapping if wanted
-        -------------------------------------
-        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
+
+        Returns:
+            ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         pass
 
     @abstractmethod
-    def format_data(self):
+    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:  # pragma: no cover
         """
         III: format data
-        ----------------
-        :return: -
+
+        Args:
+            shuffle: whether to shuffle rows of dataset
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+        """
+        pass
+
+    def set_original_file_paths(self) -> None:  # pragma: no cover
+        """
+        III: format data
+
+        Changed Attributes:
+            file_paths: [Dict[str, str]], e.g. {'train': <path_to_train_csv>, 'val': ..}
+
+        Returns: -
         """
         pass
 
     @abstractmethod
-    def resplit_data(self, val_fraction: float):
+    def _parse_row(self, _row: str) -> List[str]:  # pragma: no cover
+        """
+        III: format data
+
+        Args:
+            _row: e.g. "Det PER X B"
+
+        Returns:
+            _row_list: e.g. ["Det", "PER", "X", "B"]
+        """
+        pass
+
+    def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:  # pragma: no cover
+        """
+        III: format data
+
+        Args:
+            _row_list: e.g. ["test", "PER", "X", "B"]
+
+        Returns:
+            _row_list_formatted: e.g. ["test", "B-PER"]
+        """
+        pass
+
+    @abstractmethod
+    def resplit_data(self, val_fraction: float) -> None:  # pragma: no cover
         """
         IV: resplit data
-        ----------------
-        :param val_fraction: [float]
-        :return: -
+
+        Args:
+            val_fraction: [float], e.g. 0.3
         """
         pass
 
     ####################################################################################################################
     # BASE METHODS
     ####################################################################################################################
-    def create_directory(self):
+    def create_directory(self) -> None:  # pragma: no cover
         """
         0: create directory for dataset
-        -------------------------------
-        :return: -
         """
         directory_path = (
             f'{env_variable("DIR_DATASETS")}/{self.ner_dataset}/analyze_data'
@@ -90,12 +134,14 @@ class BaseFormatter(ABC):
         except subprocess.CalledProcessError as e:
             print(e)
 
-    def create_ner_tag_mapping_json(self, modify: bool):
+    def create_ner_tag_mapping_json(self, modify: bool) -> None:  # pragma: no cover
         """
         II: create customized ner_training tag mapping to map tags in original data to tags in formatted data
-        ----------------------------------------------------------------------------------------------
-        :param modify:      [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
-        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
+
+        Args:
+            modify:      [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
+
+        Returns: -
         """
         if modify:
             ner_tag_mapping = self.create_ner_tag_mapping()
@@ -112,17 +158,85 @@ class BaseFormatter(ABC):
         print(ner_tag_mapping)
 
     ####################################################################################################################
-    # HELPER: WRITE FORMATTED
+    # HELPER: READ ORIGINAL
     ####################################################################################################################
-    def _write_formatted_csv(self, phase, rows):
+    def _read_original_file(self, phase: str) -> SENTENCES_ROWS:
         """
         III: format data
-        ----------------------------------------------
-        :param phase:         [str] 'train' or 'test'
-        :param rows:          [list] of [list] of [str], e.g. [['Inger', 'PER'], ['säger', '0'], ..]
-        :return: -
+
+        Args:
+            phase: 'train', 'val', 'test'
+
+        Returns:
+            sentences_rows: e.g. [
+                                    [['Inger', 'PER'], ['säger', '0'], .., []],
+                                    [['Det', '0'], .., []]
+                                 ]
         """
+        self.set_original_file_paths()
+        file_path_original = join(self.dataset_path, self.file_name[phase])
+
+        _sentences_rows = list()
+        if isfile(file_path_original):
+            _sentence = list()
+            with open(file_path_original) as f:
+                for row in f.readlines():
+                    row_list = self._parse_row(row)
+                    if len(row_list) > 0:
+                        row_list_formatted = self._format_original_file(row_list)
+                        if row_list_formatted is not None:
+                            _sentence.append(row_list_formatted)
+                    else:
+                        if len(_sentence):
+                            _sentences_rows.append(_sentence)
+                        _sentence = list()
+            print(f"\n> read {file_path_original}")
+        else:  # pragma: no cover
+            raise Exception(f"ERROR! could not find file {file_path_original}!")
+
+        return _sentences_rows
+
+    ####################################################################################################################
+    # HELPER: WRITE FORMATTED
+    ####################################################################################################################
+    def _write_formatted_csv(self, phase: str, sentences_rows: SENTENCES_ROWS) -> None:  # pragma: no cover
+        """
+        III: format data
+
+        Args:
+            phase: 'train', 'val', 'test'
+            sentences_rows: e.g. [
+                                    [['Inger', 'PER'], ['säger', '0'], .., []],
+                                    [['Det', '0'], .., []],
+                                 ]
+
+        Returns: -
+        """
+        sentences_rows_formatted = self._format_sentences_rows(sentences_rows)
+
+        df = pd.DataFrame(sentences_rows_formatted)
         file_path = join(self.dataset_path, f"{phase}_formatted.csv")
+        df.to_csv(file_path, sep="\t", header=False, index=False)
+        print(
+            f"> phase = {phase}: wrote {len(df)} sentences to {file_path}"
+        )
+
+    def _format_sentences_rows(self, sentences_rows: SENTENCES_ROWS) -> List[Tuple[str, str]]:
+        """
+        III: format data
+
+        Args:
+            sentences_rows: e.g. [
+                                    [['Inger', 'PER'], ['säger', '0'], .., []],
+                                    [['Det', '0'], .., []],
+                                 ]
+
+        Returns:
+            sentences_rows_formatted, e.g. [
+                                               ('PER O', 'Inger säger'),
+                                               ('O', 'Det'),
+                                           ]
+        """
 
         # ner tag mapping
         ner_tag_mapping = get_ner_tag_mapping(
@@ -130,256 +244,142 @@ class BaseFormatter(ABC):
         )
 
         # processing
-        data = list()
-        tags = list()
-        sentence = list()
-        for row in rows:
-            if len(row) == 2:
-                sentence.append(row[0])
-                tags.append(
+        sentences_rows_formatted = list()
+        for sentence in sentences_rows:
+            text_list = list()
+            tags_list = list()
+            for row in sentence:
+                assert len(row) == 2, f"ERROR! row with length = {len(row)} found (should be 2): {row}"
+                text_list.append(row[0])
+                tags_list.append(
                     ner_tag_mapping(row[1]) if row[1] != "0" else "O"
                 )  # replace zeros by capital O (!)
-            else:
-                if len(row) != 0:
-                    print(
-                        f"ATTENTION!! row with length = {len(row)} found (should be 0 or 2): {row}"
-                    )
-                if len(tags) and len(sentence):
-                    data.append([" ".join(tags), " ".join(sentence)])
-                    tags = list()
-                    sentence = list()
+            sentences_rows_formatted.append((" ".join(tags_list), " ".join(text_list)))
 
-        df = pd.DataFrame(data)
-        df.to_csv(file_path, sep="\t", header=False, index=False)
-        print(
-            f"> phase = {phase}: wrote {len(rows)} words in {len(df)} sentences to {file_path}"
-        )
+        return sentences_rows_formatted
+
+    @staticmethod
+    def _convert_iob1_to_iob2(sentences_rows_iob1: SENTENCES_ROWS) -> SENTENCES_ROWS:
+        """
+        III: format data
+        convert tags from IOB1 to IOB2 format
+
+        Args:
+            sentences_rows_iob1: e.g. [
+                                         [['Inger', 'I-PER'], ['säger', '0'], .., []],
+                                      ]
+
+        Returns:
+            sentences_rows_iob2: e.g. [
+                                         [['Inger', 'B-PER'], ['säger', '0'], .., []],
+                                      ]
+        """
+        sentences_rows_iob2 = list()
+        for sentence in sentences_rows_iob1:
+            sentence_iob2 = list()
+            for i, row in enumerate(sentence):
+                assert len(row) == 2, f"ERROR! row = {row} should have length 0 or 2, not {len(row)}"
+                current_tag = row[1]
+
+                if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
+                    sentence_iob2.append(row)
+                elif current_tag.startswith("I-"):
+                    previous_tag = sentence[i-1][1] if (i > 0 and len(sentence[i-1]) == 2) else None
+
+                    if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
+                        tag_iob2 = current_tag.replace(
+                            "I-", "B-"
+                        )
+                        sentence_iob2.append([row[0], tag_iob2])
+                    else:
+                        sentence_iob2.append(row)
+
+            sentences_rows_iob2.append(sentence_iob2)
+
+        return sentences_rows_iob2
+
+    @staticmethod
+    def _shuffle_dataset(_phase: str, _sentences_rows: SENTENCES_ROWS) -> SENTENCES_ROWS:
+        """
+        III: format data
+
+        Args:
+            _phase: "train", "val", "test"
+            _sentences_rows: e.g. [
+                                     [['Inger', 'PER'], ['säger', '0'], .., []],
+                                     [['Det', '0'], .., []]
+                                  ]
+
+        Returns:
+            _sentences_rows_shuffled: e.g. [
+                                              [['Det', '0'], .., [0],
+                                              [['Inger', 'PER'], ['säger', '0'], .., []]
+                                           ]
+        """
+        # change _sentences_rows by shuffling sentences
+        random.Random(SEED_SHUFFLE[_phase]).shuffle(_sentences_rows)
+        return _sentences_rows
 
     ####################################################################################################################
     # HELPER: READ FORMATTED
     ####################################################################################################################
-    def _read_formatted_csvs(self, phases):
+    def _read_formatted_csvs(self, phases: List[str]) -> pd.DataFrame:
         """
         IV: resplit data
-        ----------------
-        :param phases: [list] of [str] to read formatted csvs from, e.g. ['val', 'test']
-        :return: [pd DataFrame]
+
+        Args:
+            phases: ..to read formatted csvs from, e.g. ['val', 'test']
+
+        Returns:
+            df_phases: contains formatted csvs of phases
         """
         df_phases = [self._read_formatted_csv(phase) for phase in phases]
         return pd.concat(df_phases, ignore_index=True)
 
-    def _read_formatted_csv(self, phase):
+    def _read_formatted_csv(self, phase: str):
         """
         IV: resplit data
-        ----------------
-        :param phase: [str] csvs to read formatted df from, e.g. 'val'
-        :return: df: [pd DataFrame]
+
+        Args:
+            phase: .. to read formatted df from, e.g. 'val'
+
+        Returns:
+            df: formatted df
         """
         formatted_file_path = join(self.dataset_path, f"{phase}_formatted.csv")
-        try:
-            df = pd.read_csv(formatted_file_path, sep="\t", header=None)
-        except pd.errors.EmptyDataError:
-            df = pd.DataFrame()
-        return df
+        return pd.read_csv(formatted_file_path, sep="\t", header=None)
 
     ####################################################################################################################
     # HELPER: WRITE FINAL
     ####################################################################################################################
     @staticmethod
-    def _split_off_validation_set(_df_original, _val_fraction):
+    def _split_off_validation_set(_df_original: pd.DataFrame,
+                                  _val_fraction: float) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         IV: resplit data
-        ----------------
-        :param _df_original:    [pd DataFrame]
-        :param _val_fraction:   [float] between 0 and 1
-        :return: _df_new:       [pd DataFrame]
-        :return: _df_val:       [pd DataFrame]
+
+        Args:
+            _df_original:  df before splitting
+            _val_fraction: between 0 and 1
+
+        Returns:
+            _df_new:       df after splitting, remainder
+            _df_val:       df after splitting, validation
         """
         split_index = int(len(_df_original) * (1 - _val_fraction))
         _df_new = _df_original.iloc[:split_index]
         _df_val = _df_original.iloc[split_index:]
         return _df_new, _df_val
 
-    def _write_final_csv(self, phase, df):
+    def _write_final_csv(self, phase, df) -> None:  # pragma: no cover
         """
         IV: resplit data
-        ----------------
-        :param phase: [str], 'train', 'val' or 'test'
-        :param df: [pd DataFrame]
-        :return:
+
+        Args:
+            phase: [str], 'train', 'val' or 'test'
+            df: [pd DataFrame]
+
+        Returns: -
         """
         file_path = join(self.dataset_path, f"{phase}.csv")
         df.to_csv(file_path, sep="\t", index=False, header=None)
-
-    ####################################################################################################################
-    def read_formatted_csv(self, phase):
-        """
-        V: read formatted csv files
-        ----------------------------------------------
-        :param phase:         [str] 'train' or 'test'
-        :return: num_sentences:    [int]
-                 stats_aggregated: [pandas Series] with indices = tags, values = number of occurrences
-        """
-        file_path = join(self.dataset_path, f"{phase}.csv")
-
-        columns = ["O"] + self.ner_tag_list
-
-        try:
-            df = pd.read_csv(file_path, sep="\t", header=None, names=["labels", "text"])
-        except pd.io.common.EmptyDataError:
-            df = None
-
-        stats = pd.DataFrame([], columns=columns)
-
-        if df is not None:
-            tags = (
-                df.iloc[:, 0]
-                .apply(lambda x: x.split())
-                .apply(lambda x: [elem.split("-")[-1] for elem in x])
-            )
-
-            for column in columns:
-                stats[column] = tags.apply(
-                    lambda x: len([elem for elem in x if elem == column])
-                )
-
-            assert len(df) == len(stats)
-
-        num_sentences = len(stats)
-        stats_aggregated = stats.sum().to_frame().astype(int)
-        stats_aggregated.columns = ["tags"]
-
-        return num_sentences, stats_aggregated
-
-    @staticmethod
-    def get_tokens(df):
-        return df.loc[:, "tags"].sum()
-
-    def analyze_data(self):
-        """
-        V: analyze data
-        ----------------
-        :created attr: stats_aggregated: [dict] w/ keys = 'total', 'train', 'val', 'test' & values = [df]
-        :return: -
-        """
-        log_file = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.log")
-        default_logger = DefaultLogger(
-            __file__, log_file=log_file, level="info", mode="w"
-        )
-
-        self.num_tokens = {"total": 0}
-        self.num_sentences = {"total": 0}
-        self.stats_aggregated = {"total": None}
-
-        phases = ["train", "val", "test"]
-        phases_all = ["total"] + phases
-
-        for phase in phases:
-            (
-                self.num_sentences[phase],
-                _stats_aggregated_phase,
-            ) = self.read_formatted_csv(phase)
-            self.num_sentences["total"] += self.num_sentences[phase]
-            if self.stats_aggregated["total"] is None:
-                self.stats_aggregated["total"] = _stats_aggregated_phase
-            else:
-                self.stats_aggregated["total"] = (
-                    self.stats_aggregated["total"] + _stats_aggregated_phase
-                )
-
-            self.stats_aggregated[phase] = self._stats_aggregated_add_columns(
-                _stats_aggregated_phase, self.num_sentences[phase]
-            )
-
-        num_sentences_total = self.num_sentences["total"]
-        self.stats_aggregated["total"] = self._stats_aggregated_add_columns(
-            self.stats_aggregated["total"], self.num_sentences["total"]
-        )
-        self.num_tokens = {
-            phase: self.get_tokens(self.stats_aggregated[phase]) for phase in phases_all
-        }
-        num_tokens_total = self.num_tokens["total"]
-
-        # print/log
-        for phase in phases:
-            default_logger.log_info("")
-            default_logger.log_info(f">>> {phase} <<<<")
-            default_logger.log_info(
-                f"num_sentences = {self.num_sentences[phase]} "
-                f"({100*self.num_sentences[phase]/num_sentences_total:.2f}% of total = {num_sentences_total})"
-            )
-            default_logger.log_info(
-                f"num_tokens = {self.num_tokens[phase]} "
-                f"({100*self.num_tokens[phase]/num_tokens_total:.2f}% of total = {num_tokens_total})"
-            )
-            default_logger.log_info(self.stats_aggregated[phase])
-
-        default_logger.log_info("")
-        default_logger.log_info(f"num_sentences = {self.num_sentences}")
-        default_logger.log_info(f"num_tokens = {self.num_tokens}")
-        default_logger.log_info(f">>> total <<<<")
-        default_logger.log_info(self.stats_aggregated["total"])
-
-    def plot_data(self):
-        fig_path = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.png")
-        Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
-
-    @staticmethod
-    def _stats_aggregated_add_columns(df, number_of_sentences):
-        """
-        V: analyze data
-        ----------------
-        :param df: ..
-        :param number_of_sentences: ..
-        :return: ..
-        """
-        df["tags/sentence"] = df["tags"] / float(number_of_sentences)
-        df["tags/sentence"] = df["tags/sentence"].apply(lambda x: "{:.2f}".format(x))
-
-        # relative tags w/ 0
-        number_of_occurrences = df["tags"].sum()
-        df["tags relative w/ 0"] = df["tags"] / number_of_occurrences
-        df["tags relative w/ 0"] = df["tags relative w/ 0"].apply(
-            lambda x: "{:.2f}".format(x)
-        )
-
-        # relative tags w/o 0
-        number_of_filtered_occurrences = df["tags"].sum() - df.loc["O"]["tags"]
-        df["tags relative w/o 0"] = df["tags"] / number_of_filtered_occurrences
-        df["tags relative w/o 0"]["O"] = 0
-        df["tags relative w/o 0"] = df["tags relative w/o 0"].apply(
-            lambda x: "{:.2f}".format(x)
-        )
-
-        return df
-
-    @staticmethod
-    def _convert_iob1_to_iob2(rows_iob1) -> List[List[str]]:
-        """
-        convert tags from IOB1 to IOB2 format
-
-        :param  rows_iob1: [list] of [list] of [str], e.g. [['Inger', 'I-PER'], ['säger', '0'], ..]
-        :return rows_iob2: [list] of [list] of [str], e.g. [['Inger', 'B-PER'], ['säger', '0'], ..]
-        """
-        rows_iob2 = list()
-        for i in range(len(rows_iob1)):
-            if len(rows_iob1[i]) == 0:
-                rows_iob2.append(rows_iob1[i])
-            elif len(rows_iob1[i]) == 2:
-                current_tag = rows_iob1[i][1]
-
-                if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
-                    rows_iob2.append(rows_iob1[i])
-                elif current_tag.startswith("I-"):
-                    previous_tag = rows_iob1[i-1][1] if (i > 0 and len(rows_iob1[i-1]) == 2) else None
-
-                    if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
-                        tag_iob2 = current_tag.replace(
-                            "I-", "B-"
-                        )
-                        rows_iob2.append([rows_iob1[i][0], tag_iob2])
-                    else:
-                        rows_iob2.append(rows_iob1[i])
-            else:
-                raise Exception(f"ERROR! row #{i} = {rows_iob1[i]} should have length 0 or 2, not {len(rows_iob1[i])}")
-        return rows_iob2

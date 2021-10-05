@@ -1,0 +1,12 @@
+1	Det	Det	PM	PM	NOM	_	_	_	_	B	PER	13263-1010926:0:1
+2	här	här	PM	PM	NOM	_	_	_	_	O	_	13263-1010926:0:8
+3	är	är	PP	PP	_	_	_	_	_	O	_	13263-1010926:0:19
+4	ett	ett	DT	DT	UTR|SIN|IND	_	_	_	_	B	LOC	13263-1010926:0:21
+5	test	test	NN	NN	UTR|SIN|IND|NOM	_	_	_	_	O	_	13263-1010926:0:24
+
+1	Med	Med	PAD	PAD	_	_	_	_	_	O	_	13263-1010926:1:80
+2	två	två	RG	RG	NOM	_	_	_	_	O	_	13263-1010926:1:81
+3	meningar	meningar	PAD	PAD	_	_	_	_	_	B	LOC	13263-1010926:1:85
+4	.	.	PAD	PAD	_	_	_	_	_	O	_	13263-1010926:1:85
+5	ignore 	 row
+

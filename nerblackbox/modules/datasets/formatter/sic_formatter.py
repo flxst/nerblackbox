@@ -1,8 +1,8 @@
-import os
 import subprocess
-from os.path import join
+from typing import Dict, List, Optional, Tuple
+import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
+from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
@@ -25,12 +25,12 @@ class SICFormatter(BaseFormatter):
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
-    def get_data(self, verbose: bool):
+    def get_data(self, verbose: bool) -> None:  # pragma: no cover
         """
         I: get data
-        ----------
-        :param verbose: [bool]
-        :return: -
+
+        Args:
+            verbose: [bool]
         """
         bash_cmds = [
             f"mkdir {env_variable('DIR_DATASETS')}/_sic",
@@ -53,30 +53,97 @@ class SICFormatter(BaseFormatter):
             except subprocess.CalledProcessError as e:
                 print(e)
 
-    def create_ner_tag_mapping(self):
+    def create_ner_tag_mapping(self) -> Dict[str, str]:
         """
         II: customize ner_training tag mapping if wanted
-        ------------------------------------------------
-        :return: ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
+
+        Returns:
+            ner_tag_mapping: [dict] w/ keys = tags in original data, values = tags in formatted data
         """
         return dict()
 
-    def format_data(self):
+    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
-        ----------------
-        :return: -
+
+        Args:
+            shuffle: whether to shuffle rows of dataset
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+
+        Returns:
+            sentences_rows: only if write_csv = False
         """
         for phase in ["train"]:
-            rows = self._read_original_file(phase)
-            self._write_formatted_csv(phase, rows)
+            sentences_rows = self._read_original_file(phase)
+            if shuffle:
+                sentences_rows = self._shuffle_dataset(phase, sentences_rows)
 
-    def resplit_data(self, val_fraction: float):
+            if write_csv:  # pragma: no cover
+                self._write_formatted_csv(phase, sentences_rows)
+            else:
+                return sentences_rows
+
+    def set_original_file_paths(self) -> None:
+        """
+        III: format data
+
+        Changed Attributes:
+            file_paths: [Dict[str, str]], e.g. {'train': <path_to_train_csv>, 'val': ..}
+
+        Returns: -
+        """
+        self.file_name = {
+            "train": "sic-train.conll",
+            "val": "sic-dev.conll",
+            "test": "sic-test.conll",
+        }
+
+    def _parse_row(self, _row: str) -> List[str]:
+        """
+        III: format data
+
+        Args:
+            _row: e.g. "Det PER X B"
+
+        Returns:
+            _row_list: e.g. ["Det", "PER", "X", "B"]
+        """
+        _row_list = _row.split("\t")
+        if _row_list == ["\n"]:
+            return []
+        else:
+            return _row_list
+
+    def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:
+        """
+        III: format data
+
+        Args:
+            _row_list: e.g. ["test", "PER", "X", "B"]
+
+        Returns:
+            _row_list_formatted: e.g. ["test", "B-PER"]
+        """
+        if not len(_row_list) in [13]:
+            print(f"ATTENTION! row_list = {_row_list} should consist of 13 parts! -> treat as empty row")
+            return None
+
+        _row_list_formatted = [_row_list[1], self.transform_tags(_row_list[-3], _row_list[-2])]
+
+        return _row_list_formatted
+
+    def resplit_data(self, val_fraction: float, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
-        ----------------
-        :param val_fraction: [float]
-        :return: -
+
+        Args:
+            val_fraction: [float], e.g. 0.3
+            write_csv: whether to write dataset to csv (should always be True except for testing)
+
+        Returns:
+            df_train: only if write_csv = False
+            df_val:   only if write_csv = False
+            df_test:  only if write_csv = False
         """
         # train -> train, val, test
         df_train_val_test = self._read_formatted_csvs(["train"])
@@ -84,51 +151,26 @@ class SICFormatter(BaseFormatter):
             df_train_val_test, val_fraction
         )
         df_train, df_val = self._split_off_validation_set(df_train_val, val_fraction)
-        self._write_final_csv("train", df_train)
-        self._write_final_csv("val", df_val)
-        self._write_final_csv("test", df_test)
+
+        if write_csv:  # pragma: no cover
+            self._write_final_csv("train", df_train)
+            self._write_final_csv("val", df_val)
+            self._write_final_csv("test", df_test)
+        else:
+            return df_train, df_val, df_test
 
     ####################################################################################################################
     # HELPER: READ ORIGINAL
     ####################################################################################################################
-    def _read_original_file(self, phase):
-        """
-        III: format data
-        ---------------------------------------------
-        :param phase:   [str] 'train' or 'test'
-        :return: _rows: [list] of [list] of [str], e.g. [[], ['Inger', 'PER'], ['säger', '0'], ..]
-        """
-        file_name = {
-            "train": "sic-train.conll",
-        }
-        file_path_original = join(self.dataset_path, file_name[phase])
-
-        _rows = list()
-        if os.path.isfile(file_path_original):
-            with open(file_path_original) as f:
-                for i, row in enumerate(f.readlines()):
-                    _rows.append(row.strip().split())
-            print(f"\n> read {file_path_original}")
-        else:
-            raise Exception(f"> original file {file_path_original} could not be found.")
-
-        _rows = [
-            [row[1], self.transform_tags(row[-3], row[-2])]
-            if len(row) > 0
-            and row[-3]
-            not in ["_", "U"]  # filter out "_-_" and "_-person" (bugs in SIC dataset)
-            else list()
-            for row in _rows
-        ]
-
-        return _rows
-
     @staticmethod
-    def transform_tags(bio, tag):
+    def transform_tags(bio: str, tag: str) -> str:
         """
-        :param bio: [str] 'O', 'B', 'I'
-        :param tag: [str] '_', 'person', ..
-        :return: transformed tag: [str], e.g. 'O', 'B-person', ..
+        Args:
+            bio: e.g. 'O', 'B', 'I'
+            tag: e.g. '_', 'person', ..
+
+        Returns:
+            transformed tag: e.g. 'O', 'B-person', ..
         """
         if bio == "O":
             return "O"

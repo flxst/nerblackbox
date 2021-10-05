@@ -127,7 +127,7 @@ class NerBlackBox:
         Args:
             experiment_name: e.g. "exp0"
             kwargs_optional: with optional key-value pairs \
-            {"run_name": [str], "device": [torch device], "fp16": [bool]}
+            {"from_config": [bool], "run_name": [str], "device": [torch device], "fp16": [bool]}
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
