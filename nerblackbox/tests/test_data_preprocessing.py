@@ -22,12 +22,11 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     EncodingsKeys,
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
-from nerblackbox.modules.ner_training.ner_model import NEWLINE_TOKENS
 
 tokenizer = AutoTokenizer.from_pretrained(
     "af-ai-center/bert-base-swedish-uncased",
     do_lower_case=False,
-    additional_special_tokens=NEWLINE_TOKENS,
+    additional_special_tokens=["[newline]", "[NEWLINE]"],
     use_fast=True,
 )
 
