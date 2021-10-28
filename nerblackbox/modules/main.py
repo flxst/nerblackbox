@@ -11,7 +11,8 @@ from mlflow.entities import Run
 
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
-from typing import Optional, Any, Tuple, Union, Dict, List
+from nerblackbox.modules.experiment_config.preset import get_preset
+from typing import Optional, Tuple, Union, Dict, List
 
 DATASETS_DOWNLOAD = [
     "conll2003",
@@ -31,7 +32,9 @@ class NerBlackBoxMain:
         val_fraction: float = 0.3,  # set_up_dataset
         verbose: bool = False,
         experiment_name: Optional[str] = None,
-        from_config: bool = True,  # run_experiment
+        hparams: Optional[Dict[str, str]] = None,  # run_experiment
+        from_preset: Optional[str] = None,  # run_experiment
+        from_config: bool = False,  # run_experiment
         run_name: Optional[str] = None,  # run_experiment
         device: str = "gpu",  # run_experiment
         fp16: bool = False,  # run_experiment
@@ -48,7 +51,9 @@ class NerBlackBoxMain:
         :param val_fraction:    [float] e.g. 0.3
         :param verbose:         [bool]
         :param experiment_name: [str], e.g. 'exp0'
-        :param from_config:     [bool] if True, get experiment params & hparams from config file
+        :param hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
+        :param from_preset:     [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
+        :param from_config:     [bool] if True, get experiment params & hparams from config file   [ALTERNATIVE]
         :param run_name:        [str or None], e.g. 'runA'
         :param device:          [str]
         :param fp16:            [bool]
@@ -68,7 +73,8 @@ class NerBlackBoxMain:
         self.val_fraction = val_fraction  # set_up_dataset
         self.verbose = verbose
         self.experiment_name = experiment_name
-        self.from_config = from_config
+        self.hparams: Optional[Dict[str, str]] = self._process_hparams(hparams, from_preset)
+        self.from_config: bool = from_config
         self.run_name = run_name  # run_experiment
         self.device = device  # run_experiment
         self.fp16 = fp16  # run_experiment
@@ -76,6 +82,18 @@ class NerBlackBoxMain:
         self.ids = ids  # get_experiments, get_experiments_results
         self.as_df = as_df  # get_experiments, get_experiments_results
         self.results = results  # clear_data
+
+        # assert start
+        assert (self.hparams is None and self.from_config is True) or \
+               (self.hparams is not None and self.from_config is False), \
+               f"ERROR! Need to specify " \
+               f"EITHER hparams (currently {self.hparams}) " \
+               f"with or without from_preset (currently {from_preset}) " \
+               f"OR from_config (currently {self.from_config})."
+        if self.from_config is False:
+            for field in ["model", "dataset"]:
+                assert field in self.hparams.keys(), f"ERROR! {field} needs to be specified as from_config is False"
+        # assert end
 
         data_dir = env_variable("DATA_DIR")
         if os.path.isdir(data_dir):
@@ -387,7 +405,8 @@ class NerBlackBoxMain:
     def run_experiment(self) -> None:
         """
         :used attr: experiment_name [str],         e.g. 'exp1'
-        :used attr: from_config     [bool]
+        :used attr: hparams         [dict], e.g. {'multiple_runs': '2'} with hparams to use           [HIERARCHY:  I]
+        :used attr: from_config     [bool] if True, get experiment params & hparams from config file  [ALTERNATIVE]
         :used attr: run_name        [str] or None, e.g. 'runA'
         :used attr: device          [str]
         :used attr: fp16            [bool]
@@ -399,6 +418,15 @@ class NerBlackBoxMain:
             "device": self.device,
             "fp16": int(self.fp16),
         }
+        # TODO START: get rid of this
+        print("NerBlackBox Main, parameters:")
+        print(_parameters)
+        print()
+        print("NerBlackBox Main, self.hparams:")
+        print(self.hparams)
+        print()
+        exit()
+        # TODO END: get rid of this
 
         mlflow.projects.run(
             uri=resource_filename(Requirement.parse("nerblackbox"), "nerblackbox"),
@@ -466,6 +494,23 @@ class NerBlackBoxMain:
     ####################################################################################################################
     # HELPER ###########################################################################################################
     ####################################################################################################################
+    @staticmethod
+    def _process_hparams(hparams: Optional[Dict[str, str]], from_preset: Optional[str]) -> Optional[Dict[str, str]]:
+        """
+        Args:
+            hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
+            from_preset:     [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
+
+        Returns:
+            _hparams:        [dict], e.g. {'multiple_runs': '2'} with hparams to use
+        """
+        _hparams = get_preset(from_preset)
+        if _hparams is None:
+            _hparams = hparams
+        elif hparams is not None:
+            _hparams.update(**hparams)
+        return _hparams
+
     @staticmethod
     def _create_data_directory() -> None:
         if resource_isdir(Requirement.parse("nerblackbox"), "nerblackbox/modules/data"):
@@ -559,7 +604,7 @@ class NerBlackBoxMain:
         return _experiments_id2name
 
     ####################################################################################################################
-    # HELPER: ADDITONAL
+    # HELPER: ADDITIONAL
     ####################################################################################################################
     @staticmethod
     def _assert_flag(flag: str) -> None:

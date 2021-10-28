@@ -2,7 +2,7 @@
 
 import os
 from os.path import abspath
-from typing import Optional, Dict, List, Union
+from typing import Optional, Dict, List, Union, Tuple, Any
 import pandas as pd
 from nerblackbox.modules.experiment_results import ExperimentResults
 
@@ -132,7 +132,17 @@ class NerBlackBox:
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
         kwargs["experiment_name"] = experiment_name
+        kwargs["hparams"], kwargs["from_preset"], kwargs["from_config"] = self._extract_hparams_and_from_preset(kwargs)
+        for key in kwargs["hparams"].keys():
+            kwargs.pop(key)
+        if kwargs["hparams"] == {}:
+            kwargs["hparams"] = None
 
+        # TODO START: get rid of this
+        print("API: kwargs to NerBlackBoxMain")
+        print(kwargs)
+        print()
+        # TODO END: get rid of this
         nerbb = NerBlackBoxMain("run_experiment", **kwargs)
         nerbb.main()
 
@@ -160,6 +170,7 @@ class NerBlackBox:
         """
         kwargs = self._process_kwargs_optional()
         kwargs["experiment_name"] = experiment_name
+        kwargs["from_config"] = True
 
         nerbb = NerBlackBoxMain("show_experiment_config", **kwargs)
         nerbb.main()
@@ -168,8 +179,44 @@ class NerBlackBox:
     # HELPER
     ####################################################################################################################
     @staticmethod
-    def _process_kwargs_optional(_kwargs_optional: Optional[Dict] = None):
+    def _process_kwargs_optional(_kwargs_optional: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        general helper function
+        filters out key-value pairs that have value = None
+
+        Args:
+            _kwargs_optional: e.g. {"a": 1, "b": None}
+
+        Returns:
+            _kwargs:          e.g. {"a": 1}
+        """
         if _kwargs_optional is None:
             return {}
         else:
             return {k: v for k, v in _kwargs_optional.items() if v is not None}
+
+    @staticmethod
+    def _extract_hparams_and_from_preset(_kwargs: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[str], bool]:
+        """
+        Args:
+            _kwargs: e.g. {"a": 1, "from_preset": "adaptive", "from_config": False}
+
+        Returns:
+            _hparams: e.g. {"a": 1}
+            _from_preset: e.g. "adaptive"
+            _from_config: e.g. False
+        """
+        # hparams
+        exclude_keys = ["experiment_name", "from_preset", "from_config", "run_name", "device", "fp16"]
+        _hparams = {
+            _key: _kwargs[_key]
+            for _key in [k for k in _kwargs.keys() if k not in exclude_keys]
+        }
+
+        # from_preset
+        _from_preset = _kwargs["from_preset"] if "from_preset" in _kwargs.keys() else None
+
+        # from_config
+        _from_config = _kwargs["from_config"] if "from_config" in _kwargs.keys() else False
+
+        return _hparams, _from_preset, _from_config
