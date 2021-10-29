@@ -65,7 +65,7 @@ pip install nerblackbox
         === "Python"
             ``` python
             nerbb = NerBlackBox()
-            nerbb.run_experiment("my_experiment", from_config=True)    # fine-tune
+            nerbb.run_experiment("my_experiment")                      # fine-tune
             nerbb.get_experiment_results("my_experiment")              # get results/performance
             nerbb.predict("my_experiment", "annotera den här texten")  # apply best model for NER
             ```

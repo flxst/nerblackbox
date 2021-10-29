@@ -85,7 +85,7 @@ Once an experiment is defined, the following command can be used to run it.
         ```
     === "Python"
         ``` python
-        nerbb.run_experiment("<experiment_name>", from_config=True)
+        nerbb.run_experiment("<experiment_name>")
         ```
 
 ### c. Get experiment results

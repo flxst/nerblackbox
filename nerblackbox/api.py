@@ -121,20 +121,42 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("predict", **kwargs)
         return nerbb.main()
 
-    def run_experiment(self, experiment_name: str, **kwargs_optional: Dict):
+    def run_experiment(self,
+                       experiment_name: str,
+                       model: Optional[str] = None,
+                       dataset: Optional[str] = None,
+                       **kwargs_optional: Dict):
         """run a single experiment.
 
+           Note:
+
+           - If only experiment_name is provided, the hyperparameters are read from an experiment config file
+
+           - If the hyperparameters are provided as arguments, they overwrite the default hyperparameters.
+
+             The arguments model and dataset are mandatory in that case.
+
         Args:
-            experiment_name: e.g. "exp0"
-            kwargs_optional: with optional key-value pairs \
-            {"from_config": [bool], "run_name": [str], "device": [torch device], "fp16": [bool]}
+            experiment_name: e.g. 'exp0'
+            model: e.g. 'bert-base-uncased'
+            dataset: e.g. 'conll-2003'
+            kwargs_optional: with optional key-value pairs, e.g. \
+            {"multiple_runs": [int], "from_preset": [bool], "run_name": [str], "device": [torch device], "fp16": [bool]}
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
+
         kwargs["experiment_name"] = experiment_name
+        if model is not None:
+            kwargs["model"] = model
+        if dataset is not None:
+            kwargs["dataset"] = dataset
+
         kwargs["hparams"], kwargs["from_preset"], kwargs["from_config"] = self._extract_hparams_and_from_preset(kwargs)
+
         for key in kwargs["hparams"].keys():
             kwargs.pop(key)
+
         if kwargs["hparams"] == {}:
             kwargs["hparams"] = None
 
@@ -199,7 +221,7 @@ class NerBlackBox:
     def _extract_hparams_and_from_preset(_kwargs: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[str], bool]:
         """
         Args:
-            _kwargs: e.g. {"a": 1, "from_preset": "adaptive", "from_config": False}
+            _kwargs: e.g. {"a": 1, "from_preset": "adaptive"}
 
         Returns:
             _hparams: e.g. {"a": 1}
@@ -207,7 +229,7 @@ class NerBlackBox:
             _from_config: e.g. False
         """
         # hparams
-        exclude_keys = ["experiment_name", "from_preset", "from_config", "run_name", "device", "fp16"]
+        exclude_keys = ["experiment_name", "run_name", "device", "fp16", "from_preset"]
         _hparams = {
             _key: _kwargs[_key]
             for _key in [k for k in _kwargs.keys() if k not in exclude_keys]
@@ -217,6 +239,6 @@ class NerBlackBox:
         _from_preset = _kwargs["from_preset"] if "from_preset" in _kwargs.keys() else None
 
         # from_config
-        _from_config = _kwargs["from_config"] if "from_config" in _kwargs.keys() else False
+        _from_config = True if (len(_hparams) == 0 and _from_preset is None) else False
 
         return _hparams, _from_preset, _from_config

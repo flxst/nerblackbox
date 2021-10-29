@@ -33,13 +33,31 @@ class TestApi:
         "_kwargs, _hparams, _from_preset, _from_config",
         [
             (
-                    {"a": 1, "from_preset": None, "from_config": True},
-                    {"a": 1},
+                    {},
+                    {},
                     None,
                     True,
             ),
             (
-                    {"a": 1, "from_preset": "adaptive", "from_config": False},
+                    {"from_preset": None},
+                    {},
+                    None,
+                    True,
+            ),
+            (
+                    {"from_preset": "adaptive"},
+                    {},
+                    "adaptive",
+                    False,
+            ),
+            (
+                    {"a": 1, "from_preset": None},
+                    {"a": 1},
+                    None,
+                    False,
+            ),
+            (
+                    {"a": 1, "from_preset": "adaptive"},
                     {"a": 1},
                     "adaptive",
                     False,

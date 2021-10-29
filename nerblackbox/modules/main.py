@@ -92,7 +92,8 @@ class NerBlackBoxMain:
                f"OR from_config (currently {self.from_config})."
         if self.from_config is False:
             for field in ["model", "dataset"]:
-                assert field in self.hparams.keys(), f"ERROR! {field} needs to be specified as from_config is False"
+                assert field in self.hparams.keys(), \
+                    f"ERROR! {field} is not specified. It is mandatory if hyperparameter arguments are used."
         # assert end
 
         data_dir = env_variable("DATA_DIR")
