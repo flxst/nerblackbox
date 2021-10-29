@@ -29,10 +29,13 @@ class Experiment:
         self.fp16 = fp16
 
         self.exp_default = ExperimentConfig("default")
-        if self.from_config:
-            self.exp = ExperimentConfig(self.experiment_name)
-        else:
-            raise Exception(f"self.from_config = False currently not implemented!")
+        self.exp = ExperimentConfig(self.experiment_name)
+
+        # TODO START: get rid of this
+        print("Experiment:")
+        print(self.exp.config)
+        print()
+        # TODO END: get rid of this
 
         # info for runs
         self.runs_name_nr: List[str] = list()

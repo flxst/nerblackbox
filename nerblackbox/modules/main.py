@@ -12,6 +12,7 @@ from mlflow.entities import Run
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
 from nerblackbox.modules.experiment_config.preset import get_preset
+from nerblackbox.modules.utils.parameters import DATASET, MODEL, SETTINGS, HPARAMS
 from typing import Optional, Tuple, Union, Dict, List
 
 DATASETS_DOWNLOAD = [
@@ -91,7 +92,7 @@ class NerBlackBoxMain:
                f"with or without from_preset (currently {from_preset}) " \
                f"OR from_config (currently {self.from_config})."
         if self.from_config is False:
-            for field in ["model", "dataset"]:
+            for field in ["pretrained_model_name", "dataset_name"]:
                 assert field in self.hparams.keys(), \
                     f"ERROR! {field} is not specified. It is mandatory if hyperparameter arguments are used."
         # assert end
@@ -425,9 +426,10 @@ class NerBlackBoxMain:
         print()
         print("NerBlackBox Main, self.hparams:")
         print(self.hparams)
-        print()
-        exit()
         # TODO END: get rid of this
+
+        if self.from_config is False:
+            self._write_config_file()
 
         mlflow.projects.run(
             uri=resource_filename(Requirement.parse("nerblackbox"), "nerblackbox"),
@@ -511,6 +513,44 @@ class NerBlackBoxMain:
         elif hparams is not None:
             _hparams.update(**hparams)
         return _hparams
+
+    def _write_config_file(self) -> None:
+        """
+        write config file based on self.hparams
+        """
+        # assert that config file does not exist
+        config_path = join(
+            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+        )
+        assert isfile(config_path) is False, f"ERROR! experiment config file {config_path} already exists!"
+
+        # write config file: helper functions
+        def _write(_str: str):
+            f.write(_str + "\n")
+
+        def _write_key_value(_key: str):
+            if _key in self.hparams.keys():
+                f.write(f"{_key} = {self.hparams[_key]}\n")
+
+        # write config file
+        with open(config_path, "w") as f:
+            _write("[dataset]")
+            for key in DATASET.keys():
+                _write_key_value(key)
+
+            _write("\n[model]")
+            for key in MODEL.keys():
+                _write_key_value(key)
+
+            _write("\n[settings]")
+            for key in SETTINGS.keys():
+                _write_key_value(key)
+
+            _write("\n[hparams]")
+            for key in HPARAMS.keys():
+                _write_key_value(key)
+
+            _write("\n[runA]")
 
     @staticmethod
     def _create_data_directory() -> None:

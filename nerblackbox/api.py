@@ -130,16 +130,18 @@ class NerBlackBox:
 
            Note:
 
-           - If only experiment_name is provided, the hyperparameters are read from an experiment config file
+           - experiment config file exists -> only experiment_name needs to be provided
 
-           - If the hyperparameters are provided as arguments, they overwrite the default hyperparameters.
+           - experiment config file needs to be created -> provide hyperparameters as arguments
 
              The arguments model and dataset are mandatory in that case.
 
+             All other arguments are optional. If not specified, the default hyperparameters are used.
+
         Args:
             experiment_name: e.g. 'exp0'
-            model: e.g. 'bert-base-uncased'
-            dataset: e.g. 'conll-2003'
+            model: if experiment config file is to be created dynamically, e.g. 'bert-base-uncased'
+            dataset: if experiment config file is to be created dynamically, e.g. 'conll-2003'
             kwargs_optional: with optional key-value pairs, e.g. \
             {"multiple_runs": [int], "from_preset": [bool], "run_name": [str], "device": [torch device], "fp16": [bool]}
         """
@@ -148,9 +150,9 @@ class NerBlackBox:
 
         kwargs["experiment_name"] = experiment_name
         if model is not None:
-            kwargs["model"] = model
+            kwargs["pretrained_model_name"] = model
         if dataset is not None:
-            kwargs["dataset"] = dataset
+            kwargs["dataset_name"] = dataset
 
         kwargs["hparams"], kwargs["from_preset"], kwargs["from_config"] = self._extract_hparams_and_from_preset(kwargs)
 
