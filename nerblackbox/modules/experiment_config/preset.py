@@ -4,9 +4,35 @@ from typing import Dict, Optional
 
 PRESET = {
     "adaptive": {
-        "model": "test_will_be_overwritten",
+        "max_epochs": 50,
+        "early_stopping": True,
         "lr_schedule": "constant",
-    }
+    },
+    "original": {
+        "max_epochs": 5,
+        "early_stopping": False,
+        "lr_schedule": "linear",
+    },
+    "stable": {
+        "max_epochs": 20,
+        "early_stopping": False,
+        "lr_schedule": "linear",
+    },
+    "hybrid": {
+        # max epochs needs to be specified manually!
+        "early_stopping": False,
+        "lr_schedule": "hybrid",
+    },
+    ###################################
+    # experimental
+    ###################################
+    "no-training-resumption": {
+        "max_epochs": 50,
+        "early_stopping": True,
+        "lr_schedule": "constant",
+        "lr_cooldown_restarts": False,
+        # lr_cooldown_epochs needs to be specified manually! e.g. 0 or 3
+    },
 }
 
 
