@@ -12,16 +12,19 @@ PRESET = {
         "max_epochs": 5,
         "early_stopping": False,
         "lr_schedule": "linear",
+        "prune_ratio_val": 0.01,  # not needed as early_stopping is False
     },
     "stable": {
         "max_epochs": 20,
         "early_stopping": False,
         "lr_schedule": "linear",
+        "prune_ratio_val": 0.01,  # not needed as early_stopping is False
     },
     "hybrid": {
         # max epochs needs to be specified manually!
         "early_stopping": False,
         "lr_schedule": "hybrid",
+        "prune_ratio_val": 0.01,  # not needed as early_stopping is False
     },
     ###################################
     # experimental

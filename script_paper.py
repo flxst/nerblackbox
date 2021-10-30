@@ -1,7 +1,8 @@
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
 import warnings
+import argparse
 from itertools import product
 
 from nerblackbox import NerBlackBox
@@ -49,7 +50,7 @@ MODEL_DATASET = {
 
 FINE_TUNING_APPROACHES = ["original", "stable", "adaptive"]
 # ANNOTATION_SCHEMES = ["bio", "bilou"]
-DATASET_MODEL_COMBINATIONS = ["I", "II", "III", "IV", "V"]
+DATASET_MODEL_COMBINATIONS = ["II"]  # ["I", "II", "III", "IV", "V"]
 TRAINING_DATASET_FRACTIONS = [0.005, 0.01, 0.015, 0.02, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.00]
 
 ########################################################################################################################
@@ -62,6 +63,7 @@ EXPERIMENTS_CONFIRMATION = [
         "s": "bio",
         "c": c,
         "x": 1.00,
+        "prune_ratio_val": 1.00,  # overwrite preset
     }
     for c in ["Ib", "II", "IV"]
 ]
@@ -164,7 +166,7 @@ MAX_EPOCH = {
     0.60: 11,
     0.80: 11,
     1.00: 11,
-}  # TODO: use numbers from 6A
+}  # TODO: use numbers from 5
 EXPERIMENTS_ABLATION_B = [
     {
         "experiment_name": f"exp_6B_a{a}_c{c}_x{x}",
@@ -241,23 +243,10 @@ EXPERIMENTS_SCHEME = [
 print(f"8. EXPERIMENTS_SCHEME: {len(EXPERIMENTS_SCHEME)} = "
       f"{len(FINE_TUNING_APPROACHES)} x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
 
+
 ########################################################################################################################
 # ALL
 ########################################################################################################################
-EXPERIMENTS = \
-    EXPERIMENTS_CONFIRMATION  # + \
-    # EXPERIMENTS_VARIANTS_SIMPLIFICATION + \
-    # EXPERIMENTS_VARIANTS_COOLDOWN + \
-    # EXPERIMENTS_VARIANTS_CONSTANT + \
-    # EXPERIMENTS_STANDARD + \
-    # EXPERIMENTS_ABLATION_A + \
-    # EXPERIMENTS_ABLATION_B + \
-    # EXPERIMENTS_PRACTICE_A + \
-    # EXPERIMENTS_PRACTICE_B + \
-    # EXPERIMENTS_SCHEME
-print(f"--> EXPERIMENTS: {len(EXPERIMENTS)}")
-
-
 def process_experiment_dict(_experiment: Dict[str, Any]) -> Dict[str, Any]:
     _experiment["from_preset"] = _experiment["a"]
     _experiment["annotation_scheme"] = _experiment["s"]
@@ -272,16 +261,52 @@ def process_experiment_dict(_experiment: Dict[str, Any]) -> Dict[str, Any]:
     return _experiment
 
 
-def main() -> None:
+def get_experiments(exp: str) -> List[Dict[str, Any]]:
+    if exp == "confirmation":
+        return EXPERIMENTS_CONFIRMATION
+    elif exp == "variants_simplification":
+        return EXPERIMENTS_VARIANTS_SIMPLIFICATION
+    elif exp == "variants_cooldown":
+        return EXPERIMENTS_VARIANTS_COOLDOWN
+    elif exp == "variants_constant":
+        return EXPERIMENTS_VARIANTS_CONSTANT
+    elif exp == "standard":
+        return EXPERIMENTS_STANDARD
+    elif exp == "ablation_a":
+        return EXPERIMENTS_ABLATION_A
+    elif exp == "ablation_b":
+        return EXPERIMENTS_ABLATION_B
+    elif exp == "practice_a":
+        return EXPERIMENTS_PRACTICE_A
+    elif exp == "practice_b":
+        return EXPERIMENTS_PRACTICE_B
+    elif exp == "scheme":
+        return EXPERIMENTS_SCHEME
+    else:
+        raise Exception(f"exp = {exp} unknown.")
+
+
+def main(exp: str) -> None:
+
+    experiments = get_experiments(exp)
+    print(f"--> EXPERIMENTS: {len(experiments)}")
 
     nerbb = NerBlackBox()
-    for experiment in EXPERIMENTS:
+    for i, experiment in enumerate(experiments):
         experiment_name = experiment.pop("experiment_name")
         experiment = process_experiment_dict(experiment)
-        print(experiment_name)
+        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        print(f"experiment {experiment_name} (#{i+1} out of {len(experiments)})")
         print(experiment)
-        # nerbb.run_experiment(experiment_name, **experiment)
+        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        nerbb.run_experiment(experiment_name, **experiment)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--exp", required=True, type=str, help="confirmation, variants_*, standard, ablation_*, practice_*, scheme"
+    )
+    _args = parser.parse_args()
+
+    main(_args.exp)
