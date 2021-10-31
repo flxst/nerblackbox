@@ -64,6 +64,7 @@ EXPERIMENTS_CONFIRMATION = [
         "c": c,
         "x": 1.00,
         "prune_ratio_val": 1.00,  # overwrite preset
+        "train_on_val": True if c == "IV" else False,
     }
     for c in ["Ib", "II", "IV"]
 ]
