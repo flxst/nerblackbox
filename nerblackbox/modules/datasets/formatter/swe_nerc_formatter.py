@@ -134,7 +134,8 @@ class SweNercFormatter(BaseFormatter):
             raise Exception(f"ERROR! row_list = {_row_list} should consist of 3 or 4 parts!")
 
         if _row_list[0] != "SKIP-THIS-TOKEN":
-            _row_list_formatted = [" ".join(_row_list[0].split(" ")), self.transform_tags(_row_list)]
+            # transformation on _row_list[0] replaces unwanted nbsp characters
+            _row_list_formatted = ["".join(_row_list[0].split()), self.transform_tags(_row_list)]
             return _row_list_formatted
         else:
             return None
