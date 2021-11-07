@@ -76,6 +76,7 @@ class NerBlackBox:
         kwargs = self._process_kwargs_optional()
         kwargs["usage"] = "api"
         kwargs["experiment_name"] = experiment_name
+        kwargs["from_config"] = True
 
         nerbb = NerBlackBoxMain("get_experiment_results", **kwargs)
         return nerbb.main()

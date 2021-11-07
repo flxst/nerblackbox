@@ -50,7 +50,7 @@ MODEL_DATASET = {
 
 FINE_TUNING_APPROACHES = ["original", "stable", "adaptive"]
 # ANNOTATION_SCHEMES = ["bio", "bilou"]
-DATASET_MODEL_COMBINATIONS = ["II"]  # ["I", "II", "III", "IV", "V"]
+DATASET_MODEL_COMBINATIONS = ["I", "II", "III", "IV", "V"]
 TRAINING_DATASET_FRACTIONS = [0.005, 0.01, 0.015, 0.02, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.00]
 
 ########################################################################################################################
