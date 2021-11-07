@@ -209,7 +209,14 @@ class NerModel(pl.LightningModule, ABC):
         :return:        [dict] w/ key 'val_loss' & value = mean batch loss of val dataset [float]
         """
         # OPTIONAL
-        return self._validate_on_epoch("val", outputs=outputs)
+        if self.trainer.state.fn == "fit":
+            metrics = "loss"
+        elif self.trainer.state.fn == "validate":
+            metrics = "all"
+        else:
+            raise Exception(f"ERROR! self.trainer.state.fn = {self.trainer.state.fn} unexpected.")
+
+        return self._validate_on_epoch("val", outputs=outputs, metrics=metrics)
 
     ####################################################################################################################
     # TEST
@@ -234,7 +241,7 @@ class NerModel(pl.LightningModule, ABC):
         :return:        [dict] w/ key 'test_loss' & value = mean batch loss of test dataset [float]
         """
         # OPTIONAL
-        return self._validate_on_epoch("test", outputs=outputs)
+        return self._validate_on_epoch("test", outputs=outputs, metrics="all")
 
     ####################################################################################################################
     # DATALOADER
@@ -410,12 +417,13 @@ class NerModel(pl.LightningModule, ABC):
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
     def _validate_on_epoch(
-        self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
+        self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]], metrics: str,
     ) -> Dict[str, float]:
         """
         Args:
             phase:   [str], 'val', 'test'
             outputs: [list] of [lists] = [batch_loss, batch_labels, batch_logits] with 3 torch tensors for each batch
+            metrics: [str], 'loss', 'all'
 
         Returns:
             [dict] w/ key '<phase>_loss' & value = mean batch loss [float]
@@ -426,19 +434,24 @@ class NerModel(pl.LightningModule, ABC):
             default_logger=self.default_logger,
             logged_metrics=self.logged_metrics,
         )
-        (
-            epoch_metrics,
-            classification_report,
-            confusion_matrix,
-            epoch_loss,
-        ) = ner_model_evaluation.execute(phase, outputs)
-        self._log_metrics_confusion_matrix_classification_report(
-            phase,
-            epoch_metrics,
-            confusion_matrix,
-            classification_report,
-        )
-        self.log(f"{phase}_loss", epoch_loss)  # for early stopping callback
+        if metrics == "loss":
+            epoch_loss = ner_model_evaluation.get_loss(outputs)
+            self.log(f"{phase}_loss", epoch_loss)  # for early stopping callback
+        elif metrics == "all":
+            (
+                epoch_metrics,
+                classification_report,
+                confusion_matrix,
+                epoch_loss,
+            ) = ner_model_evaluation.execute(phase, outputs)
+            self._log_metrics_confusion_matrix_classification_report(
+                phase,
+                epoch_metrics,
+                confusion_matrix,
+                classification_report,
+            )
+        else:
+            raise Exception(f"ERROR! metrics = {metrics} unexpected.")
 
         return {f"{phase}_loss": epoch_loss}
 

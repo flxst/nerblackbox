@@ -75,6 +75,7 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
             precision=16 if (params.fp16 and params.device.type == "cuda") else 32,
             logger=tb_logger,
         )
+        trainer_best.validate(model_best)
         trainer_best.test(model_best)
 
         # logging end
@@ -279,7 +280,7 @@ def logging_end(
     for metric in ("token_fil_f1_micro", "entity_fil_f1_micro"):
         _model_stopped.mlflow_client.log_metric(
             f"epoch_best_val_{metric}".upper(),
-            _model_stopped.epoch_metrics["val"][epoch_best][metric],
+            _model_best.epoch_metrics["val"][0][metric],
         )
         _model_stopped.mlflow_client.log_metric(
             f"epoch_best_test_{metric}".upper(),
@@ -321,9 +322,9 @@ def _tb_logger_stopped_epoch(
 
     # val/test
     hparams_best_val = {
-        f"hparam/val/epoch_best_{_epoch_best}/{metric}": _model_stopped.epoch_metrics[
+        f"hparam/val/epoch_best_{_epoch_best}/{metric}": _model_best.epoch_metrics[
             "val"
-        ][_epoch_best][metric]
+        ][0][metric]
         for metric in metrics
     }
 

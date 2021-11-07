@@ -36,6 +36,24 @@ class NerModelEvaluation:
     ####################################################################################################################
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
+    def get_loss(self, outputs: List[Union[torch.Tensor, Dict[str, Any]]]) -> float:
+        """
+        - get loss on all batches of one epoch, i.e. whole val or test dataset
+
+        Args:
+            outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
+
+        Returns:
+            epoch_loss: [float] mean of of all batch losses
+        """
+        np_batch: Dict[str, List[np.array]] = self._convert_output_to_np_batch(outputs)
+
+        np_epoch: Dict[
+            str, Union[np.number, np.array]
+        ] = self._combine_np_batch_to_np_epoch(np_batch)
+
+        return np_epoch["loss"]
+
     def execute(
         self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
     ) -> Tuple[Dict[str, np.array], str, str, float]:
