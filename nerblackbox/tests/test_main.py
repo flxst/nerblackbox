@@ -35,7 +35,12 @@ class TestMain:
             (
                     {'multiple_runs': '2'},
                     "adaptive",
-                    {'multiple_runs': '2', "model": "test_will_be_overwritten", "lr_schedule": "constant"},
+                    {
+                        'multiple_runs': '2',
+                        'max_epochs': 50,
+                        'early_stopping': True,
+                        'lr_schedule': 'constant',
+                    },
             ),
         ]
     )

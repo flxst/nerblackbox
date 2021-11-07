@@ -23,7 +23,7 @@ class TestSweNercFormatter:
                 [
                     [['Det', 'I-PER'], ['här', 'O'], ['är', 'O'], ['ett', 'I-LOC'], ['test', 'O']],
                     [['Med', 'O'], ['två', 'O'], ['meningar', 'I-LOC'], ['.', 'O']],
-                    [['Test X', 'I-PER']],
+                    [['TestX', 'I-PER']],
                 ]
             ),
         ]
@@ -42,7 +42,7 @@ class TestSweNercFormatter:
         [
             (
                     [
-                        [['Test X', 'B-PER']],
+                        [['TestX', 'B-PER']],
                         [['Med', 'O'], ['två', 'O'], ['meningar', 'B-LOC'], ['.', 'O']],
                         [['Det', 'B-PER'], ['här', 'O'], ['är', 'O'], ['ett', 'B-LOC'], ['test', 'O']],
                     ]
