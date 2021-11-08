@@ -428,16 +428,23 @@ class NerModel(pl.LightningModule, ABC):
         Returns:
             [dict] w/ key '<phase>_loss' & value = mean batch loss [float]
         """
-        ner_model_evaluation = NerModelEvaluation(
-            current_epoch=self.current_epoch,
-            annotation=self.annotation,
-            default_logger=self.default_logger,
-            logged_metrics=self.logged_metrics,
-        )
         if metrics == "loss":
-            epoch_loss = ner_model_evaluation.get_loss(outputs)
+            # CPU (numpy)
+            # batch_loss = [output[0].detach().cpu().numpy() for output in outputs]
+            # epoch_loss = np.stack(batch_loss).mean()
+
+            # GPU (pytorch)
+            batch_loss = [output[0].detach() for output in outputs]
+            epoch_loss = torch.mean(torch.stack(batch_loss))
+
             self.log(f"{phase}_loss", epoch_loss)  # for early stopping callback
         elif metrics == "all":
+            ner_model_evaluation = NerModelEvaluation(
+                current_epoch=self.current_epoch,
+                annotation=self.annotation,
+                default_logger=self.default_logger,
+                logged_metrics=self.logged_metrics,
+            )
             (
                 epoch_metrics,
                 classification_report,
