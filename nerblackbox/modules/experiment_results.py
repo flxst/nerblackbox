@@ -368,7 +368,7 @@ class ExperimentResults:
                     "checkpoint": checkpoint if isfile(checkpoint) else None
                 },
                 **{field: _df_best_single_run[("info", field)] for field in fields_info},
-                **{field: _df_best_single_run[("metrics", field)] for field in self.METRICS.values()},
+                **{field: _df_best_single_run[("metrics", field)] for field in self.METRICS_PLUS.values()},
             )
         else:
             self.best_single_run = dict()
@@ -388,7 +388,7 @@ class ExperimentResults:
                 },
                 **{
                     field: _df_best_average_run[('metrics', field)]
-                    for field in list(self.METRICS.values()) + ["CONVERGENCE"]
+                    for field in list(self.METRICS_PLUS.values()) + ["CONVERGENCE"]
                 },
             )
         else:
