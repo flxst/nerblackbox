@@ -144,13 +144,13 @@ print(f"5. EXPERIMENTS_STANDARD: {len(EXPERIMENTS_STANDARD)} = "
 EXPERIMENTS_ABLATION_A = [
     {
         "experiment_name": f"exp_6A_a{a}_c{c}_x{x}",
-        "a": a,
+        "a": "hybrid",
         "s": "bio",
         "c": c,
         "x": x,
         "max_epochs": 20,
     }
-    for a, c, x in product(["stable", "hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for c, x in product(["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"6A. EXPERIMENTS_ABLATION_A: {len(EXPERIMENTS_ABLATION_A)} = "
       f"2 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
@@ -177,7 +177,7 @@ EXPERIMENTS_ABLATION_B = [
         "x": x,
         "max_epochs": MAX_EPOCH[x],
     }
-    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["stable", "hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"6B. EXPERIMENTS_ABLATION_B: {len(EXPERIMENTS_ABLATION_B)} = "
       f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
