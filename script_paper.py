@@ -144,13 +144,13 @@ print(f"5. EXPERIMENTS_STANDARD: {len(EXPERIMENTS_STANDARD)} = "
 EXPERIMENTS_ABLATION_A = [
     {
         "experiment_name": f"exp_6A_a{a}_c{c}_x{x}",
-        "a": "hybrid",
+        "a": a,
         "s": "bio",
         "c": c,
         "x": x,
         "max_epochs": 20,
     }
-    for c, x in product(["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"6A. EXPERIMENTS_ABLATION_A: {len(EXPERIMENTS_ABLATION_A)} = "
       f"2 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
@@ -193,11 +193,26 @@ EXPERIMENTS_PRACTICE_A = [
         "c": c,
         "x": x,
         "prune_ratio_val": x,
+        "train_on_val": True,
     }
-    for a, c, x in product(FINE_TUNING_APPROACHES, ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["original", "stable"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"7A. EXPERIMENTS_PRACTICE_A: {len(EXPERIMENTS_PRACTICE_A)} = "
-      f"3 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
+      f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
+
+EXPERIMENTS_PRACTICE_B = [
+    {
+        "experiment_name": f"exp_7B_a{a}_c{c}_x{x}",
+        "a": a,
+        "s": "bio",
+        "c": c,
+        "x": x,
+        "prune_ratio_val": x,
+    }
+    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+]
+print(f"7B. EXPERIMENTS_PRACTICE_B: {len(EXPERIMENTS_PRACTICE_B)} = "
+      f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
 
 MAX_EPOCH = {
     0.005: 11,
@@ -211,11 +226,11 @@ MAX_EPOCH = {
     0.60: 11,
     0.80: 11,
     1.00: 11,
-}  # TODO: use numbers from 7A
-EXPERIMENTS_PRACTICE_B = [
+}  # TODO: use numbers from 7B
+EXPERIMENTS_PRACTICE_C = [
     {
-        "experiment_name": f"exp_7B_c{c}_x{x}",
-        "a": "hybrid",
+        "experiment_name": f"exp_7C_a{a}_c{c}_x{x}",
+        "a": a,
         "s": "bio",
         "c": c,
         "x": x,
@@ -223,9 +238,9 @@ EXPERIMENTS_PRACTICE_B = [
         "prune_ratio_val": x,
         "train_on_val": True,
     }
-    for c, x in product(["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
-print(f"7B. EXPERIMENTS_PRACTICE_B: {len(EXPERIMENTS_PRACTICE_B)} = "
+print(f"7C. EXPERIMENTS_PRACTICE_C: {len(EXPERIMENTS_PRACTICE_C)} = "
       f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
 
 ########################################################################################################################
