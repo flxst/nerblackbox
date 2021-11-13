@@ -99,7 +99,7 @@ EXPERIMENTS_VARIANTS_COOLDOWN = [
         "x": x,
         "lr_cooldown_epochs": lr_cooldown_epochs,
     }
-    for c, x, lr_cooldown_epochs in product(["II", "III"], TRAINING_DATASET_FRACTIONS, [5, 7])
+    for c, x, lr_cooldown_epochs in product(["II", "III", "IV"], TRAINING_DATASET_FRACTIONS, [5, 7])
 ]
 print(f"3. EXPERIMENTS_VARIANTS_COOLDOWN: {len(EXPERIMENTS_VARIANTS_COOLDOWN)} = "
       f"2 x {len(TRAINING_DATASET_FRACTIONS)} x 2")
@@ -187,17 +187,17 @@ print(f"6B. EXPERIMENTS_ABLATION_B: {len(EXPERIMENTS_ABLATION_B)} = "
 ########################################################################################################################
 EXPERIMENTS_PRACTICE_A = [
     {
-        "experiment_name": f"exp_7A_c{c}_x{x}",
-        "a": "adaptive",
+        "experiment_name": f"exp_7A_a{a}_c{c}_x{x}",
+        "a": a,
         "s": "bio",
         "c": c,
         "x": x,
         "prune_ratio_val": x,
     }
-    for c, x in product(["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(FINE_TUNING_APPROACHES, ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"7A. EXPERIMENTS_PRACTICE_A: {len(EXPERIMENTS_PRACTICE_A)} = "
-      f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
+      f"3 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
 
 MAX_EPOCH = {
     0.005: 11,
