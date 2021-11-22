@@ -43,8 +43,8 @@ MODEL_DATASET = {
         "dataset": "swe_nerc"
     },
     "V": {
-        "model": "TODO",
-        "dataset": "TODO"
+        "model": "mrm8488/electricidad-base-discriminator",
+        "dataset": "ehealth_kd"
     },
 }
 
@@ -209,7 +209,7 @@ EXPERIMENTS_PRACTICE_B = [
         "x": x,
         "prune_ratio_val": x,
     }
-    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["adaptive"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"7B. EXPERIMENTS_PRACTICE_B: {len(EXPERIMENTS_PRACTICE_B)} = "
       f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
