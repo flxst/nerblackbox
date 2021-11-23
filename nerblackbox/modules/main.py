@@ -84,18 +84,17 @@ class NerBlackBoxMain:
         self.as_df = as_df  # get_experiments, get_experiments_results
         self.results = results  # clear_data
 
-        # assert start
-        assert (self.hparams is None and self.from_config is True) or \
-               (self.hparams is not None and self.from_config is False), \
-               f"ERROR! Need to specify " \
-               f"EITHER hparams (currently {self.hparams}) " \
-               f"with or without from_preset (currently {from_preset}) " \
-               f"OR from_config (currently {self.from_config})."
-        if self.from_config is False:
-            for field in ["pretrained_model_name", "dataset_name"]:
-                assert field in self.hparams.keys(), \
-                    f"ERROR! {field} is not specified. It is mandatory if hyperparameter arguments are used."
-        # assert end
+        if self.flag == "run_experiment":
+            assert (self.hparams is None and self.from_config is True) or \
+                   (self.hparams is not None and self.from_config is False), \
+                   f"ERROR! Need to specify " \
+                   f"EITHER hparams (currently {self.hparams}) " \
+                   f"with or without from_preset (currently {from_preset}) " \
+                   f"OR from_config (currently {self.from_config})."
+            if self.from_config is False:
+                for field in ["pretrained_model_name", "dataset_name"]:
+                    assert field in self.hparams.keys(), \
+                        f"ERROR! {field} is not specified. It is mandatory if hyperparameter arguments are used."
 
         data_dir = env_variable("DATA_DIR")
         if os.path.isdir(data_dir):

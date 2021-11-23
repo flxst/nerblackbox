@@ -195,7 +195,6 @@ class NerBlackBox:
         """
         kwargs = self._process_kwargs_optional()
         kwargs["experiment_name"] = experiment_name
-        kwargs["from_config"] = True
 
         nerbb = NerBlackBoxMain("show_experiment_config", **kwargs)
         nerbb.main()
