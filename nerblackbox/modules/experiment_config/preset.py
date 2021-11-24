@@ -24,7 +24,6 @@ PRESET = {
         # max epochs needs to be specified manually!
         "early_stopping": False,
         "lr_schedule": "hybrid",
-        "prune_ratio_val": 0.01,  # not needed as early_stopping is False
     },
     ###################################
     # experimental
@@ -35,6 +34,18 @@ PRESET = {
         "lr_schedule": "constant",
         "lr_cooldown_restarts": False,
         # lr_cooldown_epochs needs to be specified manually! e.g. 0 or 3
+    },
+    "adaptive-7": {
+        "max_epochs": 50,
+        "early_stopping": True,
+        "lr_schedule": "constant",
+        "lr_cooldown_epochs": 7,
+    },
+    "hybrid-7": {
+        # max epochs needs to be specified manually!
+        "early_stopping": False,
+        "lr_schedule": "hybrid",
+        "lr_cooldown_epochs": 7,
     },
 }
 

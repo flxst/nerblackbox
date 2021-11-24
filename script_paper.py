@@ -49,6 +49,7 @@ MODEL_DATASET = {
 }
 
 FINE_TUNING_APPROACHES = ["original", "stable", "adaptive"]
+FINE_TUNING_APPROACHES_7 = ["original", "stable", "adaptive-7"]
 # ANNOTATION_SCHEMES = ["bio", "bilou"]
 DATASET_MODEL_COMBINATIONS = ["I", "II", "III", "IV", "V"]
 TRAINING_DATASET_FRACTIONS = [0.005, 0.01, 0.015, 0.02, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.00]
@@ -150,7 +151,7 @@ EXPERIMENTS_ABLATION_A = [
         "x": x,
         "max_epochs": 20,
     }
-    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["hybrid-7"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"6A. EXPERIMENTS_ABLATION_A: {len(EXPERIMENTS_ABLATION_A)} = "
       f"2 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
@@ -177,7 +178,7 @@ EXPERIMENTS_ABLATION_B = [
         "x": x,
         "max_epochs": MAX_EPOCH[x],
     }
-    for a, c, x in product(["stable", "hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["stable", "hybrid-7"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"6B. EXPERIMENTS_ABLATION_B: {len(EXPERIMENTS_ABLATION_B)} = "
       f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
@@ -209,7 +210,7 @@ EXPERIMENTS_PRACTICE_B = [
         "x": x,
         "prune_ratio_val": x,
     }
-    for a, c, x in product(["adaptive"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["adaptive-7"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"7B. EXPERIMENTS_PRACTICE_B: {len(EXPERIMENTS_PRACTICE_B)} = "
       f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
@@ -238,7 +239,7 @@ EXPERIMENTS_PRACTICE_C = [
         "prune_ratio_val": x,
         "train_on_val": True,
     }
-    for a, c, x in product(["hybrid"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(["hybrid-7"], ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"7C. EXPERIMENTS_PRACTICE_C: {len(EXPERIMENTS_PRACTICE_C)} = "
       f"1 x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
@@ -254,7 +255,7 @@ EXPERIMENTS_SCHEME = [
         "c": c,
         "x": x,
     }
-    for a, c, x in product(FINE_TUNING_APPROACHES, ["II", "IV"], TRAINING_DATASET_FRACTIONS)
+    for a, c, x in product(FINE_TUNING_APPROACHES_7, ["II", "IV"], TRAINING_DATASET_FRACTIONS)
 ]
 print(f"8. EXPERIMENTS_SCHEME: {len(EXPERIMENTS_SCHEME)} = "
       f"{len(FINE_TUNING_APPROACHES)} x 2 x {len(TRAINING_DATASET_FRACTIONS)}")
