@@ -18,6 +18,7 @@ from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
 from pkg_resources import resource_filename
+from copy import deepcopy
 
 from typing import List, Dict, Tuple, Optional, Any
 
@@ -79,10 +80,12 @@ class DataPreprocessor:
                 input_examples_all, phase, ratio=prune_ratio[phase]
             )
 
+        # note: w/o deepcopy, potential annotation scheme conversion fails
+        # (as it will be applied twice in InputExamplesUtils.convert_annotation_scheme())
         if train_on_val:
-            input_examples["train"] += input_examples["val"]
+            input_examples["train"] += deepcopy(input_examples["val"])
         if train_on_test:
-            input_examples["train"] += input_examples["test"]
+            input_examples["train"] += deepcopy(input_examples["test"])
 
         annotation = Annotation(csv_reader.annotation_classes)
 

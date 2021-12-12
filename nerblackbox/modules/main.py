@@ -335,7 +335,8 @@ class NerBlackBoxMain:
         else:
             if self.experiment_name != "all":
                 # single experiment
-                if experiment_results_list[0].best_single_run["checkpoint"] is not None:
+                if "checkpoint" in experiment_results_list[0].best_single_run.keys() and \
+                        experiment_results_list[0].best_single_run["checkpoint"] is not None:
                     best_model = NerModelPredict.load_from_checkpoint(
                         experiment_results_list[0].best_single_run["checkpoint"]
                     )
