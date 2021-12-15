@@ -196,61 +196,98 @@ class TestNerModelEvaluation:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "_tags_plain, " "_tag_subset, " "_filtered_classes, " "_filtered_class_index",
+        "_tag_subset, _tags_plain, _filtered_classes, _filtered_class_index",
         [
             (
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 "all",
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 ["O", "ORG", "PER"],
                 None,
             ),
             (
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 "fil",
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 ["ORG", "PER"],
                 None,
             ),
             (
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 "O",
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 ["O"],
                 None,
             ),
             (
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
                 "PER",
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array(["O", "PER", "ORG"])},
                 ["PER"],
                 1,
             ),
             (
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                "PER",
+                {"true": np.array(["O", "PER", "ORG"]), "pred": np.array(["O", "ORG", "PER"])},
+                ["PER"],
+                1,
+            ),
+            (
                 "ORG",
+                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array(["O", "PER", "ORG"])},
                 ["ORG"],
                 0,
             ),
             (
-                {"true": np.array(["ORG"]), "pred": np.array([])},
+                "ORG",
+                {"true": np.array(["O", "PER", "ORG"]), "pred": np.array(["O", "ORG", "PER"])},
+                ["ORG"],
+                0,
+            ),
+            (
                 "all",
+                {"true": np.array(["ORG"]), "pred": np.array([])},
                 ["O", "ORG", "PER"],
                 None,
             ),
             (
-                {"true": np.array(["ORG"]), "pred": np.array([])},
                 "fil",
+                {"true": np.array(["ORG"]), "pred": np.array([])},
                 ["ORG", "PER"],
                 None,
             ),
-            ({"true": np.array(["ORG"]), "pred": np.array([])}, "O", ["O"], None),
-            ({"true": np.array(["ORG"]), "pred": np.array([])}, "PER", ["PER"], None),
-            ({"true": np.array(["ORG"]), "pred": np.array([])}, "ORG", ["ORG"], 0),
-            ({"true": np.array(["PER"]), "pred": np.array([])}, "PER", ["PER"], 0),
-            ({"true": np.array(["PER"]), "pred": np.array([])}, "ORG", ["ORG"], None),
+            (
+                "O",
+                {"true": np.array(["ORG"]), "pred": np.array([])},
+                ["O"],
+                None,
+            ),
+            (
+                "PER",
+                {"true": np.array(["ORG"]), "pred": np.array([])},
+                ["PER"],
+                None,
+            ),
+            (
+                "ORG",
+                {"true": np.array(["ORG"]), "pred": np.array([])},
+                ["ORG"],
+                0,
+            ),
+            (
+                "PER",
+                {"true": np.array(["PER"]), "pred": np.array([])},
+                ["PER"],
+                0,
+            ),
+            (
+                "ORG",
+                {"true": np.array(["PER"]), "pred": np.array([])},
+                ["ORG"],
+                None,
+            ),
         ],
     )
     def test_get_filtered_classes(
         self,
-        _tags_plain: Dict[str, np.array],
         _tag_subset: str,
+        _tags_plain: Dict[str, np.array],
         _filtered_classes: List[str],
         _filtered_class_index: Optional[int],
     ) -> None:

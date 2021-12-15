@@ -356,7 +356,7 @@ class NerModelEvaluation:
 
         Returns:
             _filtered_classes:     list of filtered tags
-            _filtered_class_index: filtered tags index in case of single _filtered_tag, ignoring "O"
+            _filtered_class_index: filtered tags index in case of single _filtered_class, ignoring "O"
         """
         if _tag_subset == "all":
             _filtered_classes = self.annotation_plain.classes
