@@ -3,6 +3,7 @@ from os.path import join, isfile, isdir
 import glob
 import mlflow
 import shutil
+from sys import exit
 from pkg_resources import Requirement
 from pkg_resources import resource_filename, resource_isdir
 import pandas as pd
@@ -91,10 +92,17 @@ class NerBlackBoxMain:
                    f"EITHER hparams (currently {self.hparams}) " \
                    f"with or without from_preset (currently {from_preset}) " \
                    f"OR from_config (currently {self.from_config})."
-            if self.from_config is False:
+
+            if self.from_config:
+                path_experiment_config = join(
+                    env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+                )
+                if not isfile(path_experiment_config):
+                    self._exit_gracefully(f"experiment_config = {path_experiment_config} does not exist.")
+            else:
                 for field in ["pretrained_model_name", "dataset_name"]:
-                    assert field in self.hparams.keys(), \
-                        f"ERROR! {field} is not specified. It is mandatory if hyperparameter arguments are used."
+                    if field not in self.hparams.keys():
+                        self._exit_gracefully(f"{field} is not specified but mandatory if dynamic arguments are used.")
 
         data_dir = env_variable("DATA_DIR")
         if os.path.isdir(data_dir):
@@ -104,6 +112,12 @@ class NerBlackBoxMain:
             self.client = None
             self.experiment_id2name = None
             self.experiment_name2id = None
+
+    @staticmethod
+    def _exit_gracefully(message: str) -> None:
+        print(message)
+        print("stopped.")
+        exit(0)
 
     ####################################################################################################################
     # MAIN #############################################################################################################
@@ -477,12 +491,15 @@ class NerBlackBoxMain:
             path_experiment_config = join(
                 env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
             )
-            with open(path_experiment_config, "r") as file:
-                lines = file.read()
+            if isfile(path_experiment_config):
+                with open(path_experiment_config, "r") as file:
+                    lines = file.read()
 
-            print(f"> experiment_config = {path_experiment_config}")
-            print()
-            print(lines)
+                print(f"> experiment_config = {path_experiment_config}")
+                print()
+                print(lines)
+            else:
+                print(f"> experiment_config = {path_experiment_config} does not exist.")
         else:
             experiment_configs = glob.glob(
                 join(env_variable("DIR_EXPERIMENT_CONFIGS"), "*.ini")
