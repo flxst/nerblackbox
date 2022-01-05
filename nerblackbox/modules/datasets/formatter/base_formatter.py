@@ -4,7 +4,7 @@ import subprocess
 import json
 import pandas as pd
 from abc import ABC, abstractmethod
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Union, Any
 import random
 
 from nerblackbox.modules.utils.util_functions import get_dataset_path
@@ -18,7 +18,9 @@ SEED_SHUFFLE = {
     "test": 6,
 }
 
-SENTENCES_ROWS = List[List[List[str]]]
+SENTENCES_ROWS_PRETOKENIZED = List[List[List[str]]]
+SENTENCES_ROWS_UNPRETOKENIZED = List[Dict[str, Any]]
+SENTENCES_ROWS = Union[SENTENCES_ROWS_PRETOKENIZED, SENTENCES_ROWS_UNPRETOKENIZED]
 
 
 class BaseFormatter(ABC):
@@ -160,7 +162,7 @@ class BaseFormatter(ABC):
     ####################################################################################################################
     # HELPER: READ ORIGINAL
     ####################################################################################################################
-    def _read_original_file(self, phase: str) -> SENTENCES_ROWS:
+    def _read_original_file(self, phase: str) -> SENTENCES_ROWS_PRETOKENIZED:
         """
         III: format data
 
@@ -168,10 +170,11 @@ class BaseFormatter(ABC):
             phase: 'train', 'val', 'test'
 
         Returns:
-            sentences_rows: e.g. [
-                                    [['Inger', 'PER'], ['säger', '0'], .., []],
-                                    [['Det', '0'], .., []]
-                                 ]
+            sentences_rows: e.g. (-pretokenized-)
+                            [
+                                [['Inger', 'PER'], ['säger', '0'], .., []],
+                                [['Det', '0'], .., []]
+                            ]
         """
         self.set_original_file_paths()
         file_path_original = join(self.dataset_path, self.file_name[phase])
@@ -199,16 +202,17 @@ class BaseFormatter(ABC):
     ####################################################################################################################
     # HELPER: WRITE FORMATTED
     ####################################################################################################################
-    def _write_formatted_csv(self, phase: str, sentences_rows: SENTENCES_ROWS) -> None:  # pragma: no cover
+    def _write_formatted_csv(self, phase: str, sentences_rows: SENTENCES_ROWS_PRETOKENIZED) -> None:  # pragma: no cover
         """
         III: format data
 
         Args:
             phase: 'train', 'val', 'test'
-            sentences_rows: e.g. [
-                                    [['Inger', 'PER'], ['säger', '0'], .., []],
-                                    [['Det', '0'], .., []],
-                                 ]
+            sentences_rows: e.g. (-pretokenized-)
+                            [
+                                [['Inger', 'PER'], ['säger', '0'], .., []],
+                                [['Det', '0'], .., []]
+                            ]
 
         Returns: -
         """
@@ -221,21 +225,51 @@ class BaseFormatter(ABC):
             f"> phase = {phase}: wrote {len(df)} sentences to {file_path}"
         )
 
-    def _format_sentences_rows(self, sentences_rows: SENTENCES_ROWS) -> List[Tuple[str, str]]:
+    def _write_formatted_jsonl(self, phase: str, sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED) -> None:  # pragma: no cover
+        """
+        save to jsonl file
+
+        Args:
+            phase: 'train', 'val', 'test'
+            sentences_rows: e.g. (-unpretokenized-)
+                            [
+                                {
+                                    'text': 'Inger säger ..',
+                                    'tags': [{'token': 'Inger', 'tag': 'PER', 'char_start': 0, 'char_end': 5}, ..],
+                                },
+                                {
+                                    'text': 'Det ..',
+                                    'tags': [{..}, ..]
+                                }
+                            ]
+
+        Returns: -
+        """
+        file_path = join(self.dataset_path, f"{phase}_formatted.jsonl")
+        with open(file_path, 'w') as file:
+            for sentence_row in sentences_rows:
+                file.write(json.dumps(sentence_row, ensure_ascii=False) + "\n")
+        print(
+            f"> phase = {phase}: wrote {len(sentences_rows)} sentences to {file_path}"
+        )
+
+    def _format_sentences_rows(self, sentences_rows: SENTENCES_ROWS_PRETOKENIZED) -> List[Tuple[str, str]]:
         """
         III: format data
 
         Args:
-            sentences_rows: e.g. [
-                                    [['Inger', 'PER'], ['säger', '0'], .., []],
-                                    [['Det', '0'], .., []],
-                                 ]
+            sentences_rows: e.g. (-pretokenized-)
+                            [
+                                [['Inger', 'PER'], ['säger', '0'], .., []],
+                                [['Det', '0'], .., []]
+                            ]
 
         Returns:
-            sentences_rows_formatted, e.g. [
-                                               ('PER O', 'Inger säger'),
-                                               ('O', 'Det'),
-                                           ]
+            sentences_rows_formatted, e.g. (-pretokenized-)
+                            [
+                                ('PER O', 'Inger säger'),
+                                ('O', 'Det'),
+                            ]
         """
 
         # ner tag mapping
@@ -259,20 +293,22 @@ class BaseFormatter(ABC):
         return sentences_rows_formatted
 
     @staticmethod
-    def _convert_iob1_to_iob2(sentences_rows_iob1: SENTENCES_ROWS) -> SENTENCES_ROWS:
+    def _convert_iob1_to_iob2(sentences_rows_iob1: SENTENCES_ROWS_PRETOKENIZED) -> SENTENCES_ROWS_PRETOKENIZED:
         """
         III: format data
         convert tags from IOB1 to IOB2 format
 
         Args:
-            sentences_rows_iob1: e.g. [
-                                         [['Inger', 'I-PER'], ['säger', '0'], .., []],
-                                      ]
+            sentences_rows_iob1: e.g. (-pretokenized-)
+                            [
+                                [['Inger', 'I-PER'], ['säger', '0'], .., []],
+                            ]
 
         Returns:
-            sentences_rows_iob2: e.g. [
-                                         [['Inger', 'B-PER'], ['säger', '0'], .., []],
-                                      ]
+            sentences_rows_iob2: e.g. (-pretokenized-)
+                            [
+                                [['Inger', 'B-PER'], ['säger', '0'], .., []],
+                            ]
         """
         sentences_rows_iob2 = list()
         for sentence in sentences_rows_iob1:
@@ -305,16 +341,40 @@ class BaseFormatter(ABC):
 
         Args:
             _phase: "train", "val", "test"
-            _sentences_rows: e.g. [
-                                     [['Inger', 'PER'], ['säger', '0'], .., []],
-                                     [['Det', '0'], .., []]
-                                  ]
+            _sentences_rows: e.g. (-pretokenized-)
+                            [
+                                [['Inger', 'PER'], ['säger', '0'], .., []],
+                                [['Det', '0'], .., []]
+                            ]
+                            e.g. (-unpretokenized-)
+                            [
+                                {
+                                    'text': 'Inger säger ..',
+                                    'tags': [{'token': 'Inger', 'tag': 'PER', 'char_start': 0, 'char_end': 5}, ..],
+                                },
+                                {
+                                    'text': 'Det ..',
+                                    'tags': [{..}, ..]
+                                }
+                            ]
 
         Returns:
-            _sentences_rows_shuffled: e.g. [
-                                              [['Det', '0'], .., [0],
-                                              [['Inger', 'PER'], ['säger', '0'], .., []]
-                                           ]
+            _sentences_rows_shuffled: e.g. (-pretokenized-)
+                            [
+                                [['Det', '0'], .., [0],
+                                [['Inger', 'PER'], ['säger', '0'], .., []]
+                            ]
+                            e.g. (-unpretokenized-)
+                            [
+                                {
+                                    'text': 'Det ..',
+                                    'tags': [{..}, ..]
+                                },
+                                {
+                                    'text': 'Inger säger ..',
+                                    'tags': [{'token': 'Inger', 'tag': 'PER', 'char_start': 0, 'char_end': 5}, ..],
+                                }
+                            ]
         """
         # change _sentences_rows by shuffling sentences
         random.Random(SEED_SHUFFLE[_phase]).shuffle(_sentences_rows)
@@ -328,7 +388,7 @@ class BaseFormatter(ABC):
         IV: resplit data
 
         Args:
-            phases: ..to read formatted csvs from, e.g. ['val', 'test']
+            phases: .. to read formatted csvs from, e.g. ['val', 'test']
 
         Returns:
             df_phases: contains formatted csvs of phases

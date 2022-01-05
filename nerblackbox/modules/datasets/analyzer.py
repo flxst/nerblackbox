@@ -25,6 +25,7 @@ class Analyzer:
         self.stats_aggregated: Dict[str, Optional[pd.DataFrame]] = {"total": None}
         self.num_tokens: Dict[str, int] = {"total": 0}
         self.num_sentences: Dict[str, int] = {"total": 0}
+        self.analysis_flag: bool = True
 
     def analyze_data(self, write_log: bool = True) -> None:
         """
@@ -41,6 +42,15 @@ class Analyzer:
         Returns: -
         """
         for phase in self.phases:
+            file_path = join(self.dataset_path, f"{phase}.csv")
+            if not isfile(file_path):
+                file_path_jsonl = join(self.dataset_path, f"{phase}.jsonl")
+                if isfile(file_path_jsonl):
+                    self.analysis_flag = False
+                    return None
+                else:
+                    raise Exception(f"ERROR! file = {file_path} not found!")
+
             (
                 self.num_sentences[phase],  # int, e.g. 4
                 _stats_aggregated_phase,    # pd.DataFrame w/ col "tags", index = tags, values = tag occurrences
@@ -73,8 +83,9 @@ class Analyzer:
             self._write_log_file(num_sentences_total, num_tokens_total)
 
     def plot_data(self) -> None:  # pragma: no cover
-        fig_path = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.png")
-        Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
+        if self.analysis_flag:
+            fig_path = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.png")
+            Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
 
     ####################################################################################################################
     # HELPER METHODS: analyze_data #####################################################################################
@@ -101,7 +112,7 @@ class Analyzer:
 
         if df is not None:
             tags = (
-                df.iloc[:, 0].apply(lambda x: x.split()).apply(lambda x: [elem.split("-")[-1] for elem in x])
+                df.iloc[:, 0].apply(lambda x: str(x).split()).apply(lambda x: [elem.split("-")[-1] for elem in x])
             )
 
             for column in columns:

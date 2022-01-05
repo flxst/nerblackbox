@@ -9,6 +9,7 @@ from nerblackbox.modules.datasets.formatter.swe_nerc_formatter import SweNercFor
 from nerblackbox.modules.datasets.formatter.swedish_ner_corpus_formatter import SwedishNerCorpusFormatter
 from nerblackbox.modules.datasets.formatter.sic_formatter import SICFormatter
 from nerblackbox.modules.datasets.formatter.suc_formatter import SUCFormatter
+from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter import HuggingfaceDatasetsFormatter
 
 from pkg_resources import resource_filename
 import os
@@ -29,6 +30,8 @@ class TestAutoFormatter:
             ("suc", False),
             ("swe_nerc", False),
             ("xyz", True),
+            ("ehealth_kd", False),
+            ("sent_comp", True),
         ]
     )
     def test_for_dataset(self,
@@ -208,6 +211,7 @@ class TestAllFormatters:
         "swedish_ner_corpus": SwedishNerCorpusFormatter(),
         "sic": SICFormatter(),
         "suc": SUCFormatter(),
+        "ehealth_kd": HuggingfaceDatasetsFormatter("ehealth_kd"),
     }
 
     @pytest.mark.parametrize(
@@ -218,6 +222,7 @@ class TestAllFormatters:
             "swedish_ner_corpus",
             "sic",
             "suc",
+            "ehealth_kd",
         ]
     )
     def test_create_ner_tag_mapping(self,
