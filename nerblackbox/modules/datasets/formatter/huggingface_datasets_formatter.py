@@ -198,6 +198,17 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
                     }
                     for tag_dict in _dict['tags']:
                         tag_dict.update((k, self.tags[int(v)]) for k, v in tag_dict.items() if k == "tag")
+
+                    # there are multiword entities that are not connected
+                    # (i.e. there are other words between the entities' tokens)
+                    # e.g. ehealth_kd: {"token": "uno días", "tag": "Concept", "char_start": 64170, "char_end": 64183}
+                    # -> filter them out
+                    _dict['tags'] = [
+                        elem
+                        for elem in _dict['tags']
+                        if len(elem['token']) == elem['char_end'] - elem['char_start']
+                    ]
+
                     self.sentences_rows[phase].append(_dict)
 
     def create_ner_tag_mapping(self) -> Dict[str, str]:

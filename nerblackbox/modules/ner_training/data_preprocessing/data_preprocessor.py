@@ -1,3 +1,6 @@
+import json
+import pandas as pd
+
 from nerblackbox.modules.ner_training.data_preprocessing.tools.encodings_dataset import (
     EncodingsDataset,
 )
@@ -19,8 +22,11 @@ from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
 from pkg_resources import resource_filename
 from copy import deepcopy
-
+from os.path import join, isfile
 from typing import List, Dict, Tuple, Optional, Any
+
+PHASES = ["train", "val", "test"]
+SENTENCES_ROWS_UNPRETOKENIZED = List[Dict[str, Any]]
 
 
 class DataPreprocessor:
@@ -41,6 +47,7 @@ class DataPreprocessor:
         self.do_lower_case = do_lower_case
         self.default_logger = default_logger
         self.max_seq_length = max_seq_length
+        self.pretokenized: Optional[bool] = None  # whether dataset is pretokenized (csv) or not (jsonl)
 
     def get_input_examples_train(
         self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None,
@@ -64,10 +71,14 @@ class DataPreprocessor:
         else:
             dataset_path = get_dataset_path(dataset_name)
 
-        # csv_reader
+        self.pretokenized = self._check_if_data_is_pretokenized(dataset_path)
+        if not self.pretokenized:
+            self._pretokenize(dataset_path)  # "{phase}.jsonl" -> "pretokenized_{phase}.csv"
+
         csv_reader = CsvReader(
             dataset_path,
             self.tokenizer,
+            pretokenized=self.pretokenized,
             do_lower_case=self.do_lower_case,  # can be True (applies .lower()) !!
             default_logger=self.default_logger,
         )
@@ -194,6 +205,117 @@ class DataPreprocessor:
     ####################################################################################################################
     # HELPER
     ####################################################################################################################
+    @staticmethod
+    def _check_if_data_is_pretokenized(dataset_path: str) -> bool:
+        """
+        check if dataset_name is pretokenized (csv) or not (jsonl)
+
+        Args:
+            dataset_path: path to dataset directory
+
+        Returns:
+            pretokenized: whether dataset is pretokenized (csv) or not (jsonl)
+        """
+        dataset_path_csv = join(dataset_path, f"train.csv")
+        dataset_path_jsonl = join(dataset_path, f"train.jsonl")
+        if isfile(dataset_path_csv) and not isfile(dataset_path_jsonl):
+            return True
+        elif not isfile(dataset_path_csv) and isfile(dataset_path_jsonl):
+            return False
+        else:
+            raise Exception(f"ERROR! Did not find train.csv OR train.jsonl in {dataset_path}:"
+                            f"(csv: {isfile(dataset_path_csv)}, jsonl: {isfile(dataset_path_jsonl)}")
+
+    @staticmethod
+    def _tokens2words(_tokens: List[str]) -> List[str]:
+        """
+        merges tokens to words
+
+        Args:
+            _tokens: e.g. ["this", "example", "contains", "hu", "##gging", "face"]
+
+        Returns:
+            _words: e.g. ["this", "example", "contains", "hugging", "face"]
+        """
+        i = 1
+        while i < len(_tokens):
+            if _tokens[i].startswith("##"):
+                _tokens[i - 1] += _tokens.pop(i).strip("##")  # join with previous
+            else:
+                i += 1
+        return _tokens
+
+    def _pretokenize_data(self, _data: SENTENCES_ROWS_UNPRETOKENIZED) -> List[Dict[str, str]]:
+        """
+        pretokenize data (text and text simultaneously)
+
+        Args:
+            _data: e.g. [
+                {
+                    'text': 'arbetsförmedlingen ai-center finns i stockholm.',
+                    'tags': [
+                        {"token": "arbetsförmedlingen ai-center", "tag": "ORG", "char_start": 0, "char_end": 28},
+                        {"token": "stockholm", "tag": "LOC", "char_start": 37, "char_end": 46},
+                    ]
+                },
+                ..
+            ]
+
+        Returns:
+            _data_pretokenized: e.g. [
+                {
+                    'text': 'arbetsförmedlingen ai - center finns i stockholm .',
+                    'tags': 'B-ORG I-ORG I-ORG I-ORG O O B-LOC O'
+                },
+                ..
+            ]
+        """
+        _data_pretokenized = list()
+        for n in range(len(_data)):
+            words = self._tokens2words(self.tokenizer.tokenize(_data[n]['text']))
+            index = 0
+            tags = ["O"] * len(words)
+            for entity_dict in _data[n]['tags']:
+                entity_text = entity_dict["token"]
+                entity_words = self._tokens2words(self.tokenizer.tokenize(entity_text))
+                entity_words_indices = [index + words[index:].index(entity_word) for entity_word in entity_words]
+                for i, entity_word_index in enumerate(entity_words_indices):
+                    tags[entity_word_index] = f"B-{entity_dict['tag']}" if i == 0 else f"I-{entity_dict['tag']}"
+                index = max(entity_words_indices)
+            _data_pretokenized.append(
+                {
+                    'tags': " ".join(tags),
+                    'text': " ".join(words),
+                }
+            )
+            return _data_pretokenized
+
+    def _pretokenize(self, dataset_path: str) -> None:  # pragma: no cover
+        """
+        1. read jsonl files "{phase}.jsonl"
+        2. pretokenize data
+        3. write csv files "pretokenized_{phase}.csv"
+
+        Args:
+            dataset_path: path to dataset directory
+
+        Returns: -
+        """
+        for phase in PHASES:
+            # 1. read json files
+            dataset_path_jsonl = join(dataset_path, f"{phase}.jsonl")
+            with open(dataset_path_jsonl, "r") as f:
+                jlines = f.readlines()
+                data = [json.loads(jline) for jline in jlines]
+
+            # 2. pretokenize data
+            data_pretokenized = self._pretokenize_data(data)
+
+            # 3. write csv files "pretokenized_{phase}.csv"
+            df = pd.DataFrame(data_pretokenized)
+            file_path = join(dataset_path, f"pretokenized_{phase}.csv")
+            df.to_csv(file_path, sep="\t", header=False, index=False)
+
     def _prune_examples(self, list_of_examples: List[Any], phase: str, ratio: float):
         """
         prunes list_of_examples by taking only the first examples

@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List
+from typing import List, Dict
 import pandas as pd
 from nerblackbox.modules.ner_training.data_preprocessing.tools.input_example import (
     InputExample,
@@ -17,50 +17,36 @@ class CsvReader:
         self,
         path,
         tokenizer,
+        pretokenized,
         do_lower_case,
-        csv_file_separator="\t",
         default_logger=None,
+        csv_file_separator="\t",
     ):
         """
         :param path:               [str] to folder that contains dataset csv files (train, val, test)
         :param tokenizer:          [transformers Tokenizer]
+        :param pretokenized:       [bool]
         :param do_lower_case:      [bool]
+        :param default_logger:     []
         :param csv_file_separator: [str], for datasets' csv files, e.g. '\t'
         """
         # input arguments
         self.path = path
         self.tokenizer = tokenizer
+        self.pretokenized = pretokenized
         self.do_lower_case = do_lower_case
-        self.csv_file_separator = csv_file_separator
         self.default_logger = default_logger
+        self.csv_file_separator = csv_file_separator
 
         # additional attributes
         self.token_count = None
 
         # data & annotation_classes
         self.data: Dict[str, pd.DataFrame] = dict()
-        self.annotation_classes_found: List[str] = list()
-        for phase in ["train", "val", "test"]:
-            # data
-            self.data[phase] = self._read_csv(os.path.join(self.path, f"{phase}.csv"))
+        self.annotation_classes: List[str] = list()
 
-            # tag list
-            annotation_classes_phase = list(
-                set(" ".join(self.data[phase]["tags"].values).split())
-            )
-            self.annotation_classes_found = sorted(
-                list(set(self.annotation_classes_found + annotation_classes_phase))
-            )
-
-        self.annotation_classes: List[str] = ["O"] + [
-            elem for elem in self.annotation_classes_found if elem != "O"
-        ]
-
-        if self.default_logger:
-            self.default_logger.log_debug(
-                f"> tag list found in data: {self.annotation_classes_found}"
-            )
-            self.default_logger.log_debug(f"> tag list complete:      {self.annotation_classes}")
+        # process
+        self._process()
 
     ####################################################################################################################
     # PUBLIC METHODS
@@ -77,6 +63,41 @@ class CsvReader:
     ####################################################################################################################
     # PRIVATE METHODS
     ####################################################################################################################
+    def _process(self):
+        """
+        read csv, get data and annotation_classes
+
+        Created attr:
+            data: [dict] w/ key = phase & value = [pandas df]
+            annotation_classes: [list] of [str], e.g. ["O", "B-PER", "I-PER", ..]
+
+        Returns: -
+        """
+        annotation_classes_found = list()
+        for phase in ["train", "val", "test"]:
+            # data
+            self.data[phase] = self._read_csv(
+                os.path.join(self.path, f"{phase}.csv" if self.pretokenized else f"pretokenized_{phase}.csv")
+            )
+
+            # tag list
+            annotation_classes_phase = list(
+                set(" ".join(self.data[phase]["tags"].values).split())
+            )
+            annotation_classes_found = sorted(
+                list(set(annotation_classes_found + annotation_classes_phase))
+            )
+
+        self.annotation_classes: List[str] = ["O"] + [
+            elem for elem in annotation_classes_found if elem != "O"
+        ]
+
+        if self.default_logger:
+            self.default_logger.log_debug(
+                f"> tag list found in data: {annotation_classes_found}"
+            )
+            self.default_logger.log_debug(f"> tag list complete:      {self.annotation_classes}")
+
     def _read_csv(self, path: str) -> pd.DataFrame:
         """
         read csv using pandas.

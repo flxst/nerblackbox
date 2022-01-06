@@ -1,7 +1,7 @@
 import pytest
 import torch
 from transformers import AutoTokenizer
-from typing import List, Dict
+from typing import List, Dict, Any
 from pkg_resources import resource_filename
 from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import (
     CsvReader,
@@ -23,6 +23,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
 
+SENTENCES_ROWS_UNPRETOKENIZED = List[Dict[str, Any]]
+
 tokenizer = AutoTokenizer.from_pretrained(
     "af-ai-center/bert-base-swedish-uncased",
     do_lower_case=False,
@@ -33,6 +35,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 csv_reader = CsvReader(
     path=resource_filename("nerblackbox", "tests/test_data"),
     tokenizer=tokenizer,
+    pretokenized=True,
     do_lower_case=False,
     csv_file_separator="\t",
     default_logger=None,
@@ -178,6 +181,65 @@ class TestCsvReaderAndDataProcessor:
                 key in dataloader.keys()
             ), f"key = {key} not in dataloader.keys() = {dataloader.keys()}"
             # TODO: further testing
+
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+class TestDataProcessor:
+
+    @pytest.mark.parametrize(
+        "tokens, words",
+        [
+            (
+                    ["this", "is", "a", "trivial", "test"],
+                    ["this", "is", "a", "trivial", "test"],
+            ),
+            (
+                    ["this", "example", "contains", "hu", "##gging", "face"],
+                    ["this", "example", "contains", "hugging", "face"],
+            ),
+            (
+                    ["##a", "b", "##c", "##d", "##e", "##fghijkl"],
+                    ["##a", "bcdefghijkl"],
+            ),
+        ]
+    )
+    def test_tokens2words(self,
+                          tokens: List[str],
+                          words: List[str]):
+        test_words = data_preprocessor._tokens2words(tokens)
+        assert test_words == words, \
+            f"test_words = {test_words} != {words}"
+
+    @pytest.mark.parametrize(
+        "data, data_pretokenized",
+        [
+            (
+                [
+                    {
+                        'text': 'arbetsförmedlingen ai-center finns i stockholm.',
+                        'tags': [
+                            {"token": "arbetsförmedlingen ai-center", "tag": "ORG", "char_start": 0, "char_end": 28},
+                            {"token": "stockholm", "tag": "LOC", "char_start": 37, "char_end": 46},
+                        ]
+                    },
+                ],
+                [
+                    {
+                        'text': 'arbetsförmedlingen ai - center finns i stockholm .',
+                        'tags': 'B-ORG I-ORG I-ORG I-ORG O O B-LOC O'
+                    },
+                ],
+            ),
+        ]
+    )
+    def test_pretokenize(self,
+                         data: SENTENCES_ROWS_UNPRETOKENIZED,
+                         data_pretokenized: List[Dict[str, str]]):
+        test_data_pretokenized = data_preprocessor._pretokenize_data(data)
+        assert test_data_pretokenized == data_pretokenized, \
+            f"test_data_pretokenized = {test_data_pretokenized} != {data_pretokenized}"
 
 
 ########################################################################################################################
