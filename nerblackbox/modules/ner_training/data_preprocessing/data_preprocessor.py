@@ -282,13 +282,15 @@ class DataPreprocessor:
                 for i, entity_word_index in enumerate(entity_words_indices):
                     tags[entity_word_index] = f"B-{entity_dict['tag']}" if i == 0 else f"I-{entity_dict['tag']}"
                 index = max(entity_words_indices)
+
             _data_pretokenized.append(
                 {
                     'tags': " ".join(tags),
                     'text': " ".join(words),
                 }
             )
-            return _data_pretokenized
+
+        return _data_pretokenized
 
     def _pretokenize(self, dataset_path: str) -> None:  # pragma: no cover
         """

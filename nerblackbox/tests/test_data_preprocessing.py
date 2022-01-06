@@ -224,11 +224,21 @@ class TestDataProcessor:
                             {"token": "stockholm", "tag": "LOC", "char_start": 37, "char_end": 46},
                         ]
                     },
+                    {
+                        'text': 'this example contains hugging face',
+                        'tags': [
+                            {"token": "hugging face", "tag": "ORG", "char_start": 22, "char_end": 34},
+                        ]
+                    },
                 ],
                 [
                     {
                         'text': 'arbetsförmedlingen ai - center finns i stockholm .',
                         'tags': 'B-ORG I-ORG I-ORG I-ORG O O B-LOC O'
+                    },
+                    {
+                        'text': 'this example contains hugging face',
+                        'tags': 'O O O B-ORG I-ORG'
                     },
                 ],
             ),
