@@ -331,7 +331,7 @@ class DataPreprocessor:
             return list_of_examples
         else:
             num_examples_old = len(list_of_examples)
-            num_examples_new = int(ratio * float(num_examples_old))
+            num_examples_new = max(1, int(ratio * float(num_examples_old)))
             info = f"> {phase.ljust(5)} data: use {num_examples_new} of {num_examples_old} examples"
             if self.default_logger:
                 self.default_logger.log_info(info)
