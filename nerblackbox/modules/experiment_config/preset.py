@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 PRESET = {
     "adaptive": {
-        "max_epochs": 50,
+        "max_epochs": 250,
         "early_stopping": True,
         "lr_schedule": "constant",
     },
@@ -12,13 +12,11 @@ PRESET = {
         "max_epochs": 5,
         "early_stopping": False,
         "lr_schedule": "linear",
-        "prune_ratio_val": 0.01,  # not needed as early_stopping is False
     },
     "stable": {
         "max_epochs": 20,
         "early_stopping": False,
         "lr_schedule": "linear",
-        "prune_ratio_val": 0.01,  # not needed as early_stopping is False
     },
     "hybrid": {
         # max epochs needs to be specified manually!
@@ -29,23 +27,11 @@ PRESET = {
     # experimental
     ###################################
     "no-training-resumption": {
-        "max_epochs": 50,
+        "max_epochs": 100,
         "early_stopping": True,
         "lr_schedule": "constant",
         "lr_cooldown_restarts": False,
-        # lr_cooldown_epochs needs to be specified manually! e.g. 0 or 3
-    },
-    "adaptive-7": {
-        "max_epochs": 50,
-        "early_stopping": True,
-        "lr_schedule": "constant",
-        "lr_cooldown_epochs": 7,
-    },
-    "hybrid-7": {
-        # max epochs needs to be specified manually!
-        "early_stopping": False,
-        "lr_schedule": "hybrid",
-        "lr_cooldown_epochs": 7,
+        # lr_cooldown_epochs needs to be specified manually! e.g. 0 or 7
     },
 }
 

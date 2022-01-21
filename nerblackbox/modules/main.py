@@ -102,7 +102,10 @@ class NerBlackBoxMain:
             else:
                 for field in ["pretrained_model_name", "dataset_name"]:
                     if field not in self.hparams.keys():
-                        self._exit_gracefully(f"{field} is not specified but mandatory if dynamic arguments are used.")
+                        field_displayed = "model" if field == "pretrained_model_name" else "dataset"
+                        self._exit_gracefully(
+                            f"{field_displayed} is not specified but mandatory if dynamic arguments are used."
+                        )
 
         data_dir = env_variable("DATA_DIR")
         if os.path.isdir(data_dir):
