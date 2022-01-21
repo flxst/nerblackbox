@@ -124,27 +124,40 @@ class NerBlackBox:
 
     def run_experiment(self,
                        experiment_name: str,
+                       from_config: bool = False,
                        model: Optional[str] = None,
                        dataset: Optional[str] = None,
+                       from_preset: Optional[str] = 'adaptive',
                        **kwargs_optional: Dict):
         """run a single experiment.
 
            Note:
 
-           - experiment config file exists -> only experiment_name needs to be provided
+           - from_config == True -> experiment config file is used, no other optional arguments will be used
 
-           - experiment config file needs to be created -> provide hyperparameters as arguments
+           - from_config == False -> experiment config file is created dynamically, optional arguments will be used
 
-             The arguments model and dataset are mandatory in that case.
+               - model and dataset are mandatory.
 
-             All other arguments are optional. If not specified, the default hyperparameters are used.
+               - All other arguments relate to hyperparameters and are optional.
+                 If not specified, they are taken using the following hierarchy:
+
+                 1) optional argument
+
+                 2) from_preset (adaptive, original, stable),
+                    which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"
+
+                 3) default experiment configuration
+
 
         Args:
             experiment_name: e.g. 'exp0'
+            from_config: e.g. False
             model: if experiment config file is to be created dynamically, e.g. 'bert-base-uncased'
             dataset: if experiment config file is to be created dynamically, e.g. 'conll-2003'
+            from_preset: if experiment config file is to be created dynamically, e.g. 'adaptive'
             kwargs_optional: with optional key-value pairs, e.g. \
-            {"multiple_runs": [int], "from_preset": [bool], "run_name": [str], "device": [torch device], "fp16": [bool]}
+            {"multiple_runs": [int], "run_name": [str], "device": [torch device], "fp16": [bool]}
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
@@ -155,8 +168,12 @@ class NerBlackBox:
         if dataset is not None:
             kwargs["dataset_name"] = dataset
 
-        kwargs["hparams"], kwargs["from_preset"], kwargs["from_config"] = self._extract_hparams_and_from_preset(kwargs)
+        kwargs["hparams"] = self._extract_hparams(kwargs)
+        kwargs["from_config"] = from_config
+        if not from_config:
+            kwargs["from_preset"] = from_preset
 
+        # get rid of keys in kwargs that are present in kwargs["hparams"]
         for key in kwargs["hparams"].keys():
             kwargs.pop(key)
 
@@ -220,27 +237,19 @@ class NerBlackBox:
             return {k: v for k, v in _kwargs_optional.items() if v is not None}
 
     @staticmethod
-    def _extract_hparams_and_from_preset(_kwargs: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[str], bool]:
+    def _extract_hparams(_kwargs: Dict[str, Any]) -> Dict[str, Any]:
         """
         Args:
-            _kwargs: e.g. {"a": 1, "from_preset": "adaptive"}
+            _kwargs: e.g. {"a": 1, "run_name": "runA-1"}
 
         Returns:
             _hparams: e.g. {"a": 1}
-            _from_preset: e.g. "adaptive"
-            _from_config: e.g. False
         """
         # hparams
-        exclude_keys = ["experiment_name", "run_name", "device", "fp16", "from_preset"]
+        exclude_keys = ["experiment_name", "run_name", "device", "fp16"]
         _hparams = {
             _key: _kwargs[_key]
-            for _key in [k for k in _kwargs.keys() if k not in exclude_keys]
+            for _key in _kwargs.keys() if _key not in exclude_keys
         }
 
-        # from_preset
-        _from_preset = _kwargs["from_preset"] if "from_preset" in _kwargs.keys() else None
-
-        # from_config
-        _from_config = True if (len(_hparams) == 0 and _from_preset is None) else False
-
-        return _hparams, _from_preset, _from_config
+        return _hparams
