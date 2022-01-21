@@ -106,11 +106,11 @@ others are **optional** and are set to default values if not specified.
 ### 3. Settings
 
 | Key               | Mandatory | Default Value | Type  | Values         | Comment                                                                                              |          
-|---                |---        |---            |---    |---             |---                                                                                                   |
+|---                |---        |---            |---    |---             |------------------------------------------------------------------------------------------------------|
 | checkpoints       | No        | True          | bool  | True, False    | whether to save model checkpoints                                                                    |
 | logging_level     | No        | info          | str   | info, debug    | choose [logging level](https://docs.python.org/3/library/logging.html#levels), debug is more verbose |
 | multiple_runs     | No        | 3             | int   | 1+             | choose how often each hyperparameter run is executed (to control for statistical uncertainties)      |
-| seed              | No        | 42            | int   | 1+             | for reproducibility. multiple runs get different seeds.                                                                   |
+| seed              | No        | 42            | int   | 1+             | for reproducibility. multiple runs get assigned different seeds.                                     |
 
 ??? example "Example: custom_experiment.ini (Settings)"
     ``` markdown

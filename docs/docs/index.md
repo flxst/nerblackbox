@@ -2,22 +2,22 @@
 
 **nerblackbox** - a python package to fine-tune transformer-based language models for named entity recognition (NER).
 
-Latest version: 0.0.11
+latest version: 0.0.11
 
 -----------
 ## Resources
 
-* Source Code: [https://github.com/af-ai-center/nerblackbox](https://github.com/af-ai-center/nerblackbox)
-* Documentation: [https://af-ai-center.github.io/nerblackbox]([https://af-ai-center.github.io/nerblackbox])
+* source code: [https://github.com/af-ai-center/nerblackbox](https://github.com/af-ai-center/nerblackbox)
+* documentation: [https://af-ai-center.github.io/nerblackbox]([https://af-ai-center.github.io/nerblackbox])
 * PyPI: [https://pypi.org/project/nerblackbox](https://pypi.org/project/nerblackbox)
 
 -----------
 ## About
 
-[Transformer-based language models](https://arxiv.org/abs/1706.03762) like [BERT](https://arxiv.org/abs/1810.04805) have had a [game-changing impact](https://paperswithcode.com/task/language-modelling) on Natural Language Processing.
+[Transformer-based language models](https://arxiv.org/abs/1706.03762) like [BERT](https://arxiv.org/abs/1810.04805) have had a [game-changing impact](https://paperswithcode.com/task/language-modelling) on natural language processing.
 
-In order to utilize [Hugging Face's publicly accessible pretrained models](https://huggingface.co/transformers/pretrained_models.html) for
-[Named Entity Recognition](https://en.wikipedia.org/wiki/Named-entity_recognition),
+In order to utilize [HuggingFace's publicly accessible pretrained models](https://huggingface.co/transformers/pretrained_models.html) for
+[named entity recognition](https://en.wikipedia.org/wiki/Named-entity_recognition),
 one needs to retrain (or "fine-tune") them using labeled text.
 
 **nerblackbox makes this easy.**
@@ -44,44 +44,51 @@ pip install nerblackbox
 -----------
 ## Usage
 
-- Specify the dataset and pretrained model in an `Experiment Configuration File`
+- initialize
+    ``` python
+    nerbb = NerBlackBox()
+    ```
 
-    !!! abstract "my_experiment.ini"
-        ``` markdown
-        dataset_name = swedish_ner_corpus
-        pretrained_model_name = af-ai-center/bert-base-swedish-uncased
-        ```
+- fine-tune a model on a dataset
+    ``` python
+    nerbb.run_experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+    # [output provides details on the model training]
+    ```
 
+- inspect the model
+    ``` python
+    nerbb.get_experiment_results("my_experiment")
+    # [output provides details on the model performance]
+    ```
 
-- and use either the [`CLI (Command Line Interface)`](cli/cli) or the [`Python API`](python_api/overview) for fine-tuning and model application:
+- model inference
+    ``` python
+    nerbb.predict("my_experiment", "The United Nations has never recognised Jakarta's move.")  
+    # [[
+    #  {'char_start': '4', 'char_end': '18', 'token': 'United Nations', 'tag': 'ORG'},
+    #  {'char_start': '40', 'char_end': '47', 'token': 'Jakarta', 'tag': 'LOC'}
+    # ]]
+    ```
 
-    !!! note "fine-tuning and model application"
-        === "CLI"
-            ``` bash
-            nerbb run_experiment my_experiment                   # fine-tune
-            nerbb get_experiment_results my_experiment           # get results/performance
-            nerbb predict my_experiment annotera den här texten  # apply best model for NER
-            ```
-        === "Python"
-            ``` python
-            nerbb = NerBlackBox()
-            nerbb.run_experiment("my_experiment")                      # fine-tune
-            nerbb.get_experiment_results("my_experiment")              # get results/performance
-            nerbb.predict("my_experiment", "annotera den här texten")  # apply best model for NER
-            ```
-
-See [Guide](guide/getting_started) for more details.
+See [Usage](usage/getting_started) for more details.
 
 -----------
 ## Features
 
-* GPU Support
-* Hyperparameter Search
-* Early Stopping
-* Multiple Identical Runs
-* Language Agnosticism
+* adaptive fine-tuning
+* hyperparameter search
+* detailed analysis of training results
+* multiple runs with different random seeds
+* language agnosticism
+* GPU support
+* support for pretokenized and unpretokenized datasets
+* support of various annotation schemes (e.g. BIO, BILOU) and seamless conversion between them
+* seamless use of datasets from [HuggingFace Datasets](https://huggingface.co/docs/datasets/)
+* special token support
+* based on [HuggingFace Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/) and [MLflow](https://mlflow.org/docs/latest/index.html)
 
-Based on: [Hugging Face Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/), [MLflow](https://mlflow.org/docs/latest/index.html)
+See [Features](features/overview) for more details.
+
 
 -----------
 ## Citation

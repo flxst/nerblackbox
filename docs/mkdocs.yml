@@ -9,7 +9,7 @@ theme:
   favicon: images/package-16.svg
   icon:
     logo: octicons/package-16
-copyright: Copyright &copy; 2020 - 2021 Arbetsförmedlingen (Felix Stollenwerk)
+copyright: Copyright &copy; 2020 - 2022 Felix Stollenwerk
 plugins:
   - mkdocstrings
   - search
@@ -26,14 +26,17 @@ extra_css:
   - stylesheets/extra.css
 nav:
     - Overview: 'index.md'
-    - Guide:
-      - 'guide/getting_started.md'
-      - 'guide/custom_experiments.md'
-      - 'guide/datasets_and_models.md'
-    - CLI:
-      - Overview: 'cli/cli.md'
+    - Usage:
+      - 'usage/getting_started.md'
+      - 'usage/custom_experiments.md'
+      - 'usage/datasets_and_models.md'
+    - Features:
+        - 'features/overview.md'
+        - 'features/adaptive_finetuning.md'
     - Python API:
       - Overview: 'python_api/overview.md'
       - 'python_api/nerblackbox.md'
       - 'python_api/experiment_results.md'
       - 'python_api/ner_model_predict.md'
+    - CLI:
+        - Overview: 'cli/cli.md'

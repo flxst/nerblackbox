@@ -108,34 +108,34 @@ class NerModelPredict(NerModel):
         Examples:
             ```
             predict(["arbetsförmedlingen finns i stockholm"], level="word", autocorrect=False)
-            # [
+            # [[
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "I-ORG"},
             #     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "O"},
             #     {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "B-LOC"},
-            # ]
+            # ]]
             ```
             ```
             predict(["arbetsförmedlingen finns i stockholm"], level="word", autocorrect=True)
-            # [
+            # [[
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "B-ORG"},
             #     {"char_start": "19", "char_end": "24", "token": "finns", "tag": "O"},
             #     {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "B-LOC"},
-            # ]
+            # ]]
             ```
             ```
             predict(["arbetsförmedlingen finns i stockholm"], level="entity", autocorrect=False)
-            # [
+            # [[
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
-            # ]
+            # ]]
             ```
             ```
             predict(["arbetsförmedlingen finns i stockholm"], level="entity", autocorrect=True)
-            # [
+            # [[
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "tag": "ORG"},
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "tag": "LOC"},
-            # ]
+            # ]]
             ```
 
         Args:
@@ -157,12 +157,12 @@ class NerModelPredict(NerModel):
         Examples:
             ```
             predict_proba(["arbetsförmedlingen finns i stockholm"])
-            # [
+            # [[
             #     {"char_start": "0", "char_end": "18", "token": "arbetsförmedlingen", "proba_dist: {"O": 0.21, "B-ORG": 0.56, ..}},
             #     {"char_start": "19", "char_end": "24", "token": "finns", "proba_dist: {"O": 0.87, "B-ORG": 0.02, ..}},
             #     {"char_start": "25", "char_end": "26", "token": "i", "proba_dist: {"O": 0.95, "B-ORG": 0.01, ..}},
             #     {"char_start": "27", "char_end": "36", "token": "stockholm", "proba_dist: {"O": 0.14, "B-ORG": 0.22, ..}},
-            # ]
+            # ]]
             ```
 
         Args:
