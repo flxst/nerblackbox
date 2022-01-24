@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Union
 from mlflow.entities import Run
 from nerblackbox.modules.experiment_results import ExperimentResults
 
@@ -35,7 +35,7 @@ class TestExperimentResults:
     experiment_results = ExperimentResults(_id=experiment_id, name=experiment_name)
 
     # results: intermediate
-    true_parameters_experiment: Dict[Tuple, Any] = {
+    true_parameters_experiment: Dict[str, Any] = {
         'early_stopping': ['True'],
         'prune_ratio_test': ['0.2'],
         'seed': ['42'],
@@ -61,7 +61,7 @@ class TestExperimentResults:
         'fp16': ['0'],
         'logging_level': ['info']
     }
-    true_parameters_runs: Dict[Tuple, Any] = {
+    true_parameters_runs: Dict[Tuple[str, str], Any] = {
         ('info', 'run_id'): ['<run_id_2>', '<run_id_1>'],
         ('info', 'run_name_nr'): ['runA-2', 'runA-1'],
         ('params', 'max_seq_length'): ['64', '64'],
@@ -82,7 +82,7 @@ class TestExperimentResults:
         ('metrics', 'entity_fil_asr_recall_micro'): [0.6877470355731226, 0.6640316205533597],
         ('metrics', 'entity_fil_asr_f1_micro'): [0.7388535031847134, 0.691358024691358]
     }
-    true_parameters_runs_renamed = {
+    true_parameters_runs_renamed: Dict[Tuple[str, str], Any] = {
         ('info', 'run_id'): ['<run_id_2>', '<run_id_1>'],
         ('info', 'run_name_nr'): ['runA-2', 'runA-1'],
         ('params', 'max_seq'): ['64', '64'],
@@ -103,7 +103,7 @@ class TestExperimentResults:
         ('metrics', 'TEST_ENT_ASR_REC'): [0.6877470355731226, 0.6640316205533597],
         ('metrics', 'TEST_ENT_ASR_F1'): [0.7388535031847134, 0.691358024691358],
     }
-    true_parameters_runs_renamed_average: Dict[Tuple, Any] = {
+    true_parameters_runs_renamed_average: Dict[Tuple[str, str], List[str]] = {
         ('info', 'run_name'): ['runA'],
         ('params', 'max_seq'): ['64'],
         ('params', 'lr_max'): ['2e-05'],
@@ -174,7 +174,7 @@ class TestExperimentResults:
             ('metrics', 'TEST_ENT_ASR_F1'): {0: '0.71511 +- 0.01679'},
         }
     )
-    true_best_single_run: Dict = {
+    true_best_single_run: Dict[str, Union[str, float]] = {
         'exp_id': '0',
         'exp_name': 'my_experiment_mlflow_runs',
         'run_id': '<run_id_2>',
@@ -191,7 +191,7 @@ class TestExperimentResults:
         'TEST_ENT_ASR_F1': 0.691358024691358,
         'checkpoint': '<checkpoint>',
     }
-    true_best_average_run: Dict = {
+    true_best_average_run: Dict[str, str] = {
         'exp_id': '0',
         'exp_name': 'my_experiment_mlflow_runs',
         'run_name': 'runA',

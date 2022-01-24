@@ -34,7 +34,7 @@ class NerBlackBoxMain:
         val_fraction: float = 0.3,  # set_up_dataset
         verbose: bool = False,
         experiment_name: Optional[str] = None,
-        hparams: Optional[Dict[str, str]] = None,  # run_experiment
+        hparams: Optional[Dict[str, Union[str, int, bool]]] = None,  # run_experiment
         from_preset: Optional[str] = None,  # run_experiment
         from_config: bool = False,  # run_experiment
         run_name: Optional[str] = None,  # run_experiment
@@ -75,7 +75,7 @@ class NerBlackBoxMain:
         self.val_fraction = val_fraction  # set_up_dataset
         self.verbose = verbose
         self.experiment_name = experiment_name
-        self.hparams: Optional[Dict[str, str]] = self._process_hparams(hparams, from_preset)
+        self.hparams: Optional[Dict[str, Union[str, int, bool]]] = self._process_hparams(hparams, from_preset)
         self.from_config: bool = from_config
         self.run_name = run_name  # run_experiment
         self.device = device  # run_experiment
@@ -100,6 +100,8 @@ class NerBlackBoxMain:
                 if not isfile(path_experiment_config):
                     self._exit_gracefully(f"experiment_config = {path_experiment_config} does not exist.")
             else:
+                assert self.hparams is not None, \
+                    f"ERROR! self.hparams is None but needs to be specified if dynamic arguments are used."
                 for field in ["pretrained_model_name", "dataset_name"]:
                     if field not in self.hparams.keys():
                         field_displayed = "model" if field == "pretrained_model_name" else "dataset"
@@ -518,7 +520,8 @@ class NerBlackBoxMain:
     # HELPER ###########################################################################################################
     ####################################################################################################################
     @staticmethod
-    def _process_hparams(hparams: Optional[Dict[str, str]], from_preset: Optional[str]) -> Optional[Dict[str, str]]:
+    def _process_hparams(hparams: Optional[Dict[str, Union[str, int, bool]]],
+                         from_preset: Optional[str]) -> Optional[Dict[str, Union[str, int, bool]]]:
         """
         Args:
             hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
@@ -549,6 +552,7 @@ class NerBlackBoxMain:
             f.write(_str + "\n")
 
         def _write_key_value(_key: str):
+            assert self.hparams is not None, f"ERROR! self.hparams is None - _write_key_value() failed."
             if _key in self.hparams.keys():
                 f.write(f"{_key} = {self.hparams[_key]}\n")
 

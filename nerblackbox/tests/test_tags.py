@@ -262,9 +262,3 @@ class TestTags:
         else:
             with pytest.raises(Exception):
                 Tags(input_sequence).restore_annotation_scheme_consistency(target_scheme)
-
-
-if __name__ == "__main__":
-    test_tags = TestTags()
-    test_tags.test_convert_scheme()
-    test_tags.test_restore_annotation_scheme_consistency()

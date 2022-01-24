@@ -5,8 +5,8 @@ import pytorch_lightning as pl
 from abc import ABC, abstractmethod
 import torch
 from torch.optim.optimizer import Optimizer
-from typing import List, Dict, Optional, Callable, Union, Any, Tuple
-from omegaconf import OmegaConf
+from typing import List, Dict, Optional, Callable, Tuple, Any
+from omegaconf import DictConfig
 
 from torch.optim.lr_scheduler import LambdaLR
 
@@ -16,6 +16,7 @@ from transformers import get_constant_schedule_with_warmup
 from transformers import get_cosine_schedule_with_warmup
 from transformers import get_cosine_with_hard_restarts_schedule_with_warmup
 from transformers import AutoTokenizer
+from transformers import PreTrainedModel
 
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
     DataPreprocessor,
@@ -28,7 +29,7 @@ from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogge
 
 
 class NerModel(pl.LightningModule, ABC):
-    def __init__(self, hparams: OmegaConf):
+    def __init__(self, hparams: DictConfig):
         """
         :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
         """
@@ -70,10 +71,12 @@ class NerModel(pl.LightningModule, ABC):
         :created attr: scheduler              [torch LambdaLR]
         :return: -
         """
-        self.mlflow_client: MLflowClient
         self.default_logger: DefaultLogger
-        self.scheduler: LambdaLR
         self.annotation: Annotation
+        self.model: PreTrainedModel
+        self.mlflow_client: MLflowClient
+        self.optimizer: Optimizer
+        self.scheduler: LambdaLR
 
     def _preparations_data_general(self):
         """
@@ -119,10 +122,13 @@ class NerModel(pl.LightningModule, ABC):
     ####################################################################################################################
     # FORWARD & BACKWARD PROPAGATION
     ####################################################################################################################
-    def forward(self, _batch: Dict[str, torch.tensor]) -> List:
+    def forward(self, *args, **kwargs) -> List:
         """
         Args:
-            _batch: Dict with keys = subset of EncodingsKeys, values = 2D torch tensor of shape [batch_size, seq_length]
+            args = (batch),
+            where batch = Dict[str, torch.Tensor]
+            with keys = subset of EncodingsKeys,
+                 values = 2D torch tensor of shape [batch_size, seq_length]
             e.g.
             input_ids      = [2D torch tensor], e.g. [[1, 567, 568, 569, .., 2, 611, 612, .., 2, 0, 0, 0, ..], [..], ..]
             attention_mask = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..], [..], ..]
@@ -136,7 +142,7 @@ class NerModel(pl.LightningModule, ABC):
                    ii) _labels_prediction_logits: [torch tensor] of shape [batch_size, seq_length, vocabulary_size],
                        if labels are provided in _batch
         """
-        return self.model(**_batch)
+        return self.model(**args[0])
 
     ####################################################################################################################
     # TRAIN
@@ -269,19 +275,22 @@ class NerModel(pl.LightningModule, ABC):
     # 1. PREPARATIONS
     ####################################################################################################################
     def _create_optimizer(
-        self, learning_rate, fp16=True, no_decay=('bias', 'LayerNorm.weight')
-    ):
+        self, learning_rate: float, fp16: bool = True, no_decay: Tuple[str, ...] = ('bias', 'LayerNorm.weight')
+    ) -> Optimizer:
         """
         create optimizer with basic learning rate and L2 normalization for some parameters
-        ----------------------------------------------------------------------------------
-        :param learning_rate: [float] basic learning rate
-        :param fp16:          [bool]
-        :param no_decay:      [tuple of str] parameters that contain one of those are not subject to L2 normalization
-        :return: optimizer:   [torch optimizer]
+
+        Args:
+            learning_rate: [float] basic learning rate
+            fp16:          [bool]
+            no_decay:      [tuple of str] parameters that contain one of those are not subject to L2 normalization
+
+        Returns:
+            optimizer:   [torch optimizer]
         """
         # Remove unused pooler that otherwise break Apex
         param_optimizer = list(self.model.named_parameters())
-        optimizer_grouped_parameters = [
+        optimizer_grouped_parameters: List[Any] = [
             {
                 "params": [
                     p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
@@ -301,11 +310,15 @@ class NerModel(pl.LightningModule, ABC):
         # )
         self.default_logger.log_debug(
             "> parameters w/  weight decay:",
-            len(optimizer_grouped_parameters[0]["params"]),
+            len(optimizer_grouped_parameters[0]["params"])
+            if isinstance(optimizer_grouped_parameters[0]["params"], list)
+            else None
         )
         self.default_logger.log_debug(
             "> parameters w/o weight decay:",
-            len(optimizer_grouped_parameters[1]["params"]),
+            len(optimizer_grouped_parameters[1]["params"])
+            if isinstance(optimizer_grouped_parameters[1]["params"], list)
+            else None
         )
         if fp16:
             optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
@@ -391,7 +404,7 @@ class NerModel(pl.LightningModule, ABC):
         return _num_epochs * len(self.dataloader["train"])
 
     @staticmethod
-    def _parse_batch(_batch) -> Tuple[torch.tensor, ...]:
+    def _parse_batch(_batch) -> Tuple[torch.Tensor, ...]:
         """
         Args:
             _batch: Dict with keys = subset of EncodingsKeys, values = 2D torch tensor of shape [batch_size, seq_length]
@@ -417,7 +430,7 @@ class NerModel(pl.LightningModule, ABC):
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
     def _validate_on_epoch(
-        self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]], metrics: str,
+        self, phase: str, outputs: List[torch.Tensor], metrics: str,
     ) -> Dict[str, float]:
         """
         Args:
@@ -435,7 +448,7 @@ class NerModel(pl.LightningModule, ABC):
 
             # GPU (pytorch)
             batch_loss = [output[0].detach() for output in outputs]
-            epoch_loss = torch.mean(torch.stack(batch_loss))
+            epoch_loss = torch.mean(torch.stack(batch_loss)).item()  # -> float
 
             self.log(f"{phase}_loss", epoch_loss)  # for early stopping callback
         elif metrics == "all":

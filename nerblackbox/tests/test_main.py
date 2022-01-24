@@ -1,5 +1,5 @@
 import pytest
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Union
 
 from nerblackbox.modules.main import NerBlackBoxMain
 import os
@@ -37,7 +37,7 @@ class TestMain:
                     "adaptive",
                     {
                         'multiple_runs': '2',
-                        'max_epochs': 50,
+                        'max_epochs': 250,
                         'early_stopping': True,
                         'lr_schedule': 'constant',
                     },
@@ -45,7 +45,7 @@ class TestMain:
         ]
     )
     def test_process_hparams(self,
-                             hparams: Optional[Dict[str, str]],
+                             hparams: Optional[Dict[str, Union[str, int, bool]]],
                              from_preset: Optional[str],
                              hparams_processed: Optional[Dict[str, str]]):
         test_hparams_processed = self.main._process_hparams(hparams, from_preset)

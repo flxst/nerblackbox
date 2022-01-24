@@ -1,8 +1,9 @@
 import json
 
 from transformers import AutoModelForTokenClassification
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from torch.optim.lr_scheduler import LambdaLR
+from torch.optim.optimizer import Optimizer
 
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
@@ -13,7 +14,7 @@ from nerblackbox.modules.utils.util_functions import read_special_tokens
 
 
 class NerModelTrain(NerModel):
-    def __init__(self, hparams: OmegaConf):
+    def __init__(self, hparams: DictConfig):
         """
         :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
         """
@@ -138,7 +139,7 @@ class NerModelTrain(NerModel):
         )
 
         # optimizer
-        self.optimizer = self._create_optimizer(
+        self.optimizer: Optimizer = self._create_optimizer(
             self._hparams.lr_max, fp16=self.params.fp16
         )
 

@@ -136,7 +136,7 @@ class ExperimentResults:
 
     @classmethod
     def _parse_runs(cls,
-                    _runs: List[Run]) -> Tuple[Dict[Tuple, Any], Dict[Tuple, Any]]:
+                    _runs: List[Run]) -> Tuple[Dict[Tuple[str, str], Any], Dict[str, Any]]:
         """
         Args:
             _runs: list of mlflow.entities.Run objects
@@ -145,8 +145,8 @@ class ExperimentResults:
             _parameters_runs:       information on single runs
             _parameters_experiment: information on whole experiment
         """
-        _parameters_runs = dict()
-        _parameters_experiment = dict()
+        _parameters_runs: Dict[Tuple[str, str], Any] = dict()
+        _parameters_experiment: Dict[str, Any] = dict()
         for i in range(len(_runs)):
             if len(_runs[i].data.metrics) == 0:  # experiment
                 _parameters_experiment = {
@@ -219,6 +219,8 @@ class ExperimentResults:
                 return "metrics", cls.METRICS_PLUS[_field]
             elif _field.replace("D_", "") in cls.METRICS_PLUS.keys():
                 return "metrics", f"D_{cls.METRICS_PLUS[_field.replace('D_', '')]}"
+            else:
+                raise Exception(f"ERROR! _rename_parameters_runs_single() failed.")
         else:
             return _category, _field
 
@@ -232,7 +234,7 @@ class ExperimentResults:
 
     @classmethod
     def _average(cls,
-                 _parameters_runs_renamed: Dict[Tuple[str, str], Any]) -> Dict[Tuple[str, str], Any]:
+                 _parameters_runs_renamed: Dict[Tuple[str, str], Any]) -> Dict[Tuple[str, str], List[str]]:
         """
         Args:
             _parameters_runs_renamed:         information on single runs
@@ -250,7 +252,7 @@ class ExperimentResults:
                 ("metrics", k)
                 for k in ["CONVERGENCE"] + list(cls.METRICS_PLUS.values())
             ]
-        _parameters_runs_renamed_average = {k: list() for k in keys}
+        _parameters_runs_renamed_average: Dict[Tuple[str, str], List[str]] = {k: list() for k in keys}
 
         runs_name_nr = _parameters_runs_renamed[("info", "run_name_nr")]
         nr_runs = len(runs_name_nr)
@@ -311,7 +313,7 @@ class ExperimentResults:
     @classmethod
     def _get_mean_and_dmean(cls,
                             _indices: List[int],
-                            _parameters_runs_renamed: Dict[Tuple, Any],
+                            _parameters_runs_renamed: Dict[Tuple[str, str], Any],
                             _metric: str) -> Tuple[float, Optional[float]]:
         try:
             values = [
@@ -352,6 +354,7 @@ class ExperimentResults:
         if self.experiment is not None and self.single_runs is not None:
             _df_best_single_run = self.single_runs.iloc[0, :]
 
+            assert self.name is not None, f"ERROR! self.name is None, extract_best_single_run() failed."
             checkpoint = join(
                 env_variable("DIR_CHECKPOINTS"),
                 self.name,

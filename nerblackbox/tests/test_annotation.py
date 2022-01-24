@@ -212,11 +212,3 @@ class TestAnnotation:
             assert (
                     annotation.classes == new_classes
             ), f"annotation.classes = {annotation.classes} != {new_classes}"
-
-
-if __name__ == "__main__":
-    test_annotation = TestAnnotation()
-    test_annotation.test_ensure_completeness_in_case_of_bio_or_bilou_tags()
-    test_annotation.test_sort()
-    test_annotation.test_determine_annotation_scheme()
-    test_annotation.test_change_scheme()

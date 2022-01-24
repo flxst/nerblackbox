@@ -79,7 +79,9 @@ class TestConll2003Formatter:
         self.formatter.dataset_path = resource_filename(
             "nerblackbox", f"tests/test_data/formatted_data"
         )
-        test_df_train, test_df_val, test_df_test = self.formatter.resplit_data(write_csv=False)
+        test_dfs = self.formatter.resplit_data(write_csv=False)
+        assert test_dfs is not None, f"ERROR! resplit_data() returned None unexpectedly."
+        test_df_train, test_df_val, test_df_test = test_dfs
         pd.testing.assert_frame_equal(test_df_train, df_train), \
             f"ERROR! test_resplit_data did not pass test for phase = train"
         pd.testing.assert_frame_equal(test_df_val, df_val), \

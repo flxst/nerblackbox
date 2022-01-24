@@ -75,7 +75,7 @@ class TestNerModelEvaluation:
     )
     def test_convert_and_combine(
         self,
-        outputs: List[Union[torch.Tensor, Dict[str, Any]]],
+        outputs: List[torch.Tensor],
         np_batch: Dict[str, List[np.array]],
         np_epoch: Dict[str, Union[np.number, np.array]],
     ) -> None:
@@ -703,7 +703,7 @@ class TestNerModelEvaluation:
     def test_execute(
         self,
         phase: str,
-        outputs: List[Union[torch.Tensor, Dict[str, Any]]],
+        outputs: List[torch.Tensor],
         epoch_metrics: Dict[str, np.array],
         epoch_loss: float,
     ) -> None:
@@ -722,15 +722,3 @@ class TestNerModelEvaluation:
             assert test_epoch_metrics[k] == pytest_approx(
                 epoch_metrics[k]
             ), f"key = {k}: test_epoch_metrics = {test_epoch_metrics[k]} != {epoch_metrics[k]}"
-
-
-if __name__ == "__main__":
-    test = TestNerModelEvaluation()
-    test.test_convert_and_combine()
-    test.test_reduce_and_flatten()
-    test.test_convert_tag_ids_to_tags()
-    test.test_get_rid_of_special_tag_occurrences()
-    test.test_get_filtered_classes()
-    test.test_compute_metrics_for_tags_subset()
-    test.test_compute_metrics()
-    test.test_execute()

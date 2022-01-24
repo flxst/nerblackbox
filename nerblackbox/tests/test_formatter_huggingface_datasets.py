@@ -269,10 +269,16 @@ class TestHuggingfaceDatasetsFormatter:
         formatter = self.formatter_pretokenized if pretokenized else self.formatter_unpretokenized
 
         formatter.get_data(verbose=False)
-        formatter.sentences_rows = {
-            phase: formatter.sentences_rows[phase][:2]
-            for phase in formatter.PHASES
-        }
+        if pretokenized:
+            formatter.sentences_rows_pretokenized = {
+                phase: formatter.sentences_rows_pretokenized[phase][:2]
+                for phase in formatter.PHASES
+            }
+        else:
+            formatter.sentences_rows_unpretokenized = {
+                phase: formatter.sentences_rows_unpretokenized[phase][:2]
+                for phase in formatter.PHASES
+            }
 
         test_sentences_rows_iob2 = formatter.format_data(shuffle=True, write_csv=False)
         assert test_sentences_rows_iob2 == sentences_rows_iob2, \
@@ -302,7 +308,9 @@ class TestHuggingfaceDatasetsFormatter:
         self.formatter_pretokenized.dataset_path = resource_filename(
             "nerblackbox", f"tests/test_data/formatted_data"
         )
-        test_df_train, test_df_val, test_df_test = self.formatter_pretokenized.resplit_data(write_csv=False)
+        test_dfs = self.formatter_pretokenized.resplit_data(write_csv=False)
+        assert test_dfs is not None, f"ERROR! resplit_data() returned None unexpectedly."
+        test_df_train, test_df_val, test_df_test = test_dfs
         pd.testing.assert_frame_equal(test_df_train, df_train), \
             f"ERROR! test_resplit_data did not pass test for phase = train"
         pd.testing.assert_frame_equal(test_df_val, df_val), \

@@ -2,7 +2,7 @@ import subprocess
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
+from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS, SENTENCES_ROWS_PRETOKENIZED
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
@@ -68,7 +68,8 @@ class SwedishNerCorpusFormatter(BaseFormatter):
             if write_csv:  # pragma: no cover
                 self._write_formatted_csv(phase, sentences_rows)
             else:
-                return sentences_rows
+                return sentences_rows  # returns train!
+        return None
 
     def set_original_file_paths(self) -> None:
         """
@@ -138,5 +139,6 @@ class SwedishNerCorpusFormatter(BaseFormatter):
             self._write_final_csv("train", df_train)
             self._write_final_csv("val", df_val)
             self._write_final_csv("test", df_test)
+            return None
         else:
             return df_train, df_val, df_test

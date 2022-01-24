@@ -69,6 +69,7 @@ class CoNLL2003Formatter(BaseFormatter):
                 self._write_formatted_csv(phase, sentences_rows_iob2)
             else:
                 return sentences_rows_iob2
+        return None
 
     def set_original_file_paths(self) -> None:
         """
@@ -142,5 +143,6 @@ class CoNLL2003Formatter(BaseFormatter):
             self._write_final_csv("val", df_val)
             self._write_final_csv("train", df_train)
             self._write_final_csv("test", df_test)
+            return None
         else:
             return df_train, df_val, df_test

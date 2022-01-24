@@ -156,8 +156,3 @@ class TestInputExamplesUtils:
                 annotation_scheme_source=Annotation(tag_classes).scheme,
                 annotation_scheme_target="xyz",
             )
-
-
-if __name__ == "__main__":
-    test_input_example_utils = TestInputExamplesUtils()
-    test_input_example_utils.tests()

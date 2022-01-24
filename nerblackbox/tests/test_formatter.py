@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import pandas as pd
 from nerblackbox.modules.datasets.formatter.auto_formatter import AutoFormatter
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
+from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS, SENTENCES_ROWS_PRETOKENIZED
 from nerblackbox.modules.datasets.formatter.conll2003_formatter import CoNLL2003Formatter
 from nerblackbox.modules.datasets.formatter.swe_nerc_formatter import SweNercFormatter
 from nerblackbox.modules.datasets.formatter.swedish_ner_corpus_formatter import SwedishNerCorpusFormatter
@@ -142,7 +142,7 @@ class TestBaseFormatter:
         ]
     )
     def test_format_sentences_rows(self,
-                                   sentences_rows: SENTENCES_ROWS,
+                                   sentences_rows: SENTENCES_ROWS_PRETOKENIZED,
                                    sentences_rows_formatted: List[Tuple[str, str]]):
         test_sentences_rows_formatted = self.base_formatter._format_sentences_rows(sentences_rows)
         assert test_sentences_rows_formatted == sentences_rows_formatted, \
@@ -166,8 +166,8 @@ class TestBaseFormatter:
         ]
     )
     def test_convert_iob1_to_iob2(self,
-                                  sentences_rows_iob1: SENTENCES_ROWS,
-                                  sentences_rows_iob2: SENTENCES_ROWS):
+                                  sentences_rows_iob1: SENTENCES_ROWS_PRETOKENIZED,
+                                  sentences_rows_iob2: SENTENCES_ROWS_PRETOKENIZED):
         test_sentences_rows_iob2 = self.base_formatter._convert_iob1_to_iob2(sentences_rows_iob1)
         assert test_sentences_rows_iob2 == sentences_rows_iob2, \
             f"ERROR! test_sentences_rows_iob2 = {test_sentences_rows_iob2} != {sentences_rows_iob2}"
@@ -192,12 +192,9 @@ class TestBaseFormatter:
     )
     def test_shuffle_dataset(self,
                              phase: str,
-                             sentences_rows: SENTENCES_ROWS,
-                             sentences_rows_shuffled: SENTENCES_ROWS):
+                             sentences_rows: SENTENCES_ROWS_PRETOKENIZED,
+                             sentences_rows_shuffled: SENTENCES_ROWS_PRETOKENIZED):
         test_shuffled_sentences_rows = self.base_formatter._shuffle_dataset(phase, sentences_rows)
-        assert sorted(test_shuffled_sentences_rows) == sorted(sentences_rows), \
-            f"ERROR! sorted(test_shuffled_sentences_rows) = {sorted(test_shuffled_sentences_rows)} " \
-            f"!= {sorted(sentences_rows)} = sorted(sentences_rows)"
         assert test_shuffled_sentences_rows == sentences_rows_shuffled, \
             f"ERROR! test_shuffled_sentences_rows = {test_shuffled_sentences_rows} " \
             f"!= {sentences_rows_shuffled} = sentences_rows_shuffled"

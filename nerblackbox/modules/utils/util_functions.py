@@ -1,11 +1,11 @@
 import os
-from typing import Tuple, List, Optional, Union
+from typing import Tuple, List, Optional, Dict, Any
 import numpy as np
 from os.path import join, isfile
 import json
 from argparse import Namespace
 import pkg_resources
-from omegaconf import OmegaConf, DictConfig, ListConfig
+from omegaconf import OmegaConf, DictConfig
 
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.utils.parameters import GENERAL, PARAMS, HPARAMS, LOG_DIRS
@@ -127,7 +127,7 @@ def get_hardcoded_parameters(keys=False):
 def unify_parameters(_params: Namespace,
                      _hparams: Namespace,
                      _log_dirs: Namespace,
-                     _experiment: bool) -> Union[DictConfig, ListConfig]:
+                     _experiment: bool) -> DictConfig:
     """
     unify parameters (namespaces, bool) to one namespace
 
@@ -150,10 +150,12 @@ def unify_parameters(_params: Namespace,
         _lightning_hparams.device.type
     )  # needs to be a string (not torch.device) for logging
 
-    return OmegaConf.create(vars(_lightning_hparams))
+    omega_conf = OmegaConf.create(vars(_lightning_hparams))
+    assert type(omega_conf) == DictConfig, f"ERROR! type(omega_conf) = {type(omega_conf)} should be DictConfig"
+    return omega_conf
 
 
-def split_parameters(_lightning_hparams: Namespace) -> Tuple[Namespace, Namespace, Namespace, bool]:
+def split_parameters(_lightning_hparams: DictConfig) -> Tuple[Namespace, Namespace, Namespace, bool]:
     """
     split namespace to parameters (namespaces, bool)
 
@@ -166,18 +168,21 @@ def split_parameters(_lightning_hparams: Namespace) -> Tuple[Namespace, Namespac
         _log_dirs:          keys = 'mlflow', 'tensorboard', ..
         _experiment:
     """
+    _lightning_hparams_dict = OmegaConf.to_container(_lightning_hparams)
+    assert isinstance(_lightning_hparams_dict, dict), f"ERROR! {type(_lightning_hparams_dict)}"
+
     _params = Namespace(
         **{
-            k: v
-            for k, v in _lightning_hparams.items()
+            str(k): v
+            for k, v in _lightning_hparams_dict.items()
             if k in list(GENERAL.keys()) + list(PARAMS.keys())
         }
     )
     _hparams = Namespace(
-        **{k: v for k, v in _lightning_hparams.items() if k in list(HPARAMS.keys())}
+        **{str(k): v for k, v in _lightning_hparams_dict.items() if k in list(HPARAMS.keys())}
     )
     _log_dirs = Namespace(
-        **{k: v for k, v in _lightning_hparams.items() if k in list(LOG_DIRS.keys())}
+        **{str(k): v for k, v in _lightning_hparams_dict.items() if k in list(LOG_DIRS.keys())}
     )
     _experiment = _lightning_hparams.get("experiment")
     return _params, _hparams, _log_dirs, _experiment
@@ -247,5 +252,5 @@ def compute_mean_and_dmean(values: List[float]) -> Tuple[float, Optional[float]]
         return -1, None
     elif len(values) == 1:
         return values[0], None
-    elif len(values) > 1:
+    else:  # i.e. if len(values) > 1:
         return float(np.mean(values)), float(np.std(values) / np.sqrt(len(values)))

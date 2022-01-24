@@ -696,10 +696,3 @@ class TestTokenTags:
             f"{test_example_word_predictions_merged} != "
             f"{example_word_predictions_merged}"
         )
-
-
-if __name__ == "__main__":
-    test_token_tags = TestTokenTags()
-    test_token_tags.test_assert_scheme_consistency()
-    test_token_tags.test_restore_annotatione_scheme_consistency()
-    test_token_tags.test_merge_tokens_to_entities()

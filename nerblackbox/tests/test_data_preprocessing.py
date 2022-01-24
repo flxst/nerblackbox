@@ -541,11 +541,3 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
                 assert torch.all(
                     torch.eq(data[j][string], true[j])
                 ), f"{string} = {data[j][string]} != {true[j]}"
-
-
-if __name__ == "__main__":
-    test_csv = TestCsvReaderAndDataProcessor()
-    test_csv.tests()
-
-    test_input_examples_to_tensors = TestInputExamplesToTensorsAndEncodingsDataset()
-    test_input_examples_to_tensors.tests()

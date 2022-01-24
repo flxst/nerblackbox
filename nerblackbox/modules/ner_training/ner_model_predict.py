@@ -1,10 +1,11 @@
 import json
 
+import torch
 import numpy as np
 from transformers import AutoModelForTokenClassification
 from torch.nn.functional import softmax
-from typing import List, Union, Tuple, Any, Dict, IO
-from omegaconf import OmegaConf
+from typing import List, Union, Tuple, Any, Dict, IO, Optional, Callable
+from omegaconf import DictConfig
 
 from nerblackbox.modules.ner_training.ner_model import NerModel
 from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
@@ -18,6 +19,8 @@ logging.set_verbosity_error()
 
 VERBOSE = False
 
+PREDICTIONS = List[List[Dict[str, Union[str, Dict]]]]
+
 
 class NerModelPredict(NerModel):
     """
@@ -25,20 +28,28 @@ class NerModelPredict(NerModel):
     """
 
     @classmethod
-    def load_from_checkpoint(cls, checkpoint_path: Union[str, IO]) -> "NerModelPredict":
+    def load_from_checkpoint(cls,
+                             checkpoint_path: Union[str, IO],
+                             map_location: Optional[Union[Dict[str, str], str, torch.device, int, Callable]] = None,
+                             hparams_file: Optional[str] = None,
+                             strict: bool = True,
+                             **kwargs) -> "NerModelPredict":
         """load model in inference mode from checkpoint_path
 
         Args:
             checkpoint_path: path to checkpoint
+            map_location: see ModelIO
+            hparams_file: see ModelIO
+            strict: see ModelIO
 
         Returns:
             model loaded from checkpoint
         """
-        model = super().load_from_checkpoint(checkpoint_path)
+        model = super().load_from_checkpoint(checkpoint_path, **kwargs)
         model.freeze()  # for inference mode
         return model
 
-    def __init__(self, hparams: OmegaConf):
+    def __init__(self, hparams: DictConfig):
         """
         Args:
             hparams: attr experiment_name, run_name, pretrained_model_name, dataset_name, ..
@@ -102,7 +113,7 @@ class NerModelPredict(NerModel):
         input_texts: Union[str, List[str]],
         level: str = "entity",
         autocorrect: bool = False,
-    ) -> List[List[Dict[str, str]]]:
+    ) -> PREDICTIONS:
         """predict tags for input texts. output on entity or word level.
 
         Examples:
@@ -151,7 +162,7 @@ class NerModelPredict(NerModel):
 
     def predict_proba(
         self, input_texts: Union[str, List[str]]
-    ) -> List[List[Dict[str, Union[str, Dict]]]]:
+    ) -> PREDICTIONS:
         """predict probability distributions for input texts. output on word level.
 
         Examples:
@@ -181,7 +192,7 @@ class NerModelPredict(NerModel):
         level: str = "entity",
         autocorrect: bool = False,
         proba: bool = False,
-    ) -> List[List[Dict[str, Union[str, Dict]]]]:
+    ) -> PREDICTIONS:
         """predict tags or probabilities for tags
 
         Args:
@@ -252,7 +263,19 @@ class NerModelPredict(NerModel):
                         proba is False
                 ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
 
-                token_tags = TokenTags(input_text_word_predictions, scheme=self.annotation.scheme)
+                def assert_typing(input_text_word_predictions_str_dict):
+                    # this is only to ensure correct typing, it does not actually change anything
+                    return [
+                        {
+                            k: str(v)
+                            for k, v in input_text_word_prediction_str_dict.items()
+                        }
+                        for input_text_word_prediction_str_dict in input_text_word_predictions_str_dict
+                    ]
+
+                input_text_word_predictions_str: List[Dict[str, str]] = assert_typing(input_text_word_predictions)
+
+                token_tags = TokenTags(input_text_word_predictions_str, scheme=self.annotation.scheme)
 
                 if autocorrect:
                     token_tags.restore_annotation_scheme_consistency()

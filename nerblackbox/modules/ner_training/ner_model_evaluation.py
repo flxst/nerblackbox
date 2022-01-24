@@ -37,7 +37,7 @@ class NerModelEvaluation:
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
     def execute(
-        self, phase: str, outputs: List[Union[torch.Tensor, Dict[str, Any]]]
+        self, phase: str, outputs: List[torch.Tensor]
     ) -> Tuple[Dict[str, np.array], str, str, float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
@@ -81,13 +81,13 @@ class NerModelEvaluation:
 
     @staticmethod
     def _convert_output_to_np_batch(
-        outputs: List[Union[torch.Tensor, Dict[str, Any]]],
+        outputs: List[torch.Tensor],
     ) -> Dict[str, List[np.array]]:
         """
         - converts pytorch lightning output to np_batch dictionary
 
         Args:
-            outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
+            outputs: [list] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
 
         Returns:
             np_batch: [dict] w/ key-value pairs:

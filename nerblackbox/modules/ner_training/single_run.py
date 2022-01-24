@@ -5,6 +5,7 @@ from typing import Tuple
 from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.callbacks.base import Callback
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.utilities.seed import seed_everything
 
@@ -151,7 +152,7 @@ def _get_model_checkpoint_directory(_params):
     return join(env_variable("DIR_CHECKPOINTS"), _params.experiment_run_name_nr)
 
 
-def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, CustomEarlyStopping]:
+def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[Callback, ...]:
     """
     :param _params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
     :param _hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
@@ -172,6 +173,7 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[ModelCheckpoint, Custom
     )
     model_checkpoint.CHECKPOINT_NAME_LAST = "{epoch}"
 
+    _callbacks: Tuple[Callback, ...]
     if early_stopping:
         early_stopping_params = {
             k: vars(_hparams)[k] for k in [

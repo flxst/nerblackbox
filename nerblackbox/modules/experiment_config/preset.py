@@ -1,8 +1,8 @@
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 
-PRESET = {
+PRESET: Dict[str, Dict[str, Union[str, int, bool]]] = {
     "adaptive": {
         "max_epochs": 250,
         "early_stopping": True,
@@ -36,7 +36,7 @@ PRESET = {
 }
 
 
-def get_preset(from_preset: Optional[str]) -> Optional[Dict[str, str]]:
+def get_preset(from_preset: Optional[str]) -> Optional[Dict[str, Union[str, int, bool]]]:
     """
     Args:
         from_preset:     [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
@@ -45,7 +45,8 @@ def get_preset(from_preset: Optional[str]) -> Optional[Dict[str, str]]:
         preset: e.g. {'lr_schedule': 'constant', [..]}
     """
     if from_preset is None:
-        return None
+        preset = None
     else:
         assert from_preset in PRESET.keys(), f"ERROR! key = {from_preset} not in PRESET!"
-        return PRESET[from_preset].copy()
+        preset = PRESET[from_preset].copy()
+    return preset

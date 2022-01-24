@@ -1,6 +1,6 @@
 
 from itertools import product
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, Any
 from nerblackbox.modules.utils.parameters import PARAMS, HPARAMS
 from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
 from nerblackbox.modules.utils.util_functions import get_run_name_nr
@@ -44,7 +44,7 @@ class Experiment:
         self._create_info_for_runs()
 
         # info for mlflow
-        self.params_and_hparams: Dict[Dict[str, Union[str, int, float, bool]]]
+        self.params_and_hparams: Dict[str, Dict[str, Any]]
         self._create_info_for_mlflow()
 
     def _create_info_for_runs(self) -> None:
@@ -76,8 +76,8 @@ class Experiment:
             )
 
         # _params_config & _hparams_config
-        _runs_params = dict()
-        _runs_hparams = dict()
+        _runs_params: Dict[str, Union[str, int, float, bool]] = dict()
+        _runs_hparams: Dict[str, Union[str, int, float, bool]] = dict()
 
         if self.run_name is None:  # multiple runs
             run_names = self.exp.run_names
@@ -91,7 +91,7 @@ class Experiment:
             run_name_nr = get_run_name_nr(run_name, run_nr)
 
             # _run_params
-            _run_params = {
+            _run_params: Dict[str, Union[str, int, float, bool]] = {
                 "experiment_name": self.experiment_name,
                 "from_config": self.from_config,
                 "run_name": run_name,
@@ -104,7 +104,7 @@ class Experiment:
             _run_params.update(self.exp.config["params"])
 
             # _run_hparams
-            _run_hparams = dict()
+            _run_hparams: Dict[str, Union[str, int, float, bool]] = dict()
             _run_hparams.update(self.exp_default.config["hparams"])
             _run_hparams.update(self.exp.config["hparams"])
 

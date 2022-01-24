@@ -82,6 +82,7 @@ class SICFormatter(BaseFormatter):
                 self._write_formatted_csv(phase, sentences_rows)
             else:
                 return sentences_rows
+        return None
 
     def set_original_file_paths(self) -> None:
         """
@@ -156,6 +157,7 @@ class SICFormatter(BaseFormatter):
             self._write_final_csv("train", df_train)
             self._write_final_csv("val", df_val)
             self._write_final_csv("test", df_test)
+            return None
         else:
             return df_train, df_val, df_test
 

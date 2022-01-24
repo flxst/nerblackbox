@@ -33,7 +33,7 @@ class BaseFormatter(ABC):
         self.ner_dataset: str = ner_dataset
         self.ner_tag_list: List[str] = ner_tag_list
         self.dataset_path: str = get_dataset_path(ner_dataset)
-        self.file_name = None     # Dict[str, str]
+        self.file_name: Dict[str, str] = {}
         self.analyzer = Analyzer(self.ner_dataset, self.ner_tag_list, self.dataset_path)
 
     ####################################################################################################################
@@ -107,12 +107,13 @@ class BaseFormatter(ABC):
         pass
 
     @abstractmethod
-    def resplit_data(self, val_fraction: float) -> None:  # pragma: no cover
+    def resplit_data(self, val_fraction: float, write_csv: bool) -> Optional[Tuple[pd.DataFrame, ...]]:  # pragma: no cover
         """
         IV: resplit data
 
         Args:
             val_fraction: [float], e.g. 0.3
+            write_csv: whether to write dataset to csv (should always be True except for testing)
         """
         pass
 
@@ -335,7 +336,7 @@ class BaseFormatter(ABC):
         return sentences_rows_iob2
 
     @staticmethod
-    def _shuffle_dataset(_phase: str, _sentences_rows: SENTENCES_ROWS) -> SENTENCES_ROWS:
+    def _shuffle_dataset(_phase: str, _sentences_rows: List[Any]) -> List[Any]:
         """
         III: format data
 

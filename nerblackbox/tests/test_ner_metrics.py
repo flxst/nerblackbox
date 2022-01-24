@@ -180,9 +180,3 @@ class TestNerMetricsTable:
         :return:                  [np array], e.g. np.array(['A', 'A', 'O', 'O', 'B'])
         """
         return np.array(_str.strip("[").strip("]").replace(" ", "").split(","))
-
-
-if __name__ == "__main__":
-    test_ner_metrics_table = TestNerMetricsTable()
-    test_ner_metrics_table.test_predictions_from_csv_token()
-    test_ner_metrics_table.test_predictions_from_csv_entity()
