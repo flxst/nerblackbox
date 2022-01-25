@@ -130,11 +130,16 @@ class TestCsvReaderAndDataProcessor:
         # 2. DataProcessor
         ##################################
         # a. get_input_examples_train
-        test_input_examples, test_annotation = data_preprocessor.get_input_examples_train(
+        (
+            test_input_examples,
+            test_annotation,
+        ) = data_preprocessor.get_input_examples_train(
             prune_ratio={"train": 0.5, "val": 1.0, "test": 1.0},
             dataset_name=None,
         )
-        assert test_annotation.scheme == annotation_scheme, f"ERROR! {test_annotation.scheme} != {annotation_scheme}"
+        assert (
+            test_annotation.scheme == annotation_scheme
+        ), f"ERROR! {test_annotation.scheme} != {annotation_scheme}"
         assert set(test_annotation.classes) == set(
             annotation_classes
         ), f"test_annotation.classes = {test_annotation.classes} != {annotation_classes}"
@@ -187,30 +192,26 @@ class TestCsvReaderAndDataProcessor:
 ########################################################################################################################
 ########################################################################################################################
 class TestDataProcessor:
-
     @pytest.mark.parametrize(
         "tokens, words",
         [
             (
-                    ["this", "is", "a", "trivial", "test"],
-                    ["this", "is", "a", "trivial", "test"],
+                ["this", "is", "a", "trivial", "test"],
+                ["this", "is", "a", "trivial", "test"],
             ),
             (
-                    ["this", "example", "contains", "hu", "##gging", "face"],
-                    ["this", "example", "contains", "hugging", "face"],
+                ["this", "example", "contains", "hu", "##gging", "face"],
+                ["this", "example", "contains", "hugging", "face"],
             ),
             (
-                    ["##a", "b", "##c", "##d", "##e", "##fghijkl"],
-                    ["##a", "bcdefghijkl"],
+                ["##a", "b", "##c", "##d", "##e", "##fghijkl"],
+                ["##a", "bcdefghijkl"],
             ),
-        ]
+        ],
     )
-    def test_tokens2words(self,
-                          tokens: List[str],
-                          words: List[str]):
+    def test_tokens2words(self, tokens: List[str], words: List[str]):
         test_words = data_preprocessor._tokens2words(tokens)
-        assert test_words == words, \
-            f"test_words = {test_words} != {words}"
+        assert test_words == words, f"test_words = {test_words} != {words}"
 
     @pytest.mark.parametrize(
         "data, data_pretokenized",
@@ -218,38 +219,56 @@ class TestDataProcessor:
             (
                 [
                     {
-                        'text': 'arbetsförmedlingen ai-center finns i stockholm.',
-                        'tags': [
-                            {"token": "arbetsförmedlingen ai-center", "tag": "ORG", "char_start": 0, "char_end": 28},
-                            {"token": "stockholm", "tag": "LOC", "char_start": 37, "char_end": 46},
-                        ]
+                        "text": "arbetsförmedlingen ai-center finns i stockholm.",
+                        "tags": [
+                            {
+                                "token": "arbetsförmedlingen ai-center",
+                                "tag": "ORG",
+                                "char_start": 0,
+                                "char_end": 28,
+                            },
+                            {
+                                "token": "stockholm",
+                                "tag": "LOC",
+                                "char_start": 37,
+                                "char_end": 46,
+                            },
+                        ],
                     },
                     {
-                        'text': 'this example contains hugging face',
-                        'tags': [
-                            {"token": "hugging face", "tag": "ORG", "char_start": 22, "char_end": 34},
-                        ]
+                        "text": "this example contains hugging face",
+                        "tags": [
+                            {
+                                "token": "hugging face",
+                                "tag": "ORG",
+                                "char_start": 22,
+                                "char_end": 34,
+                            },
+                        ],
                     },
                 ],
                 [
                     {
-                        'text': 'arbetsförmedlingen ai - center finns i stockholm .',
-                        'tags': 'B-ORG I-ORG I-ORG I-ORG O O B-LOC O'
+                        "text": "arbetsförmedlingen ai - center finns i stockholm .",
+                        "tags": "B-ORG I-ORG I-ORG I-ORG O O B-LOC O",
                     },
                     {
-                        'text': 'this example contains hugging face',
-                        'tags': 'O O O B-ORG I-ORG'
+                        "text": "this example contains hugging face",
+                        "tags": "O O O B-ORG I-ORG",
                     },
                 ],
             ),
-        ]
+        ],
     )
-    def test_pretokenize(self,
-                         data: SENTENCES_ROWS_UNPRETOKENIZED,
-                         data_pretokenized: List[Dict[str, str]]):
+    def test_pretokenize(
+        self,
+        data: SENTENCES_ROWS_UNPRETOKENIZED,
+        data_pretokenized: List[Dict[str, str]],
+    ):
         test_data_pretokenized = data_preprocessor._pretokenize_data(data)
-        assert test_data_pretokenized == data_pretokenized, \
-            f"test_data_pretokenized = {test_data_pretokenized} != {data_pretokenized}"
+        assert (
+            test_data_pretokenized == data_pretokenized
+        ), f"test_data_pretokenized = {test_data_pretokenized} != {data_pretokenized}"
 
 
 ########################################################################################################################
@@ -299,33 +318,33 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
             ),
             # 1b. single example: no truncation [BIO]
             (
-                    ["arbetsförmedlingen ai-center finns i stockholm"],
-                    ["B-ORG I-ORG O O B-LOC"],
-                    ("O", "B-ORG", "B-LOC", "I-ORG", "I-LOC"),
-                    12,
-                    torch.tensor(
-                        [[101, 7093, 2842, 8126, 1011, 5410, 1121, 1045, 1305, 102, 0, 0]]
-                    ),
-                    torch.tensor([[1] * 10 + [0] * 2]),
-                    torch.tensor([[0] * 12]),
-                    torch.tensor(
-                        [[-100, 1, -100, 3, -100, -100, 0, 0, 2, -100, -100, -100]]
-                    ),
+                ["arbetsförmedlingen ai-center finns i stockholm"],
+                ["B-ORG I-ORG O O B-LOC"],
+                ("O", "B-ORG", "B-LOC", "I-ORG", "I-LOC"),
+                12,
+                torch.tensor(
+                    [[101, 7093, 2842, 8126, 1011, 5410, 1121, 1045, 1305, 102, 0, 0]]
+                ),
+                torch.tensor([[1] * 10 + [0] * 2]),
+                torch.tensor([[0] * 12]),
+                torch.tensor(
+                    [[-100, 1, -100, 3, -100, -100, 0, 0, 2, -100, -100, -100]]
+                ),
+                [
                     [
-                        [
-                            "[CLS]",
-                            "arbetsförmedl",
-                            "##ingen",
-                            "ai",
-                            "-",
-                            "center",
-                            "finns",
-                            "i",
-                            "stockholm",
-                            "[SEP]",
-                        ]
-                        + ["[PAD]"] * 2
-                    ],
+                        "[CLS]",
+                        "arbetsförmedl",
+                        "##ingen",
+                        "ai",
+                        "-",
+                        "center",
+                        "finns",
+                        "i",
+                        "stockholm",
+                        "[SEP]",
+                    ]
+                    + ["[PAD]"] * 2
+                ],
             ),
             # 2. single example: no truncation, [NEWLINE]
             (

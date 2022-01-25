@@ -47,11 +47,16 @@ class DataPreprocessor:
         self.do_lower_case = do_lower_case
         self.default_logger = default_logger
         self.max_seq_length = max_seq_length
-        self.pretokenized: Optional[bool] = None  # whether dataset is pretokenized (csv) or not (jsonl)
+        self.pretokenized: Optional[
+            bool
+        ] = None  # whether dataset is pretokenized (csv) or not (jsonl)
 
     def get_input_examples_train(
-        self, prune_ratio: Dict[str, float], dataset_name: Optional[str] = None,
-            train_on_val: Optional[bool] = None, train_on_test: Optional[bool] = None,
+        self,
+        prune_ratio: Dict[str, float],
+        dataset_name: Optional[str] = None,
+        train_on_val: Optional[bool] = None,
+        train_on_test: Optional[bool] = None,
     ) -> Tuple[Dict[str, InputExamples], Annotation]:
         """
         - get input examples for TRAIN from csv files
@@ -73,7 +78,9 @@ class DataPreprocessor:
 
         self.pretokenized = self._check_if_data_is_pretokenized(dataset_path)
         if not self.pretokenized:
-            self._pretokenize(dataset_path)  # "{phase}.jsonl" -> "pretokenized_{phase}.csv"
+            self._pretokenize(
+                dataset_path
+            )  # "{phase}.jsonl" -> "pretokenized_{phase}.csv"
 
         csv_reader = CsvReader(
             dataset_path,
@@ -223,8 +230,10 @@ class DataPreprocessor:
         elif not isfile(dataset_path_csv) and isfile(dataset_path_jsonl):
             return False
         else:
-            raise Exception(f"ERROR! Did not find train.csv OR train.jsonl in {dataset_path}:"
-                            f"(csv: {isfile(dataset_path_csv)}, jsonl: {isfile(dataset_path_jsonl)}")
+            raise Exception(
+                f"ERROR! Did not find train.csv OR train.jsonl in {dataset_path}:"
+                f"(csv: {isfile(dataset_path_csv)}, jsonl: {isfile(dataset_path_jsonl)}"
+            )
 
     @staticmethod
     def _tokens2words(_tokens: List[str]) -> List[str]:
@@ -245,7 +254,9 @@ class DataPreprocessor:
                 i += 1
         return _tokens
 
-    def _pretokenize_data(self, _data: SENTENCES_ROWS_UNPRETOKENIZED) -> List[Dict[str, str]]:
+    def _pretokenize_data(
+        self, _data: SENTENCES_ROWS_UNPRETOKENIZED
+    ) -> List[Dict[str, str]]:
         """
         pretokenize data (text and text simultaneously)
 
@@ -272,21 +283,28 @@ class DataPreprocessor:
         """
         _data_pretokenized = list()
         for n in range(len(_data)):
-            words = self._tokens2words(self.tokenizer.tokenize(_data[n]['text']))
+            words = self._tokens2words(self.tokenizer.tokenize(_data[n]["text"]))
             index = 0
             tags = ["O"] * len(words)
-            for entity_dict in _data[n]['tags']:
+            for entity_dict in _data[n]["tags"]:
                 entity_text = entity_dict["token"]
                 entity_words = self._tokens2words(self.tokenizer.tokenize(entity_text))
-                entity_words_indices = [index + words[index:].index(entity_word) for entity_word in entity_words]
+                entity_words_indices = [
+                    index + words[index:].index(entity_word)
+                    for entity_word in entity_words
+                ]
                 for i, entity_word_index in enumerate(entity_words_indices):
-                    tags[entity_word_index] = f"B-{entity_dict['tag']}" if i == 0 else f"I-{entity_dict['tag']}"
+                    tags[entity_word_index] = (
+                        f"B-{entity_dict['tag']}"
+                        if i == 0
+                        else f"I-{entity_dict['tag']}"
+                    )
                 index = max(entity_words_indices)
 
             _data_pretokenized.append(
                 {
-                    'tags': " ".join(tags),
-                    'text': " ".join(words),
+                    "tags": " ".join(tags),
+                    "text": " ".join(words),
                 }
             )
 

@@ -1,4 +1,3 @@
-
 from itertools import product
 from typing import Optional, Dict, Union, List, Any
 from nerblackbox.modules.utils.parameters import PARAMS, HPARAMS
@@ -7,13 +6,14 @@ from nerblackbox.modules.utils.util_functions import get_run_name_nr
 
 
 class Experiment:
-
-    def __init__(self,
-                 experiment_name: str,
-                 from_config: bool = True,
-                 run_name: Optional[str] = None,
-                 device: str = "gpu",
-                 fp16: bool = True):
+    def __init__(
+        self,
+        experiment_name: str,
+        from_config: bool = True,
+        run_name: Optional[str] = None,
+        device: str = "gpu",
+        fp16: bool = True,
+    ):
         """
         Args:
             experiment_name: e.g. 'exp1'
@@ -61,13 +61,13 @@ class Experiment:
                          e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         if (
-                "params" in self.exp.config.keys()
-                and "multiple_runs" in self.exp.config["params"].keys()
+            "params" in self.exp.config.keys()
+            and "multiple_runs" in self.exp.config["params"].keys()
         ):
             multiple_runs = self.exp.config["params"]["multiple_runs"]
         elif (
-                "params" in self.exp_default.config.keys()
-                and "multiple_runs" in self.exp_default.config["params"].keys()
+            "params" in self.exp_default.config.keys()
+            and "multiple_runs" in self.exp_default.config["params"].keys()
         ):
             multiple_runs = self.exp_default.config["params"]["multiple_runs"]
         else:
@@ -87,7 +87,9 @@ class Experiment:
             ]
             assert len(run_names) == 1
 
-        for run_name, run_nr in product(run_names, list(range(1, int(multiple_runs) + 1))):
+        for run_name, run_nr in product(
+            run_names, list(range(1, int(multiple_runs) + 1))
+        ):
             run_name_nr = get_run_name_nr(run_name, run_nr)
 
             # _run_params
@@ -122,9 +124,7 @@ class Experiment:
 
         assert set(self.runs_params.keys()) == set(self.runs_hparams.keys())
 
-    def _create_info_for_mlflow(
-            self
-    ) -> None:
+    def _create_info_for_mlflow(self) -> None:
         """
         get dictionary of all parameters & their values that belong to
         either generally    to experiment (key = "general")

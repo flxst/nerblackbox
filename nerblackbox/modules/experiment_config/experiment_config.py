@@ -23,7 +23,9 @@ class ExperimentConfig:
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
-    def _get_config(self, experiment_name: str) -> Tuple[Dict[str, Dict[str, str]], List[str]]:
+    def _get_config(
+        self, experiment_name: str
+    ) -> Tuple[Dict[str, Dict[str, str]], List[str]]:
         """
         get ConfigParser instance and derive config dictionary from it
 
@@ -68,8 +70,10 @@ class ExperimentConfig:
                 _config_dict["params"]["uncased"] = False
             else:
                 _config_dict["params"]["uncased"] = False
-                print("ATTENTION! could not derive uncased = True/False from pretrained_model_name."
-                      " => assume model is cased")
+                print(
+                    "ATTENTION! could not derive uncased = True/False from pretrained_model_name."
+                    " => assume model is cased"
+                )
 
         _run_names = [
             run_name for run_name in _config.sections() if run_name.startswith("run")
@@ -78,9 +82,7 @@ class ExperimentConfig:
         return _config_dict, _run_names
 
     @staticmethod
-    def _convert(
-            _input_key: str, _input_value: str
-    ) -> Union[str, int, float, bool]:
+    def _convert(_input_key: str, _input_value: str) -> Union[str, int, float, bool]:
         """
         convert _input string to str/int/float/bool
 

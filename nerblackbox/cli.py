@@ -24,7 +24,12 @@ from nerblackbox.modules.main import NerBlackBoxMain
 @click.option(
     "--verbose/--no-verbose", default=False, help="[bool] if flag=set_up_dataset"
 )
-@click.option("--from_config/--no-from_config", default=True, type=bool, help="[bool] if flag=run_experiment")
+@click.option(
+    "--from_config/--no-from_config",
+    default=True,
+    type=bool,
+    help="[bool] if flag=run_experiment",
+)
 @click.option("--run_name", default=None, type=str, help="[str] if flag=run_experiment")
 @click.option("--device", default=None, type=str, help="[str] if flag=run_experiment")
 @click.option("--fp16/--no-fp16", default=False, help="[bool] if flag=run_experiment")

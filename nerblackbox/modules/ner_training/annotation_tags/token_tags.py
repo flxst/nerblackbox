@@ -1,13 +1,9 @@
-
 from typing import List, Dict, Union, Any
 from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 
 
 class TokenTags:
-    
-    def __init__(self,
-                 token_tag_list: List[Dict[str, str]],
-                 scheme: str):
+    def __init__(self, token_tag_list: List[Dict[str, str]], scheme: str):
         """
         Args:
             token_tag_list: e.g. [
@@ -34,10 +30,13 @@ class TokenTags:
         elif all(["-" in elem for elem in tags]):
             possible_schemes = ["bio", "bilou"]
         else:
-            raise Exception("ERROR! inconsistent tags found. they do not seem to belong to a well-defined scheme.")
+            raise Exception(
+                "ERROR! inconsistent tags found. they do not seem to belong to a well-defined scheme."
+            )
 
-        assert self.scheme in possible_schemes, \
-            f"ERROR! scheme = {self.scheme} is inconsistent with possible_schemes = {possible_schemes}!"
+        assert (
+            self.scheme in possible_schemes
+        ), f"ERROR! scheme = {self.scheme} is inconsistent with possible_schemes = {possible_schemes}!"
 
     def as_list(self):
         return self.token_tag_list
@@ -74,30 +73,35 @@ class TokenTags:
                 previous_tag = self.token_tag_list[i - 1]["tag"] if i > 0 else None
 
                 if self.scheme == "bio":
-                    example_word_prediction_restored["tag"] = \
-                        Tags.convert_tag_bio2bio(current_tag,
-                                                 previous=previous_tag)[0]
+                    example_word_prediction_restored["tag"] = Tags.convert_tag_bio2bio(
+                        current_tag, previous=previous_tag
+                    )[0]
                 else:
-                    subsequent_tag = self.token_tag_list[i + 1]["tag"] if i < len(self.token_tag_list) - 1 else None
-                    example_word_prediction_restored["tag"] = \
-                        Tags.convert_tag_bilou2bilou(current_tag,
-                                                     previous=previous_tag,
-                                                     subsequent=subsequent_tag)[0]
+                    subsequent_tag = (
+                        self.token_tag_list[i + 1]["tag"]
+                        if i < len(self.token_tag_list) - 1
+                        else None
+                    )
+                    example_word_prediction_restored[
+                        "tag"
+                    ] = Tags.convert_tag_bilou2bilou(
+                        current_tag, previous=previous_tag, subsequent=subsequent_tag
+                    )[
+                        0
+                    ]
 
                 token_tag_list_restored.append(example_word_prediction_restored)
 
-            assert len(token_tag_list_restored) == len(
-                self.token_tag_list
-            ), f"ERROR!"
+            assert len(token_tag_list_restored) == len(self.token_tag_list), f"ERROR!"
 
             self.token_tag_list = token_tag_list_restored
         else:
-            raise Exception(f"ERROR! restore annotation scheme consistency "
-                            f"not implemented for scheme = {self.scheme}.")
+            raise Exception(
+                f"ERROR! restore annotation scheme consistency "
+                f"not implemented for scheme = {self.scheme}."
+            )
 
-    def merge_tokens_to_entities(self,
-                                 original_text: str,
-                                 verbose: bool) -> None:
+    def merge_tokens_to_entities(self, original_text: str, verbose: bool) -> None:
         """
         plain tags:
             - discard tokens with tag 'O'
@@ -149,7 +153,9 @@ class TokenTags:
                     if i >= plain_threshold:
                         for n in range(i + 1, len(self.token_tag_list)):
                             subsequent_tag = self.token_tag_list[n]["tag"]
-                            subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
+                            subsequent_tag = self._assert_str(
+                                subsequent_tag, "subsequent_tag"
+                            )
                             if subsequent_tag == current_tag:
                                 n_tags += 1
                             else:
@@ -162,13 +168,21 @@ class TokenTags:
                             plain = current_tag.split("-")[-1]
                             for n in range(i + 1, len(self.token_tag_list)):
                                 subsequent_tag = self.token_tag_list[n]["tag"]
-                                subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
-                                if len(subsequent_tag) > 2 and subsequent_tag[:2] in ["I-"] and subsequent_tag[2:] == plain:
+                                subsequent_tag = self._assert_str(
+                                    subsequent_tag, "subsequent_tag"
+                                )
+                                if (
+                                    len(subsequent_tag) > 2
+                                    and subsequent_tag[:2] in ["I-"]
+                                    and subsequent_tag[2:] == plain
+                                ):
                                     n_tags += 1
                                 else:
                                     plain_threshold = n
                                     break
-                            merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
+                            merged_ner_tag = self._merge_tokens(
+                                i, original_text, n_tags
+                            )
                         elif current_tag.startswith("I-"):
                             count["drop"] += 1
                 elif self.scheme == "bilou":
@@ -176,8 +190,14 @@ class TokenTags:
                         plain = current_tag.split("-")[-1]
                         for n in range(i + 1, len(self.token_tag_list)):
                             subsequent_tag = self.token_tag_list[n]["tag"]
-                            subsequent_tag = self._assert_str(subsequent_tag, "subsequent_tag")
-                            if len(subsequent_tag) > 2 and subsequent_tag[:2] in ["I-", "L-"] and subsequent_tag[2:] == plain:
+                            subsequent_tag = self._assert_str(
+                                subsequent_tag, "subsequent_tag"
+                            )
+                            if (
+                                len(subsequent_tag) > 2
+                                and subsequent_tag[:2] in ["I-", "L-"]
+                                and subsequent_tag[2:] == plain
+                            ):
                                 n_tags += 1
                             else:
                                 break
@@ -195,9 +215,9 @@ class TokenTags:
                     else:
                         count["merge"] += 1 + n_tags
 
-        assert count["o_tags"] + count["replace"] + + count["drop"] + count["merge"] + count[
-            "unmodified"
-        ] == len(
+        assert count["o_tags"] + count["replace"] + +count["drop"] + count[
+            "merge"
+        ] + count["unmodified"] == len(
             self.token_tag_list
         ), f"{count} -> {sum(count.values())} != {len(self.token_tag_list)} | {self.token_tag_list}"
 
@@ -240,10 +260,9 @@ class TokenTags:
         ), f"ERROR! {_object_name} = {_object} is {type(_object)} but should be string"
         return _object
 
-    def _merge_tokens(self,
-                      _index: int,
-                      _original_text: str,
-                      _n_tags: int) -> Dict[str, str]:
+    def _merge_tokens(
+        self, _index: int, _original_text: str, _n_tags: int
+    ) -> Dict[str, str]:
         """
         merge tokens [_index: _index+_ntags] using self.token_tag_list
 
@@ -278,6 +297,6 @@ class TokenTags:
 
             # 3. replace token
             merged_ner_tag["token"] = _original_text[
-                                      int(merged_ner_tag["char_start"]): int(merged_ner_tag["char_end"])
-                                      ]
+                int(merged_ner_tag["char_start"]) : int(merged_ner_tag["char_end"])
+            ]
         return merged_ner_tag

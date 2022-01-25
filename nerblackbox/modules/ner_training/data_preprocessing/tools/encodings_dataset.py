@@ -7,7 +7,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
 
 
 class EncodingsDataset(Dataset):
-    """ Encodings Dataset with features created when requested """
+    """Encodings Dataset with features created when requested"""
 
     def __init__(self, encodings: Encodings) -> None:
         """

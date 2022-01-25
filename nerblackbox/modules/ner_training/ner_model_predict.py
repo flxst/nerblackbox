@@ -28,12 +28,16 @@ class NerModelPredict(NerModel):
     """
 
     @classmethod
-    def load_from_checkpoint(cls,
-                             checkpoint_path: Union[str, IO],
-                             map_location: Optional[Union[Dict[str, str], str, torch.device, int, Callable]] = None,
-                             hparams_file: Optional[str] = None,
-                             strict: bool = True,
-                             **kwargs) -> "NerModelPredict":
+    def load_from_checkpoint(
+        cls,
+        checkpoint_path: Union[str, IO],
+        map_location: Optional[
+            Union[Dict[str, str], str, torch.device, int, Callable]
+        ] = None,
+        hparams_file: Optional[str] = None,
+        strict: bool = True,
+        **kwargs,
+    ) -> "NerModelPredict":
         """load model in inference mode from checkpoint_path
 
         Args:
@@ -160,9 +164,7 @@ class NerModelPredict(NerModel):
         """
         return self._predict(input_texts, level, autocorrect, proba=False)
 
-    def predict_proba(
-        self, input_texts: Union[str, List[str]]
-    ) -> PREDICTIONS:
+    def predict_proba(self, input_texts: Union[str, List[str]]) -> PREDICTIONS:
         """predict probability distributions for input texts. output on word level.
 
         Examples:
@@ -260,7 +262,7 @@ class NerModelPredict(NerModel):
 
             if autocorrect or level == "entity":
                 assert (
-                        proba is False
+                    proba is False
                 ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
 
                 def assert_typing(input_text_word_predictions_str_dict):
@@ -273,15 +275,21 @@ class NerModelPredict(NerModel):
                         for input_text_word_prediction_str_dict in input_text_word_predictions_str_dict
                     ]
 
-                input_text_word_predictions_str: List[Dict[str, str]] = assert_typing(input_text_word_predictions)
+                input_text_word_predictions_str: List[Dict[str, str]] = assert_typing(
+                    input_text_word_predictions
+                )
 
-                token_tags = TokenTags(input_text_word_predictions_str, scheme=self.annotation.scheme)
+                token_tags = TokenTags(
+                    input_text_word_predictions_str, scheme=self.annotation.scheme
+                )
 
                 if autocorrect:
                     token_tags.restore_annotation_scheme_consistency()
 
                 if level == "entity":
-                    token_tags.merge_tokens_to_entities(original_text=input_text, verbose=VERBOSE)
+                    token_tags.merge_tokens_to_entities(
+                        original_text=input_text, verbose=VERBOSE
+                    )
 
                 input_text_word_predictions = token_tags.as_list()
 
@@ -320,7 +328,9 @@ class NerModelPredict(NerModel):
         """
         input_ids, attention_mask, token_type_ids, labels = self._parse_batch(sample)
         sample.pop("labels")
-        output = self.model(**sample)  # shape: [1 (=#examples), 1 (=#batch_size), seq_length, #tags]
+        output = self.model(
+            **sample
+        )  # shape: [1 (=#examples), 1 (=#batch_size), seq_length, #tags]
 
         output_token_tensors = [
             output[0][0][i]  # .detach().numpy()
@@ -337,7 +347,9 @@ class NerModelPredict(NerModel):
         :return: output_token_predictions [list] of [str]
         """
         return [
-            self.annotation.classes[int(np.argmax(output_token_tensors[i].detach().numpy()))]
+            self.annotation.classes[
+                int(np.argmax(output_token_tensors[i].detach().numpy()))
+            ]
             for i in range(self._hparams.max_seq_length)
         ]
 

@@ -60,7 +60,9 @@ class BaseFormatter(ABC):
         pass
 
     @abstractmethod
-    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:  # pragma: no cover
+    def format_data(
+        self, shuffle: bool = True, write_csv: bool = True
+    ) -> Optional[SENTENCES_ROWS]:  # pragma: no cover
         """
         III: format data
 
@@ -94,7 +96,9 @@ class BaseFormatter(ABC):
         """
         pass
 
-    def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:  # pragma: no cover
+    def _format_original_file(
+        self, _row_list: List[str]
+    ) -> Optional[List[str]]:  # pragma: no cover
         """
         III: format data
 
@@ -107,7 +111,9 @@ class BaseFormatter(ABC):
         pass
 
     @abstractmethod
-    def resplit_data(self, val_fraction: float, write_csv: bool) -> Optional[Tuple[pd.DataFrame, ...]]:  # pragma: no cover
+    def resplit_data(
+        self, val_fraction: float, write_csv: bool
+    ) -> Optional[Tuple[pd.DataFrame, ...]]:  # pragma: no cover
         """
         IV: resplit data
 
@@ -203,7 +209,9 @@ class BaseFormatter(ABC):
     ####################################################################################################################
     # HELPER: WRITE FORMATTED
     ####################################################################################################################
-    def _write_formatted_csv(self, phase: str, sentences_rows: SENTENCES_ROWS_PRETOKENIZED) -> None:  # pragma: no cover
+    def _write_formatted_csv(
+        self, phase: str, sentences_rows: SENTENCES_ROWS_PRETOKENIZED
+    ) -> None:  # pragma: no cover
         """
         III: format data
 
@@ -222,11 +230,11 @@ class BaseFormatter(ABC):
         df = pd.DataFrame(sentences_rows_formatted)
         file_path = join(self.dataset_path, f"{phase}_formatted.csv")
         df.to_csv(file_path, sep="\t", header=False, index=False)
-        print(
-            f"> phase = {phase}: wrote {len(df)} sentences to {file_path}"
-        )
+        print(f"> phase = {phase}: wrote {len(df)} sentences to {file_path}")
 
-    def _write_formatted_jsonl(self, phase: str, sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED) -> None:  # pragma: no cover
+    def _write_formatted_jsonl(
+        self, phase: str, sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED
+    ) -> None:  # pragma: no cover
         """
         save to jsonl file
 
@@ -247,14 +255,16 @@ class BaseFormatter(ABC):
         Returns: -
         """
         file_path = join(self.dataset_path, f"{phase}_formatted.jsonl")
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             for sentence_row in sentences_rows:
                 file.write(json.dumps(sentence_row, ensure_ascii=False) + "\n")
         print(
             f"> phase = {phase}: wrote {len(sentences_rows)} sentences to {file_path}"
         )
 
-    def _format_sentences_rows(self, sentences_rows: SENTENCES_ROWS_PRETOKENIZED) -> List[Tuple[str, str]]:
+    def _format_sentences_rows(
+        self, sentences_rows: SENTENCES_ROWS_PRETOKENIZED
+    ) -> List[Tuple[str, str]]:
         """
         III: format data
 
@@ -284,7 +294,9 @@ class BaseFormatter(ABC):
             text_list = list()
             tags_list = list()
             for row in sentence:
-                assert len(row) == 2, f"ERROR! row with length = {len(row)} found (should be 2): {row}"
+                assert (
+                    len(row) == 2
+                ), f"ERROR! row with length = {len(row)} found (should be 2): {row}"
                 text_list.append(row[0])
                 tags_list.append(
                     ner_tag_mapping(row[1]) if row[1] != "0" else "O"
@@ -294,7 +306,9 @@ class BaseFormatter(ABC):
         return sentences_rows_formatted
 
     @staticmethod
-    def _convert_iob1_to_iob2(sentences_rows_iob1: SENTENCES_ROWS_PRETOKENIZED) -> SENTENCES_ROWS_PRETOKENIZED:
+    def _convert_iob1_to_iob2(
+        sentences_rows_iob1: SENTENCES_ROWS_PRETOKENIZED,
+    ) -> SENTENCES_ROWS_PRETOKENIZED:
         """
         III: format data
         convert tags from IOB1 to IOB2 format
@@ -315,18 +329,29 @@ class BaseFormatter(ABC):
         for sentence in sentences_rows_iob1:
             sentence_iob2 = list()
             for i, row in enumerate(sentence):
-                assert len(row) == 2, f"ERROR! row = {row} should have length 0 or 2, not {len(row)}"
+                assert (
+                    len(row) == 2
+                ), f"ERROR! row = {row} should have length 0 or 2, not {len(row)}"
                 current_tag = row[1]
 
-                if current_tag == "O" or "-" not in current_tag or current_tag.startswith("B-"):
+                if (
+                    current_tag == "O"
+                    or "-" not in current_tag
+                    or current_tag.startswith("B-")
+                ):
                     sentence_iob2.append(row)
                 elif current_tag.startswith("I-"):
-                    previous_tag = sentence[i-1][1] if (i > 0 and len(sentence[i-1]) == 2) else None
+                    previous_tag = (
+                        sentence[i - 1][1]
+                        if (i > 0 and len(sentence[i - 1]) == 2)
+                        else None
+                    )
 
-                    if previous_tag not in [current_tag, current_tag.replace("I-", "B-")]:
-                        tag_iob2 = current_tag.replace(
-                            "I-", "B-"
-                        )
+                    if previous_tag not in [
+                        current_tag,
+                        current_tag.replace("I-", "B-"),
+                    ]:
+                        tag_iob2 = current_tag.replace("I-", "B-")
                         sentence_iob2.append([row[0], tag_iob2])
                     else:
                         sentence_iob2.append(row)
@@ -414,8 +439,9 @@ class BaseFormatter(ABC):
     # HELPER: WRITE FINAL
     ####################################################################################################################
     @staticmethod
-    def _split_off_validation_set(_df_original: pd.DataFrame,
-                                  _val_fraction: float) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _split_off_validation_set(
+        _df_original: pd.DataFrame, _val_fraction: float
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         IV: resplit data
 

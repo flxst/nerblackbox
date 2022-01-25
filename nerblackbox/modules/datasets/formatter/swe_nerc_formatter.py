@@ -2,7 +2,10 @@ import subprocess
 from typing import List, Dict, Optional, Tuple
 import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
+from nerblackbox.modules.datasets.formatter.base_formatter import (
+    BaseFormatter,
+    SENTENCES_ROWS,
+)
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
@@ -61,7 +64,9 @@ class SweNercFormatter(BaseFormatter):
         """
         return dict()
 
-    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
+    def format_data(
+        self, shuffle: bool = True, write_csv: bool = True
+    ) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
 
@@ -94,8 +99,7 @@ class SweNercFormatter(BaseFormatter):
         Returns: -
         """
         self.file_name = {
-            phase: f"swe_nerc-{phase}.tsv"
-            for phase in ["train", "val", "test"]
+            phase: f"swe_nerc-{phase}.tsv" for phase in ["train", "val", "test"]
         }
 
     def _parse_row(self, _row: str) -> List[str]:
@@ -109,7 +113,9 @@ class SweNercFormatter(BaseFormatter):
             _row_list: e.g. ["Det", "PER", "X", "B"]
         """
         _row_list_raw = _row.replace("\t", " ").strip().split(" ")
-        if (len(_row_list_raw) == 4 and _row_list_raw[-1] == "B") or (len(_row_list_raw) == 3):
+        if (len(_row_list_raw) == 4 and _row_list_raw[-1] == "B") or (
+            len(_row_list_raw) == 3
+        ):
             return _row_list_raw
         elif len(_row_list_raw) > 2:
             return [" ".join(_row_list_raw[:-2]), _row_list_raw[-2], _row_list_raw[-1]]
@@ -132,16 +138,23 @@ class SweNercFormatter(BaseFormatter):
             _row_list_formatted: e.g. ["test", "B-PER"]
         """
         if not len(_row_list) in [3, 4]:  # pragma: no cover
-            raise Exception(f"ERROR! row_list = {_row_list} should consist of 3 or 4 parts!")
+            raise Exception(
+                f"ERROR! row_list = {_row_list} should consist of 3 or 4 parts!"
+            )
 
         if _row_list[0] != "SKIP-THIS-TOKEN":
             # transformation on _row_list[0] replaces unwanted nbsp characters
-            _row_list_formatted = ["".join(_row_list[0].split()), self.transform_tags(_row_list)]
+            _row_list_formatted = [
+                "".join(_row_list[0].split()),
+                self.transform_tags(_row_list),
+            ]
             return _row_list_formatted
         else:
             return None
 
-    def resplit_data(self, val_fraction: float = 0.0, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
+    def resplit_data(
+        self, val_fraction: float = 0.0, write_csv: bool = True
+    ) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
 
@@ -183,7 +196,10 @@ class SweNercFormatter(BaseFormatter):
         Return:
             tag: e.g. "O", "I-PER" or "B-PER"
         """
-        assert len(_row_list) in [3, 4], f"ERROR! encountered row_list = {_row_list} that cannot be parsed."
+        assert len(_row_list) in [
+            3,
+            4,
+        ], f"ERROR! encountered row_list = {_row_list} that cannot be parsed."
         plain_tag = _row_list[1]
         if plain_tag == "O":
             return plain_tag
@@ -193,4 +209,6 @@ class SweNercFormatter(BaseFormatter):
             elif _row_list[3] == "B":
                 return f"B-{plain_tag}"
             else:
-                raise Exception(f"ERROR! encountered row_list = {_row_list} that cannot be parsed.")
+                raise Exception(
+                    f"ERROR! encountered row_list = {_row_list} that cannot be parsed."
+                )

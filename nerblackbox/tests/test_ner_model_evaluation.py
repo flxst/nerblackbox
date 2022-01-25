@@ -218,25 +218,37 @@ class TestNerModelEvaluation:
             ),
             (
                 "PER",
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array(["O", "PER", "ORG"])},
+                {
+                    "true": np.array(["O", "ORG", "PER"]),
+                    "pred": np.array(["O", "PER", "ORG"]),
+                },
                 ["PER"],
                 1,
             ),
             (
                 "PER",
-                {"true": np.array(["O", "PER", "ORG"]), "pred": np.array(["O", "ORG", "PER"])},
+                {
+                    "true": np.array(["O", "PER", "ORG"]),
+                    "pred": np.array(["O", "ORG", "PER"]),
+                },
                 ["PER"],
                 1,
             ),
             (
                 "ORG",
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array(["O", "PER", "ORG"])},
+                {
+                    "true": np.array(["O", "ORG", "PER"]),
+                    "pred": np.array(["O", "PER", "ORG"]),
+                },
                 ["ORG"],
                 0,
             ),
             (
                 "ORG",
-                {"true": np.array(["O", "PER", "ORG"]), "pred": np.array(["O", "ORG", "PER"])},
+                {
+                    "true": np.array(["O", "PER", "ORG"]),
+                    "pred": np.array(["O", "ORG", "PER"]),
+                },
                 ["ORG"],
                 0,
             ),

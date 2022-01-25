@@ -1,4 +1,3 @@
-
 from typing import List
 import pandas as pd
 
@@ -40,7 +39,9 @@ class Annotation:
             scheme: [str], e.g. "plain" or "bio"
         """
         if any(["-" in tag for tag in self.classes]):
-            if any(["L-" in tag for tag in self.classes]) or any(["U-" in tag for tag in self.classes]):
+            if any(["L-" in tag for tag in self.classes]) or any(
+                ["U-" in tag for tag in self.classes]
+            ):
                 self.scheme = "bilou"
             else:
                 self.scheme = "bio"
@@ -97,13 +98,20 @@ class Annotation:
             annotation_plain = Annotation(classes_plain)
             return annotation_plain
         elif new_scheme in ["bio", "bilou"]:
-            classes_plain_without_o = list(set([elem.split("-")[-1] for elem in self.classes if elem != "O"]))
+            classes_plain_without_o = list(
+                set([elem.split("-")[-1] for elem in self.classes if elem != "O"])
+            )
             classes_bio_bilou = ["O"]
             for elem in classes_plain_without_o:
                 if new_scheme == "bio":
                     classes_bio_bilou += [f"B-{elem}", f"I-{elem}"]
                 else:  # bilou
-                    classes_bio_bilou += [f"B-{elem}", f"I-{elem}", f"L-{elem}", f"U-{elem}"]
+                    classes_bio_bilou += [
+                        f"B-{elem}",
+                        f"I-{elem}",
+                        f"L-{elem}",
+                        f"U-{elem}",
+                    ]
 
             annotation_bio_bilou = Annotation(classes_bio_bilou)
             return annotation_bio_bilou

@@ -20,8 +20,12 @@ from nerblackbox.modules.utils.util_functions import (
     checkpoint2epoch,
     epoch2checkpoint,
 )
-from nerblackbox.modules.ner_training.callbacks.custom_early_stopping import CustomEarlyStopping
-from nerblackbox.modules.ner_training.callbacks.learning_rate_changer import LearningRateChanger
+from nerblackbox.modules.ner_training.callbacks.custom_early_stopping import (
+    CustomEarlyStopping,
+)
+from nerblackbox.modules.ner_training.callbacks.learning_rate_changer import (
+    LearningRateChanger,
+)
 
 
 def execute_single_run(params, hparams, log_dirs, experiment: bool):
@@ -33,7 +37,9 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
     :return: -
     """
     # seed
-    seed = params.seed + int(params.run_name_nr.split("-")[1])  # run_name_nr = e.g. 'runA-1', 'runA-2', 'runB-1', ..
+    seed = params.seed + int(
+        params.run_name_nr.split("-")[1]
+    )  # run_name_nr = e.g. 'runA-1', 'runA-2', 'runB-1', ..
     seed_everything(seed)
 
     default_logger = DefaultLogger(
@@ -161,8 +167,9 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[Callback, ...]:
     """
     early_stopping = vars(_hparams)["early_stopping"]
     lr_schedule_hybrid = vars(_hparams)["lr_schedule"] == "hybrid"
-    assert early_stopping is False or lr_schedule_hybrid is False, \
-        f"ERROR! early_stopping and lr_schedule_hybrid cannot both be True."
+    assert (
+        early_stopping is False or lr_schedule_hybrid is False
+    ), f"ERROR! early_stopping and lr_schedule_hybrid cannot both be True."
 
     model_checkpoint = ModelCheckpoint(
         dirpath=_get_model_checkpoint_directory(_params),
@@ -176,7 +183,8 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[Callback, ...]:
     _callbacks: Tuple[Callback, ...]
     if early_stopping:
         early_stopping_params = {
-            k: vars(_hparams)[k] for k in [
+            k: vars(_hparams)[k]
+            for k in [
                 "monitor",
                 "min_delta",
                 "patience",
@@ -198,7 +206,8 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[Callback, ...]:
         )
     elif lr_schedule_hybrid:
         learning_rate_changer_params = {
-            k: vars(_hparams)[k] for k in [
+            k: vars(_hparams)[k]
+            for k in [
                 "max_epochs",
                 "lr_cooldown_epochs",
             ]
@@ -210,9 +219,7 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[Callback, ...]:
             ),
         )
     else:
-        _callbacks = (
-            model_checkpoint,
-        )
+        _callbacks = (model_checkpoint,)
 
     return _callbacks
 
@@ -234,9 +241,11 @@ def get_callback_info(_callbacks, _params, _hparams):
         epoch2checkpoint(callback_info["epoch_best"]),
     )
 
-    early_stopping = len(_callbacks) > 1 and hasattr(_callbacks[1], 'stopped_epoch')
+    early_stopping = len(_callbacks) > 1 and hasattr(_callbacks[1], "stopped_epoch")
     if early_stopping:
-        callback_info["epoch_stopped"] = callback_info["epoch_best"] - _hparams.lr_cooldown_epochs
+        callback_info["epoch_stopped"] = (
+            callback_info["epoch_best"] - _hparams.lr_cooldown_epochs
+        )
     else:
         callback_info["epoch_stopped"] = _hparams.max_epochs - 1
 

@@ -38,7 +38,9 @@ class MLflowClient:
                 device=params.device,
                 fp16=params.fp16,
             )
-            for k, v in experiment_config.params_and_hparams[get_run_name(params.run_name_nr)].items():
+            for k, v in experiment_config.params_and_hparams[
+                get_run_name(params.run_name_nr)
+            ].items():
                 mlflow.log_param(k, v)
         else:
             # log hardcoded set of (hyper)parameters

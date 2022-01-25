@@ -1,10 +1,8 @@
-
 import numpy as np
 from typing import List, Optional, Tuple
 
 
 class Tags:
-    
     def __init__(self, tag_list: List[str]):
         """
         :param tag_list: e.g. ["O", "PER", "O", "ORG"] or ["O", "B-person", "I-person", "O"]
@@ -44,13 +42,19 @@ class Tags:
         elif source_scheme in ["bio", "bilou"] and target_scheme == "plain":
             return self._convert_tags_bio2plain()
         elif source_scheme == "bio" and target_scheme == "bilou":
-            return self.restore_annotation_scheme_consistency(scheme=target_scheme)[0]  # conversion
+            return self.restore_annotation_scheme_consistency(scheme=target_scheme)[
+                0
+            ]  # conversion
         elif source_scheme == "bilou" and target_scheme == "bio":
             return self._convert_tags_bilou2bio()
         else:
-            raise Exception(f"ERROR! source & target scheme = {source_scheme} & {target_scheme} not implemented.")
+            raise Exception(
+                f"ERROR! source & target scheme = {source_scheme} & {target_scheme} not implemented."
+            )
 
-    def get_annotation_scheme_abidance(self, scheme: str) -> float:  # Tuple[int, int, float]:
+    def get_annotation_scheme_abidance(
+        self, scheme: str
+    ) -> float:  # Tuple[int, int, float]:
         """
         compute how many tokens in self.tag_list abide to the annotation scheme
 
@@ -69,23 +73,21 @@ class Tags:
     def _assert_plain_tags(self) -> None:
         for tag in self.tag_list:
             if tag != "O" and (len(tag) > 2 and tag[1] == "-"):
-                raise Exception(
-                    "ERROR! tags to not have expected plain format."
-                )
+                raise Exception("ERROR! tags to not have expected plain format.")
 
     def _assert_bio_tags(self) -> None:
         for tag in self.tag_list:
-            if tag != "O" and (len(tag) <= 2 or tag[0] not in ["B", "I"] or tag[1] != "-"):
-                raise Exception(
-                    "ERROR! tags to not have expected bio format."
-                )
+            if tag != "O" and (
+                len(tag) <= 2 or tag[0] not in ["B", "I"] or tag[1] != "-"
+            ):
+                raise Exception("ERROR! tags to not have expected bio format.")
 
     def _assert_bilou_tags(self) -> None:
         for tag in self.tag_list:
-            if tag != "O" and (len(tag) <= 2 or tag[0] not in ["B", "I", "L", "U"] or tag[1] != "-"):
-                raise Exception(
-                    "ERROR! tags to not have expected bilou format."
-                )
+            if tag != "O" and (
+                len(tag) <= 2 or tag[0] not in ["B", "I", "L", "U"] or tag[1] != "-"
+            ):
+                raise Exception("ERROR! tags to not have expected bilou format.")
 
     def _convert_tags_plain2bio(self) -> List[str]:
         """
@@ -98,7 +100,9 @@ class Tags:
             bio_tag_list: e.g. ['O', 'B-ORG', 'I-ORG']
         """
         return [
-            self._convert_tag_plain2bio(self.tag_list[i], previous=self.tag_list[i - 1] if i > 0 else None)
+            self._convert_tag_plain2bio(
+                self.tag_list[i], previous=self.tag_list[i - 1] if i > 0 else None
+            )
             for i in range(len(self.tag_list))
         ]
 
@@ -132,16 +136,18 @@ class Tags:
             bio_tag_list: e.g. ['O', 'B-ORG', 'I-ORG']
         """
         return [
-            self._convert_tag_plain2bilou(self.tag_list[i],
-                                          previous=self.tag_list[i - 1] if i > 0 else None,
-                                          subsequent=self.tag_list[i + 1] if i < len(self.tag_list) - 1 else None)
+            self._convert_tag_plain2bilou(
+                self.tag_list[i],
+                previous=self.tag_list[i - 1] if i > 0 else None,
+                subsequent=self.tag_list[i + 1] if i < len(self.tag_list) - 1 else None,
+            )
             for i in range(len(self.tag_list))
         ]
 
     @staticmethod
-    def _convert_tag_plain2bilou(tag: str,
-                                 previous: Optional[str] = None,
-                                 subsequent: Optional[str] = None) -> str:
+    def _convert_tag_plain2bilou(
+        tag: str, previous: Optional[str] = None, subsequent: Optional[str] = None
+    ) -> str:
         """
         add bilou prefix to plain tag, depending on previous and subsequent tag
 
@@ -209,7 +215,9 @@ class Tags:
             elif tag.startswith("L-"):
                 return f"I-{plain}"
 
-    def restore_annotation_scheme_consistency(self, scheme: str) -> Tuple[List[str], float]:
+    def restore_annotation_scheme_consistency(
+        self, scheme: str
+    ) -> Tuple[List[str], float]:
         """
 
         Args:
@@ -226,19 +234,26 @@ class Tags:
         """
         if scheme == "bio":
             converted_tuples = [
-                self.convert_tag_bio2bio(self.tag_list[i],
-                                         previous=self.tag_list[i - 1] if i > 0 else None)
+                self.convert_tag_bio2bio(
+                    self.tag_list[i], previous=self.tag_list[i - 1] if i > 0 else None
+                )
                 for i in range(len(self.tag_list))
             ]
         elif scheme == "bilou":
             converted_tuples = [
-                self.convert_tag_bilou2bilou(self.tag_list[i],
-                                             previous=self.tag_list[i - 1] if i > 0 else None,
-                                             subsequent=self.tag_list[i + 1] if i < len(self.tag_list) - 1 else None)
+                self.convert_tag_bilou2bilou(
+                    self.tag_list[i],
+                    previous=self.tag_list[i - 1] if i > 0 else None,
+                    subsequent=self.tag_list[i + 1]
+                    if i < len(self.tag_list) - 1
+                    else None,
+                )
                 for i in range(len(self.tag_list))
             ]
         else:
-            raise Exception(f"ERROR! restore annotation scheme consistency not implemented for scheme = {scheme}.")
+            raise Exception(
+                f"ERROR! restore annotation scheme consistency not implemented for scheme = {scheme}."
+            )
 
         tag_list_converted = [tup[0] for tup in converted_tuples]
         asr_abidance = 1 - np.average([tup[1] for tup in converted_tuples])
@@ -248,9 +263,9 @@ class Tags:
     # 3. CLASS METHODS
     ####################################################################################################################
     @classmethod
-    def convert_tag_bio2bio(cls,
-                            current: str,
-                            previous: Optional[str] = None) -> Tuple[str, bool]:
+    def convert_tag_bio2bio(
+        cls, current: str, previous: Optional[str] = None
+    ) -> Tuple[str, bool]:
         """
         correct bio prefix, depending on previous tag
 
@@ -265,11 +280,15 @@ class Tags:
         if current == "O" or current.startswith("B-"):
             return current, False
         else:
-            assert current[0] in ["I"] and current[1] == "-", \
-                f"ERROR! bio tag {current} should be of the format O, B-*, I-*"
+            assert (
+                current[0] in ["I"] and current[1] == "-"
+            ), f"ERROR! bio tag {current} should be of the format O, B-*, I-*"
 
             plain = current.split("-")[-1]
-            condition_previous = previous is None or previous not in [f"B-{plain}", f"I-{plain}"]
+            condition_previous = previous is None or previous not in [
+                f"B-{plain}",
+                f"I-{plain}",
+            ]
 
             if condition_previous:
                 # rule 1: !I/!B + I -> B
@@ -278,10 +297,12 @@ class Tags:
                 return f"I-{plain}", False
 
     @classmethod
-    def convert_tag_bilou2bilou(cls,
-                                current: str,
-                                previous: Optional[str] = None,
-                                subsequent: Optional[str] = None) -> Tuple[str, bool]:
+    def convert_tag_bilou2bilou(
+        cls,
+        current: str,
+        previous: Optional[str] = None,
+        subsequent: Optional[str] = None,
+    ) -> Tuple[str, bool]:
         """
         correct bilou prefix, depending on previous and next tag
 
@@ -297,12 +318,19 @@ class Tags:
         if current == "O" or current.startswith("U-"):
             return current, False
         else:
-            assert current[0] in ["B", "I", "L"] and current[1] == "-", \
-                f"ERROR! bilou tag {current} should be of the format O, B-*, I-*, L-*, U-*"
+            assert (
+                current[0] in ["B", "I", "L"] and current[1] == "-"
+            ), f"ERROR! bilou tag {current} should be of the format O, B-*, I-*, L-*, U-*"
 
             plain = current.split("-")[-1]
-            condition_previous = previous is None or previous not in [f"B-{plain}", f"I-{plain}"]
-            condition_subsequent = subsequent is None or subsequent not in [f"I-{plain}", f"L-{plain}"]
+            condition_previous = previous is None or previous not in [
+                f"B-{plain}",
+                f"I-{plain}",
+            ]
+            condition_subsequent = subsequent is None or subsequent not in [
+                f"I-{plain}",
+                f"L-{plain}",
+            ]
             bool_corrected = False
             while 1:
                 if current.startswith("I-"):
@@ -333,6 +361,8 @@ class Tags:
                 elif current.startswith("U-"):
                     break
                 else:
-                    raise Exception(f"ERROR! this should not happen. current = {current}")
+                    raise Exception(
+                        f"ERROR! this should not happen. current = {current}"
+                    )
 
             return current, bool_corrected

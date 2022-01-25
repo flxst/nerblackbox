@@ -1,11 +1,20 @@
 from typing import List, Dict, Optional, Tuple, Any
 import pandas as pd
 from os.path import join
-from datasets import load_dataset, load_dataset_builder, get_dataset_split_names, DatasetDict
+from datasets import (
+    load_dataset,
+    load_dataset_builder,
+    get_dataset_split_names,
+    DatasetDict,
+)
 from shutil import copyfile
 
-from nerblackbox.modules.datasets.formatter.base_formatter import \
-    BaseFormatter, SENTENCES_ROWS, SENTENCES_ROWS_PRETOKENIZED, SENTENCES_ROWS_UNPRETOKENIZED
+from nerblackbox.modules.datasets.formatter.base_formatter import (
+    BaseFormatter,
+    SENTENCES_ROWS,
+    SENTENCES_ROWS_PRETOKENIZED,
+    SENTENCES_ROWS_UNPRETOKENIZED,
+)
 
 
 class HuggingfaceDatasetsFormatter(BaseFormatter):
@@ -61,7 +70,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         return implementation
 
     @classmethod
-    def get_infos(cls, ner_dataset: str) -> Tuple[bool, Optional[List[str]], Optional[bool], Optional[Dict[str, Any]]]:
+    def get_infos(
+        cls, ner_dataset: str
+    ) -> Tuple[bool, Optional[List[str]], Optional[bool], Optional[Dict[str, Any]]]:
         """
         get all relevant infos about dataset
 
@@ -86,33 +97,43 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         pretokenized: Optional[bool] = None
         lookup_table: Optional[Dict[str, Any]] = None
         try:
-            if 'ner_tags' in feat:  # e.g. conll2003
-                keys = ['tokens', 'ner_tags']
+            if "ner_tags" in feat:  # e.g. conll2003
+                keys = ["tokens", "ner_tags"]
                 if all([key in feat for key in keys]):
                     implementation = True
-                    tags = feat['ner_tags'].feature.names
+                    tags = feat["ner_tags"].feature.names
                     pretokenized = True
                     lookup_table = {
-                        'text': 'tokens',
-                        'tags': 'ner_tags',
-                        'mapping': None,
+                        "text": "tokens",
+                        "tags": "ner_tags",
+                        "mapping": None,
                     }
-            elif 'entities' in feat:  # e.g. ehealth_kd
-                keys = ['sentence', 'entities']
+            elif "entities" in feat:  # e.g. ehealth_kd
+                keys = ["sentence", "entities"]
                 if all([key in feat for key in keys]):
-                    entities_keys = ['ent_text', 'ent_label', 'start_character', 'end_character']
-                    if all([entities_key in feat['entities'][0] for entities_key in entities_keys]):
+                    entities_keys = [
+                        "ent_text",
+                        "ent_label",
+                        "start_character",
+                        "end_character",
+                    ]
+                    if all(
+                        [
+                            entities_key in feat["entities"][0]
+                            for entities_key in entities_keys
+                        ]
+                    ):
                         implementation = True
-                        tags = feat['entities'][0]['ent_label'].names
+                        tags = feat["entities"][0]["ent_label"].names
                         pretokenized = False
                         lookup_table = {
-                            'text': 'sentence',
-                            'tags': 'entities',
-                            'mapping': {
-                                'ent_text': 'token',
-                                'ent_label': 'tag',
-                                'start_character': 'char_start',
-                                'end_character': 'char_end',
+                            "text": "sentence",
+                            "tags": "entities",
+                            "mapping": {
+                                "ent_text": "token",
+                                "ent_label": "tag",
+                                "start_character": "char_start",
+                                "end_character": "char_end",
                             },
                         }
             else:
@@ -120,17 +141,24 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         except Exception:
             return False, None, None, None
 
-        if implementation is False or tags is None or pretokenized is None or lookup_table is None:
+        if (
+            implementation is False
+            or tags is None
+            or pretokenized is None
+            or lookup_table is None
+        ):
             return False, None, None, None
         else:
             return implementation, tags, pretokenized, lookup_table
 
     def __init__(self, ner_dataset: str):
         _, self.tags, self.pretokenized, self.lookup_table = self.get_infos(ner_dataset)
-        self.sentences_rows_pretokenized: Dict[str, SENTENCES_ROWS_PRETOKENIZED] = \
-            {phase: list() for phase in self.PHASES}
-        self.sentences_rows_unpretokenized: Dict[str, SENTENCES_ROWS_UNPRETOKENIZED] = \
-            {phase: list() for phase in self.PHASES}
+        self.sentences_rows_pretokenized: Dict[str, SENTENCES_ROWS_PRETOKENIZED] = {
+            phase: list() for phase in self.PHASES
+        }
+        self.sentences_rows_unpretokenized: Dict[str, SENTENCES_ROWS_UNPRETOKENIZED] = {
+            phase: list() for phase in self.PHASES
+        }
         super().__init__(ner_dataset, ner_tag_list=self.get_ner_tag_list())
 
     def get_ner_tag_list(self) -> List[str]:
@@ -144,11 +172,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             ner_tag_list: ordered, e.g.["LOC", "MISC", "ORG", "PER"]
         """
         assert self.tags is not None, f"ERROR! self.tags unexpectedly found to be None."
-        return sorted(list(set([
-            tag.split("-")[-1]
-            for tag in self.tags
-            if tag != "O"
-        ])))
+        return sorted(
+            list(set([tag.split("-")[-1] for tag in self.tags if tag != "O"]))
+        )
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
@@ -180,48 +206,62 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         """
         # typing
         assert self.tags is not None, f"ERROR! self.tags unexpectedly found to be None."
-        assert self.lookup_table is not None, f"ERROR! self.lookup_table unexpectedly found to be None."
+        assert (
+            self.lookup_table is not None
+        ), f"ERROR! self.lookup_table unexpectedly found to be None."
 
         # start
-        text = self.lookup_table['text']
-        tags = self.lookup_table['tags']
+        text = self.lookup_table["text"]
+        tags = self.lookup_table["tags"]
         dataset = load_dataset(self.ner_dataset)
-        assert isinstance(dataset, DatasetDict), f"ERROR! type(dataset) = {type(dataset)} should be DatasetDict"
+        assert isinstance(
+            dataset, DatasetDict
+        ), f"ERROR! type(dataset) = {type(dataset)} should be DatasetDict"
         for phase in self.PHASES:
             phase_dataset = self.PHASES_DATASETS[phase]
             for field in [text, tags]:
-                assert field in dataset[phase_dataset].info.features.keys(), \
-                    f"ERROR! field = {field} not present in dataset."
-            for text_sentence, tags_sentence in zip(dataset[phase_dataset][:][text],
-                                                    dataset[phase_dataset][:][tags]):
+                assert (
+                    field in dataset[phase_dataset].info.features.keys()
+                ), f"ERROR! field = {field} not present in dataset."
+            for text_sentence, tags_sentence in zip(
+                dataset[phase_dataset][:][text], dataset[phase_dataset][:][tags]
+            ):
                 if self.pretokenized:
-                    self.sentences_rows_pretokenized[phase].append([
-                        [text_single, self.tags[int(tag_single)]]
-                        for text_single, tag_single in zip(text_sentence, tags_sentence)
-                    ])
+                    self.sentences_rows_pretokenized[phase].append(
+                        [
+                            [text_single, self.tags[int(tag_single)]]
+                            for text_single, tag_single in zip(
+                                text_sentence, tags_sentence
+                            )
+                        ]
+                    )
                 else:
                     _dict = {
-                        'text': text_sentence,
-                        'tags': [
+                        "text": text_sentence,
+                        "tags": [
                             {
-                                self.lookup_table['mapping'][key]: value
+                                self.lookup_table["mapping"][key]: value
                                 for key, value in tags_sentence[n].items()
-                                if key in self.lookup_table['mapping']
+                                if key in self.lookup_table["mapping"]
                             }
                             for n in range(len(tags_sentence))
-                        ]
+                        ],
                     }
-                    for tag_dict in _dict['tags']:
-                        tag_dict.update((k, self.tags[int(v)]) for k, v in tag_dict.items() if k == "tag")
+                    for tag_dict in _dict["tags"]:
+                        tag_dict.update(
+                            (k, self.tags[int(v)])
+                            for k, v in tag_dict.items()
+                            if k == "tag"
+                        )
 
                     # there are multiword entities that are not connected
                     # (i.e. there are other words between the entities' tokens)
                     # e.g. ehealth_kd: {"token": "uno días", "tag": "Concept", "char_start": 64170, "char_end": 64183}
                     # -> filter them out
-                    _dict['tags'] = [
+                    _dict["tags"] = [
                         elem
-                        for elem in _dict['tags']
-                        if len(elem['token']) == elem['char_end'] - elem['char_start']
+                        for elem in _dict["tags"]
+                        if len(elem["token"]) == elem["char_end"] - elem["char_start"]
                     ]
 
                     self.sentences_rows_unpretokenized[phase].append(_dict)
@@ -235,7 +275,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         """
         return dict()
 
-    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
+    def format_data(
+        self, shuffle: bool = True, write_csv: bool = True
+    ) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
 
@@ -248,25 +290,35 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         """
         if self.pretokenized:
             for phase in ["train", "val", "test"]:
-                sentences_rows_pretokenized_phase = self.sentences_rows_pretokenized[phase].copy()
+                sentences_rows_pretokenized_phase = self.sentences_rows_pretokenized[
+                    phase
+                ].copy()
                 if shuffle:
-                    sentences_rows_pretokenized_phase = self._shuffle_dataset(phase,
-                                                                              sentences_rows_pretokenized_phase)
+                    sentences_rows_pretokenized_phase = self._shuffle_dataset(
+                        phase, sentences_rows_pretokenized_phase
+                    )
 
-                sentences_rows_iob2 = self._convert_iob1_to_iob2(sentences_rows_pretokenized_phase)
+                sentences_rows_iob2 = self._convert_iob1_to_iob2(
+                    sentences_rows_pretokenized_phase
+                )
                 if write_csv:  # pragma: no cover
                     self._write_formatted_csv(phase, sentences_rows_iob2)
                 else:
                     return sentences_rows_iob2  # return train!
         else:
             for phase in ["train", "val", "test"]:
-                sentences_rows_unpretokenized_phase = self.sentences_rows_unpretokenized[phase].copy()
+                sentences_rows_unpretokenized_phase = (
+                    self.sentences_rows_unpretokenized[phase].copy()
+                )
                 if shuffle:
-                    sentences_rows_unpretokenized_phase = self._shuffle_dataset(phase,
-                                                                                sentences_rows_unpretokenized_phase)
+                    sentences_rows_unpretokenized_phase = self._shuffle_dataset(
+                        phase, sentences_rows_unpretokenized_phase
+                    )
 
                 if write_csv:  # pragma: no cover
-                    self._write_formatted_jsonl(phase, sentences_rows_unpretokenized_phase)
+                    self._write_formatted_jsonl(
+                        phase, sentences_rows_unpretokenized_phase
+                    )
                 else:
                     return sentences_rows_unpretokenized_phase  # returns train!
         return None
@@ -294,7 +346,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         """
         pass  # not necessary as _read_original_file() is not used
 
-    def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:  # pragma: no cover
+    def _format_original_file(
+        self, _row_list: List[str]
+    ) -> Optional[List[str]]:  # pragma: no cover
         """
         III: format data
 
@@ -306,7 +360,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         """
         pass  # not necessary as _read_original_file() is not used
 
-    def resplit_data(self, val_fraction: float = 0.0, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
+    def resplit_data(
+        self, val_fraction: float = 0.0, write_csv: bool = True
+    ) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
 

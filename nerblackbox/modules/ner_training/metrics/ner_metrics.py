@@ -46,7 +46,7 @@ class NerMetrics:
         """
         self.true_flat = true_flat  # token -> plain. entity -> plain, bio, bilou
         self.pred_flat = pred_flat  # token -> plain. entity -> plain, bio, bilou
-        self.scheme = scheme        # token -> plain. entity -> plain, bio, bilou
+        self.scheme = scheme  # token -> plain. entity -> plain, bio, bilou
         self.classes = classes
         self.class_index = class_index
         self.level = level
@@ -67,21 +67,21 @@ class NerMetrics:
             "entity",
         ], f"ERROR! level = {self.level} unknown."
         if self.level == "entity":
-            self.true_flat_bio: List[str] = Tags(
-                self.true_flat,
-            ).convert_scheme(source_scheme=self.scheme,
-                             target_scheme=self.scheme_entity)  # entity -> bio, bilou
+            self.true_flat_bio: List[str] = Tags(self.true_flat,).convert_scheme(
+                source_scheme=self.scheme, target_scheme=self.scheme_entity
+            )  # entity -> bio, bilou
 
-            self.pred_flat_bio: List[str] = Tags(
-                self.pred_flat
-            ).convert_scheme(source_scheme=self.scheme,
-                             target_scheme=self.scheme_entity)  # entity -> bio, bilou
+            self.pred_flat_bio: List[str] = Tags(self.pred_flat).convert_scheme(
+                source_scheme=self.scheme, target_scheme=self.scheme_entity
+            )  # entity -> bio, bilou
 
             # ASR
             self.pred_flat_bio_corrected: List[str]
             self.pred_flat_bio_corrected, self.results.asr_abidance = Tags(
                 self.pred_flat_bio
-            ).restore_annotation_scheme_consistency(scheme=self.scheme_entity)  # entity -> bio, bilou
+            ).restore_annotation_scheme_consistency(
+                scheme=self.scheme_entity
+            )  # entity -> bio, bilou
 
     def results_as_dict(self):
         return asdict(self.results)
@@ -107,10 +107,12 @@ class NerMetrics:
             if "f1" in _metrics:
                 self.f1_score()
 
-        if "asr_abidance" in _metrics \
-                or "asr_precision" in _metrics \
-                or "asr_recall" in _metrics \
-                or "asr_f1" in _metrics:
+        if (
+            "asr_abidance" in _metrics
+            or "asr_precision" in _metrics
+            or "asr_recall" in _metrics
+            or "asr_f1" in _metrics
+        ):
             self.compute_asr_results()
 
         warnings.resetwarnings()
@@ -199,14 +201,15 @@ class NerMetrics:
         - self.results.asr_recall_micro
         - self.results.asr_f1_micro
         """
+
         def _entity_evaluation_micro_asr(evaluation_function: Callable) -> float:
-            """ helper function """
+            """helper function"""
             try:
                 metric = evaluation_function(
                     [self.true_flat_bio],
                     [self.pred_flat_bio_corrected],  # corrected !!!
                     average="micro",
-                    mode='strict',
+                    mode="strict",
                     scheme=self.scheme_entity_seqeval,
                 )
             except UndefinedMetricWarning as e:
@@ -215,9 +218,15 @@ class NerMetrics:
                 metric = self.failure_value
             return metric
 
-        self.results.asr_precision_micro = _entity_evaluation_micro_asr(evaluation_function=precision_seqeval)
-        self.results.asr_recall_micro = _entity_evaluation_micro_asr(evaluation_function=recall_seqeval)
-        self.results.asr_f1_micro = _entity_evaluation_micro_asr(evaluation_function=f1_seqeval)
+        self.results.asr_precision_micro = _entity_evaluation_micro_asr(
+            evaluation_function=precision_seqeval
+        )
+        self.results.asr_recall_micro = _entity_evaluation_micro_asr(
+            evaluation_function=recall_seqeval
+        )
+        self.results.asr_f1_micro = _entity_evaluation_micro_asr(
+            evaluation_function=f1_seqeval
+        )
 
     def _token_evaluation(self, evaluation_function: Callable, average: str) -> float:
         """
@@ -245,7 +254,6 @@ class NerMetrics:
                     labels=self.classes,
                     average=average,
                     zero_division=0,
-
                 )
             else:
                 _, _, metric, _ = prf_sklearn(
@@ -299,10 +307,10 @@ class NerMetrics:
         if self.class_index is None:  # "fil"
             try:
                 metric = evaluation_function(
-                    [self.true_flat_bio], 
-                    [self.pred_flat_bio], 
-                    average="micro", 
-                    mode='strict', 
+                    [self.true_flat_bio],
+                    [self.pred_flat_bio],
+                    average="micro",
+                    mode="strict",
                     scheme=self.scheme_entity_seqeval,
                 )
             except UndefinedMetricWarning as e:
@@ -314,7 +322,7 @@ class NerMetrics:
                 metric = evaluation_function(
                     [self.true_flat_bio],
                     [self.pred_flat_bio],
-                    mode='strict',
+                    mode="strict",
                     scheme=self.scheme_entity_seqeval,
                     average=None,
                     zero_division="warn",
@@ -324,7 +332,7 @@ class NerMetrics:
                     metric = evaluation_function(
                         [self.true_flat_bio],
                         [self.pred_flat_bio],
-                        mode='strict',
+                        mode="strict",
                         scheme=self.scheme_entity_seqeval,
                         average=None,
                         zero_division=0,
@@ -336,7 +344,7 @@ class NerMetrics:
                     metric = evaluation_function(
                         [self.true_flat_bio],
                         [self.pred_flat_bio],
-                        mode='strict',
+                        mode="strict",
                         scheme=self.scheme_entity_seqeval,
                         average=None,
                         zero_division=1,
@@ -355,11 +363,14 @@ class NerMetrics:
             results.numberofclasses_macro: number of well-defined classes in terms of precision, recall, f1
         """
 
-        def _get_index_list(evaluation_function: Callable,
-                            true_array,
-                            pred_array,
-                            scheme_seqeval=None):
-            kwargs = {"mode": "strict", "scheme": scheme_seqeval} if scheme_seqeval is not None else {}
+        def _get_index_list(
+            evaluation_function: Callable, true_array, pred_array, scheme_seqeval=None
+        ):
+            kwargs = (
+                {"mode": "strict", "scheme": scheme_seqeval}
+                if scheme_seqeval is not None
+                else {}
+            )
             try:
                 metric_list = evaluation_function(
                     true_array,
@@ -431,7 +442,8 @@ class NerMetrics:
             self.results.numberofclasses_macro = len(self.results.classindices_macro)
 
     def _entity_evaluation_macro(
-        self, evaluation_function: Callable,
+        self,
+        evaluation_function: Callable,
     ) -> float:
         """
         compute precision/recall macro average on entity level
@@ -450,9 +462,9 @@ class NerMetrics:
         metric = evaluation_function(
             [self.true_flat_bio],
             [self.pred_flat_bio],
-            mode='strict',
+            mode="strict",
             scheme=self.scheme_entity_seqeval,
-            average='macro',
+            average="macro",
             zero_division=0,
         )
         return metric
@@ -487,17 +499,17 @@ class NerMetrics:
         else:
             if self.class_index is None:  # "fil"
                 f1_micro = evaluation_function(
-                    [self.true_flat_bio], 
-                    [self.pred_flat_bio], 
-                    average="micro", 
-                    mode='strict', 
+                    [self.true_flat_bio],
+                    [self.pred_flat_bio],
+                    average="micro",
+                    mode="strict",
                     scheme=self.scheme_entity_seqeval,
                 )
             else:  # "ind"
                 f1_micro = evaluation_function(
                     [self.true_flat_bio],
                     [self.pred_flat_bio],
-                    mode='strict',
+                    mode="strict",
                     scheme=self.scheme_entity_seqeval,
                     average=None,
                     zero_division="warn",
@@ -514,7 +526,7 @@ class NerMetrics:
                 metric_list = evaluation_function(
                     [self.true_flat_bio],
                     [self.pred_flat_bio],
-                    mode='strict',
+                    mode="strict",
                     scheme=self.scheme_entity_seqeval,
                     average=None,
                 )

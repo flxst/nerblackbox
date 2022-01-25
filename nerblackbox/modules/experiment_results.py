@@ -14,6 +14,7 @@ from nerblackbox.modules.utils.util_functions import (
 class ExperimentResults:
 
     """class that contains results of a single experiment."""
+
     METRICS = {
         "EPOCH_BEST": "EPOCH_BEST",
         "EPOCH_STOPPED": "EPOCH_STOPPED",
@@ -75,10 +76,9 @@ class ExperimentResults:
         self.best_model = best_model
 
     @classmethod
-    def from_mlflow_runs(cls,
-                         _runs: List[Run],
-                         _experiment_id: str,
-                         _experiment_name: str) -> "ExperimentResults":
+    def from_mlflow_runs(
+        cls, _runs: List[Run], _experiment_id: str, _experiment_name: str
+    ) -> "ExperimentResults":
         """
         Args:
             _runs: [List of mlflow.entities.Run]
@@ -88,10 +88,14 @@ class ExperimentResults:
         Returns:
             ExperimentResults instance
         """
-        experiment_results = ExperimentResults(_id=_experiment_id, name=_experiment_name)
-        experiment_results._parse_and_create_dataframe(_runs)  # attr: experiment, single_runs, average_runs
-        experiment_results.extract_best_single_run()           # attr: best_single_run
-        experiment_results.extract_best_average_run()          # attr: best_average_run
+        experiment_results = ExperimentResults(
+            _id=_experiment_id, name=_experiment_name
+        )
+        experiment_results._parse_and_create_dataframe(
+            _runs
+        )  # attr: experiment, single_runs, average_runs
+        experiment_results.extract_best_single_run()  # attr: best_single_run
+        experiment_results.extract_best_average_run()  # attr: best_average_run
         return experiment_results
 
     ####################################################################################################################
@@ -131,12 +135,14 @@ class ExperimentResults:
         # dataframes
         ###########################################
         self.experiment = pd.DataFrame(parameters_experiment, index=["experiment"]).T
-        self.single_runs, self.average_runs = self._2_sorted_dataframes(parameters_runs_renamed,
-                                                                        parameters_runs_renamed_average)
+        self.single_runs, self.average_runs = self._2_sorted_dataframes(
+            parameters_runs_renamed, parameters_runs_renamed_average
+        )
 
     @classmethod
-    def _parse_runs(cls,
-                    _runs: List[Run]) -> Tuple[Dict[Tuple[str, str], Any], Dict[str, Any]]:
+    def _parse_runs(
+        cls, _runs: List[Run]
+    ) -> Tuple[Dict[Tuple[str, str], Any], Dict[str, Any]]:
         """
         Args:
             _runs: list of mlflow.entities.Run objects
@@ -176,7 +182,9 @@ class ExperimentResults:
                 for k in cls.METRICS_PLUS.keys():
                     if ("metrics", k) not in _parameters_runs.keys():
                         try:
-                            _parameters_runs[("metrics", k)] = [_runs[i].data.metrics[k]]
+                            _parameters_runs[("metrics", k)] = [
+                                _runs[i].data.metrics[k]
+                            ]
                         except:
                             _parameters_runs[("metrics", k)] = [-1]
                     else:
@@ -196,14 +204,14 @@ class ExperimentResults:
                 _parameters_runs[("metrics", k)] = [-1]
 
         if _parameters_runs[("metrics", "epoch_best".upper())] != [-1]:
-            _parameters_runs[("metrics", "epochs".upper())] = \
-                [elem + 1 for elem in _parameters_runs[("metrics", "epoch_best".upper())]]
+            _parameters_runs[("metrics", "epochs".upper())] = [
+                elem + 1 for elem in _parameters_runs[("metrics", "epoch_best".upper())]
+            ]
 
         return _parameters_runs, _parameters_experiment
 
     @classmethod
-    def _rename_parameters_runs_single(cls,
-                                       _tuple: Tuple[str, str]) -> Tuple[str, str]:
+    def _rename_parameters_runs_single(cls, _tuple: Tuple[str, str]) -> Tuple[str, str]:
         """
         Args:
             _tuple: e.g. ("metrics", "D_entity_fil_precision_micro")
@@ -213,7 +221,10 @@ class ExperimentResults:
         """
         _category, _field = _tuple
         if _category == "params":
-            return "params", cls.PARAMS[_field] if _field in cls.PARAMS.keys() else _field
+            return (
+                "params",
+                cls.PARAMS[_field] if _field in cls.PARAMS.keys() else _field,
+            )
         elif _category == "metrics":
             if _field in cls.METRICS_PLUS.keys():
                 return "metrics", cls.METRICS_PLUS[_field]
@@ -225,16 +236,18 @@ class ExperimentResults:
             return _category, _field
 
     @classmethod
-    def _rename_parameters_runs(cls,
-                                _parameters_runs: Dict[Tuple[str, str], Any]) -> Dict[Tuple[str, str], Any]:
+    def _rename_parameters_runs(
+        cls, _parameters_runs: Dict[Tuple[str, str], Any]
+    ) -> Dict[Tuple[str, str], Any]:
         return {
             cls._rename_parameters_runs_single(k): v
             for k, v in _parameters_runs.items()
         }
 
     @classmethod
-    def _average(cls,
-                 _parameters_runs_renamed: Dict[Tuple[str, str], Any]) -> Dict[Tuple[str, str], List[str]]:
+    def _average(
+        cls, _parameters_runs_renamed: Dict[Tuple[str, str], Any]
+    ) -> Dict[Tuple[str, str], List[str]]:
         """
         Args:
             _parameters_runs_renamed:         information on single runs
@@ -242,17 +255,21 @@ class ExperimentResults:
         Returns:
             _parameters_runs_renamed_average: information on averaged single runs
         """
-        keys = \
-            [("info", "run_name")] + \
-            [
-                k for k in _parameters_runs_renamed.keys()
+        keys = (
+            [("info", "run_name")]
+            + [
+                k
+                for k in _parameters_runs_renamed.keys()
                 if k[0] not in ["info", "metrics"]
-            ] + \
-            [
+            ]
+            + [
                 ("metrics", k)
                 for k in ["CONVERGENCE"] + list(cls.METRICS_PLUS.values())
             ]
-        _parameters_runs_renamed_average: Dict[Tuple[str, str], List[str]] = {k: list() for k in keys}
+        )
+        _parameters_runs_renamed_average: Dict[Tuple[str, str], List[str]] = {
+            k: list() for k in keys
+        }
 
         runs_name_nr = _parameters_runs_renamed[("info", "run_name_nr")]
         nr_runs = len(runs_name_nr)
@@ -291,10 +308,15 @@ class ExperimentResults:
             indices_converged = [
                 idx
                 for idx in indices
-                if _parameters_runs_renamed[("metrics", cls.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])][idx] > 0
+                if _parameters_runs_renamed[
+                    ("metrics", cls.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])
+                ][idx]
+                > 0
             ]
             convergence_str = f"{len(indices_converged)}/{len(indices)}"
-            _parameters_runs_renamed_average[("metrics", "CONVERGENCE")].append(convergence_str)
+            _parameters_runs_renamed_average[("metrics", "CONVERGENCE")].append(
+                convergence_str
+            )
 
             for _metric in cls.METRICS_PLUS.values():
                 _mean, _dmean = cls._get_mean_and_dmean(
@@ -311,22 +333,25 @@ class ExperimentResults:
         return _parameters_runs_renamed_average
 
     @classmethod
-    def _get_mean_and_dmean(cls,
-                            _indices: List[int],
-                            _parameters_runs_renamed: Dict[Tuple[str, str], Any],
-                            _metric: str) -> Tuple[float, Optional[float]]:
+    def _get_mean_and_dmean(
+        cls,
+        _indices: List[int],
+        _parameters_runs_renamed: Dict[Tuple[str, str], Any],
+        _metric: str,
+    ) -> Tuple[float, Optional[float]]:
         try:
             values = [
-                _parameters_runs_renamed[("metrics", _metric)][idx]
-                for idx in _indices
+                _parameters_runs_renamed[("metrics", _metric)][idx] for idx in _indices
             ]
         except IndexError:
             values = [-1 for _ in _indices]
         return compute_mean_and_dmean(values)
 
-    def _2_sorted_dataframes(self,
-                             _parameters_runs_renamed: Dict[Tuple[str, str], Any],
-                             _parameters_runs_renamed_average: Dict[Tuple[str, str], Any]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _2_sorted_dataframes(
+        self,
+        _parameters_runs_renamed: Dict[Tuple[str, str], Any],
+        _parameters_runs_renamed_average: Dict[Tuple[str, str], Any],
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         by = ("metrics", self.METRICS["EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO"])
 
         # single runs
@@ -354,12 +379,14 @@ class ExperimentResults:
         if self.experiment is not None and self.single_runs is not None:
             _df_best_single_run = self.single_runs.iloc[0, :]
 
-            assert self.name is not None, f"ERROR! self.name is None, extract_best_single_run() failed."
+            assert (
+                self.name is not None
+            ), f"ERROR! self.name is None, extract_best_single_run() failed."
             checkpoint = join(
                 env_variable("DIR_CHECKPOINTS"),
                 self.name,
                 _df_best_single_run[("info", "run_name_nr")],
-                epoch2checkpoint(_df_best_single_run[("metrics", "EPOCH_BEST")])
+                epoch2checkpoint(_df_best_single_run[("metrics", "EPOCH_BEST")]),
             )
 
             fields_info = ["run_id", "run_name_nr"]
@@ -368,10 +395,15 @@ class ExperimentResults:
                 **{
                     "exp_id": self._id,
                     "exp_name": self.name,
-                    "checkpoint": checkpoint if isfile(checkpoint) else None
+                    "checkpoint": checkpoint if isfile(checkpoint) else None,
                 },
-                **{field: _df_best_single_run[("info", field)] for field in fields_info},
-                **{field: _df_best_single_run[("metrics", field)] for field in self.METRICS_PLUS.values()},
+                **{
+                    field: _df_best_single_run[("info", field)] for field in fields_info
+                },
+                **{
+                    field: _df_best_single_run[("metrics", field)]
+                    for field in self.METRICS_PLUS.values()
+                },
             )
         else:
             self.best_single_run = dict()
@@ -390,7 +422,7 @@ class ExperimentResults:
                     "run_name": _df_best_average_run[("info", "run_name")],
                 },
                 **{
-                    field: _df_best_average_run[('metrics', field)]
+                    field: _df_best_average_run[("metrics", field)]
                     for field in list(self.METRICS_PLUS.values()) + ["CONVERGENCE"]
                 },
             )

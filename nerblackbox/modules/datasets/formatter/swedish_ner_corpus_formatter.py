@@ -2,7 +2,11 @@ import subprocess
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS, SENTENCES_ROWS_PRETOKENIZED
+from nerblackbox.modules.datasets.formatter.base_formatter import (
+    BaseFormatter,
+    SENTENCES_ROWS,
+    SENTENCES_ROWS_PRETOKENIZED,
+)
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
@@ -49,7 +53,9 @@ class SwedishNerCorpusFormatter(BaseFormatter):
             "PRG": "O",
         }
 
-    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
+    def format_data(
+        self, shuffle: bool = True, write_csv: bool = True
+    ) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
 
@@ -109,13 +115,17 @@ class SwedishNerCorpusFormatter(BaseFormatter):
             _row_list_formatted: e.g. ["test", "B-PER"]
         """
         if not len(_row_list) in [2]:
-            print(f"ATTENTION! row_list = {_row_list} should consist of 2 parts! -> treat as empty row")
+            print(
+                f"ATTENTION! row_list = {_row_list} should consist of 2 parts! -> treat as empty row"
+            )
             return None
 
         _row_list_formatted = _row_list
         return _row_list_formatted
 
-    def resplit_data(self, val_fraction: float, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
+    def resplit_data(
+        self, val_fraction: float, write_csv: bool = True
+    ) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
 

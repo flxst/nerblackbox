@@ -77,7 +77,12 @@ class CsvReader:
         for phase in ["train", "val", "test"]:
             # data
             self.data[phase] = self._read_csv(
-                os.path.join(self.path, f"{phase}.csv" if self.pretokenized else f"pretokenized_{phase}.csv")
+                os.path.join(
+                    self.path,
+                    f"{phase}.csv"
+                    if self.pretokenized
+                    else f"pretokenized_{phase}.csv",
+                )
             )
 
             # tag list
@@ -96,7 +101,9 @@ class CsvReader:
             self.default_logger.log_debug(
                 f"> tag list found in data: {annotation_classes_found}"
             )
-            self.default_logger.log_debug(f"> tag list complete:      {self.annotation_classes}")
+            self.default_logger.log_debug(
+                f"> tag list complete:      {self.annotation_classes}"
+            )
 
     def _read_csv(self, path: str) -> pd.DataFrame:
         """

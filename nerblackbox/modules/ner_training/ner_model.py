@@ -159,7 +159,13 @@ class NerModel(pl.LightningModule, ABC):
         # debug
         if batch_idx == 0:
             self._debug_step_check(
-                "train", batch, outputs, input_ids, attention_mask, token_type_ids, labels
+                "train",
+                batch,
+                outputs,
+                input_ids,
+                attention_mask,
+                token_type_ids,
+                labels,
             )
 
         return {"loss": batch_train_loss}
@@ -204,7 +210,7 @@ class NerModel(pl.LightningModule, ABC):
         # debug
         if batch_idx == 0:
             self._debug_step_check(
-               "val", batch, outputs, input_ids, attention_mask, token_type_ids, labels
+                "val", batch, outputs, input_ids, attention_mask, token_type_ids, labels
             )
 
         return batch_loss, labels, logits
@@ -220,7 +226,9 @@ class NerModel(pl.LightningModule, ABC):
         elif self.trainer.state.fn == "validate":
             metrics = "all"
         else:
-            raise Exception(f"ERROR! self.trainer.state.fn = {self.trainer.state.fn} unexpected.")
+            raise Exception(
+                f"ERROR! self.trainer.state.fn = {self.trainer.state.fn} unexpected."
+            )
 
         return self._validate_on_epoch("val", outputs=outputs, metrics=metrics)
 
@@ -236,7 +244,13 @@ class NerModel(pl.LightningModule, ABC):
         # debug
         if batch_idx == 0:
             self._debug_step_check(
-                "test", batch, outputs, input_ids, attention_mask, token_type_ids, labels
+                "test",
+                batch,
+                outputs,
+                input_ids,
+                attention_mask,
+                token_type_ids,
+                labels,
             )
 
         return batch_loss, labels, logits
@@ -275,7 +289,10 @@ class NerModel(pl.LightningModule, ABC):
     # 1. PREPARATIONS
     ####################################################################################################################
     def _create_optimizer(
-        self, learning_rate: float, fp16: bool = True, no_decay: Tuple[str, ...] = ('bias', 'LayerNorm.weight')
+        self,
+        learning_rate: float,
+        fp16: bool = True,
+        no_decay: Tuple[str, ...] = ("bias", "LayerNorm.weight"),
     ) -> Optimizer:
         """
         create optimizer with basic learning rate and L2 normalization for some parameters
@@ -312,13 +329,13 @@ class NerModel(pl.LightningModule, ABC):
             "> parameters w/  weight decay:",
             len(optimizer_grouped_parameters[0]["params"])
             if isinstance(optimizer_grouped_parameters[0]["params"], list)
-            else None
+            else None,
         )
         self.default_logger.log_debug(
             "> parameters w/o weight decay:",
             len(optimizer_grouped_parameters[1]["params"])
             if isinstance(optimizer_grouped_parameters[1]["params"], list)
-            else None
+            else None,
         )
         if fp16:
             optimizer = AdamW(optimizer_grouped_parameters, lr=learning_rate)
@@ -363,8 +380,9 @@ class NerModel(pl.LightningModule, ABC):
         if _lr_schedule in ["constant", "hybrid"]:
             return get_constant_schedule_with_warmup(self.optimizer, **scheduler_params)
         else:
-            assert _lr_max_epochs is not None, \
-                f"ERROR! need to specify _lr_max_epochs for _lr_schedule = {_lr_schedule}"
+            assert (
+                _lr_max_epochs is not None
+            ), f"ERROR! need to specify _lr_max_epochs for _lr_schedule = {_lr_schedule}"
             num_training_steps = self._get_steps(_lr_max_epochs)
             scheduler_params["num_training_steps"] = num_training_steps
 
@@ -422,7 +440,9 @@ class NerModel(pl.LightningModule, ABC):
         """
         input_ids = _batch["input_ids"]
         attention_mask = _batch["attention_mask"]
-        token_type_ids = _batch["token_type_ids"] if "token_type_ids" in _batch.keys() else None
+        token_type_ids = (
+            _batch["token_type_ids"] if "token_type_ids" in _batch.keys() else None
+        )
         labels = _batch["labels"]
         return input_ids, attention_mask, token_type_ids, labels
 
@@ -430,7 +450,10 @@ class NerModel(pl.LightningModule, ABC):
     # 2. VALIDATE / COMPUTE METRICS
     ####################################################################################################################
     def _validate_on_epoch(
-        self, phase: str, outputs: List[torch.Tensor], metrics: str,
+        self,
+        phase: str,
+        outputs: List[torch.Tensor],
+        metrics: str,
     ) -> Dict[str, float]:
         """
         Args:
@@ -572,7 +595,7 @@ class NerModel(pl.LightningModule, ABC):
             ("input_ids", _input_ids),
             ("attention_mask", _attention_mask),
             ("token_type_ids", _token_type_ids),
-            ("labels", _labels)
+            ("labels", _labels),
         ]
         for _name, _tensor in name_tensor_combinations:
             if _tensor is not None:

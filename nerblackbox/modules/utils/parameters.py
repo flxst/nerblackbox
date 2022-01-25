@@ -1,4 +1,3 @@
-
 GENERAL = {
     "experiment_name": "str",
     "from_config": "bool",

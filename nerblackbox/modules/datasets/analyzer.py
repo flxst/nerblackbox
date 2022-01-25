@@ -1,4 +1,3 @@
-
 from os.path import join, isfile
 from typing import List, Dict, Optional, Tuple
 import pandas as pd
@@ -53,7 +52,7 @@ class Analyzer:
 
             (
                 self.num_sentences[phase],  # int, e.g. 4
-                _stats_aggregated_phase,    # pd.DataFrame w/ col "tags", index = tags, values = tag occurrences
+                _stats_aggregated_phase,  # pd.DataFrame w/ col "tags", index = tags, values = tag occurrences
             ) = self._read_final_csv(phase)
 
             self.num_sentences["total"] += self.num_sentences[phase]
@@ -61,7 +60,7 @@ class Analyzer:
                 self.stats_aggregated["total"] = _stats_aggregated_phase
             else:
                 self.stats_aggregated["total"] = (
-                        self.stats_aggregated["total"] + _stats_aggregated_phase
+                    self.stats_aggregated["total"] + _stats_aggregated_phase
                 )
 
             self.stats_aggregated[phase] = self._stats_aggregated_extend(
@@ -75,7 +74,8 @@ class Analyzer:
 
         # num_tokens
         self.num_tokens = {
-            phase: self._get_num_tokens(self.stats_aggregated[phase]) for phase in self.phases_all
+            phase: self._get_num_tokens(self.stats_aggregated[phase])
+            for phase in self.phases_all
         }
         num_tokens_total = self.num_tokens["total"]
 
@@ -84,7 +84,9 @@ class Analyzer:
 
     def plot_data(self) -> None:  # pragma: no cover
         if self.analysis_flag:
-            fig_path = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.png")
+            fig_path = join(
+                self.dataset_path, "analyze_data", f"{self.ner_dataset}.png"
+            )
             Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
 
     ####################################################################################################################
@@ -112,7 +114,9 @@ class Analyzer:
 
         if df is not None:
             tags = (
-                df.iloc[:, 0].apply(lambda x: str(x).split()).apply(lambda x: [elem.split("-")[-1] for elem in x])
+                df.iloc[:, 0]
+                .apply(lambda x: str(x).split())
+                .apply(lambda x: [elem.split("-")[-1] for elem in x])
             )
 
             for column in columns:
@@ -120,7 +124,9 @@ class Analyzer:
                     lambda x: len([elem for elem in x if elem == column])
                 )
 
-            assert len(df) == len(stats), f"ERROR! len(df) = {len(df)} is not equal to len(stats) = {len(stats)}"
+            assert len(df) == len(
+                stats
+            ), f"ERROR! len(df) = {len(df)} is not equal to len(stats) = {len(stats)}"
 
         num_sentences = len(stats)
         stats_aggregated = stats.sum().to_frame().astype(int)
@@ -129,7 +135,9 @@ class Analyzer:
         return num_sentences, stats_aggregated
 
     @staticmethod
-    def _stats_aggregated_extend(df: pd.DataFrame, number_of_sentences: int) -> pd.DataFrame:
+    def _stats_aggregated_extend(
+        df: pd.DataFrame, number_of_sentences: int
+    ) -> pd.DataFrame:
         """
         V: analyze data
         extend dataframe by adding columns
@@ -159,7 +167,10 @@ class Analyzer:
             lambda x: "{:.2f}".format(x)
         )
 
-        df = df.reindex(['tags', 'tags/sentence', 'tags relative w/ 0', 'tags relative w/o 0'], axis=1)
+        df = df.reindex(
+            ["tags", "tags/sentence", "tags relative w/ 0", "tags relative w/o 0"],
+            axis=1,
+        )
 
         return df
 
@@ -172,11 +183,14 @@ class Analyzer:
         Returns:
             num_tokens: sum of all values in column "tags"
         """
-        assert "tags" in df.columns, f"ERROR! df.columns = {df.columns} does not contain 'tags'"
+        assert (
+            "tags" in df.columns
+        ), f"ERROR! df.columns = {df.columns} does not contain 'tags'"
         return df.loc[:, "tags"].sum()
 
-    def _write_log_file(self, num_sentences_total: int,
-                        num_tokens_total: int) -> None:  # pragma: no cover
+    def _write_log_file(
+        self, num_sentences_total: int, num_tokens_total: int
+    ) -> None:  # pragma: no cover
         # print/log
         log_file = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.log")
         default_logger = DefaultLogger(

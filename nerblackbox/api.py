@@ -122,13 +122,15 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("predict", **kwargs)
         return nerbb.main()
 
-    def run_experiment(self,
-                       experiment_name: str,
-                       from_config: bool = False,
-                       model: Optional[str] = None,
-                       dataset: Optional[str] = None,
-                       from_preset: Optional[str] = 'adaptive',
-                       **kwargs_optional: Dict):
+    def run_experiment(
+        self,
+        experiment_name: str,
+        from_config: bool = False,
+        model: Optional[str] = None,
+        dataset: Optional[str] = None,
+        from_preset: Optional[str] = "adaptive",
+        **kwargs_optional: Dict
+    ):
         """run a single experiment.
 
            Note:
@@ -220,7 +222,9 @@ class NerBlackBox:
     # HELPER
     ####################################################################################################################
     @staticmethod
-    def _process_kwargs_optional(_kwargs_optional: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _process_kwargs_optional(
+        _kwargs_optional: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         general helper function
         filters out key-value pairs that have value = None
@@ -248,8 +252,7 @@ class NerBlackBox:
         # hparams
         exclude_keys = ["experiment_name", "run_name", "device", "fp16"]
         _hparams = {
-            _key: _kwargs[_key]
-            for _key in _kwargs.keys() if _key not in exclude_keys
+            _key: _kwargs[_key] for _key in _kwargs.keys() if _key not in exclude_keys
         }
 
         return _hparams

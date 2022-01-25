@@ -362,7 +362,9 @@ class NerModelEvaluation:
             _filtered_classes = self.annotation_plain.classes
             _filtered_class_index = None
         elif _tag_subset == "fil":
-            _filtered_classes = [tag for tag in self.annotation_plain.classes if tag != "O"]
+            _filtered_classes = [
+                tag for tag in self.annotation_plain.classes if tag != "O"
+            ]
             _filtered_class_index = None
         else:
             assert _tags_plain is not None, f"ERROR! need to provide _tags_plain"
@@ -375,7 +377,9 @@ class NerModelEvaluation:
             _filtered_classes = [_tag_subset]
 
             try:
-                _filtered_classes_index_list = [classes_plain_filtered.index(_tag_subset)]
+                _filtered_classes_index_list = [
+                    classes_plain_filtered.index(_tag_subset)
+                ]
                 assert len(_filtered_classes_index_list) == 1
                 _filtered_class_index = _filtered_classes_index_list[0]
             except ValueError:
@@ -430,7 +434,9 @@ class NerModelEvaluation:
         for field in ["true", "pred"]:
             epoch_tags_chunk[field] = Tags(epoch_tags[field]).convert_scheme(
                 source_scheme=self.annotation.scheme,
-                target_scheme=self.annotation.scheme if self.annotation.scheme in ["bio", "bilou"] else "bio"
+                target_scheme=self.annotation.scheme
+                if self.annotation.scheme in ["bio", "bilou"]
+                else "bio",
             )
         self.default_logger.log_debug("> annotation.scheme:", self.annotation.scheme)
         self.default_logger.log_debug(

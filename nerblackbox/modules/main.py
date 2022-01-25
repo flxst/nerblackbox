@@ -75,7 +75,9 @@ class NerBlackBoxMain:
         self.val_fraction = val_fraction  # set_up_dataset
         self.verbose = verbose
         self.experiment_name = experiment_name
-        self.hparams: Optional[Dict[str, Union[str, int, bool]]] = self._process_hparams(hparams, from_preset)
+        self.hparams: Optional[
+            Dict[str, Union[str, int, bool]]
+        ] = self._process_hparams(hparams, from_preset)
         self.from_config: bool = from_config
         self.run_name = run_name  # run_experiment
         self.device = device  # run_experiment
@@ -86,25 +88,33 @@ class NerBlackBoxMain:
         self.results = results  # clear_data
 
         if self.flag == "run_experiment":
-            assert (self.hparams is None and self.from_config is True) or \
-                   (self.hparams is not None and self.from_config is False), \
-                   f"ERROR! Need to specify " \
-                   f"EITHER hparams (currently {self.hparams}) " \
-                   f"with or without from_preset (currently {from_preset}) " \
-                   f"OR from_config (currently {self.from_config})."
+            assert (self.hparams is None and self.from_config is True) or (
+                self.hparams is not None and self.from_config is False
+            ), (
+                f"ERROR! Need to specify "
+                f"EITHER hparams (currently {self.hparams}) "
+                f"with or without from_preset (currently {from_preset}) "
+                f"OR from_config (currently {self.from_config})."
+            )
 
             if self.from_config:
                 path_experiment_config = join(
-                    env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+                    env_variable("DIR_EXPERIMENT_CONFIGS"),
+                    f"{self.experiment_name}.ini",
                 )
                 if not isfile(path_experiment_config):
-                    self._exit_gracefully(f"experiment_config = {path_experiment_config} does not exist.")
+                    self._exit_gracefully(
+                        f"experiment_config = {path_experiment_config} does not exist."
+                    )
             else:
-                assert self.hparams is not None, \
-                    f"ERROR! self.hparams is None but needs to be specified if dynamic arguments are used."
+                assert (
+                    self.hparams is not None
+                ), f"ERROR! self.hparams is None but needs to be specified if dynamic arguments are used."
                 for field in ["pretrained_model_name", "dataset_name"]:
                     if field not in self.hparams.keys():
-                        field_displayed = "model" if field == "pretrained_model_name" else "dataset"
+                        field_displayed = (
+                            "model" if field == "pretrained_model_name" else "dataset"
+                        )
                         self._exit_gracefully(
                             f"{field_displayed} is not specified but mandatory if dynamic arguments are used."
                         )
@@ -308,9 +318,7 @@ class NerBlackBoxMain:
         # get ExperimentResults
         experiment_results_list: List[ExperimentResults] = list()
         for _id in sorted(list(experiments_id2name.keys())):
-            experiment_results_list.append(
-                self._get_single_experiment_results(_id)
-            )
+            experiment_results_list.append(self._get_single_experiment_results(_id))
 
         # return
         if self.usage == "cli":
@@ -354,8 +362,11 @@ class NerBlackBoxMain:
         else:
             if self.experiment_name != "all":
                 # single experiment
-                if "checkpoint" in experiment_results_list[0].best_single_run.keys() and \
-                        experiment_results_list[0].best_single_run["checkpoint"] is not None:
+                if (
+                    "checkpoint" in experiment_results_list[0].best_single_run.keys()
+                    and experiment_results_list[0].best_single_run["checkpoint"]
+                    is not None
+                ):
                     best_model = NerModelPredict.load_from_checkpoint(
                         experiment_results_list[0].best_single_run["checkpoint"]
                     )
@@ -512,7 +523,9 @@ class NerBlackBoxMain:
             experiment_configs = [
                 elem.split("/")[-1].strip(".ini") for elem in experiment_configs
             ]
-            experiment_configs = [elem for elem in experiment_configs if elem != "default"]
+            experiment_configs = [
+                elem for elem in experiment_configs if elem != "default"
+            ]
             for experiment_config in experiment_configs:
                 print(experiment_config)
 
@@ -520,8 +533,9 @@ class NerBlackBoxMain:
     # HELPER ###########################################################################################################
     ####################################################################################################################
     @staticmethod
-    def _process_hparams(hparams: Optional[Dict[str, Union[str, int, bool]]],
-                         from_preset: Optional[str]) -> Optional[Dict[str, Union[str, int, bool]]]:
+    def _process_hparams(
+        hparams: Optional[Dict[str, Union[str, int, bool]]], from_preset: Optional[str]
+    ) -> Optional[Dict[str, Union[str, int, bool]]]:
         """
         Args:
             hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
@@ -545,14 +559,18 @@ class NerBlackBoxMain:
         config_path = join(
             env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
         )
-        assert isfile(config_path) is False, f"ERROR! experiment config file {config_path} already exists!"
+        assert (
+            isfile(config_path) is False
+        ), f"ERROR! experiment config file {config_path} already exists!"
 
         # write config file: helper functions
         def _write(_str: str):
             f.write(_str + "\n")
 
         def _write_key_value(_key: str):
-            assert self.hparams is not None, f"ERROR! self.hparams is None - _write_key_value() failed."
+            assert (
+                self.hparams is not None
+            ), f"ERROR! self.hparams is None - _write_key_value() failed."
             if _key in self.hparams.keys():
                 f.write(f"{_key} = {self.hparams[_key]}\n")
 

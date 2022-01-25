@@ -54,8 +54,9 @@ def read_special_tokens(dataset: str) -> List[str]:
     if isfile(path_special_tokens):
         with open(path_special_tokens, "r") as file:
             special_tokens = json.load(file)
-        assert isinstance(special_tokens, list), \
-            f"ERROR! {path_special_tokens} seems to contain a {type(special_tokens)}, should be list."
+        assert isinstance(
+            special_tokens, list
+        ), f"ERROR! {path_special_tokens} seems to contain a {type(special_tokens)}, should be list."
     else:
         special_tokens = list()
     return special_tokens
@@ -124,10 +125,9 @@ def get_hardcoded_parameters(keys=False):
         return _general, _params, _hparams, _log_dirs
 
 
-def unify_parameters(_params: Namespace,
-                     _hparams: Namespace,
-                     _log_dirs: Namespace,
-                     _experiment: bool) -> DictConfig:
+def unify_parameters(
+    _params: Namespace, _hparams: Namespace, _log_dirs: Namespace, _experiment: bool
+) -> DictConfig:
     """
     unify parameters (namespaces, bool) to one namespace
 
@@ -151,11 +151,15 @@ def unify_parameters(_params: Namespace,
     )  # needs to be a string (not torch.device) for logging
 
     omega_conf = OmegaConf.create(vars(_lightning_hparams))
-    assert type(omega_conf) == DictConfig, f"ERROR! type(omega_conf) = {type(omega_conf)} should be DictConfig"
+    assert (
+        type(omega_conf) == DictConfig
+    ), f"ERROR! type(omega_conf) = {type(omega_conf)} should be DictConfig"
     return omega_conf
 
 
-def split_parameters(_lightning_hparams: DictConfig) -> Tuple[Namespace, Namespace, Namespace, bool]:
+def split_parameters(
+    _lightning_hparams: DictConfig,
+) -> Tuple[Namespace, Namespace, Namespace, bool]:
     """
     split namespace to parameters (namespaces, bool)
 
@@ -169,7 +173,9 @@ def split_parameters(_lightning_hparams: DictConfig) -> Tuple[Namespace, Namespa
         _experiment:
     """
     _lightning_hparams_dict = OmegaConf.to_container(_lightning_hparams)
-    assert isinstance(_lightning_hparams_dict, dict), f"ERROR! {type(_lightning_hparams_dict)}"
+    assert isinstance(
+        _lightning_hparams_dict, dict
+    ), f"ERROR! {type(_lightning_hparams_dict)}"
 
     _params = Namespace(
         **{
@@ -179,10 +185,18 @@ def split_parameters(_lightning_hparams: DictConfig) -> Tuple[Namespace, Namespa
         }
     )
     _hparams = Namespace(
-        **{str(k): v for k, v in _lightning_hparams_dict.items() if k in list(HPARAMS.keys())}
+        **{
+            str(k): v
+            for k, v in _lightning_hparams_dict.items()
+            if k in list(HPARAMS.keys())
+        }
     )
     _log_dirs = Namespace(
-        **{str(k): v for k, v in _lightning_hparams_dict.items() if k in list(LOG_DIRS.keys())}
+        **{
+            str(k): v
+            for k, v in _lightning_hparams_dict.items()
+            if k in list(LOG_DIRS.keys())
+        }
     )
     _experiment = _lightning_hparams.get("experiment")
     return _params, _hparams, _log_dirs, _experiment

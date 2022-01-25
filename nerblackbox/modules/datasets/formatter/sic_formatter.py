@@ -2,7 +2,10 @@ import subprocess
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
+from nerblackbox.modules.datasets.formatter.base_formatter import (
+    BaseFormatter,
+    SENTENCES_ROWS,
+)
 from nerblackbox.modules.utils.env_variable import env_variable
 
 
@@ -62,7 +65,9 @@ class SICFormatter(BaseFormatter):
         """
         return dict()
 
-    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
+    def format_data(
+        self, shuffle: bool = True, write_csv: bool = True
+    ) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
 
@@ -126,14 +131,21 @@ class SICFormatter(BaseFormatter):
             _row_list_formatted: e.g. ["test", "B-PER"]
         """
         if not len(_row_list) in [13]:
-            print(f"ATTENTION! row_list = {_row_list} should consist of 13 parts! -> treat as empty row")
+            print(
+                f"ATTENTION! row_list = {_row_list} should consist of 13 parts! -> treat as empty row"
+            )
             return None
 
-        _row_list_formatted = [_row_list[1], self.transform_tags(_row_list[-3], _row_list[-2])]
+        _row_list_formatted = [
+            _row_list[1],
+            self.transform_tags(_row_list[-3], _row_list[-2]),
+        ]
 
         return _row_list_formatted
 
-    def resplit_data(self, val_fraction: float, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
+    def resplit_data(
+        self, val_fraction: float, write_csv: bool = True
+    ) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
 

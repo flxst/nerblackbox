@@ -9,7 +9,9 @@ from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetric
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 from nerblackbox.modules.ner_training.ner_model import NerModel
-from nerblackbox.modules.ner_training.annotation_tags.input_examples_utils import InputExamplesUtils
+from nerblackbox.modules.ner_training.annotation_tags.input_examples_utils import (
+    InputExamplesUtils,
+)
 from nerblackbox.modules.utils.util_functions import read_special_tokens
 
 
@@ -91,7 +93,10 @@ class NerModelTrain(NerModel):
         :return: -
         """
         # input_examples & annotation
-        input_examples, self.annotation = self.data_preprocessor.get_input_examples_train(
+        (
+            input_examples,
+            self.annotation,
+        ) = self.data_preprocessor.get_input_examples_train(
             prune_ratio={
                 "train": self.params.prune_ratio_train,
                 "val": self.params.prune_ratio_val,
@@ -101,7 +106,9 @@ class NerModelTrain(NerModel):
             train_on_val=self.params.train_on_val,
             train_on_test=self.params.train_on_test,
         )
-        self.default_logger.log_info(f"> annotation scheme found: {self.annotation.scheme}")
+        self.default_logger.log_info(
+            f"> annotation scheme found: {self.annotation.scheme}"
+        )
         if self.params.annotation_scheme == "auto":
             self.params.annotation_scheme = self.annotation.scheme
         elif self.params.annotation_scheme != self.annotation.scheme:
@@ -111,10 +118,16 @@ class NerModelTrain(NerModel):
                 annotation_scheme_source=self.annotation.scheme,
                 annotation_scheme_target=self.params.annotation_scheme,
             )
-            self.annotation = self.annotation.change_scheme(new_scheme=self.params.annotation_scheme)
-            self.default_logger.log_info(f"> annotation scheme converted to {self.params.annotation_scheme}")
+            self.annotation = self.annotation.change_scheme(
+                new_scheme=self.params.annotation_scheme
+            )
+            self.default_logger.log_info(
+                f"> annotation scheme converted to {self.params.annotation_scheme}"
+            )
 
-        self.default_logger.log_debug("> self.annotation.classes:", self.annotation.classes)
+        self.default_logger.log_debug(
+            "> self.annotation.classes:", self.annotation.classes
+        )
 
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes

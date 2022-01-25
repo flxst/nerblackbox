@@ -8,7 +8,9 @@ from nerblackbox.modules.datasets.formatter.conll2003_formatter import (
 )
 from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter
 from nerblackbox.modules.datasets.formatter.swe_nerc_formatter import SweNercFormatter
-from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter import HuggingfaceDatasetsFormatter
+from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter import (
+    HuggingfaceDatasetsFormatter,
+)
 
 
 class AutoFormatter:
@@ -40,7 +42,9 @@ class AutoFormatter:
             if HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset):
                 print(f"> ner_dataset = {ner_dataset} contains train/val/test splits")
             else:
-                raise Exception(f"ner_dataset = {ner_dataset} does not contain train/val/test splits.")
+                raise Exception(
+                    f"ner_dataset = {ner_dataset} does not contain train/val/test splits."
+                )
 
             if HuggingfaceDatasetsFormatter.check_implementation(ner_dataset):
                 print(f"> ner_dataset = {ner_dataset} can be parsed")

@@ -3,7 +3,10 @@ from os.path import join, isfile
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
-from nerblackbox.modules.datasets.formatter.base_formatter import BaseFormatter, SENTENCES_ROWS
+from nerblackbox.modules.datasets.formatter.base_formatter import (
+    BaseFormatter,
+    SENTENCES_ROWS,
+)
 
 
 class CoNLL2003Formatter(BaseFormatter):
@@ -48,7 +51,9 @@ class CoNLL2003Formatter(BaseFormatter):
         """
         return dict()
 
-    def format_data(self, shuffle: bool = True, write_csv: bool = True) -> Optional[SENTENCES_ROWS]:
+    def format_data(
+        self, shuffle: bool = True, write_csv: bool = True
+    ) -> Optional[SENTENCES_ROWS]:
         """
         III: format data
 
@@ -117,7 +122,9 @@ class CoNLL2003Formatter(BaseFormatter):
         else:
             return None
 
-    def resplit_data(self, val_fraction: float = 0.0, write_csv: bool = True) -> Optional[Tuple[pd.DataFrame, ...]]:
+    def resplit_data(
+        self, val_fraction: float = 0.0, write_csv: bool = True
+    ) -> Optional[Tuple[pd.DataFrame, ...]]:
         """
         IV: resplit data
 

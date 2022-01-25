@@ -60,7 +60,9 @@ def assert_that_experiment_hasnt_been_run_before(experiment_name: str) -> None:
     """
     experiment_directory = join(env_variable("DIR_CHECKPOINTS"), experiment_name)
     if isdir(experiment_directory):
-        raise Exception(f"ERROR! experiment = {experiment_name} has been run before ({experiment_directory} exists)")
+        raise Exception(
+            f"ERROR! experiment = {experiment_name} has been run before ({experiment_directory} exists)"
+        )
 
 
 def clear_gpu_memory(device, verbose: bool = False):
