@@ -2,7 +2,7 @@
 
 import os
 from os.path import abspath
-from typing import Optional, Dict, List, Union, Tuple, Any
+from typing import Optional, Dict, List, Union, Any
 import pandas as pd
 from nerblackbox.modules.experiment_results import ExperimentResults
 
@@ -182,11 +182,6 @@ class NerBlackBox:
         if kwargs["hparams"] == {}:
             kwargs["hparams"] = None
 
-        # TODO START: get rid of this
-        print("API: kwargs to NerBlackBoxMain")
-        print(kwargs)
-        print()
-        # TODO END: get rid of this
         nerbb = NerBlackBoxMain("run_experiment", **kwargs)
         nerbb.main()
 

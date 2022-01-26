@@ -450,13 +450,6 @@ class NerBlackBoxMain:
             "device": self.device,
             "fp16": int(self.fp16),
         }
-        # TODO START: get rid of this
-        print("NerBlackBox Main, parameters:")
-        print(_parameters)
-        print()
-        print("NerBlackBox Main, self.hparams:")
-        print(self.hparams)
-        # TODO END: get rid of this
 
         if self.from_config is False:
             self._write_config_file()
