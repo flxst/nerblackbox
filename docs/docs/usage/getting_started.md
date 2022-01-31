@@ -50,68 +50,104 @@ data/
 ```
 
 -----------
-## 2. Experiment
+## 2. Data
 
-Fine-tuning a **specific model** on a **specific dataset** using **specific training (hyper)parameters** is called an **experiment**.
+- [`Built-in datasets`](../datasets_and_models/#built-in-datasets) do not require any preparation. 
 
-An experiment is defined by an **experiment configuration** file ``./data/experiment_configs/<experiment_name>.ini``.
-One can view an experiment configuration as follows:
+- [`Custom datasets`](../datasets_and_models/#custom-datasets) can be provided using two different data formats:
 
-??? note "show experiment configuration"
-    === "Python"
-        ``` python
-        nerbb.show_experiment_config("<experiment_name>")
-        ```
-    === "CLI"
-        ``` bash
-        nerbb show_experiment_config <experiment_name>
-        ```
+    - jsonl (raw data)
 
-### a. Use a predefined experiment
+    - csv (pretokenized data)
 
-For now, we use the predefined experiment configuration with ``<experiment_name> = my_experiment``.
+    See [`Custom datasets`](../datasets_and_models/#custom-datasets) for more details.
 
-### b. Run an experiment
+-----------
+## 3. Fine-tune a Model
 
-Once an experiment is defined, the following command can be used to run it.
+Fine-tuning a **specific model** on a **specific dataset** using **specific parameters** is called an **experiment**. 
 
-??? note "run experiment"
-    === "Python"
-        ``` python
-        nerbb.run_experiment("<experiment_name>")
-        ```
-    === "CLI"
-        ``` bash
-        nerbb run_experiment <experiment_name>
-        ```
+An experiment is defined 
 
-### c. Get experiment results
+- either **statically** by an **experiment configuration** file ``./data/experiment_configs/<experiment_name>.ini``.
 
-Once an experiment is finished, one can inspect the main results or detailed results:
+    ??? note "run experiment statically"
+        === "Python"
+            ``` python
+            nerbb.run_experiment("<experiment_name>", from_config=True)
+            ```
+        === "CLI"
+            ``` bash
+            nerbb run_experiment <experiment_name>
+            ```
 
-??? note "get main results"
-    === "Python"
-        ``` python
-        experiment_results = nerbb.get_experiment_results("<experiment_name>")
-        ```
-    === "CLI"
-        ``` bash
-        nerbb get_experiment_results <experiment_name>  # prints overview on runs
-        ```
+- or **dynamically** using function arguments in [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment)
 
-    Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results``
+    ??? note "run experiment dynamically (only Python API)"
+        === "Python"
+            ``` python
+            nerbb.run_experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>")
+            ```
 
-??? note "get detailed results & run histories using either mlflow or tensorboard"
-  
-    === "CLI"
-        ``` bash
-        nerbb mlflow       # + enter http://localhost:5000 in your browser
-        nerbb tensorboard  # + enter http://localhost:6006 in your browser
-        ```
+    This creates an experiment configuration on the fly, which is subsequently used.
 
-### d. Predict tags using the best model
+In both cases, the specification of the [`model`](../datasets_and_models) and the [`dataset`](../datasets_and_models) are mandatory, while the [`parameters`](../parameters) are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
+In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is employed to ensure that this holds irrespective of the size of the dataset.  
 
-??? note "predict tags using the best model"
+-----------
+## 4. Inspect the Model
+
+- Once an experiment is finished, one can inspect its main results 
+    or have a look at detailed results (e.g. learning curves):
+
+    ??? note "get main results"
+        === "Python"
+            ``` python
+            experiment_results = nerbb.get_experiment_results("<experiment_name>")
+            ```
+        === "CLI"
+            ``` bash
+            nerbb get_experiment_results <experiment_name>  # prints overview on runs
+            ```
+
+        Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results``
+
+    ??? note "get detailed results (only CLI)"
+      
+        === "CLI"
+            ``` bash
+            nerbb mlflow       # + enter http://localhost:5000 in your browser
+            nerbb tensorboard  # + enter http://localhost:6006 in your browser
+            ```
+
+- An overview of all experiments and their results can be accessed as follows:
+
+    ??? note "get overview of all experiments"
+        === "Python"
+            ``` python
+            nerbb.get_experiments()
+            ```
+        === "CLI"
+            ``` bash
+            nerbb get_experiments
+            ```
+
+    ??? note "get overview of all experiments' main results"
+        === "Python"
+            ``` python
+            experiment_results_all = nerbb.get_experiment_results("all")  # List[ExperimentResult]
+            ```
+        === "CLI"
+            ``` bash
+            nerbb get_experiment_results all
+            ```
+
+        Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results_all``
+
+-----------
+## 5. Model Inference
+
+??? note "model inference"
     === "Python"
         ``` python
         # e.g. <text_input> = "annotera den här texten"
@@ -130,36 +166,8 @@ Once an experiment is finished, one can inspect the main results or detailed res
     Python: see [NerModelPredict](../../python_api/ner_model_predict) for details on how to use ``experiments_results.best_model``
 
 -----------
-## 3. Experiments Overview
+## Next Steps
 
-Once one or more experiments have been run, the following commands can be used to access their results:
-
-??? note "get experiments overview"
-    === "Python"
-        ``` python
-        nerbb.get_experiments()
-        ```
-    === "CLI"
-        ``` bash
-        nerbb get_experiments
-        ```
-
-??? note "get overview on experiments' best runs"
-    === "Python"
-        ``` python
-        experiment_results_all = nerbb.get_experiment_results("all")  # List[ExperimentResult]
-        ```
-    === "CLI"
-        ``` bash
-        nerbb get_experiment_results all
-        ```
-
-    Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results_all``
-
------------
-## 4. Next Steps
-
-- Create your own [`Custom Experiments`](../custom_experiments).
-- See [`Datasets and Models`](../datasets_and_models) 
-  for an overview on **built-in** datasets and models, and learn how to include your own **custom** datasets and models.
+- See [`Datasets and Models`](../datasets_and_models) to learn how to include your own **custom datasets** and **custom models**.
+- See [`Parameters`](../parameters) for information on how to create your own **custom experiments**.
 

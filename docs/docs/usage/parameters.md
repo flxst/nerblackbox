@@ -1,4 +1,4 @@
-# Custom Experiments
+# Parameters
 
 An experiment is defined by an experiment configuration file ``./data/experiment_configs/<experiment_name>.ini``.
 
@@ -53,7 +53,7 @@ In the following, we will go through the different parameters step by step to se
 
 
 -----------
-## Parameters
+## Overview
 
 An experiment configuration contains the following **parameter groups**:
 

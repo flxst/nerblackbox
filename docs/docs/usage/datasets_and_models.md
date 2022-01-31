@@ -1,6 +1,6 @@
 # Datasets and Models
 
-**nerblackbox** and its [CLI](../../cli/cli) & [Python API](../../python_api/overview) 
+**nerblackbox** and its [Python API](../../python_api/overview) & [CLI](../../cli/cli)
 work out of the box (see [Getting Started](../getting_started)) 
 for **built-in** datasets and models.
 **Custom** datasets and models can easily be included.
@@ -60,16 +60,27 @@ for **built-in** datasets and models.
 
 To include your own custom dataset, do the following:
 
-- Create a folder ``./data/datasets/<custom_dataset>`` with the following files:
+- Create a folder ``./data/datasets/<custom_dataset>``
+    and add three files ``train.*``, ``val.*``, ``test.*`` to it. 
+    The filename extension is either ``* = jsonl`` or ``* = csv``, depending on whether your data is pretokenized.
 
-    - ``train.csv``
-    - ``val.csv``
-    - ``test.csv``
-- Each row of the respective ``*.csv`` files has to contain one training sample in the format
-  ``<labels> <tab> <text>``,
-  e.g. ``0 0 0 0 0 0 PER <tab> this is a sample with a person``
+- If your data consists of raw annotations, it must adhere to the following ``.jsonl`` format:
+      ```
+      {"text": "President Barack Obama went to Harvard", "tags": [{"token": "President Barack Obama", "tag": "PER", "char_start": 0, "char_end": 22}, {"token": "Harvard", "tag": "ORG", "char_start": 31, "char_end": 38}}
+      ```
+      Each row has to contain a single training sample in the format
+      ``{"text": str, "tags": List[Dict]}``, where ``Dict = {"token": str, "tag": str, "char_start": int, "char_end": int}``
+      This format is commonly used by annotation tools.
+- If your data consists of pretokenized annotations, it must adhere to the following ``.csv`` format:
+      ```
+      PER PER PER O O ORG <tab> President Barack Obama went to Harvard
+      ```
+      Each row has to contain a single training sample in the format
+      ``<tags> <tab> <text>``, where in ``<tags>`` and ``<text>`` the tags and tokens are separated by whitespace.
+      This format is commonly used by public datasets. 
 
-- Use ``dataset_name = <custom_dataset>`` in your [experiment configuration file](../custom_experiments/#1-dataset).
+- Use ``dataset_name = <custom_dataset>`` as [`parameter`](../parameters/#1-dataset) 
+    when [`fine-tuning a model`](../getting_started/#3-fine-tune-a-model).
 
 <!---
 TODO
@@ -93,4 +104,5 @@ To include your own custom model, do the following:
 
 - ``<custom_model>`` must include the architecture type, e.g. ``bert``
 
-- Use ``pretrained_model_name = <custom_model>`` in your [experiment configuration file](../custom_experiments/#2-model).
+- Use ``pretrained_model_name = <custom_model>`` as [parameter](../parameters/#2-model)
+    when [`fine-tuning a model`](../getting_started/#3-fine-tune-a-model).

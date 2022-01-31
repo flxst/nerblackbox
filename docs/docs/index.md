@@ -79,12 +79,12 @@ See [Usage](usage/getting_started) for more details.
 * hyperparameter search
 * detailed analysis of training results
 * multiple runs with different random seeds
-* language agnosticism
-* GPU support
 * support for pretokenized and unpretokenized datasets
-* support of various annotation schemes (e.g. BIO, BILOU) and seamless conversion between them
+* support for various annotation schemes (e.g. BIO, BILOU) and seamless conversion between them
 * seamless use of datasets from [HuggingFace Datasets](https://huggingface.co/docs/datasets/)
 * special token support
+* GPU support
+* language agnosticism
 * based on [HuggingFace Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/) and [MLflow](https://mlflow.org/docs/latest/index.html)
 
 See [Features](features/overview) for more details.

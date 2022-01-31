@@ -1,4 +1,4 @@
 __project__ = "nerblackbox"
 __author__ = "Felix Stollenwerk"
-__version__ = "0.0.11.3"
+__version__ = "0.0.11.5"
 __license__ = "Apache 2.0"
