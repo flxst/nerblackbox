@@ -62,9 +62,9 @@ To include your own custom dataset, do the following:
 
 - Create a folder ``./data/datasets/<custom_dataset>``
     and add three files ``train.*``, ``val.*``, ``test.*`` to it. 
-    The filename extension is either ``* = jsonl`` or ``* = csv``, depending on whether your data is pretokenized.
+    The filename extension is either ``* = jsonl`` or ``* = csv``, depending on the [data format](../../features/support_pretokenized) (standard or pretokenized).
 
-- If your data consists of raw annotations, it must adhere to the following ``.jsonl`` format:
+- If your data consists of standard annotations, it must adhere to the following ``.jsonl`` format:
       ```
       {"text": "President Barack Obama went to Harvard", "tags": [{"token": "President Barack Obama", "tag": "PER", "char_start": 0, "char_end": 22}, {"token": "Harvard", "tag": "ORG", "char_start": 31, "char_end": 38}}
       ```
@@ -77,7 +77,7 @@ To include your own custom dataset, do the following:
       ```
       Each row has to contain a single training sample in the format
       ``<tags> <tab> <text>``, where in ``<tags>`` and ``<text>`` the tags and tokens are separated by whitespace.
-      This format is commonly used by public datasets. 
+      This format is suitable for many public datasets. 
 
 - Use ``dataset_name = <custom_dataset>`` as [`parameter`](../parameters/#1-dataset) 
     when [`fine-tuning a model`](../getting_started/#3-fine-tune-a-model).

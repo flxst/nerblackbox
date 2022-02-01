@@ -1,11 +1,12 @@
 # Overview
 
-nerblackbox is based on [HuggingFace Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/) and [MLflow](https://mlflow.org/docs/latest/index.html).
+In this section, we discuss some useful (and mostly unique) features of **nerblackbox**:
 
-In this section, we discuss some useful (and mostly unique) features of **nerblackbox**.
-
-
-- **Features:**
-
-    * [Adaptive Fine-tuning](../adaptive_finetuning)
-    * coming soon..
+* [Adaptive Fine-tuning](../adaptive_finetuning)
+* [Hyperparameter Search](../hyperparameter_search)
+* [Multiple Runs with Different Random Seeds](../multiple_runs)
+* [Detailed Analysis of Training Results](../detailed_results)
+* [Support for Pretokenized and Unpretokenized Datasets](../support_pretokenized)
+* [Support for Various Annotation Schemes](../support_annotation_schemes)
+* [Seamless Use of Datasets from HuggingFace Datasets](../support_huggingface_datasets)
+* [Special Token Support](../support_special_tokens)

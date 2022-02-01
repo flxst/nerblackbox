@@ -1,8 +1,8 @@
-# Parameters
+# Parameters and Presets
 
-An experiment is defined by an experiment configuration file ``./data/experiment_configs/<experiment_name>.ini``.
+An experiment is defined by a set of parameters. 
 
-Create your own **custom experiment configuration** with ``<experiment_name> = custom_experiment``.
+These can be specified in a [static experiment configuration](../getting_started/#3-fine-tune-a-model) file ``./data/experiment_configs/<experiment_name>.ini``.
 
 ??? example "Example: custom_experiment.ini"
     ``` markdown
@@ -31,7 +31,7 @@ Create your own **custom experiment configuration** with ``<experiment_name> = c
     min_delta = 0.0
     patience = 0
     mode = min
-    lr_warmup_epochs = 1
+    lr_warmup_epochs = 2
     lr_num_cycles = 4
     lr_cooldown_restarts = True
     lr_cooldown_epochs = 7
@@ -49,11 +49,15 @@ Create your own **custom experiment configuration** with ``<experiment_name> = c
     lr_schedule = cosine
     ```
 
+Alternatively, the parameters can be used to [define an experiment dynamically](../getting_started/#3-fine-tune-a-model).
+In that case, there are several hyperparameter [presets](./#presets) available 
+for use with [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment).
+
 In the following, we will go through the different parameters step by step to see what they mean.
 
 
 -----------
-## Overview
+## Parameters
 
 An experiment configuration contains the following **parameter groups**:
 
@@ -150,7 +154,7 @@ others are **optional** and are set to default values if not specified.
     min_delta = 0.0
     patience = 0
     mode = min
-    lr_warmup_epochs = 1
+    lr_warmup_epochs = 2
     lr_num_cycles = 4
     lr_cooldown_restarts = True
     lr_cooldown_epochs = 7
@@ -169,3 +173,51 @@ others are **optional** and are set to default values if not specified.
     ```
 
     This creates **2 hyperparameter runs** (`runA` & `runB`). Each hyperparameter run is executed **multiple_runs** times (see [3. Settings](#3-settings)).
+
+-----------
+## Presets
+
+When an experiment is defined [dynamically](../getting_started/#3-fine-tune-a-model), there are several hyperparameter presets available.
+They can be specified using the ``from_preset`` argument in [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment).
+
+In the following, we list the different presets together with the [Hyperparameters](./#4-hyperparameters) that they entail:
+
+- ``from_preset = adaptive``
+
+    ??? note "adaptive fine-tuning hyperparameters"
+        ``` markdown
+        [hparams]
+        max_epochs = 250
+        early_stopping = True
+        monitor = val_loss
+        min_delta = 0.0
+        patience = 0
+        mode = min
+        lr_warmup_epochs = 2
+        lr_schedule = constant
+        lr_cooldown_epochs = 7
+        ```
+
+- ``from_preset = original``
+
+    ??? note "original fine-tuning hyperparameters"
+        ``` markdown
+        [hparams]
+        max_epochs = 5
+        early_stopping = False
+        lr_warmup_epochs = 2
+        lr_schedule = linear
+        ```
+
+- ``from_preset = stable``
+
+    ??? note "stable fine-tuning hyperparameters"
+        ``` markdown
+        [hparams]
+        max_epochs = 20
+        early_stopping = False
+        lr_warmup_epochs = 2
+        lr_schedule = linear
+        ```
+
+More information on the different approaches behind the presets can be found [here]().

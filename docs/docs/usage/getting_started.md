@@ -120,6 +120,8 @@ In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is e
             nerbb tensorboard  # + enter http://localhost:6006 in your browser
             ```
 
+    See [Detailed Analysis of Training Results](../../features/detailed_results) for more information.
+
 - An overview of all experiments and their results can be accessed as follows:
 
     ??? note "get overview of all experiments"

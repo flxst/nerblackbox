@@ -31,12 +31,6 @@ class Experiment:
         self.exp_default = ExperimentConfig("default")
         self.exp = ExperimentConfig(self.experiment_name)
 
-        # TODO START: get rid of this
-        print("Experiment:")
-        print(self.exp.config)
-        print()
-        # TODO END: get rid of this
-
         # info for runs
         self.runs_name_nr: List[str] = list()
         self.runs_params: Dict[str, Dict[str, Union[str, int, float, bool]]] = dict()

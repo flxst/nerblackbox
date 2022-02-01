@@ -77,10 +77,10 @@ See [Usage](usage/getting_started) for more details.
 
 * adaptive fine-tuning
 * hyperparameter search
-* detailed analysis of training results
 * multiple runs with different random seeds
+* detailed analysis of training results
 * support for pretokenized and unpretokenized datasets
-* support for various annotation schemes (e.g. BIO, BILOU) and seamless conversion between them
+* support for various annotation schemes
 * seamless use of datasets from [HuggingFace Datasets](https://huggingface.co/docs/datasets/)
 * special token support
 * GPU support

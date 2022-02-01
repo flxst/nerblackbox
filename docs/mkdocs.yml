@@ -33,6 +33,13 @@ nav:
     - Features:
         - 'features/overview.md'
         - 'features/adaptive_finetuning.md'
+        - 'features/hyperparameter_search.md'
+        - 'features/multiple_runs.md'
+        - 'features/detailed_results.md'
+        - 'features/support_pretokenized.md'
+        - 'features/support_annotation_schemes.md'
+        - 'features/support_huggingface_datasets.md'
+        - 'features/support_special_tokens.md'
     - Python API:
       - Overview: 'python_api/overview.md'
       - 'python_api/nerblackbox.md'
