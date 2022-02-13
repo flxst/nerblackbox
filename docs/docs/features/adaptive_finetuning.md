@@ -1,6 +1,6 @@
 # Adaptive Fine-tuning
 
-Adaptive fine-tuning (introduced in [this paper](TODO)) is a method that automatically trains for a near-optimal number of epochs.
+Adaptive fine-tuning (introduced in [this paper](https://arxiv.org/abs/2202.02617)) is a method that automatically trains for a near-optimal number of epochs.
 It is used by default in **nerblackbox**, and corresponds to the 
 following [hyperparameters](../../usage/parameters/#4-hyperparameters):
 
