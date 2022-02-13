@@ -7,7 +7,7 @@ scikit-learn
 tensorboardx
 transformers~=4.12.5
 numpy~=1.19.5
-datasets~=1.17.0
+datasets~=1.18.3
 torchmetrics<0.7  # see https://github.com/PyTorchLightning/pytorch-lightning/issues/11524
 
 dataclasses==0.7; python_version < "3.7"
