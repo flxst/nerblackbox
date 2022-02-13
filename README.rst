@@ -12,25 +12,25 @@ A python package to fine-tune transformer-based language models for named entity
     :target: https://www.python.org/doc/versions/
     :alt: PyPI - Python Version
 
-.. image:: https://travis-ci.org/af-ai-center/nerblackbox.svg?branch=master
-    :target: https://travis-ci.com/github/af-ai-center/nerblackbox
-    :alt: Travis CI
+.. image:: https://github.com/flxst/nerblackbox/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/flxst/nerblackbox/actions/workflows/python-package.yml
+    :alt: CI
 
-.. image:: https://coveralls.io/repos/github/af-ai-center/nerblackbox/badge.svg?branch=master
-    :target: https://coveralls.io/github/af-ai-center/nerblackbox?branch=master
+.. image:: https://coveralls.io/repos/github/flxst/nerblackbox/badge.svg?branch=master
+    :target: https://coveralls.io/github/flxst/nerblackbox?branch=master
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
 .. image:: https://img.shields.io/pypi/l/nerblackbox
-    :target: https://github.com/af-ai-center/nerblackbox/blob/latest/LICENSE.txt
+    :target: https://github.com/flxst/nerblackbox/blob/latest/LICENSE.txt
     :alt: PyPI - License
 
 Resources
 =========
 
-- Source Code: https://github.com/af-ai-center/nerblackbox
-- Documentation: https://af-ai-center.github.io/nerblackbox
+- Source Code: https://github.com/flxst/nerblackbox
+- Documentation: https://flxst.github.io/nerblackbox
 - PyPI: https://pypi.org/project/nerblackbox
 
 About
@@ -44,7 +44,7 @@ one needs to retrain (or "fine-tune") them using labeled text.
 
 **nerblackbox makes this easy.**
 
-.. image:: https://raw.githubusercontent.com/af-ai-center/nerblackbox/master/docs/docs/images/nerblackbox.png
+.. image:: https://raw.githubusercontent.com/flxst/nerblackbox/master/docs/docs/images/nerblackbox.png
 
 You give it
 
@@ -66,7 +66,7 @@ Installation
 Usage
 =====
 
-see documentation: https://af-ai-center.github.io/nerblackbox
+see documentation: https://flxst.github.io/nerblackbox
 
 Citation
 ========
@@ -77,5 +77,5 @@ Citation
       author = {Stollenwerk, Felix},
       title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
       year   = {2021},
-      url    = {https://github.com/af-ai-center/nerblackbox},
+      url    = {https://github.com/flxst/nerblackbox},
     }

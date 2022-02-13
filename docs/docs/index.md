@@ -7,8 +7,8 @@ latest version: 0.0.11
 -----------
 ## Resources
 
-* source code: [https://github.com/af-ai-center/nerblackbox](https://github.com/af-ai-center/nerblackbox)
-* documentation: [https://af-ai-center.github.io/nerblackbox]([https://af-ai-center.github.io/nerblackbox])
+* source code: [https://github.com/flxst/nerblackbox](https://github.com/flxst/nerblackbox)
+* documentation: [https://flxst.github.io/nerblackbox](https://flxst.github.io/nerblackbox)
 * PyPI: [https://pypi.org/project/nerblackbox](https://pypi.org/project/nerblackbox)
 
 -----------
@@ -98,7 +98,7 @@ See [Features](features/overview) for more details.
   author = {Stollenwerk, Felix},
   title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
   year   = {2021},
-  url    = {https://github.com/af-ai-center/nerblackbox},
+  url    = {https://github.com/flxst/nerblackbox},
 }
 ```
 
