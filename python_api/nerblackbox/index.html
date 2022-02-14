@@ -167,8 +167,8 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../guide/getting_started/" class="md-tabs__link">
-        Guide
+      <a href="../../usage/getting_started/" class="md-tabs__link">
+        Usage
       </a>
     </li>
   
@@ -183,8 +183,8 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../cli/cli/" class="md-tabs__link">
-        CLI
+      <a href="../../features/overview/" class="md-tabs__link">
+        Features
       </a>
     </li>
   
@@ -203,6 +203,22 @@
     <li class="md-tabs__item">
       <a href="../overview/" class="md-tabs__link md-tabs__link--active">
         Python API
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../cli/cli/" class="md-tabs__link">
+        CLI
       </a>
     </li>
   
@@ -274,13 +290,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
       
       <label class="md-nav__link" for="nav-2">
-        Guide
+        Usage
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Guide" data-md-level="1">
+      <nav class="md-nav" aria-label="Usage" data-md-level="1">
         <label class="md-nav__title" for="nav-2">
           <span class="md-nav__icon md-icon"></span>
-          Guide
+          Usage
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -290,7 +306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/getting_started/" class="md-nav__link">
+      <a href="../../usage/getting_started/" class="md-nav__link">
         Getting Started
       </a>
     </li>
@@ -302,8 +318,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/custom_experiments/" class="md-nav__link">
-        Custom Experiments
+      <a href="../../usage/datasets_and_models/" class="md-nav__link">
+        Datasets and Models
       </a>
     </li>
   
@@ -314,8 +330,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/datasets_and_models/" class="md-nav__link">
-        Datasets and Models
+      <a href="../../usage/parameters/" class="md-nav__link">
+        Parameters and Presets
       </a>
     </li>
   
@@ -342,13 +358,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
       
       <label class="md-nav__link" for="nav-3">
-        CLI
+        Features
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="CLI" data-md-level="1">
+      <nav class="md-nav" aria-label="Features" data-md-level="1">
         <label class="md-nav__title" for="nav-3">
           <span class="md-nav__icon md-icon"></span>
-          CLI
+          Features
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -358,8 +374,104 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/cli/" class="md-nav__link">
+      <a href="../../features/overview/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/adaptive_finetuning/" class="md-nav__link">
+        Adaptive Fine-tuning
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/hyperparameter_search/" class="md-nav__link">
+        Hyperparameter Search
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/multiple_runs/" class="md-nav__link">
+        Multiple Runs with Different Random Seeds
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/detailed_results/" class="md-nav__link">
+        Detailed Analysis of Training Results
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_pretokenized/" class="md-nav__link">
+        Support for Different Data Formats
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_annotation_schemes/" class="md-nav__link">
+        Support for Various Annotation Schemes
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_huggingface_datasets/" class="md-nav__link">
+        Seamless Use of Datasets from HuggingFace Datasets
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_special_tokens/" class="md-nav__link">
+        Special Token Support
       </a>
     </li>
   
@@ -482,13 +594,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.NerBlackBox.get_experiments_results" class="md-nav__link">
-    get_experiments_results()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#nerblackbox.api.NerBlackBox.init" class="md-nav__link">
     init()
   </a>
@@ -523,13 +628,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#nerblackbox.api.NerBlackBox.show_experiment_configs" class="md-nav__link">
-    show_experiment_configs()
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -555,20 +653,52 @@
   
   
     <li class="md-nav__item">
-      <a href="../experiments_results/" class="md-nav__link">
-        ExperimentsResults
+      <a href="../ner_model_predict/" class="md-nav__link">
+        NerModelPredict
       </a>
     </li>
   
 
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" >
+      
+      <label class="md-nav__link" for="nav-5">
+        CLI
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="CLI" data-md-level="1">
+        <label class="md-nav__title" for="nav-5">
+          <span class="md-nav__icon md-icon"></span>
+          CLI
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
           
             
   
   
   
     <li class="md-nav__item">
-      <a href="../ner_model_predict/" class="md-nav__link">
-        NerModelPredict
+      <a href="../../cli/cli/" class="md-nav__link">
+        Overview
       </a>
     </li>
   
@@ -723,6 +853,23 @@ in case built-in datasets shall be used.</p>
 </tr>
 </tbody>
 </table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>List[nerblackbox.modules.experiment_results.ExperimentResults]</code></td>
+<td>
+<p>see ExperimentResults</p>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="doc doc-object doc-method">
@@ -768,55 +915,6 @@ in case built-in datasets shall be used.</p>
 <td><code>DataFrame</code></td>
 <td>
 <p>experiments_overview: overview</p>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="doc doc-object doc-method">
-<h2 class="doc doc-heading" id="nerblackbox.api.NerBlackBox.get_experiments_results">
-
-<code class="highlight language-python"><span class="n">get_experiments_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
-
-
-      </h2>
-<div class="doc doc-contents ">
-<p>get results from multiple experiments.</p>
-<p><strong>Parameters:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>kwargs_optional</code></td>
-<td><code>Dict</code></td>
-<td>
-<p>with optional key-value pairs             {"ids": [tuple of int], "as_df": [bool]}</p>
-</td>
-<td><code>{}</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Dict</code></td>
-<td>
-<p>experiments_results: w/ keys = "best_single_runs", "best_average_runs"             &amp; values = [pandas DataFrame] or [dict]</p>
 </td>
 </tr>
 </tbody>
@@ -878,12 +976,34 @@ needs to be called exactly once before any other CLI/API commands of the package
 <div class="doc doc-object doc-method">
 <h2 class="doc doc-heading" id="nerblackbox.api.NerBlackBox.run_experiment">
 
-<code class="highlight language-python"><span class="n">run_experiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">run_experiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_name</span><span class="p">,</span> <span class="n">from_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">from_preset</span><span class="o">=</span><span class="s1">'adaptive'</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
 
 
       </h2>
 <div class="doc doc-contents ">
 <p>run a single experiment.</p>
+<p>Note:</p>
+<ul>
+<li>
+<p>from_config == True -&gt; experiment config file is used, no other optional arguments will be used</p>
+</li>
+<li>
+<p>from_config == False -&gt; experiment config file is created dynamically, optional arguments will be used</p>
+<ul>
+<li>
+<p>model and dataset are mandatory.</p>
+</li>
+<li>
+<p>All other arguments relate to hyperparameters and are optional.
+     If not specified, they are taken using the following hierarchy:</p>
+<p>1) optional argument</p>
+<p>2) from_preset (adaptive, original, stable),
+    which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"</p>
+<p>3) default experiment configuration</p>
+</li>
+</ul>
+</li>
+</ul>
 <p><strong>Parameters:</strong></p>
 <table>
 <thead>
@@ -899,15 +1019,47 @@ needs to be called exactly once before any other CLI/API commands of the package
 <td><code>experiment_name</code></td>
 <td><code>str</code></td>
 <td>
-<p>e.g. "exp0"</p>
+<p>e.g. 'exp0'</p>
 </td>
 <td><em>required</em></td>
+</tr>
+<tr>
+<td><code>from_config</code></td>
+<td><code>bool</code></td>
+<td>
+<p>e.g. False</p>
+</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td><code>Optional[str]</code></td>
+<td>
+<p>if experiment config file is to be created dynamically, e.g. 'bert-base-uncased'</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>dataset</code></td>
+<td><code>Optional[str]</code></td>
+<td>
+<p>if experiment config file is to be created dynamically, e.g. 'conll-2003'</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>from_preset</code></td>
+<td><code>Optional[str]</code></td>
+<td>
+<p>if experiment config file is to be created dynamically, e.g. 'adaptive'</p>
+</td>
+<td><code>'adaptive'</code></td>
 </tr>
 <tr>
 <td><code>kwargs_optional</code></td>
 <td><code>Dict</code></td>
 <td>
-<p>with optional key-value pairs             {"run_name": [str], "device": [torch device], "fp16": [bool]}</p>
+<p>with optional key-value pairs, e.g.             {"multiple_runs": [int], "run_name": [str], "device": [torch device], "fp16": [bool]}</p>
 </td>
 <td><code>{}</code></td>
 </tr>
@@ -963,7 +1115,8 @@ needs to be called exactly once before any other CLI/API commands of the package
 
       </h2>
 <div class="doc doc-contents ">
-<p>show a single experiment configuration in detail.</p>
+<p>show a single experiment configuration in detail
+   or an overview on all available experiment configurations.</p>
 <p><strong>Parameters:</strong></p>
 <table>
 <thead>
@@ -979,23 +1132,12 @@ needs to be called exactly once before any other CLI/API commands of the package
 <td><code>experiment_name</code></td>
 <td><code>str</code></td>
 <td>
-<p>e.g. "exp0"</p>
+<p>e.g. "exp0" or "all"</p>
 </td>
 <td><em>required</em></td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="doc doc-object doc-method">
-<h2 class="doc doc-heading" id="nerblackbox.api.NerBlackBox.show_experiment_configs">
-
-<code class="highlight language-python"><span class="n">show_experiment_configs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
-
-
-      </h2>
-<div class="doc doc-contents ">
-<p>show overview on all available experiment configurations.</p>
 </div>
 </div>
 </div>
@@ -1056,7 +1198,7 @@ needs to be called exactly once before any other CLI/API commands of the package
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2021 Arbetsförmedlingen (Felix Stollenwerk)
+            Copyright &copy; 2020 - 2022 Felix Stollenwerk
           </div>
         
         Made with

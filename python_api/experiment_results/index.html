@@ -167,8 +167,8 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../guide/getting_started/" class="md-tabs__link">
-        Guide
+      <a href="../../usage/getting_started/" class="md-tabs__link">
+        Usage
       </a>
     </li>
   
@@ -183,8 +183,8 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../cli/cli/" class="md-tabs__link">
-        CLI
+      <a href="../../features/overview/" class="md-tabs__link">
+        Features
       </a>
     </li>
   
@@ -203,6 +203,22 @@
     <li class="md-tabs__item">
       <a href="../overview/" class="md-tabs__link md-tabs__link--active">
         Python API
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../cli/cli/" class="md-tabs__link">
+        CLI
       </a>
     </li>
   
@@ -274,13 +290,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
       
       <label class="md-nav__link" for="nav-2">
-        Guide
+        Usage
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Guide" data-md-level="1">
+      <nav class="md-nav" aria-label="Usage" data-md-level="1">
         <label class="md-nav__title" for="nav-2">
           <span class="md-nav__icon md-icon"></span>
-          Guide
+          Usage
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -290,7 +306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/getting_started/" class="md-nav__link">
+      <a href="../../usage/getting_started/" class="md-nav__link">
         Getting Started
       </a>
     </li>
@@ -302,8 +318,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/custom_experiments/" class="md-nav__link">
-        Custom Experiments
+      <a href="../../usage/datasets_and_models/" class="md-nav__link">
+        Datasets and Models
       </a>
     </li>
   
@@ -314,8 +330,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/datasets_and_models/" class="md-nav__link">
-        Datasets and Models
+      <a href="../../usage/parameters/" class="md-nav__link">
+        Parameters and Presets
       </a>
     </li>
   
@@ -342,13 +358,13 @@
         <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
       
       <label class="md-nav__link" for="nav-3">
-        CLI
+        Features
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="CLI" data-md-level="1">
+      <nav class="md-nav" aria-label="Features" data-md-level="1">
         <label class="md-nav__title" for="nav-3">
           <span class="md-nav__icon md-icon"></span>
-          CLI
+          Features
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -358,8 +374,104 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/cli/" class="md-nav__link">
+      <a href="../../features/overview/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/adaptive_finetuning/" class="md-nav__link">
+        Adaptive Fine-tuning
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/hyperparameter_search/" class="md-nav__link">
+        Hyperparameter Search
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/multiple_runs/" class="md-nav__link">
+        Multiple Runs with Different Random Seeds
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/detailed_results/" class="md-nav__link">
+        Detailed Analysis of Training Results
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_pretokenized/" class="md-nav__link">
+        Support for Different Data Formats
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_annotation_schemes/" class="md-nav__link">
+        Support for Various Annotation Schemes
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_huggingface_datasets/" class="md-nav__link">
+        Seamless Use of Datasets from HuggingFace Datasets
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/support_special_tokens/" class="md-nav__link">
+        Special Token Support
       </a>
     </li>
   
@@ -465,6 +577,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#nerblackbox.modules.experiment_results.ExperimentResults.from_mlflow_runs" class="md-nav__link">
+    from_mlflow_runs()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.modules.experiment_results.ExperimentResults.set_best_model" class="md-nav__link">
+    set_best_model()
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -478,20 +604,52 @@
   
   
     <li class="md-nav__item">
-      <a href="../experiments_results/" class="md-nav__link">
-        ExperimentsResults
+      <a href="../ner_model_predict/" class="md-nav__link">
+        NerModelPredict
       </a>
     </li>
   
 
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" >
+      
+      <label class="md-nav__link" for="nav-5">
+        CLI
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="CLI" data-md-level="1">
+        <label class="md-nav__title" for="nav-5">
+          <span class="md-nav__icon md-icon"></span>
+          CLI
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
           
             
   
   
   
     <li class="md-nav__item">
-      <a href="../ner_model_predict/" class="md-nav__link">
-        NerModelPredict
+      <a href="../../cli/cli/" class="md-nav__link">
+        Overview
       </a>
     </li>
   
@@ -524,7 +682,7 @@
 <div class="doc doc-object doc-method">
 <h2 class="doc doc-heading" id="nerblackbox.modules.experiment_results.ExperimentResults.__init__">
 
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">single_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_single_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_average_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">single_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_single_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_average_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -543,6 +701,22 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>_id</code></td>
+<td><code>Optional[str]</code></td>
+<td>
+<p>e.g. '1'</p>
+</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>Optional[str]</code></td>
+<td>
+<p>e.g. 'my_experiment'</p>
+</td>
+<td><code>None</code></td>
+</tr>
 <tr>
 <td><code>experiment</code></td>
 <td><code>Optional[pandas.core.frame.DataFrame]</code></td>
@@ -595,6 +769,105 @@
 </table>
 </div>
 </div>
+<div class="doc doc-object doc-method">
+<h2 class="doc doc-heading" id="nerblackbox.modules.experiment_results.ExperimentResults.from_mlflow_runs">
+
+<code class="highlight language-python"><span class="n">from_mlflow_runs</span><span class="p">(</span><span class="n">_runs</span><span class="p">,</span> <span class="n">_experiment_id</span><span class="p">,</span> <span class="n">_experiment_name</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+      </h2>
+<div class="doc doc-contents ">
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_runs</code></td>
+<td><code>List[mlflow.entities.run.Run]</code></td>
+<td>
+<p>[List of mlflow.entities.Run]</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>_experiment_id</code></td>
+<td><code>str</code></td>
+<td>
+<p>[str], e.g. '0'</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>_experiment_name</code></td>
+<td><code>str</code></td>
+<td>
+<p>[str], e.g. 'my_experiment'</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExperimentResults</code></td>
+<td>
+<p>ExperimentResults instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h2 class="doc doc-heading" id="nerblackbox.modules.experiment_results.ExperimentResults.set_best_model">
+
+<code class="highlight language-python"><span class="n">set_best_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">best_model</span><span class="p">)</span></code>
+
+
+      </h2>
+<div class="doc doc-contents ">
+<p>set best model.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>best_model</code></td>
+<td><code>NerModelPredict</code></td>
+<td>
+<p>best model</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -631,13 +904,13 @@
           </a>
         
         
-          <a href="../experiments_results/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../ner_model_predict/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                ExperimentsResults
+                NerModelPredict
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -653,7 +926,7 @@
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2021 Arbetsförmedlingen (Felix Stollenwerk)
+            Copyright &copy; 2020 - 2022 Felix Stollenwerk
           </div>
         
         Made with

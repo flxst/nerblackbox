@@ -14,7 +14,7 @@
     
     
       
-        <title>Custom Experiments - nerblackbox</title>
+        <title>Multiple Runs with Different Random Seeds - nerblackbox</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#custom-experiments" class="md-skip">
+        <a href="#multiple-runs-with-different-random-seeds" class="md-skip">
           Skip to content
         </a>
       
@@ -96,7 +96,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              Custom Experiments
+              Multiple Runs with Different Random Seeds
             
           </span>
         </div>
@@ -161,16 +161,14 @@
         
   
   
-    
-  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="../getting_started/" class="md-tabs__link md-tabs__link--active">
-        Guide
+      <a href="../../usage/getting_started/" class="md-tabs__link">
+        Usage
       </a>
     </li>
   
@@ -179,14 +177,16 @@
         
   
   
+    
+  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="../../cli/cli/" class="md-tabs__link">
-        CLI
+      <a href="../overview/" class="md-tabs__link md-tabs__link--active">
+        Features
       </a>
     </li>
   
@@ -203,6 +203,22 @@
     <li class="md-tabs__item">
       <a href="../../python_api/overview/" class="md-tabs__link">
         Python API
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../cli/cli/" class="md-tabs__link">
+        CLI
       </a>
     </li>
   
@@ -266,23 +282,21 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" >
       
       <label class="md-nav__link" for="nav-2">
-        Guide
+        Usage
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="Guide" data-md-level="1">
+      <nav class="md-nav" aria-label="Usage" data-md-level="1">
         <label class="md-nav__title" for="nav-2">
           <span class="md-nav__icon md-icon"></span>
-          Guide
+          Usage
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -292,7 +306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting_started/" class="md-nav__link">
+      <a href="../../usage/getting_started/" class="md-nav__link">
         Getting Started
       </a>
     </li>
@@ -302,90 +316,11 @@
             
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Custom Experiments
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        Custom Experiments
+    <li class="md-nav__item">
+      <a href="../../usage/datasets_and_models/" class="md-nav__link">
+        Datasets and Models
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    Parameters
-  </a>
-  
-    <nav class="md-nav" aria-label="Parameters">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-dataset" class="md-nav__link">
-    1. Dataset
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-model" class="md-nav__link">
-    2. Model
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-settings" class="md-nav__link">
-    3. Settings
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-hyperparameters-optional" class="md-nav__link">
-    4. Hyperparameters (Optional)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-hyperparameters-mandatory" class="md-nav__link">
-    5. Hyperparameters (Mandatory)
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -395,8 +330,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../datasets_and_models/" class="md-nav__link">
-        Datasets and Models
+      <a href="../../usage/parameters/" class="md-nav__link">
+        Parameters and Presets
       </a>
     </li>
   
@@ -415,21 +350,23 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
       
       <label class="md-nav__link" for="nav-3">
-        CLI
+        Features
         <span class="md-nav__icon md-icon"></span>
       </label>
-      <nav class="md-nav" aria-label="CLI" data-md-level="1">
+      <nav class="md-nav" aria-label="Features" data-md-level="1">
         <label class="md-nav__title" for="nav-3">
           <span class="md-nav__icon md-icon"></span>
-          CLI
+          Features
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -439,8 +376,113 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli/cli/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adaptive_finetuning/" class="md-nav__link">
+        Adaptive Fine-tuning
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hyperparameter_search/" class="md-nav__link">
+        Hyperparameter Search
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Multiple Runs with Different Random Seeds
+      </a>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detailed_results/" class="md-nav__link">
+        Detailed Analysis of Training Results
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../support_pretokenized/" class="md-nav__link">
+        Support for Different Data Formats
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../support_annotation_schemes/" class="md-nav__link">
+        Support for Various Annotation Schemes
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../support_huggingface_datasets/" class="md-nav__link">
+        Seamless Use of Datasets from HuggingFace Datasets
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../support_special_tokens/" class="md-nav__link">
+        Special Token Support
       </a>
     </li>
   
@@ -519,20 +561,52 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/experiments_results/" class="md-nav__link">
-        ExperimentsResults
+      <a href="../../python_api/ner_model_predict/" class="md-nav__link">
+        NerModelPredict
       </a>
     </li>
   
 
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" >
+      
+      <label class="md-nav__link" for="nav-5">
+        CLI
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="CLI" data-md-level="1">
+        <label class="md-nav__title" for="nav-5">
+          <span class="md-nav__icon md-icon"></span>
+          CLI
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
           
             
   
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/ner_model_predict/" class="md-nav__link">
-        NerModelPredict
+      <a href="../../cli/cli/" class="md-nav__link">
+        Overview
       </a>
     </li>
   
@@ -557,340 +631,23 @@
               
                 
                 
-                <h1 id="custom-experiments">Custom Experiments</h1>
-<p>An experiment is defined by an experiment configuration file <code>./data/experiment_configs/&lt;experiment_name&gt;.ini</code>.</p>
-<p>Create your own <strong>custom experiment configuration</strong> with <code>&lt;experiment_name&gt; = custom_experiment</code>.</p>
-<details class="example"><summary>Example: custom_experiment.ini</summary><div class="highlight"><pre><span></span><code>[dataset]
-dataset_name = swedish_ner_corpus
-dataset_tags = iob
-prune_ratio_train = 0.1  # for testing
-prune_ratio_val = 1.0
-prune_ratio_test = 1.0
-
-[model]
-pretrained_model_name = af-ai-center/bert-base-swedish-uncased
-
-[settings]
-checkpoints = True
-logging_level = info
+                <h1 id="multiple-runs-with-different-random-seeds">Multiple Runs with Different Random Seeds</h1>
+<p>The results of a fine-tuning run depend on the employed random seed, see e.g. <a href="https://arxiv.org/abs/2202.02617">this paper</a> for a discussion. 
+One may conduct multiple runs with different seeds that are otherwise identical, in order to </p>
+<ul>
+<li>
+<p>get control over the uncertainties (see <a href="../detailed_results/">Detailed Analysis of Training Results</a>)</p>
+</li>
+<li>
+<p>get an improved model performance</p>
+</li>
+</ul>
+<p>Multiple runs can easily be specified in the experiment configuration.</p>
+<details class="example"><summary>Example: custom_experiment.ini (Settings / Multiple Runs)</summary><div class="highlight"><pre><span></span><code>[settings]
 multiple_runs = 3
-
-[hparams]
-max_epochs = 20
-monitor = val_loss
-min_delta = 0.0
-patience = 2
-mode = min
-lr_warmup_epochs = 1
-lr_num_cycles = 4
-
-[runA]
-batch_size = 16
-max_seq_length = 64
-lr_max = 2e-5
-lr_schedule = constant
-
-[runB]
-batch_size = 32
-max_seq_length = 128
-lr_max = 3e-5
-lr_schedule = cosine
+seed = 42
 </code></pre></div>
-</details>
-<p>In the following, we will go through the different parameters step by step to see what they mean.</p>
-<hr />
-<h2 id="parameters">Parameters</h2>
-<p>An experiment configuration contains the following <strong>parameter groups</strong>:</p>
-<ol>
-<li>Dataset</li>
-<li>Model</li>
-<li>Settings</li>
-<li>Hyperparameters (Optional)</li>
-<li>Hyperparameters (Mandatory)</li>
-</ol>
-<p>Some parameters are <strong>mandatory</strong> (i.e. they have to be included in an experiment configuration), 
-others are <strong>optional</strong> and are set to default values if not specified.</p>
-<hr />
-<h3 id="1-dataset">1. Dataset</h3>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Mandatory</th>
-<th>Default Value</th>
-<th>Type</th>
-<th>Values</th>
-<th>Comment</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>dataset_name</td>
-<td>Yes</td>
-<td>---</td>
-<td>str</td>
-<td>e.g. conll2003</td>
-<td><a href="../datasets_and_models/#built-in-datasets">Built-in Dataset</a> or <a href="../datasets_and_models/#custom-datasets">Custom Dataset</a></td>
-</tr>
-<tr>
-<td>dataset_type</td>
-<td>Yes</td>
-<td>---</td>
-<td>str</td>
-<td>iob, plain</td>
-<td>specify if dataset tags are in <a href="https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging)">IOB</a> or plain format</td>
-</tr>
-<tr>
-<td>prune_ratio_train</td>
-<td>No</td>
-<td>1.0</td>
-<td>float</td>
-<td>0.0 - 1.0</td>
-<td>fraction of train dataset to be used</td>
-</tr>
-<tr>
-<td>prune_ratio_val</td>
-<td>No</td>
-<td>1.0</td>
-<td>float</td>
-<td>0.0 - 1.0</td>
-<td>fraction of val   dataset to be used</td>
-</tr>
-<tr>
-<td>prune_ratio_test</td>
-<td>No</td>
-<td>1.0</td>
-<td>float</td>
-<td>0.0 - 1.0</td>
-<td>fraction of test  dataset to be used</td>
-</tr>
-</tbody>
-</table>
-<details class="example"><summary>Example: custom_experiment.ini (Dataset)</summary><div class="highlight"><pre><span></span><code>[dataset]
-dataset_name = swedish_ner_corpus
-dataset_tags = iob
-prune_ratio_train = 0.1  # for testing
-prune_ratio_val = 1.0
-prune_ratio_test = 1.0
-</code></pre></div>
-</details>
-<hr />
-<h3 id="2-model">2. Model</h3>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Mandatory</th>
-<th>Default Value</th>
-<th>Type</th>
-<th>Values</th>
-<th>Comment</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>pretrained_model_name</td>
-<td>Yes</td>
-<td>---</td>
-<td>str</td>
-<td>e.g. af-ai-center/bert-base-swedish-uncased</td>
-<td><a href="../datasets_and_models/#built-in-models">Built-in Model</a> or <a href="../datasets_and_models/#custom-models">Custom Model</a></td>
-</tr>
-</tbody>
-</table>
-<details class="example"><summary>Example: custom_experiment.ini (Model)</summary><div class="highlight"><pre><span></span><code>[model]
-pretrained_model_name = af-ai-center/bert-base-swedish-uncased
-</code></pre></div>
-</details>
-<hr />
-<h3 id="3-settings">3. Settings</h3>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Mandatory</th>
-<th>Default Value</th>
-<th>Type</th>
-<th>Values</th>
-<th>Comment</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>checkpoints</td>
-<td>No</td>
-<td>True</td>
-<td>bool</td>
-<td>True, False</td>
-<td>whether to save model checkpoints</td>
-</tr>
-<tr>
-<td>logging_level</td>
-<td>No</td>
-<td>info</td>
-<td>str</td>
-<td>info, debug</td>
-<td>choose <a href="https://docs.python.org/3/library/logging.html#levels">logging level</a>, debug is more verbose</td>
-</tr>
-<tr>
-<td>multiple_runs</td>
-<td>No</td>
-<td>1</td>
-<td>int</td>
-<td>1+</td>
-<td>choose how often each hyperparameter run is executed (to control for statistical uncertainties)</td>
-</tr>
-</tbody>
-</table>
-<details class="example"><summary>Example: custom_experiment.ini (Settings)</summary><div class="highlight"><pre><span></span><code>[settings]
-checkpoints = True
-logging_level = info
-multiple_runs = 3
-</code></pre></div>
-</details>
-<hr />
-<h3 id="4-hyperparameters-optional">4. Hyperparameters (Optional)</h3>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Mandatory</th>
-<th>Default Value</th>
-<th>Type</th>
-<th>Values</th>
-<th>Comment</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>max_epochs</td>
-<td>No</td>
-<td>20</td>
-<td>int</td>
-<td>1+</td>
-<td>maximum amount of training epochs</td>
-</tr>
-<tr>
-<td>monitor</td>
-<td>No</td>
-<td>val_loss</td>
-<td>str</td>
-<td>val_loss, val_acc</td>
-<td>metric to monitor for early stopping (acc = accuracy)</td>
-</tr>
-<tr>
-<td>min_delta</td>
-<td>No</td>
-<td>0.0</td>
-<td>float</td>
-<td>0.0+</td>
-<td>minimum amount of improvement (w.r.t. monitored metric) required to continue training (i.e. not employ early stopping)</td>
-</tr>
-<tr>
-<td>patience</td>
-<td>No</td>
-<td>2</td>
-<td>int</td>
-<td>0+</td>
-<td>number of epochs to wait for improvement w.r.t. monitored metric until early stopping is employed</td>
-</tr>
-<tr>
-<td>mode</td>
-<td>No</td>
-<td>min</td>
-<td>str</td>
-<td>min, max</td>
-<td>whether the optimum for the monitored metric is the minimum (val_loss) or maximum (val_acc) value</td>
-</tr>
-<tr>
-<td>lr_warmup_epochs</td>
-<td>No</td>
-<td>1</td>
-<td>int</td>
-<td>0+</td>
-<td>number of epochs to gradually increase the learning rate during the warm-up phase, gets translated to <a href="https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_scheduler">num_warmup_steps</a></td>
-</tr>
-<tr>
-<td>lr_num_cycles</td>
-<td>No</td>
-<td>4</td>
-<td>int</td>
-<td>1+</td>
-<td>num_cycles for <a href="https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_schedule_with_warmup">lr_schedule = cosine</a> or <a href="https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.get_cosine_with_hard_restarts_schedule_with_warmup">lr_schedule = cosine_with_hard_restarts</a></td>
-</tr>
-</tbody>
-</table>
-<details class="example"><summary>Example: custom_experiment.ini (Hyperparameters Optional)</summary><div class="highlight"><pre><span></span><code>[hparams]
-max_epochs = 20
-monitor = val_loss
-min_delta = 0.0
-patience = 2
-mode = min
-lr_warmup_epochs = 1
-lr_num_cycles = 4
-</code></pre></div>
-</details>
-<hr />
-<h3 id="5-hyperparameters-mandatory">5. Hyperparameters (Mandatory)</h3>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Mandatory</th>
-<th>Default Value</th>
-<th>Type</th>
-<th>Values</th>
-<th>Comment</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>batch_size</td>
-<td>Yes</td>
-<td>---</td>
-<td>int</td>
-<td>e.g. 16, 32, 64</td>
-<td>number of training samples in one batch</td>
-</tr>
-<tr>
-<td>max_seq_length</td>
-<td>Yes</td>
-<td>---</td>
-<td>int</td>
-<td>e.g. 64, 128, 256</td>
-<td>maximum sequence length used for model's input data</td>
-</tr>
-<tr>
-<td>lr_max</td>
-<td>Yes</td>
-<td>---</td>
-<td>float</td>
-<td>e.g. 2e-5, 3e-5</td>
-<td>maximum learning rate (after warm-up) for <a href="https://huggingface.co/transformers/main_classes/optimizer_schedules.html#transformers.AdamW">AdamW optimizer</a></td>
-</tr>
-<tr>
-<td>lr_schedule</td>
-<td>Yes</td>
-<td>---</td>
-<td>str</td>
-<td>constant, linear, cosine, cosine_with_hard_restarts</td>
-<td><a href="https://huggingface.co/transformers/main_classes/optimizer_schedules.html#schedules">Learning Rate Schedule</a>, i.e. how to vary the learning rate (after warm-up)</td>
-</tr>
-</tbody>
-</table>
-<details class="example" open="open"><summary>Example: custom_experiment.ini (Hyperparameters Mandatory)</summary><div class="highlight"><pre><span></span><code>[runA]
-batch_size = 16
-max_seq_length = 64
-lr_max = 2e-5
-lr_schedule = constant
-
-[runB]
-batch_size = 32
-max_seq_length = 128
-lr_max = 3e-5
-lr_schedule = cosine
-</code></pre></div>
-<p>This creates <strong>2 hyperparameter runs</strong> (<code>runA</code> &amp; <code>runB</code>). Each hyperparameter run is executed <strong>multiple_runs</strong> times (see <a href="#3-settings">3. Settings</a>).</p>
+<p>This creates 3 runs with seeds 43, 44 and 45.</p>
 </details>
                 
               
@@ -910,7 +667,7 @@ lr_schedule = cosine
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../getting_started/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../hyperparameter_search/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -919,19 +676,19 @@ lr_schedule = cosine
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Getting Started
+                Hyperparameter Search
               </div>
             </div>
           </a>
         
         
-          <a href="../datasets_and_models/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../detailed_results/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Datasets and Models
+                Detailed Analysis of Training Results
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
@@ -947,7 +704,7 @@ lr_schedule = cosine
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2021 Arbetsförmedlingen (Felix Stollenwerk)
+            Copyright &copy; 2020 - 2022 Felix Stollenwerk
           </div>
         
         Made with
