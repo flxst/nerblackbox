@@ -103,7 +103,7 @@ In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is e
     ??? note "get main results"
         === "Python"
             ``` python
-            experiment_results = nerbb.get_experiment_results("<experiment_name>")
+            experiment_results = nerbb.get_experiment_results("<experiment_name>")  # List[ExperimentResults]
             ```
         === "CLI"
             ``` bash
@@ -137,7 +137,7 @@ In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is e
     ??? note "get overview of all experiments' main results"
         === "Python"
             ``` python
-            experiment_results_all = nerbb.get_experiment_results("all")  # List[ExperimentResult]
+            experiment_results_all = nerbb.get_experiment_results("all")  # List[ExperimentResults]
             ```
         === "CLI"
             ``` bash
