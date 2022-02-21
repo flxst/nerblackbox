@@ -191,11 +191,13 @@ def run_experiment(ctx, experiment_name: str):
 @nerbb.command(name="set_up_dataset")
 @click.pass_context
 @click.argument("dataset_name")
-def set_up_dataset(ctx, dataset_name: str):
+@click.argument("dataset_subset_name")
+def set_up_dataset(ctx, dataset_name: str, dataset_subset_name: str = ""):
     """set up a dataset using the associated Formatter class."""
     kwargs = {
         "flag": "set_up_dataset",
         "dataset_name": dataset_name,
+        "dataset_subset_name": dataset_subset_name,
     }
     _run_nerblackbox_main(ctx.obj, kwargs)
 

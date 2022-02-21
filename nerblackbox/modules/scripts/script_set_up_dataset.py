@@ -15,7 +15,7 @@ def main(args):
     """
     with mlflow.start_run(run_name="Default"):
         # formatter
-        formatter = AutoFormatter.for_dataset(args.ner_dataset)
+        formatter = AutoFormatter.for_dataset(args.ner_dataset, args.ner_dataset_subset)
 
         formatter.create_directory()
         formatter.get_data(verbose=args.verbose)  # I: get_data
@@ -32,6 +32,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--ner_dataset", required=True, type=str, help="e.g. swedish_ner_corpus"
+    )
+    parser.add_argument(
+        "--ner_dataset_subset", required=False, type=str, default=None, help="e.g. simple_cased"
     )
     parser.add_argument("--modify", type=bool, default=True)
     parser.add_argument("--val_fraction", type=float, default=0.3)

@@ -185,17 +185,19 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("run_experiment", **kwargs)
         nerbb.main()
 
-    def set_up_dataset(self, dataset_name: str, **kwargs_optional: Dict):
+    def set_up_dataset(self, dataset_name: str, dataset_subset_name: str = "", **kwargs_optional: Dict):
         """set up a dataset using the associated Formatter class.
 
         Args:
             dataset_name: e.g. "swedish_ner_corpus"
+            dataset_subset_name: e.g. "simple_cased"
             kwargs_optional: with optional key-value pairs \
             {"modify": [bool], "val_fraction": [float], "verbose": [bool]}
         """
 
         kwargs = self._process_kwargs_optional(kwargs_optional)
         kwargs["dataset_name"] = dataset_name
+        kwargs["dataset_subset_name"] = dataset_subset_name
 
         nerbb = NerBlackBoxMain("set_up_dataset", **kwargs)
         nerbb.main()

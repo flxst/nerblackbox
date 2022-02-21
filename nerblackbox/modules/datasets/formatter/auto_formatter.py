@@ -1,3 +1,4 @@
+from typing import Optional
 from nerblackbox.modules.datasets.formatter.swedish_ner_corpus_formatter import (
     SwedishNerCorpusFormatter,
 )
@@ -15,10 +16,11 @@ from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter impor
 
 class AutoFormatter:
     @staticmethod
-    def for_dataset(ner_dataset: str) -> BaseFormatter:
+    def for_dataset(ner_dataset: str, ner_dataset_subset: Optional[str] = "") -> BaseFormatter:
         """
         Args:
             ner_dataset: e.g. "conll2003"
+            ner_dataset_subset: e.g. "simple_cased"
 
         Returns:
             formatter: e.g. CoNLL2003Formatter
@@ -34,21 +36,23 @@ class AutoFormatter:
         elif ner_dataset == "swe_nerc":
             return SweNercFormatter()
         else:  # huggingface datasets
-            if HuggingfaceDatasetsFormatter.check_existence(ner_dataset):
+            existence, error_msg = HuggingfaceDatasetsFormatter.check_existence(ner_dataset, ner_dataset_subset)
+            if existence:
                 print(f"> ner_dataset = {ner_dataset} found in huggingface datasets")
             else:
-                raise Exception(f"ner_dataset = {ner_dataset} unknown.")
+                raise Exception(error_msg)
 
-            if HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset):
+            compatibility, error_msg = HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset, ner_dataset_subset)
+            if compatibility:
                 print(f"> ner_dataset = {ner_dataset} contains train/val/test splits")
             else:
-                raise Exception(
-                    f"ner_dataset = {ner_dataset} does not contain train/val/test splits."
-                )
+                raise Exception(error_msg)
 
-            if HuggingfaceDatasetsFormatter.check_implementation(ner_dataset):
+            implementation, error_msg = HuggingfaceDatasetsFormatter.check_implementation(ner_dataset,
+                                                                                          ner_dataset_subset)
+            if implementation:
                 print(f"> ner_dataset = {ner_dataset} can be parsed")
             else:
-                raise Exception(f"ner_dataset = {ner_dataset} can not be parsed.")
+                raise Exception(error_msg)
 
-            return HuggingfaceDatasetsFormatter(ner_dataset)
+            return HuggingfaceDatasetsFormatter(ner_dataset, ner_dataset_subset)

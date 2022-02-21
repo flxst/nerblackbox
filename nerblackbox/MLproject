@@ -21,12 +21,14 @@ entry_points:
   set_up_dataset:
     parameters:
       ner_dataset: {type: string}
+      ner_dataset_subset: {type: string}
       modify: {type: int}
       val_fraction: {type: float}
       verbose: {type: int}
     command: |
         python modules/scripts/script_set_up_dataset.py \
         --ner_dataset {ner_dataset} \
+        --ner_dataset_subset {ner_dataset_subset} \
         --modify {modify} \
         --val_fraction {val_fraction} \
         --verbose {verbose}

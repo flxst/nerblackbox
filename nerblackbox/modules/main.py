@@ -30,6 +30,7 @@ class NerBlackBoxMain:
         flag: str,
         usage: str = "cli",
         dataset_name: Optional[str] = None,  # analyze_data & set_up_dataset
+        dataset_subset_name: Optional[str] = None,  # set_up_dataset
         modify: bool = True,  # set_up_dataset
         val_fraction: float = 0.3,  # set_up_dataset
         verbose: bool = False,
@@ -46,23 +47,24 @@ class NerBlackBoxMain:
         results: bool = False,  # clear_data
     ):
         """
-        :param flag:            [str], e.g. 'analyze_data', 'set_up_dataset', 'run_experiment', ..
-        :param usage:           [str] 'cli' or 'api'
-        :param dataset_name:    [str] e.g. 'swedish_ner_corpus'
-        :param modify:          [bool] if True: modify tags as specified in method modify_ner_tag_mapping()
-        :param val_fraction:    [float] e.g. 0.3
-        :param verbose:         [bool]
-        :param experiment_name: [str], e.g. 'exp0'
-        :param hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
-        :param from_preset:     [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
-        :param from_config:     [bool] if True, get experiment params & hparams from config file   [ALTERNATIVE]
-        :param run_name:        [str or None], e.g. 'runA'
-        :param device:          [str]
-        :param fp16:            [bool]
-        :param text_input:      [str], e.g. 'this is some text that needs to be annotated'
-        :param ids:             [tuple of str], experiment_ids to include
-        :param as_df:           [bool] if True, return pandas DataFrame, else return dict
-        :param results:         [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
+        :param flag:                [str], e.g. 'analyze_data', 'set_up_dataset', 'run_experiment', ..
+        :param usage:               [str] 'cli' or 'api'
+        :param dataset_name:        [str] e.g. 'swedish_ner_corpus'
+        :param dataset_subset_name: [str] e.g. 'simple_cased'
+        :param modify:              [bool] if True: modify tags as specified in method modify_ner_tag_mapping()
+        :param val_fraction:        [float] e.g. 0.3
+        :param verbose:             [bool]
+        :param experiment_name:     [str], e.g. 'exp0'
+        :param hparams:             [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
+        :param from_preset:         [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
+        :param from_config:         [bool] if True, get experiment params & hparams from config file   [ALTERNATIVE]
+        :param run_name:            [str or None], e.g. 'runA'
+        :param device:              [str]
+        :param fp16:                [bool]
+        :param text_input:          [str], e.g. 'this is some text that needs to be annotated'
+        :param ids:                 [tuple of str], experiment_ids to include
+        :param as_df:               [bool] if True, return pandas DataFrame, else return dict
+        :param results:             [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
         """
         self._assert_flag(flag)
 
@@ -71,6 +73,7 @@ class NerBlackBoxMain:
         self.flag = flag
         self.usage = usage
         self.dataset_name = dataset_name  # analyze_data & set_up_dataset
+        self.dataset_subset_name = dataset_subset_name  # set_up_dataset
         self.modify = modify  # set_up_dataset
         self.val_fraction = val_fraction  # set_up_dataset
         self.verbose = verbose
@@ -151,7 +154,7 @@ class NerBlackBoxMain:
         ################################################################################################################
         elif self.flag == "download":
             for _dataset_name in DATASETS_DOWNLOAD:
-                self.set_up_dataset(_dataset_name)
+                self.set_up_dataset(_dataset_name, "")
 
         ################################################################################################################
         # analyze_data
@@ -165,7 +168,8 @@ class NerBlackBoxMain:
         ################################################################################################################
         elif self.flag == "set_up_dataset":
             self._assert_flag_arg("dataset_name")
-            self.set_up_dataset(self.dataset_name)
+            self._assert_flag_arg("dataset_subset_name")
+            self.set_up_dataset(self.dataset_name, self.dataset_subset_name)
 
         ################################################################################################################
         # show_experiment_config
@@ -465,16 +469,18 @@ class NerBlackBoxMain:
         self._get_experiments()  # needs to updated to get results from experiment that was run
         self.get_experiment_results()
 
-    def set_up_dataset(self, _dataset_name: str) -> None:
+    def set_up_dataset(self, _dataset_name: str, _dataset_subset_name: str) -> None:
         """
-        :param _dataset_name:    [str] e.g. 'swedish_ner_corpus'
-        :used attr: modify       [bool] if True: modify tags as specified in method modify_ner_tag_mapping()
-        :used attr: val_fraction [float] e.g. 0.3
-        :used attr: verbose      [bool]
+        :param _dataset_name:        [str] e.g. 'swedish_ner_corpus'
+        :param _dataset_subset_name: [str] e.g. 'simple_cased'
+        :used attr: modify           [bool] if True: modify tags as specified in method modify_ner_tag_mapping()
+        :used attr: val_fraction     [float] e.g. 0.3
+        :used attr: verbose          [bool]
         """
 
         _parameters = {
             "ner_dataset": _dataset_name,
+            "ner_dataset_subset": _dataset_subset_name,
             "modify": self.modify,
             "val_fraction": self.val_fraction,
             "verbose": self.verbose,

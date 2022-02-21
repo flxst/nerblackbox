@@ -20,6 +20,10 @@ class TestHuggingfaceDatasetsFormatter:
     formatter_pretokenized = HuggingfaceDatasetsFormatter(
         "conll2003"
     )  # use any ner_dataset that works
+    formatter_pretokenized_subset = HuggingfaceDatasetsFormatter(
+        "wikiann",
+        "ace"
+    )  # use any ner_dataset that works
     formatter_unpretokenized = HuggingfaceDatasetsFormatter(
         "ehealth_kd"
     )  # use any ner_dataset that works
@@ -28,17 +32,20 @@ class TestHuggingfaceDatasetsFormatter:
     # check_existence()
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "ner_dataset, existence",
+        "ner_dataset, ner_dataset_subset, existence",
         [
-            (["ehealth_kd", True]),
-            (["conll2003", True]),
-            (["swedish_ner_corpus", True]),
-            (["sent_comp", True]),
-            (["this_dataset_does_not_exist", False]),
+            (["ehealth_kd", "", True]),
+            (["conll2003", "", True]),
+            (["conll2003", "this_subset_does_not_exist", False]),
+            (["wikiann", "ace", True]),
+            (["wikiann", "this_subset_does_not_exist", False]),
+            (["swedish_ner_corpus", "", True]),
+            (["sent_comp", "", True]),
+            (["this_dataset_does_not_exist", "", False]),
         ],
     )
-    def test_check_existence(self, ner_dataset: str, existence: bool):
-        test_existence = HuggingfaceDatasetsFormatter.check_existence(ner_dataset)
+    def test_check_existence(self, ner_dataset: str, ner_dataset_subset: str, existence: bool):
+        test_existence, _ = HuggingfaceDatasetsFormatter.check_existence(ner_dataset, ner_dataset_subset)
         assert (
             test_existence == existence
         ), f"ERROR! test_existence = {test_existence} != {existence} for ner_dataset = {ner_dataset}"
@@ -47,21 +54,23 @@ class TestHuggingfaceDatasetsFormatter:
     # check_compatibility()
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "ner_dataset, compatibility",
+        "ner_dataset, ner_dataset_subset, compatibility",
         [
-            (["ehealth_kd", True]),
-            (["conll2003", True]),
+            (["ehealth_kd", "", True]),
+            (["conll2003", "", True]),
+            (["wikiann", "ace", True]),
             (
                 [
                     "swedish_ner_corpus",
+                    "",
                     False,  # only train & test on huggingface datasets
                 ]
             ),
-            (["sent_comp", False]),  # only train & validation on huggingface datasets
+            (["sent_comp", "", False]),  # only train & validation on huggingface datasets
         ],
     )
-    def test_check_compatibility(self, ner_dataset: str, compatibility: bool):
-        test_compability = HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset)
+    def test_check_compatibility(self, ner_dataset: str, ner_dataset_subset: str, compatibility: bool):
+        test_compability, _ = HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset, ner_dataset_subset)
         assert (
             test_compability == compatibility
         ), f"ERROR! test_compatibility = {test_compability} != {compatibility} for ner_dataset = {ner_dataset}"
@@ -70,17 +79,19 @@ class TestHuggingfaceDatasetsFormatter:
     # check_implementation()
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "ner_dataset, implementation",
+        "ner_dataset, ner_dataset_subset, implementation",
         [
-            (["ehealth_kd", True]),  # ['entities'][0]['ent_label'].names
-            (["conll2003", True]),  # ['ner_tags'].feature.names
-            (["swedish_ner_corpus", True]),  # ['ner_tags'].feature.names
-            (["sent_comp", False]),
+            (["ehealth_kd", "", True]),  # ['entities'][0]['ent_label'].names
+            (["conll2003", "", True]),  # ['ner_tags'].feature.names
+            (["wikiann", "ace", True]),  # ['ner_tags'].feature.names
+            (["swedish_ner_corpus", "", True]),  # ['ner_tags'].feature.names
+            (["sent_comp", "", False]),
         ],
     )
-    def test_check_implementation(self, ner_dataset: str, implementation: bool):
-        test_implementation = HuggingfaceDatasetsFormatter.check_implementation(
-            ner_dataset
+    def test_check_implementation(self, ner_dataset: str, ner_dataset_subset: str, implementation: bool):
+        test_implementation, _ = HuggingfaceDatasetsFormatter.check_implementation(
+            ner_dataset,
+            ner_dataset_subset
         )
         assert (
             test_implementation == implementation
@@ -90,11 +101,12 @@ class TestHuggingfaceDatasetsFormatter:
     # get_info()
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "ner_dataset, info",
+        "ner_dataset, ner_dataset_subset, info",
         [
             (
                 [
                     "ehealth_kd",
+                    "",
                     (
                         True,  # ['entities'][0]['ent_label'].names
                         ["Concept", "Action", "Predicate", "Reference"],
@@ -115,6 +127,7 @@ class TestHuggingfaceDatasetsFormatter:
             (
                 [
                     "conll2003",
+                    "",
                     (
                         True,  # ['ner_tags'].feature.names
                         [
@@ -135,7 +148,28 @@ class TestHuggingfaceDatasetsFormatter:
             ),
             (
                 [
+                    "wikiann",
+                    "ace",
+                    (
+                        True,  # ['ner_tags'].feature.names
+                        [
+                            "O",
+                            "B-PER",
+                            "I-PER",
+                            "B-ORG",
+                            "I-ORG",
+                            "B-LOC",
+                            "I-LOC",
+                        ],
+                        True,
+                        {"text": "tokens", "tags": "ner_tags", "mapping": None},
+                    ),
+                ]
+            ),
+            (
+                [
                     "swedish_ner_corpus",
+                    "",
                     (
                         True,  # ['ner_tags'].feature.names
                         ["0", "LOC", "MISC", "ORG", "PER"],
@@ -147,6 +181,7 @@ class TestHuggingfaceDatasetsFormatter:
             (
                 [
                     "sent_comp",
+                    "",
                     (
                         False,
                         None,
@@ -160,12 +195,13 @@ class TestHuggingfaceDatasetsFormatter:
     def test_get_info(
         self,
         ner_dataset: str,
+        ner_dataset_subset: str,
         info: Tuple[
             bool, Optional[List[str]], Optional[bool], Optional[Dict[str, str]]
         ],
     ):
         print(ner_dataset)
-        test_info = HuggingfaceDatasetsFormatter.get_infos(ner_dataset)
+        test_info = HuggingfaceDatasetsFormatter.get_infos(ner_dataset, ner_dataset_subset)
         print(test_info)
         for k in range(len(test_info)):
             assert (
@@ -176,14 +212,15 @@ class TestHuggingfaceDatasetsFormatter:
     # get_ner_tag_list()
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "ner_dataset, ner_tag_list",
+        "ner_dataset, ner_dataset_subset, ner_tag_list",
         [
-            (["conll2003", ["LOC", "MISC", "ORG", "PER"]]),
-            (["ehealth_kd", ["Action", "Concept", "Predicate", "Reference"]]),
+            (["conll2003", "", ["LOC", "MISC", "ORG", "PER"]]),
+            (["wikiann", "ace", ["LOC", "ORG", "PER"]]),
+            (["ehealth_kd", "", ["Action", "Concept", "Predicate", "Reference"]]),
         ],
     )
-    def test_get_ner_tag_list(self, ner_dataset: str, ner_tag_list: List[str]):
-        formatter = HuggingfaceDatasetsFormatter(ner_dataset)
+    def test_get_ner_tag_list(self, ner_dataset: str, ner_dataset_subset: str, ner_tag_list: List[str]):
+        formatter = HuggingfaceDatasetsFormatter(ner_dataset, ner_dataset_subset)
         assert (
             formatter.ner_tag_list == ner_tag_list
         ), f"ERROR! test_ner_tag_list = {formatter.ner_tag_list} != {ner_tag_list}"
