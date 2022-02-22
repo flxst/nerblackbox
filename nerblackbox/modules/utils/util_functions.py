@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, List, Optional, Dict, Any
+from typing import Tuple, List, Optional
 import numpy as np
 from os.path import join, isfile
 import json
@@ -26,17 +26,21 @@ def get_available_datasets() -> List[str]:
     ]
 
 
-def get_dataset_path(dataset: str) -> str:
+def get_dataset_path(dataset: str, subset: str = "") -> str:
     """
     get dataset path for dataset
 
     Args:
         dataset: e.g. 'suc', 'swedish_ner_corpus'
+        subset: e.g. 'original_cased'
 
     Returns:
         dataset_path: path to dataset directory
     """
-    return join(env_variable("DIR_DATASETS"), dataset)
+    if len(subset):
+        return join(env_variable("DIR_DATASETS"), dataset, subset)
+    else:
+        return join(env_variable("DIR_DATASETS"), dataset)
 
 
 def read_special_tokens(dataset: str) -> List[str]:

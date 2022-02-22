@@ -4,6 +4,7 @@ from nerblackbox.modules.datasets.formatter.swedish_ner_corpus_formatter import 
 )
 from nerblackbox.modules.datasets.formatter.sic_formatter import SICFormatter
 from nerblackbox.modules.datasets.formatter.suc_formatter import SUCFormatter
+from nerblackbox.modules.datasets.formatter.sucx_formatter import SUCXFormatter
 from nerblackbox.modules.datasets.formatter.conll2003_formatter import (
     CoNLL2003Formatter,
 )
@@ -33,6 +34,9 @@ class AutoFormatter:
             return SICFormatter()
         elif ner_dataset == "suc":
             return SUCFormatter()
+        elif ner_dataset == "sucx":
+            assert len(ner_dataset_subset), f"ERROR! for sucx, a subset needs to be specified."
+            return SUCXFormatter(ner_dataset_subset)
         elif ner_dataset == "swe_nerc":
             return SweNercFormatter()
         else:  # huggingface datasets

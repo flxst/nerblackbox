@@ -24,15 +24,16 @@ SENTENCES_ROWS = Union[SENTENCES_ROWS_PRETOKENIZED, SENTENCES_ROWS_UNPRETOKENIZE
 
 
 class BaseFormatter(ABC):
-    def __init__(self, ner_dataset: str, ner_tag_list: List[str]):
+    def __init__(self, ner_dataset: str, ner_tag_list: List[str], ner_dataset_subset: str = ""):
         """
         Args:
             ner_dataset:  'swedish_ner_corpus' or 'suc'
             ner_tag_list: e.g. ['PER', 'LOC', ..]
+            ner_dataset_subset: e.g. 'original_cased'
         """
         self.ner_dataset: str = ner_dataset
         self.ner_tag_list: List[str] = ner_tag_list
-        self.dataset_path: str = get_dataset_path(ner_dataset)
+        self.dataset_path: str = get_dataset_path(ner_dataset, ner_dataset_subset)
         self.file_name: Dict[str, str] = {}
         self.analyzer = Analyzer(self.ner_dataset, self.ner_tag_list, self.dataset_path)
 
@@ -130,9 +131,7 @@ class BaseFormatter(ABC):
         """
         0: create directory for dataset
         """
-        directory_path = (
-            f'{env_variable("DIR_DATASETS")}/{self.ner_dataset}/analyze_data'
-        )
+        directory_path = join(self.dataset_path, 'analyze_data')
         os.makedirs(directory_path, exist_ok=True)
 
         bash_cmd = (
@@ -157,9 +156,7 @@ class BaseFormatter(ABC):
         else:
             ner_tag_mapping = dict()
 
-        json_path = (
-            f'{env_variable("DIR_DATASETS")}/{self.ner_dataset}/ner_tag_mapping.json'
-        )
+        json_path = join(self.dataset_path, 'ner_tag_mapping.json')
         with open(json_path, "w") as f:
             json.dump(ner_tag_mapping, f)
 

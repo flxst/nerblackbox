@@ -5,7 +5,6 @@ import pandas as pd
 from nerblackbox.modules.datasets.formatter.auto_formatter import AutoFormatter
 from nerblackbox.modules.datasets.formatter.base_formatter import (
     BaseFormatter,
-    SENTENCES_ROWS,
     SENTENCES_ROWS_PRETOKENIZED,
 )
 from nerblackbox.modules.datasets.formatter.conll2003_formatter import (
@@ -17,6 +16,7 @@ from nerblackbox.modules.datasets.formatter.swedish_ner_corpus_formatter import 
 )
 from nerblackbox.modules.datasets.formatter.sic_formatter import SICFormatter
 from nerblackbox.modules.datasets.formatter.suc_formatter import SUCFormatter
+from nerblackbox.modules.datasets.formatter.sucx_formatter import SUCXFormatter
 from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter import (
     HuggingfaceDatasetsFormatter,
 )
@@ -32,24 +32,27 @@ os.environ["DATA_DIR"] = DATA_DIR
 
 class TestAutoFormatter:
     @pytest.mark.parametrize(
-        "ner_dataset, error",
+        "ner_dataset, ner_dataset_subset, error",
         [
-            ("swedish_ner_corpus", False),
-            ("conll2003", False),
-            ("sic", False),
-            ("suc", False),
-            ("swe_nerc", False),
-            ("xyz", True),
-            ("ehealth_kd", False),
-            ("sent_comp", True),
+            ("swedish_ner_corpus", "", False),
+            ("conll2003", "", False),
+            ("sic", "", False),
+            ("suc", "", False),
+            ("suc", "xyz", False),  # ner_dataset_subset is not used
+            ("sucx", "original_cased", False),
+            ("sucx", "", True),
+            ("swe_nerc", "", False),
+            ("xyz", "", True),
+            ("ehealth_kd", "", False),
+            ("sent_comp", "", True),
         ],
     )
-    def test_for_dataset(self, ner_dataset: str, error: bool):
+    def test_for_dataset(self, ner_dataset: str, ner_dataset_subset: str, error: bool):
         if error:
             with pytest.raises(Exception):
-                _ = AutoFormatter.for_dataset(ner_dataset=ner_dataset)
+                _ = AutoFormatter.for_dataset(ner_dataset=ner_dataset, ner_dataset_subset=ner_dataset_subset)
         else:
-            auto_formatter = AutoFormatter.for_dataset(ner_dataset=ner_dataset)
+            auto_formatter = AutoFormatter.for_dataset(ner_dataset=ner_dataset, ner_dataset_subset=ner_dataset_subset)
             assert isinstance(
                 auto_formatter, BaseFormatter
             ), f"ERROR! type(auto_formatter) = {type(auto_formatter)} != BaseFormatter"
@@ -250,6 +253,7 @@ class TestAllFormatters:
         "swedish_ner_corpus": SwedishNerCorpusFormatter(),
         "sic": SICFormatter(),
         "suc": SUCFormatter(),
+        "sucx": SUCXFormatter("original_cased"),
         "ehealth_kd": HuggingfaceDatasetsFormatter("ehealth_kd"),
     }
 
@@ -261,6 +265,7 @@ class TestAllFormatters:
             "swedish_ner_corpus",
             "sic",
             "suc",
+            "sucx",
             "ehealth_kd",
         ],
     )

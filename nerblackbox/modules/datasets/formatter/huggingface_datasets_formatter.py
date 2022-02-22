@@ -15,7 +15,6 @@ from nerblackbox.modules.datasets.formatter.base_formatter import (
     SENTENCES_ROWS_PRETOKENIZED,
     SENTENCES_ROWS_UNPRETOKENIZED,
 )
-from nerblackbox.modules.datasets.formatter.huggingface_datasets_tags import get_hardcoded_tags
 
 
 class HuggingfaceDatasetsFormatter(BaseFormatter):
