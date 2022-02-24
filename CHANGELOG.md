@@ -1,6 +1,15 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.13 (2022-??-??)
+#### Added
+- HuggingFace datasets integration: enable subsets
+- HuggingFace datasets: support for sucx_ner
+
+#### Changed
+- API: load best model of experiment directly (instead of via ExperimentResults)
+- upgrade pytorch-lightning
+
 ## 0.0.12 (2022-02-14)
 #### Added
 - Adaptive fine-tuning

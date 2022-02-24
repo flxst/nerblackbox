@@ -14,6 +14,9 @@ from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
 from nerblackbox.modules.experiment_config.preset import get_preset
 from nerblackbox.modules.utils.parameters import DATASET, MODEL, SETTINGS, HPARAMS
+from nerblackbox.modules.ner_training.ner_model_predict import (
+    NerModelPredict,
+)
 from typing import Optional, Tuple, Union, Dict, List
 
 DATASETS_DOWNLOAD = [
@@ -200,6 +203,13 @@ class NerBlackBoxMain:
             return self.get_experiments()
 
         ################################################################################################################
+        # get_model_from_experiment
+        ################################################################################################################
+        elif self.flag == "get_model_from_experiment":
+            self._assert_usage()
+            return self.get_model_from_experiment()
+
+        ################################################################################################################
         # predict
         ################################################################################################################
         elif self.flag == "predict":
@@ -297,10 +307,6 @@ class NerBlackBoxMain:
         Returns:
             experiment_results_list: returned for API, not CLI
         """
-        from nerblackbox.modules.ner_training.ner_model_predict import (
-            NerModelPredict,
-        )
-
         assert (
             self.experiment_id2name is not None
         ), f"ERROR! self.experiment_id2name is None."
@@ -364,18 +370,6 @@ class NerBlackBoxMain:
                 print(df_average.T)
             return None
         else:
-            if self.experiment_name != "all":
-                # single experiment
-                if (
-                    "checkpoint" in experiment_results_list[0].best_single_run.keys()
-                    and experiment_results_list[0].best_single_run["checkpoint"]
-                    is not None
-                ):
-                    best_model = NerModelPredict.load_from_checkpoint(
-                        experiment_results_list[0].best_single_run["checkpoint"]
-                    )
-                    experiment_results_list[0].set_best_model(best_model)
-
             return experiment_results_list
 
     def get_experiments(self) -> Optional[Union[pd.DataFrame, Dict]]:
@@ -402,6 +396,35 @@ class NerBlackBoxMain:
         else:
             return df
 
+    def get_model_from_experiment(self) -> Optional[NerModelPredict]:
+        """
+        Used Attr:
+            experiment_name: e.g. 'all', 'exp0'
+
+        Returns:
+            ner_model_predict: returned for API, not CLI
+        """
+        if self.experiment_name != "all":
+            from nerblackbox.modules.ner_training.ner_model_predict import (
+                NerModelPredict,
+            )
+
+            experiment_results_list = self.get_experiment_results()
+
+            # single experiment
+            if (
+                    "checkpoint" in experiment_results_list[0].best_single_run.keys()
+                    and experiment_results_list[0].best_single_run["checkpoint"]
+                    is not None
+            ):
+                ner_model_predict = NerModelPredict.load_from_checkpoint(
+                    experiment_results_list[0].best_single_run["checkpoint"]
+                )
+                return ner_model_predict
+            else:
+                raise Exception(f"there is no checkpoint for experiment = {self.experiment_name}.")
+        return None
+
     def predict(self) -> Optional[List[List[Dict[str, str]]]]:
         """
         :used attr: experiment_name [str], e.g. 'exp1'
@@ -410,10 +433,10 @@ class NerBlackBoxMain:
                                                    and  .external [list] of (word, tag) tuples
         """
         nerbb = NerBlackBoxMain(
-            "get_experiment_results", experiment_name=self.experiment_name, usage="api"
+            "get_model_from_experiment", experiment_name=self.experiment_name, usage="api"
         )
-        experiment_results = nerbb.main()
-        predictions = experiment_results[0].best_model.predict(self.text_input)
+        model = nerbb.main()
+        predictions = model.predict(self.text_input)
         if self.usage == "cli":
             print(predictions[0])
             return None
@@ -428,10 +451,10 @@ class NerBlackBoxMain:
                                                    and  .external [list] of (word, tag) tuples
         """
         nerbb = NerBlackBoxMain(
-            "get_experiment_results", experiment_name=self.experiment_name, usage="api"
+            "get_model_from_experiment", experiment_name=self.experiment_name, usage="api"
         )
-        experiment_results = nerbb.main()
-        predictions = experiment_results.best_model.predict_proba(self.text_input)
+        model = nerbb.main()
+        predictions = model.predict_proba(self.text_input)
         if self.usage == "cli":
             print(predictions[0])
             return None

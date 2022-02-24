@@ -156,8 +156,8 @@ In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is e
         nerbb.predict("<experiment_name>", <text_input>)
 
         # same but w/o having to reload the best model for multiple predictions
-        experiment_results = nerbb.get_experiment_results(<experiment_name>)
-        experiment_results.best_model.predict(<text_input>)
+        ner_model_predict = nerbb.get_model_from_experiment(<experiment_name>)
+        ner_model_predict.predict(<text_input>)
         ```
     === "CLI"
         ``` bash
@@ -165,7 +165,7 @@ In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is e
         nerbb predict <experiment_name> <text_input>
         ```
 
-    Python: see [NerModelPredict](../../python_api/ner_model_predict) for details on how to use ``experiments_results.best_model``
+    Python: see [NerModelPredict](../../python_api/ner_model_predict) for further details on how to use ``ner_model_predict``
 
 -----------
 ## Next Steps

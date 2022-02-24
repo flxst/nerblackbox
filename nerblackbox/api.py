@@ -5,6 +5,9 @@ from os.path import abspath
 from typing import Optional, Dict, List, Union, Any
 import pandas as pd
 from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.ner_training.ner_model_predict import (
+    NerModelPredict,
+)
 
 try:
     from nerblackbox.modules.main import NerBlackBoxMain
@@ -89,12 +92,28 @@ class NerBlackBox:
             {"ids": [tuple of int], "as_df": [bool]}
 
         Returns:
-            experiments_overview: overview
+            experiments_overview
         """
         kwargs = self._process_kwargs_optional(kwargs_optional)
         kwargs["usage"] = "api"
 
         nerbb = NerBlackBoxMain("get_experiments", **kwargs)
+        return nerbb.main()
+
+    def get_model_from_experiment(self, experiment_name: str) -> Optional[NerModelPredict]:
+        """gets (best) model from experiment.
+
+        Args:
+            experiment_name: e.g. "exp0"
+
+        Returns:
+            ner_model_predict
+        """
+        kwargs = self._process_kwargs_optional()
+        kwargs["usage"] = "api"
+        kwargs["experiment_name"] = experiment_name
+
+        nerbb = NerBlackBoxMain("get_model_from_experiment", **kwargs)
         return nerbb.main()
 
     def init(self):
