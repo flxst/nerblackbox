@@ -61,7 +61,7 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
             max_epochs=hparams.max_epochs,
             gpus=torch.cuda.device_count() if params.device.type == "cuda" else None,
             precision=16 if (params.fp16 and params.device.type == "cuda") else 32,
-            amp_level="O1",
+            # amp_level="O1",
             logger=tb_logger,
             callbacks=list(callbacks),
         )

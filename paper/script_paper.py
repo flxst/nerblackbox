@@ -3,6 +3,10 @@ This script can be used to reproduce results of the paper
 Adaptive Fine-Tuning of Transformer-Based Language Models for Named Entity Recognition
 https://arxiv.org/abs/2202.02617
 
+Note that in order to confirm the exact results, nerblackbox v0.0.12 (with pytorch-lightning==1.3.7) needs to be used!
+Later versions of nerblackbox use later versions of pytorch-lightning which (seems to affect the random state and thus)
+leads to similar but not identical results.
+
 === Run all experiments of a section: ===
 python paper/script_paper.py --exp <experiment>
 where <experiment> = main, appD, appG1, appG2, appG3, appH, appK, appL, scheme
