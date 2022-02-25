@@ -1,122 +1,58 @@
 import json
+from os.path import join, isdir
+from typing import Tuple, Any
 
 import torch
-import numpy as np
-from transformers import AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification, AutoTokenizer
+from typing import List, Union, Dict
 from torch.nn.functional import softmax
-from typing import List, Union, Tuple, Any, Dict, IO, Optional, Callable
-from omegaconf import DictConfig
-
-from nerblackbox.modules.ner_training.ner_model import NerModel
-from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
-from nerblackbox.tests.utils import PseudoDefaultLogger
-
-from transformers import logging
-
-# TODO: this suppresses warnings (https://github.com/huggingface/transformers/issues/5421), root problem should be fixed
-logging.set_verbosity_error()
 
 VERBOSE = False
 
 PREDICTIONS = List[List[Dict[str, Union[str, Dict]]]]
 
 
-class NerModelPredict(NerModel):
+class NerModelPredict:
     """
     class that predicts tags for given text
     """
-
     @classmethod
-    def load_from_checkpoint(
-        cls,
-        checkpoint_path: Union[str, IO],
-        map_location: Optional[
-            Union[Dict[str, str], str, torch.device, int, Callable]
-        ] = None,
-        hparams_file: Optional[str] = None,
-        strict: bool = True,
-        **kwargs,
-    ) -> "NerModelPredict":
-        """load model in inference mode from checkpoint_path
+    def checkpoint_exists(cls, checkpoint_directory: str) -> bool:
+        return isdir(checkpoint_directory)
 
-        Args:
-            checkpoint_path: path to checkpoint
-            map_location: see ModelIO
-            hparams_file: see ModelIO
-            strict: see ModelIO
-
-        Returns:
-            model loaded from checkpoint
-        """
-        model = super().load_from_checkpoint(checkpoint_path, **kwargs)
-        model.freeze()  # for inference mode
-        return model
-
-    def __init__(self, hparams: DictConfig):
+    def __init__(self, checkpoint_directory: str):
         """
         Args:
-            hparams: attr experiment_name, run_name, pretrained_model_name, dataset_name, ..
+            checkpoint_directory
         """
-        super().__init__(hparams)
+        # 0. annotation
+        path_annotation_classes = join(checkpoint_directory, "annotation_classes.json")
+        with open(path_annotation_classes, "r") as f:
+            self.annotation_classes = json.load(f)
+        id2label = {i: label for i, label in enumerate(self.annotation_classes)}
+        label2id = {label: i for i, label in id2label.items()}
 
-    ####################################################################################################################
-    # Abstract Base Methods ############################################################################################
-    ####################################################################################################################
-    def _preparations(self):
-        """
-        :created attr: default_logger    [DefaultLogger]
-        :created attr: logged_metrics    [LoggedMetrics]
-        :created attr: tokenizer         [transformers AutoTokenizer]
-        :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
-        :created attr: data_preprocessor [DataPreprocessor]
-        :created attr: annotation        [Annotation]
-        :created attr: model             [transformers AutoModelForTokenClassification]
-        :return: -
-        """
-        # predict
-        self._preparations_predict()  # attr: default_logger
-        self._preparations_data_general()  # attr: tokenizer, data_preprocessor
-        self._preparations_data_predict()  # attr: annotation, model
+        self.annotation_scheme = self._derive_annotation_scheme(id2label)
 
-    def _preparations_predict(self):
-        """
-        :created attr: default_logger    [None]
-        :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
-        :return: -
-        """
-        self.default_logger = PseudoDefaultLogger()
-
-        # special tokens
-        self.special_tokens = json.loads(self.hparams.special_tokens)
-
-    def _preparations_data_predict(self):
-        """
-        :created attr: annotation        [Annotation]
-        :created attr: model             [transformers AutoModelForTokenClassification]
-        :return: -
-        """
-        # annotation
-        self.annotation = Annotation(json.loads(self.hparams.annotation_classes))
-
-        # model
+        # 1. model
         self.model = AutoModelForTokenClassification.from_pretrained(
-            self.pretrained_model_name,
-            num_labels=len(self.annotation.classes),
+            checkpoint_directory,
+            id2label=id2label,
+            label2id=label2id,
             return_dict=False,
         )
-        self.model.resize_token_embeddings(
-            len(self.tokenizer)
-        )  # due to addtional_special_tokens
 
-    ####################################################################################################################
-    # PREDICT
-    ####################################################################################################################
+        # 2. tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            checkpoint_directory,
+        )
+
     def predict(
-        self,
-        input_texts: Union[str, List[str]],
-        level: str = "entity",
-        autocorrect: bool = False,
+            self,
+            input_texts: Union[str, List[str]],
+            level: str = "entity",
+            autocorrect: bool = False,
     ) -> PREDICTIONS:
         """predict tags for input texts. output on entity or word level.
 
@@ -189,11 +125,11 @@ class NerModelPredict(NerModel):
         return self._predict(input_texts, level="word", autocorrect=False, proba=True)
 
     def _predict(
-        self,
-        input_texts: Union[str, List[str]],
-        level: str = "entity",
-        autocorrect: bool = False,
-        proba: bool = False,
+            self,
+            input_texts: Union[str, List[str]],
+            level: str = "entity",
+            autocorrect: bool = False,
+            proba: bool = False,
     ) -> PREDICTIONS:
         """predict tags or probabilities for tags
 
@@ -219,159 +155,127 @@ class NerModelPredict(NerModel):
             )
         # ------------------------------
 
+        # 0. ensure input_texts is a list
         if isinstance(input_texts, str):
             input_texts = [input_texts]
+        number_of_input_texts = len(input_texts)
 
-        predictions = list()
-        for input_text in input_texts:
-            predict_dataloader = self._get_predict_dataloader([input_text])
+        # 1. pure model inference
+        inputs = self.tokenizer(input_texts, padding=True, return_tensors="pt")
+        tokens = [self.tokenizer.convert_ids_to_tokens(input_ids) for input_ids in inputs['input_ids'].tolist()]
 
-            if self.data_preprocessor.do_lower_case:
-                input_text = input_text.lower()
+        outputs = self.model(**inputs)[0]
 
-            input_text_tokens = list()
-            input_text_token_predictions = list()
-            ######################################
-            # 1 input_text, individual chunks, tokens
-            ######################################
-            for sample in predict_dataloader:
-                token_tensors, tokens = self._predict_on_tokens(sample)
-                if proba is False:
-                    token_predictions = self._turn_tensors_into_tags(token_tensors)
-                else:
-                    token_predictions = (
-                        self._turn_tensors_into_tag_probability_distributions(
-                            token_tensors
-                        )
-                    )
-                input_text_tokens.extend(tokens)
-                input_text_token_predictions.extend(token_predictions)
+        if proba:
+            predictions = self._turn_tensors_into_tag_probability_distributions(output_token_tensors=outputs)
+        else:
+            predictions_ids = torch.argmax(outputs, dim=2)
+            predictions = [
+                [self.model.config.id2label[prediction] for prediction in predictions_ids[i].numpy()]
+                for i in range(len(predictions_ids))
+            ]
 
-            ######################################
-            # 1 input_text, merged chunks, tokens -> words
-            ######################################
-            _input_text_word_predictions: List[
-                Tuple[Union[str, Any], ...]
-            ] = get_tags_on_words_between_special_tokens(
-                input_text_tokens, input_text_token_predictions
-            )
+        assert len(tokens) == number_of_input_texts, \
+            f"ERROR! len(tokens) = {len(tokens)} should equal len(input_texts) = {number_of_input_texts}"
+        assert len(predictions) == number_of_input_texts, \
+            f"ERROR! len(predictions) = {len(predictions)} should equal len(input_texts) = {number_of_input_texts}"
 
-            input_text_word_predictions: List[
-                Dict[str, Union[str, Dict]]
-            ] = restore_unknown_tokens(_input_text_word_predictions, input_text)
+        # 2. post processing
+        predictions = [
+            self._post_processing(level, autocorrect, proba, input_texts[i], tokens[i], predictions[i])
+            for i in range(number_of_input_texts)
+        ]
 
-            if autocorrect or level == "entity":
-                assert (
-                    proba is False
-                ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
-
-                def assert_typing(input_text_word_predictions_str_dict):
-                    # this is only to ensure correct typing, it does not actually change anything
-                    return [
-                        {
-                            k: str(v)
-                            for k, v in input_text_word_prediction_str_dict.items()
-                        }
-                        for input_text_word_prediction_str_dict in input_text_word_predictions_str_dict
-                    ]
-
-                input_text_word_predictions_str: List[Dict[str, str]] = assert_typing(
-                    input_text_word_predictions
-                )
-
-                token_tags = TokenTags(
-                    input_text_word_predictions_str, scheme=self.annotation.scheme
-                )
-
-                if autocorrect:
-                    token_tags.restore_annotation_scheme_consistency()
-
-                if level == "entity":
-                    token_tags.merge_tokens_to_entities(
-                        original_text=input_text, verbose=VERBOSE
-                    )
-
-                input_text_word_predictions = token_tags.as_list()
-
-            predictions.append(input_text_word_predictions)
-
-        ######################################
-        # all input_texts, merged chunks, words
-        ######################################
         return predictions
 
-    ####################################################################################################################
-    # PREDICT HELPER METHODS
-    ####################################################################################################################
-    def _get_predict_dataloader(self, examples):
+    def _post_processing(self, level, autocorrect, proba, input_text, input_text_tokens, input_text_token_predictions):
         """
-        :param examples:            [list] of [str]
-        :return: predict_dataloader [torch dataloader]
+
+        :param level:
+        :param autocorrect:
+        :param proba:
+        :param input_text:
+        :param input_text_tokens:
+        :param input_text_token_predictions:
+        :return:
         """
-        # input_examples
-        input_examples = self.data_preprocessor.get_input_examples_predict(
-            examples=examples,
+        ######################################
+        # 1 input_text, merged chunks, tokens -> words
+        ######################################
+        _input_text_word_predictions: List[
+            Tuple[Union[str, Any], ...]
+        ] = get_tags_on_words_between_special_tokens(
+            input_text_tokens, input_text_token_predictions
         )
 
-        # dataloader
-        dataloader = self.data_preprocessor.to_dataloader(
-            input_examples, self.annotation.classes, batch_size=1
-        )
+        input_text_word_predictions: List[
+            Dict[str, Union[str, Dict]]
+        ] = restore_unknown_tokens(_input_text_word_predictions, input_text)
 
-        return dataloader["predict"]
+        if autocorrect or level == "entity":
+            assert (
+                    proba is False
+            ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
 
-    def _predict_on_tokens(self, sample):
-        """
-        :param sample: [list] w/ 4 tensors: input_ids, attention_mask, segment_ids, label_ids
-        :return: output_token_tensors [list] of [torch tensor] of shape [1, #tags]
-        :return: tokens               [list] of [str]
-        """
-        input_ids, attention_mask, token_type_ids, labels = self._parse_batch(sample)
-        sample.pop("labels")
-        output = self.model(
-            **sample
-        )  # shape: [1 (=#examples), 1 (=#batch_size), seq_length, #tags]
+            def assert_typing(input_text_word_predictions_str_dict):
+                # this is only to ensure correct typing, it does not actually change anything
+                return [
+                    {
+                        k: str(v)
+                        for k, v in input_text_word_prediction_str_dict.items()
+                    }
+                    for input_text_word_prediction_str_dict in input_text_word_predictions_str_dict
+                ]
 
-        output_token_tensors = [
-            output[0][0][i]  # .detach().numpy()
-            for i in range(self._hparams.max_seq_length)
-        ]  # shape: [seq_length, #tags]
+            input_text_word_predictions_str: List[Dict[str, str]] = assert_typing(
+                input_text_word_predictions
+            )
 
-        tokens = self.tokenizer.convert_ids_to_tokens(input_ids[0])
+            token_tags = TokenTags(
+                input_text_word_predictions_str, scheme=self.annotation_scheme
+            )
 
-        return output_token_tensors, tokens
+            if autocorrect:
+                token_tags.restore_annotation_scheme_consistency()
 
-    def _turn_tensors_into_tags(self, output_token_tensors):
-        """
-        :param output_token_tensors       [list] of [torch tensor] of shape [1, #tags]
-        :return: output_token_predictions [list] of [str]
-        """
-        return [
-            self.annotation.classes[
-                int(np.argmax(output_token_tensors[i].detach().numpy()))
-            ]
-            for i in range(self._hparams.max_seq_length)
-        ]
+            if level == "entity":
+                token_tags.merge_tokens_to_entities(
+                    original_text=input_text, verbose=VERBOSE
+                )
+
+            input_text_word_predictions = token_tags.as_list()
+
+        return input_text_word_predictions
+
+    @staticmethod
+    def _derive_annotation_scheme(_id2label):
+        label_prefixes = list(set([label.split("-")[0] for label in _id2label.values() if "-" in label]))
+        if len(label_prefixes) == 0:
+            return "plain"
+        elif "B" in label_prefixes and "I" in label_prefixes and "L" in label_prefixes and "U" in label_prefixes:
+            return "bilou"
+        elif "B" in label_prefixes and "I" in label_prefixes:
+            return "bio"
+        else:
+            raise Exception(f"ERROR! could not derive annotation scheme. found label_prefixes = {label_prefixes}")
 
     def _turn_tensors_into_tag_probability_distributions(self, output_token_tensors):
         """
-        :param output_token_tensors       [list] of [torch tensor] of shape [1, #tags]
-        :return: output_token_predictions [list] of [prob dist], i.e. dict that maps tags to probabilities
+        :param output_token_tensors       [torch tensor] of shape [batch_size, seq_length, #tags]
+        :return: output_token_predictions [list] of [list] of [prob dist], i.e. dict that maps tags to probabilities
         """
-
-        probability_distributions = [
-            softmax(output_token_tensors[i], dim=0)
-            for i in range(self._hparams.max_seq_length)
-        ]
-
+        probability_distributions = softmax(output_token_tensors, dim=2)
         tag_probability_distribution = [
-            {
-                self.annotation.classes[j]: float(
-                    probability_distributions[i][j].detach().numpy()
-                )
-                for j in range(len(self.annotation.classes))
-            }
-            for i in range(self._hparams.max_seq_length)
+            [
+                {
+                    self.annotation_classes[j]: float(
+                        probability_distributions[x][i][j].detach().numpy()
+                    )
+                    for j in range(len(self.annotation_classes))
+                }
+                for i in range(output_token_tensors.shape[1])
+            ]
+            for x in range(output_token_tensors.shape[0])
         ]
 
         return tag_probability_distribution
@@ -381,7 +285,7 @@ class NerModelPredict(NerModel):
 ########################################################################################################################
 ########################################################################################################################
 def get_tags_on_words_between_special_tokens(
-    tokens: List[str], example_token_predictions: List[Any]
+        tokens: List[str], example_token_predictions: List[Any]
 ) -> List[Tuple[Union[str, Any], ...]]:
     """
     Args:
@@ -406,9 +310,9 @@ def get_tags_on_words_between_special_tokens(
 
 
 def restore_unknown_tokens(
-    example_word_predictions: List[Tuple[Union[str, Any], ...]],
-    _example: str,
-    verbose: bool = True,
+        example_word_predictions: List[Tuple[Union[str, Any], ...]],
+        _example: str,
+        verbose: bool = True,
 ) -> List[Dict[str, Union[str, Dict]]]:
     """
     - replace "[UNK]" tokens by the original token
@@ -453,8 +357,8 @@ def restore_unknown_tokens(
     # 2. restore unknown tokens
     for i, (token, tag) in enumerate(example_word_predictions):
         if (
-            token_char_margins[i][0] is not None
-            and token_char_margins[i][1] is not None
+                token_char_margins[i][0] is not None
+                and token_char_margins[i][1] is not None
         ):
             example_word_predictions_restored.append(
                 {
@@ -467,7 +371,7 @@ def restore_unknown_tokens(
         else:
             for j in range(2):
                 assert (
-                    token_char_margins[i][j] is None
+                        token_char_margins[i][j] is None
                 ), f"ERROR! token_char_margin[{i}][{j}] is not None for token = {token}"
 
             char_start_margin, char_end_margin = None, None
@@ -486,7 +390,7 @@ def restore_unknown_tokens(
                     char_end_margin = token_char_margins[i + k][0]
                     break
             assert (
-                char_start_margin is not None
+                    char_start_margin is not None
             ), f"ERROR! could not find char_start_margin"
             assert char_end_margin is not None, f"ERROR! could not find char_end_margin"
 

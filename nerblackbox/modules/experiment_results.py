@@ -4,7 +4,6 @@ import pandas as pd
 from mlflow.entities import Run
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.utils.util_functions import epoch2checkpoint
-from nerblackbox.modules.ner_training.ner_model_predict import NerModelPredict
 from nerblackbox.modules.utils.util_functions import (
     get_run_name,
     compute_mean_and_dmean,
@@ -45,7 +44,6 @@ class ExperimentResults:
         average_runs: Optional[pd.DataFrame] = None,
         best_single_run: Optional[Dict] = None,
         best_average_run: Optional[Dict] = None,
-        best_model: Optional[NerModelPredict] = None,
     ):
         """
         Args:
@@ -56,7 +54,6 @@ class ExperimentResults:
             average_runs: overview on run parameters & average results
             best_single_run: overview on best run parameters & single results
             best_average_run: overview on best run parameters & average results
-            best_model: best model
         """
         self._id = _id
         self.name = name
@@ -65,15 +62,6 @@ class ExperimentResults:
         self.average_runs = average_runs
         self.best_single_run = best_single_run
         self.best_average_run = best_average_run
-        self.best_model = best_model
-
-    def set_best_model(self, best_model: NerModelPredict) -> None:
-        """set best model.
-
-        Args:
-            best_model: best model
-        """
-        self.best_model = best_model
 
     @classmethod
     def from_mlflow_runs(

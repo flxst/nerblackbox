@@ -14,6 +14,9 @@ from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
 from nerblackbox.modules.experiment_config.preset import get_preset
 from nerblackbox.modules.utils.parameters import DATASET, MODEL, SETTINGS, HPARAMS
+from nerblackbox.modules.ner_training.ner_model_train2predict import (
+    NerModelTrain2Predict
+)
 from nerblackbox.modules.ner_training.ner_model_predict import (
     NerModelPredict,
 )
@@ -417,9 +420,17 @@ class NerBlackBoxMain:
                     and experiment_results_list[0].best_single_run["checkpoint"]
                     is not None
             ):
-                ner_model_predict = NerModelPredict.load_from_checkpoint(
-                    experiment_results_list[0].best_single_run["checkpoint"]
-                )
+                checkpoint_path_train = experiment_results_list[0].best_single_run["checkpoint"]
+                checkpoint_path_predict = checkpoint_path_train.strip(".ckpt")
+
+                # translate NerModelTrain checkpoint to NerModelPredict checkpoint if necessary
+                if not NerModelPredict.checkpoint_exists(checkpoint_path_predict):
+                    ner_model_train2predict = NerModelTrain2Predict.load_from_checkpoint(
+                        experiment_results_list[0].best_single_run["checkpoint"]
+                    )
+                    ner_model_train2predict.export_to_ner_model_prod(checkpoint_path_train)
+
+                ner_model_predict = NerModelPredict(checkpoint_path_predict)
                 return ner_model_predict
             else:
                 raise Exception(f"there is no checkpoint for experiment = {self.experiment_name}.")
