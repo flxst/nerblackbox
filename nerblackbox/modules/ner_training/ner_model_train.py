@@ -147,7 +147,7 @@ class NerModelTrain(NerModel):
         )  # due to additional_special_tokens
 
         # dataloader
-        self.dataloader = self.data_preprocessor.to_dataloader(
+        self.dataloader, _ = self.data_preprocessor.to_dataloader(
             input_examples, self.annotation.classes, batch_size=self._hparams.batch_size
         )
 

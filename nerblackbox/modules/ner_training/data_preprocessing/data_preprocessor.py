@@ -145,7 +145,7 @@ class DataPreprocessor:
         input_examples: Dict[str, InputExamples],
         annotation_classes: List[str],
         batch_size: int,
-    ) -> Dict[str, DataLoader]:
+    ) -> Tuple[Dict[str, DataLoader], Dict[str, List[int]]]:
         """
         - turn input_examples into dataloader
 
@@ -158,6 +158,12 @@ class DataPreprocessor:
         Returns:
             _dataloader:    [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
                                       values = [torch Dataloader]
+            _offsets:        [dict] w/ keys = ['train', 'val', 'test'] or ['predict'] &
+                                       values = [List] of [int]
+                                       which gives information on how the input_examples where slices,
+                                       e.g. offsets = [0, 2, 3]
+                                       means that the first two slices belong to the first input example (0->2),
+                                       while the third slice belongs to the second input example (2->3).
         """
         # input_example_to_tensors
         input_examples_to_tensors = InputExamplesToTensors(
@@ -168,13 +174,15 @@ class DataPreprocessor:
         )
 
         _dataloader = dict()
+        _offsets = dict()
         for phase in input_examples.keys():
             self.default_logger.log_info(
                 f"[before preprocessing] {phase.ljust(5)} data: {len(input_examples[phase])} examples"
             )
-            encodings = input_examples_to_tensors(
+            encodings, _offsets_phase = input_examples_to_tensors(
                 input_examples[phase], predict=phase == "predict"
             )
+            _offsets[phase] = _offsets_phase
 
             # dataloader
             data = EncodingsDataset(
@@ -207,7 +215,7 @@ class DataPreprocessor:
                 # see https://pytorch-lightning.readthedocs.io/en/stable/benchmarking/performance.html
             )
 
-        return _dataloader
+        return _dataloader, _offsets
 
     ####################################################################################################################
     # HELPER

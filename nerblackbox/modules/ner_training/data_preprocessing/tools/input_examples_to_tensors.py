@@ -35,7 +35,7 @@ class InputExamplesToTensors:
         if self.default_logger:
             self.default_logger.log_debug("> tag2id:", self.tag2id)
 
-    def __call__(self, input_examples: List[InputExample], predict: bool) -> Encodings:
+    def __call__(self, input_examples: List[InputExample], predict: bool) -> Tuple[Encodings, List[int]]:
         """
         Args:
             input_examples: List[InputExample] with e.g. text = 'at arbetsförmedlingen'
@@ -49,12 +49,19 @@ class InputExamplesToTensors:
             key = attention_mask, value = [2D torch tensor], e.g. [[1,   1,   1,   1, .., 1,   1,   1, .., 1, 0, 0, 0, ..]]
             key = token_type_ids, value = [2D torch tensor], e.g. [[0,   0,   0,   0, .., 0,   1,   1, .., 1, 0, 0, 0, ..]]
             key = labels,         value = [2D torch tensor], e.g. [[1,   3,   3,   4, .., 2,   3,   3, .., 2, 0, 0, 0, ..]]
+
+            offsets: [List] of [int] which gives information on how the input_examples where slices,
+            e.g. offsets = [0, 2, 3]
+            means that the first two slices belong to the first input example (0->2),
+            while the third slice belongs to the second input example (2->3).
         """
+        offsets: List[int] = [0]
 
         # encodings_single
         encodings_single: Dict[str, List[Any]] = {key: list() for key in EncodingsKeys}
         for input_example in input_examples:
             _encodings = self._transform_input_example(input_example, predict)
+            offsets.append(offsets[-1] + len(_encodings['input_ids']))
             for key in _encodings.keys():
                 encodings_single[key].append(_encodings[key])
 
@@ -66,7 +73,7 @@ class InputExamplesToTensors:
             for key in encodings_single.keys()
         }
 
-        return encodings
+        return encodings, offsets
 
     def _transform_input_example(
         self, input_example: InputExample, predict: bool

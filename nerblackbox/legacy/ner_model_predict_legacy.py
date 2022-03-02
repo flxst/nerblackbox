@@ -314,7 +314,7 @@ class NerModelPredictLegacy(NerModel):
         )
 
         # dataloader
-        dataloader = self.data_preprocessor.to_dataloader(
+        dataloader, _ = self.data_preprocessor.to_dataloader(
             input_examples, self.annotation.classes, batch_size=1
         )
 
@@ -385,15 +385,20 @@ class NerModelPredictLegacy(NerModel):
         if not isdir(export_directory):
             os.makedirs(export_directory, exist_ok=False)
 
-            # 0. annotation
+            # 1. max_seq_length
+            path_max_seq_length = join(export_directory, "max_seq_length.json")
+            with open(path_max_seq_length, "w") as f:
+                json.dump(self._hparams.max_seq_length, f)
+
+            # 2. annotation
             path_annotation_classes = join(export_directory, "annotation_classes.json")
             with open(path_annotation_classes, "w") as f:
                 json.dump(self.annotation.classes, f)
 
-            # 1. model
+            # 3. model
             self.model.save_pretrained(export_directory)
 
-            # 2. tokenizer
+            # 4. tokenizer
             self.tokenizer.save_pretrained(export_directory)
 
 

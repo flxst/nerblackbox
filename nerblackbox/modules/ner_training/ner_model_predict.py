@@ -7,6 +7,8 @@ from transformers import AutoModelForTokenClassification, AutoTokenizer
 from typing import List, Union, Dict
 from torch.nn.functional import softmax
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
+from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import DataPreprocessor
+from nerblackbox.tests.utils import PseudoDefaultLogger
 
 VERBOSE = False
 
@@ -21,12 +23,24 @@ class NerModelPredict:
     def checkpoint_exists(cls, checkpoint_directory: str) -> bool:
         return isdir(checkpoint_directory)
 
-    def __init__(self, checkpoint_directory: str):
+    def __init__(self, checkpoint_directory: str, batch_size: int = 16, max_seq_length: int = None):
         """
         Args:
             checkpoint_directory
+            batch_size: used in dataloader
         """
-        # 0. annotation
+        # 0. device
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+        # 1: max_seq_length
+        if max_seq_length is not None:
+            self.max_seq_length = max_seq_length
+        else:
+            path_max_seq_length = join(checkpoint_directory, "max_seq_length.json")
+            with open(path_max_seq_length, "r") as f:
+                self.max_seq_length = json.load(f)
+
+        # 2. annotation
         path_annotation_classes = join(checkpoint_directory, "annotation_classes.json")
         with open(path_annotation_classes, "r") as f:
             self.annotation_classes = json.load(f)
@@ -35,18 +49,23 @@ class NerModelPredict:
 
         self.annotation_scheme = self._derive_annotation_scheme(id2label)
 
-        # 1. model
+        # 3. model
         self.model = AutoModelForTokenClassification.from_pretrained(
             checkpoint_directory,
             id2label=id2label,
             label2id=label2id,
             return_dict=False,
         )
+        self.model.eval()
+        self.model = self.model.to(self.device)
 
-        # 2. tokenizer
+        # 4. tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
             checkpoint_directory,
         )
+
+        # 5. batch_size (dataloader)
+        self.batch_size = batch_size
 
     def predict(
             self,
@@ -161,10 +180,37 @@ class NerModelPredict:
         number_of_input_texts = len(input_texts)
 
         # 1. pure model inference
-        inputs = self.tokenizer(input_texts, padding=True, return_tensors="pt")
-        tokens = [self.tokenizer.convert_ids_to_tokens(input_ids) for input_ids in inputs['input_ids'].tolist()]
+        self.data_preprocessor = DataPreprocessor(
+            tokenizer=self.tokenizer,
+            do_lower_case=False,
+            max_seq_length=self.max_seq_length,
+            default_logger=PseudoDefaultLogger(),
+        )
+        input_examples = self.data_preprocessor.get_input_examples_predict(
+            examples=input_texts,
+        )
+        dataloader, offsets = self.data_preprocessor.to_dataloader(
+            input_examples, self.annotation_classes, batch_size=self.batch_size
+        )
+        dataloader = dataloader['predict']
+        offsets = offsets['predict']
 
-        outputs = self.model(**inputs)[0]
+        inputs_batches = list()
+        outputs_batches = list()
+        for sample in dataloader:
+            inputs_batches.append(sample['input_ids'])
+            sample.pop("labels")
+            sample = {k: v.to(self.device) for k, v in sample.items()}
+            with torch.no_grad():
+                outputs_batch = self.model(**sample)[0]  # shape = [batch_size, seq_length, num_labels]
+            outputs_batches.append(outputs_batch.detach().cpu())
+
+        inputs = torch.cat(inputs_batches)  # shape = [number_of_input_texts, seq_length]
+        outputs = torch.cat(outputs_batches)  # shape = [number_of_input_texts, seq_length, num_labels]
+
+        ################################################################################################################
+        ################################################################################################################
+        tokens = [self.tokenizer.convert_ids_to_tokens(input_ids) for input_ids in inputs.tolist()]
 
         if proba:
             predictions = self._turn_tensors_into_tag_probability_distributions(output_token_tensors=outputs)
@@ -175,6 +221,18 @@ class NerModelPredict:
                 for i in range(len(predictions_ids))
             ]
 
+        # merge
+        tokens = [
+            self._merge_slices_for_single_document(tokens[offsets[i]:offsets[i+1]])
+            for i in range(len(offsets)-1)
+        ]
+        predictions = [
+            self._merge_slices_for_single_document(predictions[offsets[i]:offsets[i+1]])
+            for i in range(len(offsets)-1)
+        ]
+
+        assert len(tokens) == len(predictions), \
+            f"ERROR! len(tokens) = {len(tokens)} should equal len(predictions) = {len(predictions)}"
         assert len(tokens) == number_of_input_texts, \
             f"ERROR! len(tokens) = {len(tokens)} should equal len(input_texts) = {number_of_input_texts}"
         assert len(predictions) == number_of_input_texts, \
@@ -187,6 +245,32 @@ class NerModelPredict:
         ]
 
         return predictions
+
+    @staticmethod
+    def _merge_slices_for_single_document(_list: List[Union[Dict, List[Dict]]]) -> List[Dict]:
+        """
+        merges the slices for a single document
+
+        Args:
+            _list: predictions for one or more slices that belong to same document,
+                   e.g. one slice:  [{"char_start": ..}, ..],
+                   e.g. two slices: [[{"char_start": ..}, ..], [{"char_start": ..}, ..]],
+
+        Returns:
+            _list_flat: predictions for one document
+        """
+        if len(_list) == 1:  # one slice
+            return _list[0]
+        else:  # more slices
+            _list_flat = list()
+            for i, sublist in enumerate(_list):
+                if i == 0:
+                    _list_flat.extend(sublist[:-1])
+                elif 0 < i < len(_list) - 1:
+                    _list_flat.extend(sublist)
+                else:
+                    _list_flat.extend(sublist[1:])
+            return _list_flat
 
     def _post_processing(self, level, autocorrect, proba, input_text, input_text_tokens, input_text_token_predictions):
         """

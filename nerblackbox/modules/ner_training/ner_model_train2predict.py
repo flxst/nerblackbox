@@ -27,6 +27,7 @@ class NerModelTrain2Predict(NerModel):
         self.annotation_classes = json.loads(self.hparams['annotation_classes'])
         self.pretrained_model_name = self.hparams['pretrained_model_name']
         self.special_tokens = json.loads(self.hparams['special_tokens'])
+        self.max_seq_length = int(self.hparams['max_seq_length'])
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.pretrained_model_name,
             do_lower_case=False,
@@ -55,13 +56,18 @@ class NerModelTrain2Predict(NerModel):
         if not isdir(export_directory):
             os.makedirs(export_directory, exist_ok=False)
 
-            # 0. annotation
+            # 1. max_seq_length
+            path_max_seq_length = join(export_directory, "max_seq_length.json")
+            with open(path_max_seq_length, "w") as f:
+                json.dump(self.max_seq_length, f)
+
+            # 2. annotation
             path_annotation_classes = join(export_directory, "annotation_classes.json")
             with open(path_annotation_classes, "w") as f:
                 json.dump(self.annotation_classes, f)
 
-            # 1. model
+            # 3. model
             self.model.save_pretrained(export_directory)
 
-            # 2. tokenizer
+            # 4. tokenizer
             self.tokenizer.save_pretrained(export_directory)

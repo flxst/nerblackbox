@@ -178,7 +178,7 @@ class TestCsvReaderAndDataProcessor:
             ), f"test_input_example_predict.tags = {test_input_example_predict.tags} != {true_input_example_predict_tags}"
 
         # c. to_dataloader
-        dataloader = data_preprocessor.to_dataloader(
+        dataloader, _ = data_preprocessor.to_dataloader(
             input_examples, annotation_classes, batch_size=1
         )
         for key in ["train", "val", "test", "predict"]:
@@ -517,7 +517,7 @@ class TestInputExamplesToTensorsAndEncodingsDataset:
             annotation_classes_tuple=tuple(annotation_classes),
             default_logger=PseudoDefaultLogger(),
         )
-        encodings = input_examples_to_tensors(input_examples, predict=False)
+        encodings, _ = input_examples_to_tensors(input_examples, predict=False)  # TODO
         input_tokens = [
             tokenizer.convert_ids_to_tokens(input_ids_single)
             for input_ids_single in encodings["input_ids"]
