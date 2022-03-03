@@ -45,5 +45,6 @@ nav:
       - 'python_api/nerblackbox.md'
       - 'python_api/experiment_results.md'
       - 'python_api/ner_model_predict.md'
+      - 'python_api/text_encoder.md'
     - CLI:
         - Overview: 'cli/cli.md'

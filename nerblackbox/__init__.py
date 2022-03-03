@@ -3,3 +3,4 @@ from nerblackbox import __about__
 from nerblackbox.api import NerBlackBox
 from nerblackbox.modules.experiment_results import ExperimentResults
 from nerblackbox.modules.ner_training.ner_model_predict import NerModelPredict
+from nerblackbox.modules.ner_training.data_preprocessing.text_encoder import TextEncoder
