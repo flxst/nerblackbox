@@ -112,7 +112,10 @@ class TextEncoder:
             text = text[:index] + k + text[index + len(v):]
 
             for prediction in predictions:
-                if int(prediction['char_end']) > index:
+                if int(prediction['char_start']) == index and int(prediction['char_end']) == index + len(v):
+                    prediction['char_end'] = str(int(prediction['char_end']) - len(v) + len(k))
+                    prediction['token'] = k
+                elif int(prediction['char_end']) > index:
                     prediction['char_start'] = str(int(prediction['char_start']) - len(v) + len(k))
                     prediction['char_end'] = str(int(prediction['char_end']) - len(v) + len(k))
 

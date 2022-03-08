@@ -418,6 +418,78 @@ class TestNerModelPredictStatic:
                         },
                     ],
             ),
+            # EXAMPLE 8 #######################
+            (
+                    [
+                        ("medarbetare", "O"),
+                        ("i", "O"),
+                        ("Stockholm", "O"),
+                        (".", "O"),
+                        ("[UNK]", "O"),
+                        ("[NEWLINE]", "O"),
+                        ("[NEWLINE]", "O"),
+                        ("På", "O"),
+                        ("Företaget", "O"),
+                    ],
+                    "medarbetare i Stockholm. ‍‍👨👩[NEWLINE][NEWLINE]På Företaget",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "11",
+                            "token": "medarbetare",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "12",
+                            "char_end": "13",
+                            "token": "i",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "14",
+                            "char_end": "23",
+                            "token": "Stockholm",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "23",
+                            "char_end": "24",
+                            "token": ".",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "25",
+                            "char_end": "29",
+                            "token": "‍‍👨👩",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "29",
+                            "char_end": "38",
+                            "token": "[NEWLINE]",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "38",
+                            "char_end": "47",
+                            "token": "[NEWLINE]",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "47",
+                            "char_end": "49",
+                            "token": "På",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "50",
+                            "char_end": "59",
+                            "token": "Företaget",
+                            "tag": "O",
+                        },
+                    ],
+            ),
+            #
         ],
     )
     def test_restore_unknown_tokens(

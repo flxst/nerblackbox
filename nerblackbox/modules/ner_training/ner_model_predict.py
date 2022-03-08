@@ -450,16 +450,22 @@ def restore_unknown_tokens(
     char_start = 0
     unknown_counter = 0
     for token, _ in word_predictions:
-        if token != "[UNK]":
+        if token == "[UNK]":
+            token_char_margins.append((None, None))
+            unknown_counter += 1
+        else:
+            # move char_start to where punctuation or whitespace is found
             while unknown_counter > 0:
                 try:
-                    if token in string.punctuation:
+                    if token in string.punctuation or len(token) != 1:
                         char_start = input_text.index(token, char_start)
-                    else:
-                        char_start = input_text.index(" ", char_start+1)
+                    else:  # i.e. len(token) == 1
+                        char_start = input_text.index(f" {token}", char_start+1)
                 except ValueError:  # .index() did not find anything
                     pass
                 unknown_counter -= 1
+
+            # find token_char_margins for token
             try:
                 char_start = input_text.index(token, char_start)
                 token_char_margins.append((char_start, char_start + len(token)))
@@ -469,9 +475,6 @@ def restore_unknown_tokens(
                     print(f"! token = {token} not found in example[{char_start}:]")
                 token_char_margins.append((None, None))
             unknown_counter = 0
-        else:
-            token_char_margins.append((None, None))
-            unknown_counter += 1
 
     # 2. restore unknown tokens
     for i, (token, tag) in enumerate(word_predictions):
