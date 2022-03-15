@@ -3,8 +3,10 @@ import json
 import os
 from os.path import join, isdir, isfile
 
+import omegaconf.errors
 from transformers import AutoModelForTokenClassification
 from omegaconf import DictConfig
+from omegaconf.errors import ConfigKeyError
 from transformers import AutoTokenizer
 from nerblackbox.modules.ner_training.ner_model import NerModel
 
@@ -26,7 +28,13 @@ class NerModelTrain2Predict(NerModel):
     def _preparations(self):
         self.annotation_classes = json.loads(self.hparams['annotation_classes'])
         self.pretrained_model_name = self.hparams['pretrained_model_name']
-        self.special_tokens = json.loads(self.hparams['special_tokens'])
+        try:
+            self.encoding = json.loads(self.hparams['encoding'])
+            self.special_tokens = list(set(self.encoding.values()))
+        except ConfigKeyError:  # TODO: get rid of this exception handling.
+            print("> Note: special tokens are loaded instead of encoding (model was trained with nerblackbox<=0.0.12)")
+            self.encoding = None
+            self.special_tokens = json.loads(self.hparams['special_tokens'])
         self.max_seq_length = int(self.hparams['max_seq_length'])
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.pretrained_model_name,

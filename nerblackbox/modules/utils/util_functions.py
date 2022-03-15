@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Dict
 import numpy as np
 from os.path import join, isfile
 import json
@@ -43,27 +43,27 @@ def get_dataset_path(dataset: str, subset: str = "") -> str:
         return join(env_variable("DIR_DATASETS"), dataset)
 
 
-def read_special_tokens(dataset: str) -> List[str]:
+def read_encoding(dataset: str) -> Dict[str, str]:
     """
-    if the file "special_tokens.json" exists for the dataset, read it and return its content
-    ----------------------------------------------------------------------------------------
+    if the file "encoding.json" exists for the dataset, read it and return its content
+    ----------------------------------------------------------------------------------
 
     Args:
         dataset: e.g. 'swedish_ner_corpus'
 
     Returns:
-        special_tokens: e.g. ["[NEWLINE]", "[TAB]"]
+        encoding: e.g. {"\n": "[NEWLINE]", "\t": "[TAB]"}
     """
-    path_special_tokens = join(get_dataset_path(dataset), "special_tokens.json")
-    if isfile(path_special_tokens):
-        with open(path_special_tokens, "r") as file:
-            special_tokens = json.load(file)
+    path_encoding = join(get_dataset_path(dataset), "encoding.json")
+    if isfile(path_encoding):
+        with open(path_encoding, "r") as file:
+            encoding = json.load(file)
         assert isinstance(
-            special_tokens, list
-        ), f"ERROR! {path_special_tokens} seems to contain a {type(special_tokens)}, should be list."
+            encoding, dict
+        ), f"ERROR! {path_encoding} seems to contain a {type(encoding)}, should be list."
     else:
-        special_tokens = list()
-    return special_tokens
+        encoding = list()
+    return encoding
 
 
 def get_hardcoded_parameters(keys=False):

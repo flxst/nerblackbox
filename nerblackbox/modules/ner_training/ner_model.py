@@ -56,6 +56,7 @@ class NerModel(pl.LightningModule, ABC):
         :created attr: default_logger    [DefaultLogger]
         :created attr: logged_metrics    [LoggedMetrics]
         :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: encoding          [dict] e.g. {"\n": "[NEWLINE]", "\t": "[TAB]"}
         :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :created attr: data_preprocessor [DataPreprocessor]
         :created attr: annotation        [Annotation]

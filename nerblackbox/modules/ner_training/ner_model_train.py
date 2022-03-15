@@ -12,7 +12,7 @@ from nerblackbox.modules.ner_training.ner_model import NerModel
 from nerblackbox.modules.ner_training.annotation_tags.input_examples_utils import (
     InputExamplesUtils,
 )
-from nerblackbox.modules.utils.util_functions import read_special_tokens
+from nerblackbox.modules.utils.util_functions import read_encoding
 
 
 class NerModelTrain(NerModel):
@@ -30,6 +30,7 @@ class NerModelTrain(NerModel):
         :created attr: default_logger    [DefaultLogger]
         :created attr: logged_metrics    [LoggedMetrics]
         :created attr: tokenizer         [transformers AutoTokenizer]
+        :created attr: encoding          [dict] e.g. {"\n": "[NEWLINE]", "\t": "[TAB]"}
         :created attr: special_tokens    [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :created attr: data_preprocessor [DataPreprocessor]
         :created attr: annotation        [Annotation]
@@ -57,6 +58,7 @@ class NerModelTrain(NerModel):
         :created attr: mlflow_client          [MLflowClient]
         :created attr: epoch_metrics          [dict] w/ keys = 'val', 'test' & values = [dict]
         :created attr: classification_reports [dict] w/ keys = 'val', 'test' & values = [dict]
+        :created attr: encoding               [dict] e.g. {"\n": "[NEWLINE]", "\t": "[TAB]"}
         :created attr: special_tokens         [list] of [str] e.g. ["[NEWLINE]", "[TAB]"]
         :return: -
         """
@@ -80,8 +82,11 @@ class NerModelTrain(NerModel):
         self.epoch_metrics = {"val": dict(), "test": dict()}
         self.classification_reports = {"val": dict(), "test": dict()}
 
-        self.special_tokens = read_special_tokens(self.params.dataset_name)
-        self.default_logger.log_info(f"> read special tokens: {self.special_tokens}")
+        self.encoding = read_encoding(self.params.dataset_name)
+        self.default_logger.log_info(f"> read encoding: {self.encoding}")
+
+        self.special_tokens = list(set(self.encoding.values()))
+        self.default_logger.log_debug(f"> extracted special tokens: {self.special_tokens}")
 
     def _preparations_data_train(self):
         """
@@ -132,8 +137,8 @@ class NerModelTrain(NerModel):
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes
         )  # save for NerModelPredict
-        self.hparams.special_tokens = json.dumps(
-            self.special_tokens
+        self.hparams.encoding = json.dumps(
+            self.encoding
         )  # save for NerModelPredict
 
         # model
