@@ -28,7 +28,7 @@ class NerModelPredict:
     def __init__(self, checkpoint_directory: str, batch_size: int = 16, max_seq_length: int = None):
         """
         Args:
-            checkpoint_directory
+            checkpoint_directory: path
             batch_size: used in dataloader
         """
         # 0. device

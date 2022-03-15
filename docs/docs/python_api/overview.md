@@ -1,10 +1,14 @@
 # Python API
 
-- **Available Classes:**
+- **Main Classes:**
 
     * [NerBlackBox](../nerblackbox)
     * [ExperimentResults](../experiment_results)
     * [NerModelPredict](../ner_model_predict)
+  
+
+----------
+- **Additional Classes:**
     * [TextEncoder](../text_encoder)
 
 

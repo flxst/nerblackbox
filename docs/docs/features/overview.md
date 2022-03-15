@@ -9,4 +9,4 @@ In this section, we discuss some useful (and mostly unique) features of **nerbla
 * [Support for Pretokenized and Unpretokenized Datasets](../support_pretokenized)
 * [Support for Various Annotation Schemes](../support_annotation_schemes)
 * [Seamless Use of Datasets from HuggingFace Datasets](../support_huggingface_datasets)
-* [Special Token Support](../support_special_tokens)
+* [Text Encoding](../text_encoding)

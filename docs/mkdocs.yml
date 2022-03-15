@@ -9,7 +9,7 @@ theme:
   favicon: images/package-16.svg
   icon:
     logo: octicons/package-16
-copyright: Copyright &copy; 2020 - 2022 Felix Stollenwerk
+copyright: Copyright &copy; 2021 - 2022 Felix Stollenwerk
 plugins:
   - mkdocstrings
   - search
@@ -39,7 +39,7 @@ nav:
         - 'features/support_pretokenized.md'
         - 'features/support_annotation_schemes.md'
         - 'features/support_huggingface_datasets.md'
-        - 'features/support_special_tokens.md'
+        - 'features/text_encoding.md'
     - Python API:
       - Overview: 'python_api/overview.md'
       - 'python_api/nerblackbox.md'
