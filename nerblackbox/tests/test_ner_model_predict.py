@@ -10,6 +10,7 @@ from nerblackbox.modules.ner_training.ner_model_predict import (
     merge_slices_for_single_document,
     merge_token_to_word_predictions,
     restore_unknown_tokens,
+    assert_typing,
 )
 
 
@@ -509,4 +510,55 @@ class TestNerModelPredictStatic:
             f"test_word_predictions_restored = "
             f"{test_word_predictions_restored} != "
             f"{word_predictions_restored}"
+        )
+
+    @pytest.mark.parametrize(
+        "word_predictions, word_predictions_str",
+        [
+            (
+                [
+                    {
+                        "char_start": 0,
+                        "char_end": 18,
+                        "token": "arbetsförmedlingen",
+                        "tag": "ORG",
+                    },
+                    {
+                        "char_start": 19,
+                        "char_end": 24,
+                        "token": "finns",
+                        "tag": "O",
+                    },
+                ],
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "18",
+                        "token": "arbetsförmedlingen",
+                        "tag": "ORG",
+                    },
+                    {
+                        "char_start": "19",
+                        "char_end": "24",
+                        "token": "finns",
+                        "tag": "O",
+                    },
+                ],
+            )
+        ]
+    )
+    def test_assert_typing(
+            self,
+            word_predictions: List[Dict[str, Any]],
+            word_predictions_str: List[Dict[str, str]],
+    ):
+        test_word_predictions_str = assert_typing(
+            word_predictions,
+        )
+        assert (
+                test_word_predictions_str == word_predictions_str
+        ), (
+            f"test_word_predictions_str = "
+            f"{test_word_predictions_str} != "
+            f"{word_predictions_str}"
         )

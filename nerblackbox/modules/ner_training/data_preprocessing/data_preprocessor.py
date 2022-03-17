@@ -240,7 +240,7 @@ class DataPreprocessor:
         else:
             raise Exception(
                 f"ERROR! Did not find train.csv OR train.jsonl in {dataset_path}:"
-                f"(csv: {isfile(dataset_path_csv)}, jsonl: {isfile(dataset_path_jsonl)}"
+                f"(csv: {isfile(dataset_path_csv)}, jsonl: {isfile(dataset_path_jsonl)})"
             )
 
     @staticmethod

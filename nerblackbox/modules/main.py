@@ -414,6 +414,9 @@ class NerBlackBoxMain:
 
             experiment_results_list = self.get_experiment_results()
 
+            if experiment_results_list[0].best_single_run is None:
+                return None
+
             # single experiment
             if (
                     "checkpoint" in experiment_results_list[0].best_single_run.keys()
@@ -447,12 +450,13 @@ class NerBlackBoxMain:
             "get_model_from_experiment", experiment_name=self.experiment_name, usage="api"
         )
         model = nerbb.main()
-        predictions = model.predict(self.text_input)
-        if self.usage == "cli":
-            print(predictions[0])
-            return None
-        else:
-            return predictions
+        if model is not None:
+            predictions = model.predict(self.text_input)
+            if self.usage == "cli":
+                print(predictions[0])
+                return None
+            else:
+                return predictions
 
     def predict_proba(self) -> Optional[List[Dict[str, Union[str, Dict]]]]:
         """
@@ -627,16 +631,17 @@ class NerBlackBoxMain:
 
             _write("\n[runA]")
 
-    @staticmethod
-    def _create_data_directory() -> None:
+    def _create_data_directory(self) -> None:
         if resource_isdir(Requirement.parse("nerblackbox"), "nerblackbox/modules/data"):
             data_source = resource_filename(
                 Requirement.parse("nerblackbox"), "nerblackbox/modules/data"
             )
 
             data_dir = env_variable("DATA_DIR")
-            print("data_source =", data_source)
-            print("data_target =", data_dir)
+            if self.verbose:
+                print("data_source =", data_source)
+                print("data_target =", data_dir)
+
             if os.path.isdir(data_dir):
                 print(f"init: target {data_dir} already exists")
             else:

@@ -62,7 +62,7 @@ def read_encoding(dataset: str) -> Dict[str, str]:
             encoding, dict
         ), f"ERROR! {path_encoding} seems to contain a {type(encoding)}, should be list."
     else:
-        encoding = list()
+        encoding = dict()
     return encoding
 
 

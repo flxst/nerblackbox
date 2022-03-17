@@ -43,7 +43,7 @@ class NerBlackBox:
     ####################################################################################################################
     # NER BLACK BOX
     ####################################################################################################################
-    def analyze_data(self, dataset_name: str, **kwargs_optional: Dict):
+    def analyze_data(self, dataset_name: str, **kwargs_optional: Any):
         """analyze a dataset.
 
         Args:
@@ -84,7 +84,7 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("get_experiment_results", **kwargs)
         return nerbb.main()
 
-    def get_experiments(self, **kwargs_optional: Dict) -> pd.DataFrame:
+    def get_experiments(self, **kwargs_optional: Any) -> pd.DataFrame:
         """show list of experiments that have been run.
 
         Args:
@@ -148,7 +148,7 @@ class NerBlackBox:
         model: Optional[str] = None,
         dataset: Optional[str] = None,
         from_preset: Optional[str] = "adaptive",
-        **kwargs_optional: Dict
+        **kwargs_optional: Any,
     ):
         """run a single experiment.
 
@@ -204,7 +204,7 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("run_experiment", **kwargs)
         nerbb.main()
 
-    def set_up_dataset(self, dataset_name: str, dataset_subset_name: str = "", **kwargs_optional: Dict):
+    def set_up_dataset(self, dataset_name: str, dataset_subset_name: str = "", **kwargs_optional: Any):
         """set up a dataset using the associated Formatter class.
 
         Args:

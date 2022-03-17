@@ -557,20 +557,26 @@ def restore_unknown_tokens(
     return word_predictions_restored
 
 
-def assert_typing(input_text_word_predictions_str_dict):
+def assert_typing(input_text_word_predictions: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     """
     this is only to ensure correct typing, it does not actually change anything
 
     Args:
-        input_text_word_predictions_str_dict:
+        input_text_word_predictions: e.g. [
+            {"char_start": 0, "char_end": 7, "token": "example", "tag": "O"},
+            ..
+        ]
 
     Returns:
-        TODO
+        input_text_word_predictions_str: e.g. [
+            {"char_start": "0", "char_end": "7", "token": "example", "tag": "O"},
+            ..
+        ]
     """
     return [
         {
             k: str(v)
-            for k, v in input_text_word_prediction_str_dict.items()
+            for k, v in input_text_word_prediction.items()
         }
-        for input_text_word_prediction_str_dict in input_text_word_predictions_str_dict
+        for input_text_word_prediction in input_text_word_predictions
     ]
