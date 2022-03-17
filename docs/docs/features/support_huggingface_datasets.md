@@ -1,8 +1,7 @@
 # Seamless Use of Datasets from HuggingFace Datasets
 
-In addition to [built-in](../../usage/datasets_and_models/#built-in-datasets) and your own [custom](../../usage/datasets_and_models/#custom-datasets) datasets,
-any dataset from [HuggingFace Datasets](https://huggingface.co/datasets) that is suitable for named entity recognition
-can be used without further ado.
+A dataset from [HuggingFace Datasets](https://huggingface.co/datasets) that is suitable for named entity recognition
+can be used just like any other [built-in dataset](../../usage/datasets_and_models#built-in-datasets), without further ado.
 
 - static experiment definition
 

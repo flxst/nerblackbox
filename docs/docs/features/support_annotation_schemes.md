@@ -5,7 +5,7 @@ NER datasets come with different annotation schemes, e.g. IO, BIO and BILOU.
 ![Annotation Schemes](../images/annotation_schemes.png)
 
 **nerblackbox** automatically recognizes and uses the given scheme of a dataset 
-if the (default) setting ``auto`` for the [parameter](../../usage/parameters) ``annotation_scheme`` is used:
+if the (default) setting ``auto`` for the [parameter](../../usage/parameters_and_presets/#parameters) ``annotation_scheme`` is used:
 
 ??? example "annotation scheme auto"
     ``` markdown

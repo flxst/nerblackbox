@@ -24,7 +24,7 @@ Say we want to have the following replacements:
 --------
 The first step is to save the `encoding` in an `encoding.json` file
 which is located in the same folder ``./data/datasets/<custom_dataset>`` that contains the data 
-(see [`Custom Datasets`](../../usage/datasets_and_models/#custom-datasets)).
+(see [Custom Datasets](../../usage/datasets_and_models/#custom-datasets)).
 
 ??? note "create encoding.json"
     ``` python

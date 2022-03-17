@@ -55,15 +55,17 @@ pip install nerblackbox
     # [output provides details on the model training]
     ```
 
-- inspect the model
+- inspect the results
     ``` python
-    nerbb.get_experiment_results("my_experiment")
-    # [output provides details on the model performance]
+    experiment_results = nerbb.get_experiment_results("my_experiment")
+    # [experiment_results contains e.g. details on the model performance]
     ```
 
 - model inference
     ``` python
-    nerbb.predict("my_experiment", "The United Nations has never recognised Jakarta's move.")  
+    model = nerbb.get_model_from_experiment("my_experiment")
+  
+    model.predict("The United Nations has never recognised Jakarta's move.")  
     # [[
     #  {'char_start': '4', 'char_end': '18', 'token': 'United Nations', 'tag': 'ORG'},
     #  {'char_start': '40', 'char_end': '47', 'token': 'Jakarta', 'tag': 'LOC'}

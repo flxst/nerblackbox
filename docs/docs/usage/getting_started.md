@@ -1,6 +1,6 @@
 # Getting Started
 
-Use either the [`Python API`](../../python_api/overview) or the [`CLI (Command Line Interface)`](../../cli/cli).
+Use either the [Python API](../../python_api/overview) or the [CLI (Command Line Interface)](../../cli/cli).
 
 ??? note "basic usage"
     === "Python"
@@ -22,12 +22,10 @@ The following commands need to be executed once:
     === "Python"
         ``` python
         nerbb.init()
-        nerbb.download()  # optional, if built-in datasets shall be used
         ```
     === "CLI"
         ``` bash
         nerbb init
-        nerbb download    # optional, if built-in datasets shall be used
         ```
 
 This creates a ``./data`` directory with the following structure:
@@ -35,32 +33,37 @@ This creates a ``./data`` directory with the following structure:
 ``` xml
 data/
 └── datasets
-    └── conll2003                     # built-in dataset, requires download
-        └── train.csv
-        └── val.csv
-        └── test.csv
-    └── [..]                          # more built-in datasets, requires download
 └── experiment_configs
-    └── default.ini                   # experiment config default values
-    └── my_experiment.ini             # experiment config example
-    └── my_experiment_conll2003.ini   # experiment config template
-    └── [..]                          # more experiment config templates
-└── pretrained_models                 # custom model checkpoints
+└── pretrained_models
 └── results
 ```
 
 -----------
 ## 2. Data
 
-- [`Built-in datasets`](../datasets_and_models/#built-in-datasets) do not require any preparation. 
+- [Built-in datasets](../datasets_and_models/#built-in-datasets) (including [HuggingFace Datasets](../../features/support_huggingface_datasets/))
+can be downloaded and set up using the following command:
 
-- [`Custom datasets`](../datasets_and_models/#custom-datasets) can be provided using two different data formats:
+
+    ??? note "set up dataset"
+        === "Python"
+            ``` python
+            nerbb.set_up_dataset("<dataset_name>")
+            ```
+        === "CLI"
+            ``` bash
+            nerbb set_up_dataset <dataset_name>
+            ```
+
+    This creates data files in the folder `./data/datasets/<dataset_name>`.
+
+- [Custom datasets](../datasets_and_models/#custom-datasets) can be provided using two different data formats:
 
     - jsonl (raw data)
 
     - csv (pretokenized data)
 
-    See [`Custom datasets`](../datasets_and_models/#custom-datasets) for more details.
+    See [Custom datasets](../datasets_and_models/#custom-datasets) for more details.
 
 -----------
 ## 3. Fine-tune a Model
@@ -91,11 +94,11 @@ An experiment is defined
 
     This creates an experiment configuration on the fly, which is subsequently used.
 
-In both cases, the specification of the [`model`](../datasets_and_models) and the [`dataset`](../datasets_and_models) are mandatory, while the [`parameters`](../parameters) are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
-In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is employed to ensure that this holds irrespective of the size of the dataset.  
+In both cases, the specification of the [`model`](../datasets_and_models) and the [`dataset`](../datasets_and_models) are mandatory, while the [`parameters`](../parameters_and_presets/#parameters) are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
+In particular, [adaptive fine-tuning](../../features/adaptive_finetuning) is employed to ensure that this holds irrespective of the size of the dataset.  
 
 -----------
-## 4. Inspect the Model
+## 4. Inspect the Results
 
 - Once an experiment is finished, one can inspect its main results 
     or have a look at detailed results (e.g. learning curves):
@@ -170,6 +173,6 @@ In particular, [`adaptive fine-tuning`](../../features/adaptive_finetuning) is e
 -----------
 ## Next Steps
 
-- See [`Datasets and Models`](../datasets_and_models) to learn how to include your own **custom datasets** and **custom models**.
-- See [`Parameters`](../parameters) for information on how to create your own **custom experiments**.
+- See [Datasets and Models](../datasets_and_models) to learn how to include your own **custom datasets** and **custom models**.
+- See [Parameters and Presets](../parameters_and_presets) for information on how to create your own **custom experiments**.
 

@@ -2,7 +2,7 @@
 
 Adaptive fine-tuning (introduced in [this paper](https://arxiv.org/abs/2202.02617)) is a method that automatically trains for a near-optimal number of epochs.
 It is used by default in **nerblackbox**, and corresponds to the 
-following [hyperparameters](../../usage/parameters/#4-hyperparameters):
+following [hyperparameters](../../usage/parameters_and_presets/#4-hyperparameters):
 
 ??? note "adaptive fine-tuning hyperparameters"
     ``` markdown
@@ -18,7 +18,7 @@ following [hyperparameters](../../usage/parameters/#4-hyperparameters):
     lr_cooldown_epochs = 7
     ```
 
-The hyperparameters are also available as a [preset](../../usage/parameters/#presets).
+The hyperparameters are also available as a [preset](../../usage/parameters_and_presets/#presets).
 
 
 

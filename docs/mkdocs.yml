@@ -29,7 +29,7 @@ nav:
     - Usage:
       - 'usage/getting_started.md'
       - 'usage/datasets_and_models.md'
-      - 'usage/parameters.md'
+      - 'usage/parameters_and_presets.md'
     - Features:
         - 'features/overview.md'
         - 'features/adaptive_finetuning.md'

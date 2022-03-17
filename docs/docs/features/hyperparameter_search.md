@@ -20,4 +20,4 @@ The hyperparameters one wants to vary are to be specified in special sections ``
 
     This creates **2 hyperparameter runs** (`runA` & `runB`).
 
-See [`Hyperparameters`](../../usage/parameters/#4-hyperparameters) for an overview of all hyperparameters.
+See [Hyperparameters](../../usage/parameters_and_presets/#4-hyperparameters) for an overview of all hyperparameters.

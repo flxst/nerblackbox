@@ -9,7 +9,7 @@ for **built-in** datasets and models.
 ## Built-in Datasets 
 
 - All [community-uploaded datasets](https://huggingface.co/datasets) of the [datasets library](https://huggingface.co/docs/datasets/)
-- The following built-in datasets:
+- The following datasets:
 
     | Name               | Language | Open Source | Annotation Scheme | Sample Type  | #Samples (Train, Val, Test) | Directory Name     | Required Files | Source |               
     |---                 |---       |---          |---                |---           |---                          |---                 |---             |---     |
@@ -19,32 +19,32 @@ for **built-in** datasets and models.
     | SUC 3.0            | Swedish  | No          | BIO               | Sentence     | (71046, 1546, 1568)         | suc                | `suc-*.conll`  | [Description](https://www.ling.su.se/english/nlp/corpora-and-resources/suc)   |
     | Swe-NERC           | Swedish  | Yes         | BIO               | Sentence     | (6841, 878, 891)            | swe_nerc           | ---            | [Description](https://gubox.app.box.com/v/SLTC-2020-paper-17); [Data](https://spraakbanken.gu.se/lb/resurser/swe-nerc/)   |
 
-    - These datasets are pre-processed and made available by:
+- The datasets are downloaded and set up by:
 
-        ??? note "Open Source"
-            === "CLI"
-                ``` bash
-                nerbb download    
-                ```
-            === "Python"
-                ``` python
-                nerbb.download()  
-                ```
-        ??? warning "Not Open Source"
-            - create folder: `mkdir ./data/datasets/<Directory Name>`
-            - move `Required Files` manually to `./data/datasets/<Directory Name>`
-            - set up dataset:
-                  
-            === "CLI"
-                ``` bash
-                nerbb set_up_dataset <Directory Name>
-                ```
-            === "Python"
-                ``` python
-                nerbb.set_up_dataset(<Directory Name>)  
-                ```
-  
-    - Additional dataset details (tags, tag distribution, ..) can be found in `./data/datasets/<Directory Name>/analyze_data`
+    ??? note "Open Source"
+        === "Python"
+            ``` python
+            nerbb.set_up_dataset("<dataset_name>")
+            ```
+        === "CLI"
+            ``` bash
+            nerbb set_up_dataset <dataset_name>
+            ```
+    ??? warning "Not Open Source"
+        - create folder: `mkdir ./data/datasets/<dataset_name>`
+        - move `Required Files` manually to `./data/datasets/<dataset_name>`
+        - set up dataset:
+
+        === "Python"
+            ``` python
+            nerbb.set_up_dataset(<dataset_name>)  
+            ```
+        === "CLI"
+            ``` bash
+            nerbb set_up_dataset <dataset_name>
+            ```
+
+- Additional dataset details (tags, tag distribution, ..) can be found in `./data/datasets/<dataset_name>/analyze_data`
 
 -----------
 ## Built-in Models
@@ -79,7 +79,7 @@ To include your own custom dataset, do the following:
       ``<tags> <tab> <text>``, where in ``<tags>`` and ``<text>`` the tags and tokens are separated by whitespace.
       This format is suitable for many public datasets. 
 
-- Use ``dataset_name = <custom_dataset>`` as [`parameter`](../parameters/#1-dataset) 
+- Use ``dataset_name = <custom_dataset>`` as [`parameter`](../parameters_and_presets/#1-dataset) 
     when [`fine-tuning a model`](../getting_started/#3-fine-tune-a-model).
 
 <!---
@@ -104,5 +104,5 @@ To include your own custom model, do the following:
 
 - ``<custom_model>`` must include the architecture type, e.g. ``bert``
 
-- Use ``pretrained_model_name = <custom_model>`` as [parameter](../parameters/#2-model)
-    when [`fine-tuning a model`](../getting_started/#3-fine-tune-a-model).
+- Use ``pretrained_model_name = <custom_model>`` as [parameter](../parameters_and_presets/#2-model)
+    when [fine-tuning a model](../getting_started/#3-fine-tune-a-model).
