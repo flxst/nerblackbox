@@ -414,6 +414,8 @@ class NerBlackBoxMain:
 
             experiment_results_list = self.get_experiment_results()
 
+            assert isinstance(experiment_results_list, list) and len(experiment_results_list) > 0, \
+                f"ERROR! experiment_results_list expected to be a list of len > 0."
             if experiment_results_list[0].best_single_run is None:
                 return None
 
@@ -457,6 +459,7 @@ class NerBlackBoxMain:
                 return None
             else:
                 return predictions
+        return None
 
     def predict_proba(self) -> Optional[List[Dict[str, Union[str, Dict]]]]:
         """

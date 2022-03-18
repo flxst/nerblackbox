@@ -23,7 +23,7 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
     PHASES_DATASETS = {"train": "train", "val": "validation", "test": "test"}
 
     @classmethod
-    def check_existence(cls, ner_dataset: str, ner_dataset_subset: Optional[str] = "") -> Tuple[bool, str]:
+    def check_existence(cls, ner_dataset: str, ner_dataset_subset: str = "") -> Tuple[bool, str]:
         """
         checks if ner_dataset exists in huggingface datasets
 
@@ -44,7 +44,7 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             return False, f"Error! ner_dataset = {ner_dataset} unknown."
 
     @classmethod
-    def check_compatibility(cls, ner_dataset: str, ner_dataset_subset: Optional[str] = "") -> Tuple[bool, str]:
+    def check_compatibility(cls, ner_dataset: str, ner_dataset_subset: str = "") -> Tuple[bool, str]:
         """
         checks if ner_dataset contains train/val/test splits
 
@@ -64,7 +64,7 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         return compatibility, error_msg
 
     @classmethod
-    def check_implementation(cls, ner_dataset: str, ner_dataset_subset: Optional[str] = "") -> Tuple[bool, str]:
+    def check_implementation(cls, ner_dataset: str, ner_dataset_subset: str = "") -> Tuple[bool, str]:
         """
         problem: there is no common structure in dataset_builder.info.features for all datasets
         parsing for a few typical structures is implemented
@@ -83,7 +83,7 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
 
     @classmethod
     def get_infos(
-        cls, ner_dataset: str, ner_dataset_subset: Optional[str] = "",
+        cls, ner_dataset: str, ner_dataset_subset: str = "",
     ) -> Tuple[bool, Optional[List[str]], Optional[bool], Optional[Dict[str, Any]]]:
         """
         get all relevant infos about dataset
@@ -165,7 +165,7 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         else:
             return implementation, tags, pretokenized, lookup_table
 
-    def __init__(self, ner_dataset: str, ner_dataset_subset: Optional[str] = ""):
+    def __init__(self, ner_dataset: str, ner_dataset_subset: str = ""):
         _, self.tags, self.pretokenized, self.lookup_table = self.get_infos(ner_dataset, ner_dataset_subset)
         self.sentences_rows_pretokenized: Dict[str, SENTENCES_ROWS_PRETOKENIZED] = {
             phase: list() for phase in self.PHASES

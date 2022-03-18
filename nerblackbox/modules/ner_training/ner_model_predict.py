@@ -191,11 +191,11 @@ class NerModelPredict:
         input_examples = self.data_preprocessor.get_input_examples_predict(
             examples=input_texts,
         )
-        dataloader, offsets = self.data_preprocessor.to_dataloader(
+        dataloader_all, offsets_all = self.data_preprocessor.to_dataloader(
             input_examples, self.annotation_classes, batch_size=self.batch_size
         )
-        dataloader = dataloader['predict']
-        offsets = offsets['predict']
+        dataloader = dataloader_all['predict']
+        offsets = offsets_all['predict']
 
         inputs_batches = list()
         outputs_batches = list()
@@ -212,10 +212,11 @@ class NerModelPredict:
 
         ################################################################################################################
         ################################################################################################################
-        tokens = [
+        tokens: List[List[str]] = [
             self.tokenizer.convert_ids_to_tokens(input_ids) for input_ids in inputs.tolist()
         ]  # List[List[str]] with len = batch_size
 
+        predictions: List[List[Any]]
         if proba:
             predictions = turn_tensors_into_tag_probability_distributions(
                 annotation_classes=self.annotation_classes,
@@ -259,7 +260,7 @@ class NerModelPredict:
                          proba: bool,
                          input_text: str,
                          tokens: List[str],
-                         predictions: List[Union[str, Dict[str, float]]]):
+                         predictions: List[Any]):
         """
         Args:
             level: "word" or "entity"
@@ -276,7 +277,7 @@ class NerModelPredict:
         # 1 input_text, merged chunks, tokens -> words
         ######################################
         _word_predictions: List[
-            Tuple[Union[str, Dict[str, float]], ...]
+            Tuple[str, Union[str, Dict[str, float]]]
         ] = merge_token_to_word_predictions(
             tokens, predictions
         )
@@ -363,7 +364,7 @@ def turn_tensors_into_tag_probability_distributions(annotation_classes: List[str
     return predictions_proba
 
 
-def merge_slices_for_single_document(_list: List[List[Union[str, Dict[str, float]]]]) -> List[Union[str, Dict[str, float]]]:
+def merge_slices_for_single_document(_list: List[List[Any]]) -> List[Any]:
     """
     merges the slices for a single document
 
@@ -399,8 +400,8 @@ def merge_slices_for_single_document(_list: List[List[Union[str, Dict[str, float
 
 
 def merge_token_to_word_predictions(
-        tokens: List[str], predictions: List[Union[str, Dict[str, float]]],
-) -> List[Tuple[Union[str, Dict[str, float]]]]:
+        tokens: List[str], predictions: List[Any],
+) -> List[Tuple[str, Any]]:
     """
     Args:
         tokens: e.g. ["[CLS]", "arbetsförmedl", "##ingen", "finns", "i", "stockholm", "[SEP]", "[PAD]"]
@@ -410,7 +411,7 @@ def merge_token_to_word_predictions(
         word_predictions: e.g. [("arbetsförmedlingen", "ORG"), ("finns", "O"), ("i", "O"), ("stockholm", "O")]
     """
     # predict tags on words between [CLS] and [SEP]
-    word_predictions_list: List[List[Union[str, Dict[str, float]]]] = list()
+    word_predictions_list = list()
     for token, example_token_prediction in zip(tokens, predictions):
         if token not in ["[CLS]", "[SEP]", "[PAD]"]:
             if not token.startswith("##"):
@@ -418,13 +419,13 @@ def merge_token_to_word_predictions(
             else:
                 word_predictions_list[-1][0] += token.strip("##")
 
-    word_predictions = [tuple(elem) for elem in word_predictions_list]
+    word_predictions = [(elem[0], elem[1]) for elem in word_predictions_list]
 
     return word_predictions
 
 
 def restore_unknown_tokens(
-        word_predictions: List[Tuple[Union[str, Dict[str, float]], ...]],
+        word_predictions: List[Tuple[str, Union[str, Dict[str, float]]]],
         input_text: str,
         verbose: bool = False,
 ) -> List[Dict[str, Union[str, Dict]]]:
@@ -520,6 +521,7 @@ def restore_unknown_tokens(
             assert char_end_margin is not None, \
                 f"ERROR! could not find char_end_margin. token = {token}. " \
                 f"word_predictions_restored = {word_predictions_restored}"
+            assert k_prev is not None and k_next is not None, f"ERROR! could not find k_prev or k_next"
 
             new_token = input_text[char_start_margin:char_end_margin].strip()
             if k_prev != 1 or k_next != 1:

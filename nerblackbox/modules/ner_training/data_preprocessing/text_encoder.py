@@ -112,6 +112,8 @@ class TextEncoder:
             text = text[:index] + k + text[index + len(v):]
 
             for prediction in predictions:
+                assert isinstance(prediction['char_start'], str) and isinstance(prediction['char_end'], str), \
+                    f"ERROR! expected str, got type ({prediction['char_start']}, {prediction['char_end']})"
                 if int(prediction['char_start']) == index and int(prediction['char_end']) == index + len(v):
                     prediction['char_end'] = str(int(prediction['char_end']) - len(v) + len(k))
                     prediction['token'] = k

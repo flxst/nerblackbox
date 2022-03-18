@@ -17,7 +17,7 @@ from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter impor
 
 class AutoFormatter:
     @staticmethod
-    def for_dataset(ner_dataset: str, ner_dataset_subset: Optional[str] = "") -> BaseFormatter:
+    def for_dataset(ner_dataset: str, ner_dataset_subset: str = "") -> BaseFormatter:
         """
         Args:
             ner_dataset: e.g. "conll2003"

@@ -2,6 +2,7 @@ from typing import List, Dict, Optional, Tuple
 import pandas as pd
 from datasets import load_dataset
 from os.path import join
+from datasets import DatasetDict
 
 from nerblackbox.modules.datasets.formatter.base_formatter import (
     BaseFormatter,
@@ -45,14 +46,16 @@ class SUCXFormatter(BaseFormatter):
             verbose: [bool]
         """
         dataset = load_dataset("KBLab/sucx3_ner", self.ner_dataset_subset)
-        dataset['val'] = dataset['validation']
+        assert isinstance(dataset, DatasetDict), f"ERROR! type(dataset) = {type(dataset)} expected to be DatasetDict."
+        dataset["val"] = dataset["validation"]
         for phase in ["train", "val", "test"]:
             sentences_rows_formatted = []
             for sample in dataset[phase]:
                 sentences_rows_formatted.append((" ".join(sample['ner_tags']), " ".join(sample['tokens'])))
 
             df = pd.DataFrame(sentences_rows_formatted)
-            assert len(df) == dataset[phase].num_rows, f"ERROR! number of rows = {len(df)} != {dataset[phase].num_rows}"
+            assert len(df) == dataset[phase].num_rows, \
+                f"ERROR! number of rows = {len(df)} != {dataset[phase].num_rows}"
             file_path = join(self.dataset_path, f"{phase}_original.csv")
             df.to_csv(file_path, sep="\t", header=False, index=False)
 
