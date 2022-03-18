@@ -391,7 +391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../parameters/" class="md-nav__link">
+      <a href="../parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -531,8 +531,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="../../features/text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -618,6 +618,18 @@
   
 
           
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_api/text_encoder/" class="md-nav__link">
+        TextEncoder
+      </a>
+    </li>
+  
+
+          
         </ul>
       </nav>
     </li>
@@ -691,7 +703,7 @@ for <strong>built-in</strong> datasets and models.
 <ul>
 <li>All <a href="https://huggingface.co/datasets">community-uploaded datasets</a> of the <a href="https://huggingface.co/docs/datasets/">datasets library</a></li>
 <li>
-<p>The following built-in datasets:</p>
+<p>The following datasets:</p>
 <table>
 <thead>
 <tr>
@@ -764,39 +776,37 @@ for <strong>built-in</strong> datasets and models.
 </tr>
 </tbody>
 </table>
-<ul>
+</li>
 <li>
-<p>These datasets are pre-processed and made available by:</p>
-<details class="note"><summary>Open Source</summary><div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">CLI</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code>nerbb download    
+<p>The datasets are downloaded and set up by:</p>
+<details class="note"><summary>Open Source</summary><div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Python</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">set_up_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">)</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Python</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">download</span><span class="p">()</span>  
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">CLI</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>nerbb set_up_dataset &lt;dataset_name&gt;
 </code></pre></div>
 </div>
 </div>
 </details>
 <details class="warning"><summary>Not Open Source</summary><ul>
-<li>create folder: <code>mkdir ./data/datasets/&lt;Directory Name&gt;</code></li>
-<li>move <code>Required Files</code> manually to <code>./data/datasets/&lt;Directory Name&gt;</code></li>
+<li>create folder: <code>mkdir ./data/datasets/&lt;dataset_name&gt;</code></li>
+<li>move <code>Required Files</code> manually to <code>./data/datasets/&lt;dataset_name&gt;</code></li>
 <li>set up dataset:</li>
 </ul>
-<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">CLI</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code>nerbb set_up_dataset &lt;Directory Name&gt;
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Python</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">set_up_dataset</span><span class="p">(</span><span class="o">&lt;</span><span class="n">dataset_name</span><span class="o">&gt;</span><span class="p">)</span>  
 </code></pre></div>
 </div>
-<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Python</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">set_up_dataset</span><span class="p">(</span><span class="o">&lt;</span><span class="n">Directory</span> <span class="n">Name</span><span class="o">&gt;</span><span class="p">)</span>  
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">CLI</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>nerbb set_up_dataset &lt;dataset_name&gt;
 </code></pre></div>
 </div>
 </div>
 </details>
 </li>
 <li>
-<p>Additional dataset details (tags, tag distribution, ..) can be found in <code>./data/datasets/&lt;Directory Name&gt;/analyze_data</code></p>
-</li>
-</ul>
+<p>Additional dataset details (tags, tag distribution, ..) can be found in <code>./data/datasets/&lt;dataset_name&gt;/analyze_data</code></p>
 </li>
 </ul>
 <hr />
@@ -836,7 +846,7 @@ for <strong>built-in</strong> datasets and models.
       This format is suitable for many public datasets. </p>
 </li>
 <li>
-<p>Use <code>dataset_name = &lt;custom_dataset&gt;</code> as <a href="../parameters/#1-dataset"><code>parameter</code></a> 
+<p>Use <code>dataset_name = &lt;custom_dataset&gt;</code> as <a href="../parameters_and_presets/#1-dataset"><code>parameter</code></a> 
     when <a href="../getting_started/#3-fine-tune-a-model"><code>fine-tuning a model</code></a>.</p>
 </li>
 </ul>
@@ -865,8 +875,8 @@ Own custom datasets can also be created programmatically (like the :ref:`Built-i
 <p><code>&lt;custom_model&gt;</code> must include the architecture type, e.g. <code>bert</code></p>
 </li>
 <li>
-<p>Use <code>pretrained_model_name = &lt;custom_model&gt;</code> as <a href="../parameters/#2-model">parameter</a>
-    when <a href="../getting_started/#3-fine-tune-a-model"><code>fine-tuning a model</code></a>.</p>
+<p>Use <code>pretrained_model_name = &lt;custom_model&gt;</code> as <a href="../parameters_and_presets/#2-model">parameter</a>
+    when <a href="../getting_started/#3-fine-tune-a-model">fine-tuning a model</a>.</p>
 </li>
 </ul>
                 
@@ -902,7 +912,7 @@ Own custom datasets can also be created programmatically (like the :ref:`Built-i
           </a>
         
         
-          <a href="../parameters/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../parameters_and_presets/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
@@ -924,7 +934,7 @@ Own custom datasets can also be created programmatically (like the :ref:`Built-i
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with

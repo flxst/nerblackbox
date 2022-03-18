@@ -330,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/parameters/" class="md-nav__link">
+      <a href="../../usage/parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -470,8 +470,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="../../features/text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -584,13 +584,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#nerblackbox.modules.experiment_results.ExperimentResults.set_best_model" class="md-nav__link">
-    set_best_model()
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -606,6 +599,18 @@
     <li class="md-nav__item">
       <a href="../ner_model_predict/" class="md-nav__link">
         NerModelPredict
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../text_encoder/" class="md-nav__link">
+        TextEncoder
       </a>
     </li>
   
@@ -682,7 +687,7 @@
 <div class="doc doc-object doc-method">
 <h2 class="doc doc-heading" id="nerblackbox.modules.experiment_results.ExperimentResults.__init__">
 
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">single_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_single_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_average_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">single_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_single_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_average_run</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -757,14 +762,6 @@
 </td>
 <td><code>None</code></td>
 </tr>
-<tr>
-<td><code>best_model</code></td>
-<td><code>Optional[nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict]</code></td>
-<td>
-<p>best model</p>
-</td>
-<td><code>None</code></td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -836,38 +833,6 @@
 </table>
 </div>
 </div>
-<div class="doc doc-object doc-method">
-<h2 class="doc doc-heading" id="nerblackbox.modules.experiment_results.ExperimentResults.set_best_model">
-
-<code class="highlight language-python"><span class="n">set_best_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">best_model</span><span class="p">)</span></code>
-
-
-      </h2>
-<div class="doc doc-contents ">
-<p>set best model.</p>
-<p><strong>Parameters:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>best_model</code></td>
-<td><code>NerModelPredict</code></td>
-<td>
-<p>best model</p>
-</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -926,7 +891,7 @@
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with

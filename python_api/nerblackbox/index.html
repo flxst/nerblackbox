@@ -330,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/parameters/" class="md-nav__link">
+      <a href="../../usage/parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -470,8 +470,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="../../features/text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -594,6 +594,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nerblackbox.api.NerBlackBox.get_model_from_experiment" class="md-nav__link">
+    get_model_from_experiment()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nerblackbox.api.NerBlackBox.init" class="md-nav__link">
     init()
   </a>
@@ -655,6 +662,18 @@
     <li class="md-nav__item">
       <a href="../ner_model_predict/" class="md-nav__link">
         NerModelPredict
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../text_encoder/" class="md-nav__link">
+        TextEncoder
       </a>
     </li>
   
@@ -800,7 +819,7 @@
 </tr>
 <tr>
 <td><code>kwargs_optional</code></td>
-<td><code>Dict</code></td>
+<td><code>Any</code></td>
 <td>
 <p>with optional key-value pairs {"verbose": [bool]}.</p>
 </td>
@@ -894,7 +913,7 @@ in case built-in datasets shall be used.</p>
 <tbody>
 <tr>
 <td><code>kwargs_optional</code></td>
-<td><code>Dict</code></td>
+<td><code>Any</code></td>
 <td>
 <p>with optional key-value pairs             {"ids": [tuple of int], "as_df": [bool]}</p>
 </td>
@@ -914,7 +933,56 @@ in case built-in datasets shall be used.</p>
 <tr>
 <td><code>DataFrame</code></td>
 <td>
-<p>experiments_overview: overview</p>
+<p>experiments_overview</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h2 class="doc doc-heading" id="nerblackbox.api.NerBlackBox.get_model_from_experiment">
+
+<code class="highlight language-python"><span class="n">get_model_from_experiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_name</span><span class="p">)</span></code>
+
+
+      </h2>
+<div class="doc doc-contents ">
+<p>gets (best) model from experiment.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>experiment_name</code></td>
+<td><code>str</code></td>
+<td>
+<p>e.g. "exp0"</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Optional[nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict]</code></td>
+<td>
+<p>ner_model_predict</p>
 </td>
 </tr>
 </tbody>
@@ -1057,7 +1125,7 @@ needs to be called exactly once before any other CLI/API commands of the package
 </tr>
 <tr>
 <td><code>kwargs_optional</code></td>
-<td><code>Dict</code></td>
+<td><code>Any</code></td>
 <td>
 <p>with optional key-value pairs, e.g.             {"multiple_runs": [int], "run_name": [str], "device": [torch device], "fp16": [bool]}</p>
 </td>
@@ -1070,7 +1138,7 @@ needs to be called exactly once before any other CLI/API commands of the package
 <div class="doc doc-object doc-method">
 <h2 class="doc doc-heading" id="nerblackbox.api.NerBlackBox.set_up_dataset">
 
-<code class="highlight language-python"><span class="n">set_up_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">set_up_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="n">dataset_subset_name</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
 
 
       </h2>
@@ -1096,8 +1164,16 @@ needs to be called exactly once before any other CLI/API commands of the package
 <td><em>required</em></td>
 </tr>
 <tr>
+<td><code>dataset_subset_name</code></td>
+<td><code>str</code></td>
+<td>
+<p>e.g. "simple_cased"</p>
+</td>
+<td><code>''</code></td>
+</tr>
+<tr>
 <td><code>kwargs_optional</code></td>
-<td><code>Dict</code></td>
+<td><code>Any</code></td>
 <td>
 <p>with optional key-value pairs             {"modify": [bool], "val_fraction": [float], "verbose": [bool]}</p>
 </td>
@@ -1198,7 +1274,7 @@ needs to be called exactly once before any other CLI/API commands of the package
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with

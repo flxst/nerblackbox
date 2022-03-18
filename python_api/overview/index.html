@@ -330,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/parameters/" class="md-nav__link">
+      <a href="../../usage/parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -470,8 +470,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="../../features/text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -568,6 +568,18 @@
   
 
           
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../text_encoder/" class="md-nav__link">
+        TextEncoder
+      </a>
+    </li>
+  
+
+          
         </ul>
       </nav>
     </li>
@@ -634,7 +646,7 @@
                 <h1 id="python-api">Python API</h1>
 <ul>
 <li>
-<p><strong>Available Classes:</strong></p>
+<p><strong>Main Classes:</strong></p>
 <ul>
 <li><a href="../nerblackbox">NerBlackBox</a></li>
 <li><a href="../experiment_results">ExperimentResults</a></li>
@@ -644,10 +656,17 @@
 </ul>
 <hr />
 <ul>
+<li><strong>Additional Classes:</strong><ul>
+<li><a href="../text_encoder">TextEncoder</a></li>
+</ul>
+</li>
+</ul>
+<hr />
+<ul>
 <li>
 <p><strong>Usage:</strong></p>
 <div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Python</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">NerBlackBox</span><span class="p">,</span> <span class="n">ExperimentResults</span><span class="p">,</span> <span class="n">NerModelPredict</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">NerBlackBox</span><span class="p">,</span> <span class="n">ExperimentResults</span><span class="p">,</span> <span class="n">NerModelPredict</span><span class="p">,</span> <span class="n">TextEncoder</span>
 </code></pre></div>
 </div>
 </div>
@@ -671,7 +690,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../../features/support_special_tokens/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../../features/text_encoding/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -680,7 +699,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Special Token Support
+                Text Encoding
               </div>
             </div>
           </a>
@@ -708,7 +727,7 @@
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with

@@ -403,7 +403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="usage/parameters/" class="md-nav__link">
+      <a href="usage/parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -543,8 +543,8 @@
   
   
     <li class="md-nav__item">
-      <a href="features/support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="features/text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -630,6 +630,18 @@
   
 
           
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="python_api/text_encoder/" class="md-nav__link">
+        TextEncoder
+      </a>
+    </li>
+  
+
+          
         </ul>
       </nav>
     </li>
@@ -695,7 +707,7 @@
                 
                 <h1 id="overview">Overview</h1>
 <p><strong>nerblackbox</strong> - a python package to fine-tune transformer-based language models for named entity recognition (NER).</p>
-<p>latest version: 0.0.12</p>
+<p>latest version: 0.0.13</p>
 <hr />
 <h2 id="resources">Resources</h2>
 <ul>
@@ -740,14 +752,16 @@ one needs to retrain (or "fine-tune") them using labeled text.</p>
 </code></pre></div></p>
 </li>
 <li>
-<p>inspect the model
-    <div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">)</span>
-<span class="c1"># [output provides details on the model performance]</span>
+<p>inspect the results
+    <div class="highlight"><pre><span></span><code><span class="n">experiment_results</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">)</span>
+<span class="c1"># [experiment_results contains e.g. details on the model performance]</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>model inference
-    <div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">,</span> <span class="s2">&quot;The United Nations has never recognised Jakarta&#39;s move.&quot;</span><span class="p">)</span>  
+    <div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_model_from_experiment</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;The United Nations has never recognised Jakarta&#39;s move.&quot;</span><span class="p">)</span>  
 <span class="c1"># [[</span>
 <span class="c1">#  {&#39;char_start&#39;: &#39;4&#39;, &#39;char_end&#39;: &#39;18&#39;, &#39;token&#39;: &#39;United Nations&#39;, &#39;tag&#39;: &#39;ORG&#39;},</span>
 <span class="c1">#  {&#39;char_start&#39;: &#39;40&#39;, &#39;char_end&#39;: &#39;47&#39;, &#39;token&#39;: &#39;Jakarta&#39;, &#39;tag&#39;: &#39;LOC&#39;}</span>
@@ -823,7 +837,7 @@ one needs to retrain (or "fine-tune") them using labeled text.</p>
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with

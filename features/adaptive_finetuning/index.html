@@ -330,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/parameters/" class="md-nav__link">
+      <a href="../../usage/parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -481,8 +481,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="../text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -568,6 +568,18 @@
   
 
           
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_api/text_encoder/" class="md-nav__link">
+        TextEncoder
+      </a>
+    </li>
+  
+
+          
         </ul>
       </nav>
     </li>
@@ -634,7 +646,7 @@
                 <h1 id="adaptive-fine-tuning">Adaptive Fine-tuning</h1>
 <p>Adaptive fine-tuning (introduced in <a href="https://arxiv.org/abs/2202.02617">this paper</a>) is a method that automatically trains for a near-optimal number of epochs.
 It is used by default in <strong>nerblackbox</strong>, and corresponds to the 
-following <a href="../../usage/parameters/#4-hyperparameters">hyperparameters</a>:</p>
+following <a href="../../usage/parameters_and_presets/#4-hyperparameters">hyperparameters</a>:</p>
 <details class="note"><summary>adaptive fine-tuning hyperparameters</summary><div class="highlight"><pre><span></span><code>[hparams]
 max_epochs = 250
 early_stopping = True
@@ -647,7 +659,7 @@ lr_schedule = constant
 lr_cooldown_epochs = 7
 </code></pre></div>
 </details>
-<p>The hyperparameters are also available as a <a href="../../usage/parameters/#presets">preset</a>.</p>
+<p>The hyperparameters are also available as a <a href="../../usage/parameters_and_presets/#presets">preset</a>.</p>
                 
               
               
@@ -703,7 +715,7 @@ lr_cooldown_epochs = 7
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with

@@ -360,8 +360,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-inspect-the-model" class="md-nav__link">
-    4. Inspect the Model
+  <a href="#4-inspect-the-results" class="md-nav__link">
+    4. Inspect the Results
   </a>
   
 </li>
@@ -405,7 +405,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../parameters/" class="md-nav__link">
+      <a href="../parameters_and_presets/" class="md-nav__link">
         Parameters and Presets
       </a>
     </li>
@@ -545,8 +545,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/support_special_tokens/" class="md-nav__link">
-        Special Token Support
+      <a href="../../features/text_encoding/" class="md-nav__link">
+        Text Encoding
       </a>
     </li>
   
@@ -632,6 +632,18 @@
   
 
           
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_api/text_encoder/" class="md-nav__link">
+        TextEncoder
+      </a>
+    </li>
+  
+
+          
         </ul>
       </nav>
     </li>
@@ -696,7 +708,7 @@
                 
                 
                 <h1 id="getting-started">Getting Started</h1>
-<p>Use either the <a href="../../python_api/overview"><code>Python API</code></a> or the <a href="../../cli/cli"><code>CLI (Command Line Interface)</code></a>.</p>
+<p>Use either the <a href="../../python_api/overview">Python API</a> or the <a href="../../cli/cli">CLI (Command Line Interface)</a>.</p>
 <details class="note"><summary>basic usage</summary><div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Python</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">NerBlackBox</span>
 <span class="n">nerbb</span> <span class="o">=</span> <span class="n">NerBlackBox</span><span class="p">()</span>
@@ -713,12 +725,10 @@
 <p>The following commands need to be executed once:</p>
 <details class="note"><summary>initialization</summary><div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Python</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-<span class="n">nerbb</span><span class="o">.</span><span class="n">download</span><span class="p">()</span>  <span class="c1"># optional, if built-in datasets shall be used</span>
 </code></pre></div>
 </div>
 <input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb init
-nerbb download    <span class="c1"># optional, if built-in datasets shall be used</span>
 </code></pre></div>
 </div>
 </div>
@@ -726,27 +736,30 @@ nerbb download    <span class="c1"># optional, if built-in datasets shall be use
 <p>This creates a <code>./data</code> directory with the following structure:</p>
 <div class="highlight"><pre><span></span><code>data/
 └── datasets
-    └── conll2003                     # built-in dataset, requires download
-        └── train.csv
-        └── val.csv
-        └── test.csv
-    └── [..]                          # more built-in datasets, requires download
 └── experiment_configs
-    └── default.ini                   # experiment config default values
-    └── my_experiment.ini             # experiment config example
-    └── my_experiment_conll2003.ini   # experiment config template
-    └── [..]                          # more experiment config templates
-└── pretrained_models                 # custom model checkpoints
+└── pretrained_models
 └── results
 </code></pre></div>
 <hr />
 <h2 id="2-data">2. Data</h2>
 <ul>
 <li>
-<p><a href="../datasets_and_models/#built-in-datasets"><code>Built-in datasets</code></a> do not require any preparation. </p>
+<p><a href="../datasets_and_models/#built-in-datasets">Built-in datasets</a> (including <a href="../../features/support_huggingface_datasets/">HuggingFace Datasets</a>)
+can be downloaded and set up using the following command:</p>
+<details class="note"><summary>set up dataset</summary><div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Python</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">set_up_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">CLI</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>nerbb set_up_dataset &lt;dataset_name&gt;
+</code></pre></div>
+</div>
+</div>
+</details>
+<p>This creates data files in the folder <code>./data/datasets/&lt;dataset_name&gt;</code>.</p>
 </li>
 <li>
-<p><a href="../datasets_and_models/#custom-datasets"><code>Custom datasets</code></a> can be provided using two different data formats:</p>
+<p><a href="../datasets_and_models/#custom-datasets">Custom datasets</a> can be provided using two different data formats:</p>
 <ul>
 <li>
 <p>jsonl (raw data)</p>
@@ -755,7 +768,7 @@ nerbb download    <span class="c1"># optional, if built-in datasets shall be use
 <p>csv (pretokenized data)</p>
 </li>
 </ul>
-<p>See <a href="../datasets_and_models/#custom-datasets"><code>Custom datasets</code></a> for more details.</p>
+<p>See <a href="../datasets_and_models/#custom-datasets">Custom datasets</a> for more details.</p>
 </li>
 </ul>
 <hr />
@@ -765,11 +778,11 @@ nerbb download    <span class="c1"># optional, if built-in datasets shall be use
 <ul>
 <li>
 <p>either <strong>statically</strong> by an <strong>experiment configuration</strong> file <code>./data/experiment_configs/&lt;experiment_name&gt;.ini</code>.</p>
-<details class="note"><summary>run experiment statically</summary><div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Python</label><div class="tabbed-content">
+<details class="note"><summary>run experiment statically</summary><div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Python</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">run_experiment</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">,</span> <span class="n">from_config</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">CLI</label><div class="tabbed-content">
+<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb run_experiment &lt;experiment_name&gt;
 </code></pre></div>
 </div>
@@ -778,7 +791,7 @@ nerbb download    <span class="c1"># optional, if built-in datasets shall be use
 </li>
 <li>
 <p>or <strong>dynamically</strong> using function arguments in <a href="../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment"><code>nerbb.run_experiment()</code></a></p>
-<details class="note"><summary>run experiment dynamically (only Python API)</summary><div class="tabbed-set" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Python</label><div class="tabbed-content">
+<details class="note"><summary>run experiment dynamically (only Python API)</summary><div class="tabbed-set" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><label for="__tabbed_5_1">Python</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">run_experiment</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">)</span>
 </code></pre></div>
 </div>
@@ -787,26 +800,26 @@ nerbb download    <span class="c1"># optional, if built-in datasets shall be use
 <p>This creates an experiment configuration on the fly, which is subsequently used.</p>
 </li>
 </ul>
-<p>In both cases, the specification of the <a href="../datasets_and_models"><code>model</code></a> and the <a href="../datasets_and_models"><code>dataset</code></a> are mandatory, while the <a href="../parameters"><code>parameters</code></a> are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
-In particular, <a href="../../features/adaptive_finetuning"><code>adaptive fine-tuning</code></a> is employed to ensure that this holds irrespective of the size of the dataset.  </p>
+<p>In both cases, the specification of the <a href="../datasets_and_models"><code>model</code></a> and the <a href="../datasets_and_models"><code>dataset</code></a> are mandatory, while the <a href="../parameters_and_presets/#parameters"><code>parameters</code></a> are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
+In particular, <a href="../../features/adaptive_finetuning">adaptive fine-tuning</a> is employed to ensure that this holds irrespective of the size of the dataset.  </p>
 <hr />
-<h2 id="4-inspect-the-model">4. Inspect the Model</h2>
+<h2 id="4-inspect-the-results">4. Inspect the Results</h2>
 <ul>
 <li>
 <p>Once an experiment is finished, one can inspect its main results 
     or have a look at detailed results (e.g. learning curves):</p>
-<details class="note"><summary>get main results</summary><div class="tabbed-set" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><label for="__tabbed_5_1">Python</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code><span class="n">experiment_results</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">)</span>
+<details class="note"><summary>get main results</summary><div class="tabbed-set" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><label for="__tabbed_6_1">Python</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="n">experiment_results</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">)</span>  <span class="c1"># List[ExperimentResults]</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><label for="__tabbed_5_2">CLI</label><div class="tabbed-content">
+<input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><label for="__tabbed_6_2">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb get_experiment_results &lt;experiment_name&gt;  <span class="c1"># prints overview on runs</span>
 </code></pre></div>
 </div>
 </div>
 <p>Python: see <a href="../../python_api/experiment_results">ExperimentResults</a> for details on how to use <code>experiment_results</code></p>
 </details>
-<details class="note"><summary>get detailed results (only CLI)</summary><div class="tabbed-set" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><label for="__tabbed_6_1">CLI</label><div class="tabbed-content">
+<details class="note"><summary>get detailed results (only CLI)</summary><div class="tabbed-set" data-tabs="7:1"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><label for="__tabbed_7_1">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb mlflow       <span class="c1"># + enter http://localhost:5000 in your browser</span>
 nerbb tensorboard  <span class="c1"># + enter http://localhost:6006 in your browser</span>
 </code></pre></div>
@@ -817,21 +830,21 @@ nerbb tensorboard  <span class="c1"># + enter http://localhost:6006 in your brow
 </li>
 <li>
 <p>An overview of all experiments and their results can be accessed as follows:</p>
-<details class="note"><summary>get overview of all experiments</summary><div class="tabbed-set" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><label for="__tabbed_7_1">Python</label><div class="tabbed-content">
+<details class="note"><summary>get overview of all experiments</summary><div class="tabbed-set" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">Python</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiments</span><span class="p">()</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><label for="__tabbed_7_2">CLI</label><div class="tabbed-content">
+<input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><label for="__tabbed_8_2">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb get_experiments
 </code></pre></div>
 </div>
 </div>
 </details>
-<details class="note"><summary>get overview of all experiments' main results</summary><div class="tabbed-set" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">Python</label><div class="tabbed-content">
-<div class="highlight"><pre><span></span><code><span class="n">experiment_results_all</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>  <span class="c1"># List[ExperimentResult]</span>
+<details class="note"><summary>get overview of all experiments' main results</summary><div class="tabbed-set" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1">Python</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="n">experiment_results_all</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>  <span class="c1"># List[ExperimentResults]</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><label for="__tabbed_8_2">CLI</label><div class="tabbed-content">
+<input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><label for="__tabbed_9_2">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>nerbb get_experiment_results all
 </code></pre></div>
 </div>
@@ -842,28 +855,28 @@ nerbb tensorboard  <span class="c1"># + enter http://localhost:6006 in your brow
 </ul>
 <hr />
 <h2 id="5-model-inference">5. Model Inference</h2>
-<details class="note"><summary>model inference</summary><div class="tabbed-set" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1">Python</label><div class="tabbed-content">
+<details class="note"><summary>model inference</summary><div class="tabbed-set" data-tabs="10:2"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><label for="__tabbed_10_1">Python</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="c1"># e.g. &lt;text_input&gt; = &quot;annotera den här texten&quot;</span>
 <span class="n">nerbb</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span><span class="p">)</span>
 
 <span class="c1"># same but w/o having to reload the best model for multiple predictions</span>
-<span class="n">experiment_results</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_experiment_results</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">)</span>
-<span class="n">experiment_results</span><span class="o">.</span><span class="n">best_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">ner_model_predict</span> <span class="o">=</span> <span class="n">nerbb</span><span class="o">.</span><span class="n">get_model_from_experiment</span><span class="p">(</span><span class="o">&lt;</span><span class="n">experiment_name</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">ner_model_predict</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">&lt;</span><span class="n">text_input</span><span class="o">&gt;</span><span class="p">)</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><label for="__tabbed_9_2">CLI</label><div class="tabbed-content">
+<input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><label for="__tabbed_10_2">CLI</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="c1"># e.g. &lt;text_input&gt; = &quot;annotera den här texten&quot;</span>
 nerbb predict &lt;experiment_name&gt; &lt;text_input&gt;
 </code></pre></div>
 </div>
 </div>
-<p>Python: see <a href="../../python_api/ner_model_predict">NerModelPredict</a> for details on how to use <code>experiments_results.best_model</code></p>
+<p>Python: see <a href="../../python_api/ner_model_predict">NerModelPredict</a> for further details on how to use <code>ner_model_predict</code></p>
 </details>
 <hr />
 <h2 id="next-steps">Next Steps</h2>
 <ul>
-<li>See <a href="../datasets_and_models"><code>Datasets and Models</code></a> to learn how to include your own <strong>custom datasets</strong> and <strong>custom models</strong>.</li>
-<li>See <a href="../parameters"><code>Parameters</code></a> for information on how to create your own <strong>custom experiments</strong>.</li>
+<li>See <a href="../datasets_and_models">Datasets and Models</a> to learn how to include your own <strong>custom datasets</strong> and <strong>custom models</strong>.</li>
+<li>See <a href="../parameters_and_presets">Parameters and Presets</a> for information on how to create your own <strong>custom experiments</strong>.</li>
 </ul>
                 
               
@@ -920,7 +933,7 @@ nerbb predict &lt;experiment_name&gt; &lt;text_input&gt;
       <div class="md-footer-copyright">
         
           <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2020 - 2022 Felix Stollenwerk
+            Copyright &copy; 2021 - 2022 Felix Stollenwerk
           </div>
         
         Made with
