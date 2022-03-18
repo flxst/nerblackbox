@@ -12,9 +12,16 @@ class TextEncoder:
         model_special_tokens: Optional[List[str]] = None,
     ):
         r"""
+        Examples:
+            ```
+            TextEncoder(
+                encoding={"\n": "[NEWLINE]", "\t": "[TAB]"},
+                model_special_tokens=["[NEWLINE]", "[TAB]"],
+            )
+            ```
         Args:
-            encoding: e.g. {"\n": "[NEWLINE]", "\t": "[TAB]"}
-            model_special_tokens: e.g. ["[NEWLINE]", "[TAB]"]
+            encoding: mapping to special tokens
+            model_special_tokens: special tokens that the model was trained on
         """
         self.encoding = encoding
         if model_special_tokens is None:
@@ -36,12 +43,20 @@ class TextEncoder:
         r"""
         encodes list of text using self.encoding
 
+        Examples:
+            ```
+            text_encoded_list, encode_decode_mappings_list = encode(text_list=["an\n example"])
+            # text_encoded_list           = ["an[NEWLINE] example"]
+            # encode_decode_mappings_list = [[(2, "\n", "[NEWLINE]")]]
+            ```
+
         Args:
-            text_list: e.g. ["an\n example"]
+            text_list: original text
 
         Returns:
-            text_encoded_list: e.g. ["an[NEWLINE] example"]
-            encode_decode_mappings_list: e.g. [[(2, "\n", "[NEWLINE]")]]
+            text_encoded_list: encoded text
+
+            encode_decode_mappings_list: mappings (char_start, original token, encoded token)
         """
         list_of_single_encodings = [self._encode_single(text) for text in text_list]
         return [elem[0] for elem in list_of_single_encodings], [
@@ -57,14 +72,28 @@ class TextEncoder:
         r"""
         decodes list of text_encoded and predictions_encoded using encode_decode_mappings
 
+        Examples:
+            ```
+            text_list, predictions_list = decode(
+                text_encoded_list=["an[NEWLINE] example"],
+                encode_decode_mappings_list=[[(2, "\n", "[NEWLINE]")]]),
+                predictions_encoded_list=[[{"char_start": "12", "char_end": "19", "token": "example", "tag": "TAG"}]]
+            )
+            # text_list = ["an\n example"]
+            # predictions_list = [[{"char_start": "4", "char_end": "11", "token": "example", "tag": "TAG"}]]
+            ```
+
         Args:
-            text_encoded_list: e.g. ["an[NEWLINE] example"]
-            encode_decode_mappings_list: e.g. [[(2, "\n", "[NEWLINE]")]]
-            predictions_encoded_list: e.g. [[{"char_start": "12", "char_end": "19", "token": "example", "tag": "TAG"}]]
+            text_encoded_list: encoded text
+
+            encode_decode_mappings_list: mappings (char_start, original token, encoded token)
+
+            predictions_encoded_list: encoded predictions
 
         Returns:
-            text_list: e.g. ["an\n example"]
-            predictions_list: e.g. [[{"char_start": "4", "char_end": "11", "token": "example", "tag": "TAG"}]]
+            text_list: original / decoded text
+
+            predictions_list: original / decoded predictions
         """
         list_of_single_decodings = [
             self._decode_single(
