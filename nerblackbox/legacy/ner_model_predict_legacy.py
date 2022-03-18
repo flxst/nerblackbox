@@ -15,6 +15,7 @@ from nerblackbox.tests.utils import PseudoDefaultLogger
 
 # TODO: this suppresses warnings (https://github.com/huggingface/transformers/issues/5421), root problem should be fixed
 from transformers import logging
+
 logging.set_verbosity_error()
 
 VERBOSE = False
@@ -380,7 +381,9 @@ class NerModelPredictLegacy(NerModel):
     # EXPORT TO NER_MODEL_PROD
     ####################################################################################################################
     def export_to_ner_model_prod(self, checkpoint_path: str):
-        assert checkpoint_path.endswith(".p"), f"ERROR! checkpoint_path = {checkpoint_path} is no *.p file."
+        assert checkpoint_path.endswith(
+            ".p"
+        ), f"ERROR! checkpoint_path = {checkpoint_path} is no *.p file."
         export_directory = checkpoint_path.strip(".p")
         if not isdir(export_directory):
             os.makedirs(export_directory, exist_ok=False)

@@ -20,22 +20,27 @@ class TestSucxFormatter:
         "sentences_rows",
         [
             (
+                [
                     [
-                        [
-                            ["I", "O"],
-                            ["850-modellen", "O"],
-                            ["har", "O"],
-                            ["man", "O"],
-                            ["valt", "O"],
-                            ["en", "O"],
-                            ["tredje", "O"],
-                            ["variant", "O"],
-                            [",", "O"],
-                            ["Delta-link", "B-product"],
-                            [".", "O"],
-                        ],
-                        [["Audi", "B-product"], ["Coupé", "I-product"], ["Quattro", "I-product"], ["20V", "B-product"]],
-                    ]
+                        ["I", "O"],
+                        ["850-modellen", "O"],
+                        ["har", "O"],
+                        ["man", "O"],
+                        ["valt", "O"],
+                        ["en", "O"],
+                        ["tredje", "O"],
+                        ["variant", "O"],
+                        [",", "O"],
+                        ["Delta-link", "B-product"],
+                        [".", "O"],
+                    ],
+                    [
+                        ["Audi", "B-product"],
+                        ["Coupé", "I-product"],
+                        ["Quattro", "I-product"],
+                        ["20V", "B-product"],
+                    ],
+                ]
             ),
         ],
     )
@@ -45,7 +50,7 @@ class TestSucxFormatter:
         )
         test_sentences_rows = self.formatter.format_data(shuffle=True, write_csv=False)
         assert (
-                test_sentences_rows == sentences_rows
+            test_sentences_rows == sentences_rows
         ), f"ERROR! test_sentences_rows = {test_sentences_rows} != {sentences_rows}"
 
     @pytest.mark.parametrize(

@@ -21,8 +21,7 @@ class TestHuggingfaceDatasetsFormatter:
         "conll2003"
     )  # use any ner_dataset that works
     formatter_pretokenized_subset = HuggingfaceDatasetsFormatter(
-        "wikiann",
-        "ace"
+        "wikiann", "ace"
     )  # use any ner_dataset that works
     formatter_unpretokenized = HuggingfaceDatasetsFormatter(
         "ehealth_kd"
@@ -44,8 +43,12 @@ class TestHuggingfaceDatasetsFormatter:
             (["this_dataset_does_not_exist", "", False]),
         ],
     )
-    def test_check_existence(self, ner_dataset: str, ner_dataset_subset: str, existence: bool):
-        test_existence, _ = HuggingfaceDatasetsFormatter.check_existence(ner_dataset, ner_dataset_subset)
+    def test_check_existence(
+        self, ner_dataset: str, ner_dataset_subset: str, existence: bool
+    ):
+        test_existence, _ = HuggingfaceDatasetsFormatter.check_existence(
+            ner_dataset, ner_dataset_subset
+        )
         assert (
             test_existence == existence
         ), f"ERROR! test_existence = {test_existence} != {existence} for ner_dataset = {ner_dataset}"
@@ -66,11 +69,17 @@ class TestHuggingfaceDatasetsFormatter:
                     False,  # only train & test on huggingface datasets
                 ]
             ),
-            (["sent_comp", "", False]),  # only train & validation on huggingface datasets
+            (
+                ["sent_comp", "", False]
+            ),  # only train & validation on huggingface datasets
         ],
     )
-    def test_check_compatibility(self, ner_dataset: str, ner_dataset_subset: str, compatibility: bool):
-        test_compability, _ = HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset, ner_dataset_subset)
+    def test_check_compatibility(
+        self, ner_dataset: str, ner_dataset_subset: str, compatibility: bool
+    ):
+        test_compability, _ = HuggingfaceDatasetsFormatter.check_compatibility(
+            ner_dataset, ner_dataset_subset
+        )
         assert (
             test_compability == compatibility
         ), f"ERROR! test_compatibility = {test_compability} != {compatibility} for ner_dataset = {ner_dataset}"
@@ -88,10 +97,11 @@ class TestHuggingfaceDatasetsFormatter:
             (["sent_comp", "", False]),
         ],
     )
-    def test_check_implementation(self, ner_dataset: str, ner_dataset_subset: str, implementation: bool):
+    def test_check_implementation(
+        self, ner_dataset: str, ner_dataset_subset: str, implementation: bool
+    ):
         test_implementation, _ = HuggingfaceDatasetsFormatter.check_implementation(
-            ner_dataset,
-            ner_dataset_subset
+            ner_dataset, ner_dataset_subset
         )
         assert (
             test_implementation == implementation
@@ -201,7 +211,9 @@ class TestHuggingfaceDatasetsFormatter:
         ],
     ):
         print(ner_dataset)
-        test_info = HuggingfaceDatasetsFormatter.get_infos(ner_dataset, ner_dataset_subset)
+        test_info = HuggingfaceDatasetsFormatter.get_infos(
+            ner_dataset, ner_dataset_subset
+        )
         print(test_info)
         for k in range(len(test_info)):
             assert (
@@ -219,7 +231,9 @@ class TestHuggingfaceDatasetsFormatter:
             (["ehealth_kd", "", ["Action", "Concept", "Predicate", "Reference"]]),
         ],
     )
-    def test_get_ner_tag_list(self, ner_dataset: str, ner_dataset_subset: str, ner_tag_list: List[str]):
+    def test_get_ner_tag_list(
+        self, ner_dataset: str, ner_dataset_subset: str, ner_tag_list: List[str]
+    ):
         formatter = HuggingfaceDatasetsFormatter(ner_dataset, ner_dataset_subset)
         assert (
             formatter.ner_tag_list == ner_tag_list

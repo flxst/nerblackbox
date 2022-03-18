@@ -18,7 +18,17 @@ SUCX_SUBSETS = [
     "simple_lower_mix",
 ]
 SUCX_NER_TAG_LIST = {
-    "original": ["person", "place", "inst", "work", "product", "animal", "event", "myth", "other"],
+    "original": [
+        "person",
+        "place",
+        "inst",
+        "work",
+        "product",
+        "animal",
+        "event",
+        "myth",
+        "other",
+    ],
     "simple": ["PER", "LOC", "ORG", "WRK", "OBJ", "PRS", "EVN", "PRS", "MSR", "TME"],
 }
 
@@ -26,10 +36,15 @@ SUCX_NER_TAG_LIST = {
 class SUCXFormatter(BaseFormatter):
     def __init__(self, ner_dataset_subset: str):
         ner_dataset = "sucx"
-        assert ner_dataset_subset in SUCX_SUBSETS, f"ERROR! subset = {ner_dataset_subset} unknown."
+        assert (
+            ner_dataset_subset in SUCX_SUBSETS
+        ), f"ERROR! subset = {ner_dataset_subset} unknown."
 
         tag_group = ner_dataset_subset.split("_")[0]
-        assert tag_group in ["original", "simple"], f"ERROR! tag_group = {tag_group} should be original or simple."
+        assert tag_group in [
+            "original",
+            "simple",
+        ], f"ERROR! tag_group = {tag_group} should be original or simple."
         ner_tag_list = SUCX_NER_TAG_LIST[tag_group]
 
         super().__init__(ner_dataset, ner_tag_list, ner_dataset_subset)
@@ -46,16 +61,21 @@ class SUCXFormatter(BaseFormatter):
             verbose: [bool]
         """
         dataset = load_dataset("KBLab/sucx3_ner", self.ner_dataset_subset)
-        assert isinstance(dataset, DatasetDict), f"ERROR! type(dataset) = {type(dataset)} expected to be DatasetDict."
+        assert isinstance(
+            dataset, DatasetDict
+        ), f"ERROR! type(dataset) = {type(dataset)} expected to be DatasetDict."
         dataset["val"] = dataset["validation"]
         for phase in ["train", "val", "test"]:
             sentences_rows_formatted = []
             for sample in dataset[phase]:
-                sentences_rows_formatted.append((" ".join(sample['ner_tags']), " ".join(sample['tokens'])))
+                sentences_rows_formatted.append(
+                    (" ".join(sample["ner_tags"]), " ".join(sample["tokens"]))
+                )
 
             df = pd.DataFrame(sentences_rows_formatted)
-            assert len(df) == dataset[phase].num_rows, \
-                f"ERROR! number of rows = {len(df)} != {dataset[phase].num_rows}"
+            assert (
+                len(df) == dataset[phase].num_rows
+            ), f"ERROR! number of rows = {len(df)} != {dataset[phase].num_rows}"
             file_path = join(self.dataset_path, f"{phase}_original.csv")
             df.to_csv(file_path, sep="\t", header=False, index=False)
 
@@ -87,10 +107,7 @@ class SUCXFormatter(BaseFormatter):
             df = pd.read_csv(file_path_original, sep="\t", header=None)
             _sentences_rows = [_np_array for _np_array in df.values]
             sentences_rows = [
-                [
-                    [word, tag]
-                    for word, tag in zip(words.split(), tags.split())
-                ]
+                [[word, tag] for word, tag in zip(words.split(), tags.split())]
                 for tags, words in _sentences_rows
             ]
             if shuffle:

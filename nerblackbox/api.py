@@ -100,7 +100,9 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("get_experiments", **kwargs)
         return nerbb.main()
 
-    def get_model_from_experiment(self, experiment_name: str) -> Optional[NerModelPredict]:
+    def get_model_from_experiment(
+        self, experiment_name: str
+    ) -> Optional[NerModelPredict]:
         """gets (best) model from experiment.
 
         Args:
@@ -204,7 +206,9 @@ class NerBlackBox:
         nerbb = NerBlackBoxMain("run_experiment", **kwargs)
         nerbb.main()
 
-    def set_up_dataset(self, dataset_name: str, dataset_subset_name: str = "", **kwargs_optional: Any):
+    def set_up_dataset(
+        self, dataset_name: str, dataset_subset_name: str = "", **kwargs_optional: Any
+    ):
         """set up a dataset using the associated Formatter class.
 
         Args:

@@ -179,11 +179,14 @@ class TokenTags:
                                 )
                                 if (
                                     len(subsequent_tag) > 2
-                                    and subsequent_tag[:2] in entity_prefixes_without_b[self.scheme]
+                                    and subsequent_tag[:2]
+                                    in entity_prefixes_without_b[self.scheme]
                                     and subsequent_tag[2:] == plain
                                 ):
                                     n_tags += 1
-                                    if subsequent_tag[:2] in ["L-"]:  # only applies to "bilou"
+                                    if subsequent_tag[:2] in [
+                                        "L-"
+                                    ]:  # only applies to "bilou"
                                         # end of entity
                                         threshold = n + 1
                                         break
@@ -192,7 +195,9 @@ class TokenTags:
                                     threshold = n
                                     break
                                 if n == len(self.token_tag_list) - 1:
-                                    threshold = n + 1  # such that last element is dropped
+                                    threshold = (
+                                        n + 1
+                                    )  # such that last element is dropped
                             merged_ner_tag = self._merge_tokens(
                                 i, original_text, n_tags
                             )
@@ -201,7 +206,9 @@ class TokenTags:
                         elif current_tag.startswith("L-"):  # only applies to "bilou"
                             count["drop"] += 1
                         elif current_tag.startswith("U-"):  # only applies to "bilou"
-                            merged_ner_tag = self._merge_tokens(i, original_text, n_tags)
+                            merged_ner_tag = self._merge_tokens(
+                                i, original_text, n_tags
+                            )
 
                 if merged_ner_tag is not None:
                     merged_ner_tags.append(merged_ner_tag)

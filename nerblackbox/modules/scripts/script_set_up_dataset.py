@@ -34,7 +34,11 @@ if __name__ == "__main__":
         "--ner_dataset", required=True, type=str, help="e.g. swedish_ner_corpus"
     )
     parser.add_argument(
-        "--ner_dataset_subset", required=False, type=str, default=None, help="e.g. simple_cased"
+        "--ner_dataset_subset",
+        required=False,
+        type=str,
+        default=None,
+        help="e.g. simple_cased",
     )
     parser.add_argument("--modify", type=bool, default=True)
     parser.add_argument("--val_fraction", type=float, default=0.3)

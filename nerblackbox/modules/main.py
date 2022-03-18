@@ -15,7 +15,7 @@ from nerblackbox.modules.experiment_results import ExperimentResults
 from nerblackbox.modules.experiment_config.preset import get_preset
 from nerblackbox.modules.utils.parameters import DATASET, MODEL, SETTINGS, HPARAMS
 from nerblackbox.modules.ner_training.ner_model_train2predict import (
-    NerModelTrain2Predict
+    NerModelTrain2Predict,
 )
 from nerblackbox.modules.ner_training.ner_model_predict import (
     NerModelPredict,
@@ -414,31 +414,40 @@ class NerBlackBoxMain:
 
             experiment_results_list = self.get_experiment_results()
 
-            assert isinstance(experiment_results_list, list) and len(experiment_results_list) > 0, \
-                f"ERROR! experiment_results_list expected to be a list of len > 0."
+            assert (
+                isinstance(experiment_results_list, list)
+                and len(experiment_results_list) > 0
+            ), f"ERROR! experiment_results_list expected to be a list of len > 0."
             if experiment_results_list[0].best_single_run is None:
                 return None
 
             # single experiment
             if (
-                    "checkpoint" in experiment_results_list[0].best_single_run.keys()
-                    and experiment_results_list[0].best_single_run["checkpoint"]
-                    is not None
+                "checkpoint" in experiment_results_list[0].best_single_run.keys()
+                and experiment_results_list[0].best_single_run["checkpoint"] is not None
             ):
-                checkpoint_path_train = experiment_results_list[0].best_single_run["checkpoint"]
+                checkpoint_path_train = experiment_results_list[0].best_single_run[
+                    "checkpoint"
+                ]
                 checkpoint_path_predict = checkpoint_path_train.strip(".ckpt")
 
                 # translate NerModelTrain checkpoint to NerModelPredict checkpoint if necessary
                 if not NerModelPredict.checkpoint_exists(checkpoint_path_predict):
-                    ner_model_train2predict = NerModelTrain2Predict.load_from_checkpoint(
-                        experiment_results_list[0].best_single_run["checkpoint"]
+                    ner_model_train2predict = (
+                        NerModelTrain2Predict.load_from_checkpoint(
+                            experiment_results_list[0].best_single_run["checkpoint"]
+                        )
                     )
-                    ner_model_train2predict.export_to_ner_model_prod(checkpoint_path_train)
+                    ner_model_train2predict.export_to_ner_model_prod(
+                        checkpoint_path_train
+                    )
 
                 ner_model_predict = NerModelPredict(checkpoint_path_predict)
                 return ner_model_predict
             else:
-                raise Exception(f"there is no checkpoint for experiment = {self.experiment_name}.")
+                raise Exception(
+                    f"there is no checkpoint for experiment = {self.experiment_name}."
+                )
         return None
 
     def predict(self) -> Optional[List[List[Dict[str, str]]]]:
@@ -449,7 +458,9 @@ class NerBlackBoxMain:
                                                    and  .external [list] of (word, tag) tuples
         """
         nerbb = NerBlackBoxMain(
-            "get_model_from_experiment", experiment_name=self.experiment_name, usage="api"
+            "get_model_from_experiment",
+            experiment_name=self.experiment_name,
+            usage="api",
         )
         model = nerbb.main()
         if model is not None:
@@ -469,7 +480,9 @@ class NerBlackBoxMain:
                                                    and  .external [list] of (word, tag) tuples
         """
         nerbb = NerBlackBoxMain(
-            "get_model_from_experiment", experiment_name=self.experiment_name, usage="api"
+            "get_model_from_experiment",
+            experiment_name=self.experiment_name,
+            usage="api",
         )
         model = nerbb.main()
         predictions = model.predict_proba(self.text_input)

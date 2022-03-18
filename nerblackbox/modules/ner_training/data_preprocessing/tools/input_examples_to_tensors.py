@@ -35,7 +35,9 @@ class InputExamplesToTensors:
         if self.default_logger:
             self.default_logger.log_debug("> tag2id:", self.tag2id)
 
-    def __call__(self, input_examples: List[InputExample], predict: bool) -> Tuple[Encodings, List[int]]:
+    def __call__(
+        self, input_examples: List[InputExample], predict: bool
+    ) -> Tuple[Encodings, List[int]]:
         """
         Args:
             input_examples: List[InputExample] with e.g. text = 'at arbetsförmedlingen'
@@ -61,7 +63,7 @@ class InputExamplesToTensors:
         encodings_single: Dict[str, List[Any]] = {key: list() for key in EncodingsKeys}
         for input_example in input_examples:
             _encodings = self._transform_input_example(input_example, predict)
-            offsets.append(offsets[-1] + len(_encodings['input_ids']))
+            offsets.append(offsets[-1] + len(_encodings["input_ids"]))
             for key in _encodings.keys():
                 encodings_single[key].append(_encodings[key])
 

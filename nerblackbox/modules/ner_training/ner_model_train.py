@@ -86,7 +86,9 @@ class NerModelTrain(NerModel):
         self.default_logger.log_info(f"> read encoding: {self.encoding}")
 
         self.special_tokens = list(set(self.encoding.values()))
-        self.default_logger.log_debug(f"> extracted special tokens: {self.special_tokens}")
+        self.default_logger.log_debug(
+            f"> extracted special tokens: {self.special_tokens}"
+        )
 
     def _preparations_data_train(self):
         """
@@ -137,9 +139,7 @@ class NerModelTrain(NerModel):
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes
         )  # save for NerModelPredict
-        self.hparams.encoding = json.dumps(
-            self.encoding
-        )  # save for NerModelPredict
+        self.hparams.encoding = json.dumps(self.encoding)  # save for NerModelPredict
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(

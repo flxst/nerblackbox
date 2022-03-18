@@ -689,57 +689,132 @@ class TestTokenTags:
             ),
             # 7. plain: tag at the very end
             (
-                    "plain",
-                    [
-                        {'char_start': '0', 'char_end': '2', 'token': 'Du', 'tag': 'O'},
-                        {'char_start': '3', 'char_end': '8', 'token': 'måste', 'tag': 'O'},
-                        {'char_start': '9', 'char_end': '14', 'token': 'kunna', 'tag': 'O'},
-                        {'char_start': '15', 'char_end': '26', 'token': 'programmera', 'tag': 'SKILL_HARD'},
-                        {'char_start': '27', 'char_end': '30', 'token': 'och', 'tag': 'O'},
-                        {'char_start': '31', 'char_end': '35', 'token': 'koka', 'tag': 'SKILL_HARD'},
-                        {'char_start': '36', 'char_end': '41', 'token': 'kaffe', 'tag': 'SKILL_HARD'},
-                    ],
-                    "Du måste kunna programmera och koka kaffe",
-                    [
-                        {'char_start': '15', 'char_end': '26', 'token': 'programmera', 'tag': 'SKILL_HARD'},
-                        {'char_start': '31', 'char_end': '41', 'token': 'koka kaffe', 'tag': 'SKILL_HARD'},
-                    ],
+                "plain",
+                [
+                    {"char_start": "0", "char_end": "2", "token": "Du", "tag": "O"},
+                    {"char_start": "3", "char_end": "8", "token": "måste", "tag": "O"},
+                    {"char_start": "9", "char_end": "14", "token": "kunna", "tag": "O"},
+                    {
+                        "char_start": "15",
+                        "char_end": "26",
+                        "token": "programmera",
+                        "tag": "SKILL_HARD",
+                    },
+                    {"char_start": "27", "char_end": "30", "token": "och", "tag": "O"},
+                    {
+                        "char_start": "31",
+                        "char_end": "35",
+                        "token": "koka",
+                        "tag": "SKILL_HARD",
+                    },
+                    {
+                        "char_start": "36",
+                        "char_end": "41",
+                        "token": "kaffe",
+                        "tag": "SKILL_HARD",
+                    },
+                ],
+                "Du måste kunna programmera och koka kaffe",
+                [
+                    {
+                        "char_start": "15",
+                        "char_end": "26",
+                        "token": "programmera",
+                        "tag": "SKILL_HARD",
+                    },
+                    {
+                        "char_start": "31",
+                        "char_end": "41",
+                        "token": "koka kaffe",
+                        "tag": "SKILL_HARD",
+                    },
+                ],
             ),
             # 8. BIO: I-tag at the very end
             (
                 "bio",
                 [
-                    {'char_start': '0', 'char_end': '2', 'token': 'Du', 'tag': 'O'},
-                    {'char_start': '3', 'char_end': '8', 'token': 'måste', 'tag': 'O'},
-                    {'char_start': '9', 'char_end': '14', 'token': 'kunna', 'tag': 'O'},
-                    {'char_start': '15', 'char_end': '26', 'token': 'programmera', 'tag': 'B-SKILL_HARD'},
-                    {'char_start': '27', 'char_end': '30', 'token': 'och', 'tag': 'O'},
-                    {'char_start': '31', 'char_end': '35', 'token': 'koka', 'tag': 'B-SKILL_HARD'},
-                    {'char_start': '36', 'char_end': '41', 'token': 'kaffe', 'tag': 'I-SKILL_HARD'},
+                    {"char_start": "0", "char_end": "2", "token": "Du", "tag": "O"},
+                    {"char_start": "3", "char_end": "8", "token": "måste", "tag": "O"},
+                    {"char_start": "9", "char_end": "14", "token": "kunna", "tag": "O"},
+                    {
+                        "char_start": "15",
+                        "char_end": "26",
+                        "token": "programmera",
+                        "tag": "B-SKILL_HARD",
+                    },
+                    {"char_start": "27", "char_end": "30", "token": "och", "tag": "O"},
+                    {
+                        "char_start": "31",
+                        "char_end": "35",
+                        "token": "koka",
+                        "tag": "B-SKILL_HARD",
+                    },
+                    {
+                        "char_start": "36",
+                        "char_end": "41",
+                        "token": "kaffe",
+                        "tag": "I-SKILL_HARD",
+                    },
                 ],
                 "Du måste kunna programmera och koka kaffe",
                 [
-                    {'char_start': '15', 'char_end': '26', 'token': 'programmera', 'tag': 'SKILL_HARD'},
-                    {'char_start': '31', 'char_end': '41', 'token': 'koka kaffe', 'tag': 'SKILL_HARD'},
+                    {
+                        "char_start": "15",
+                        "char_end": "26",
+                        "token": "programmera",
+                        "tag": "SKILL_HARD",
+                    },
+                    {
+                        "char_start": "31",
+                        "char_end": "41",
+                        "token": "koka kaffe",
+                        "tag": "SKILL_HARD",
+                    },
                 ],
             ),
             # 9. BILOU: L-tag at the very end
             (
-                    "bilou",
-                    [
-                        {'char_start': '0', 'char_end': '2', 'token': 'Du', 'tag': 'O'},
-                        {'char_start': '3', 'char_end': '8', 'token': 'måste', 'tag': 'O'},
-                        {'char_start': '9', 'char_end': '14', 'token': 'kunna', 'tag': 'O'},
-                        {'char_start': '15', 'char_end': '26', 'token': 'programmera', 'tag': 'B-SKILL_HARD'},
-                        {'char_start': '27', 'char_end': '30', 'token': 'och', 'tag': 'O'},
-                        {'char_start': '31', 'char_end': '35', 'token': 'koka', 'tag': 'B-SKILL_HARD'},
-                        {'char_start': '36', 'char_end': '41', 'token': 'kaffe', 'tag': 'L-SKILL_HARD'},
-                    ],
-                    "Du måste kunna programmera och koka kaffe",
-                    [
-                        {'char_start': '15', 'char_end': '26', 'token': 'programmera', 'tag': 'SKILL_HARD'},
-                        {'char_start': '31', 'char_end': '41', 'token': 'koka kaffe', 'tag': 'SKILL_HARD'},
-                    ],
+                "bilou",
+                [
+                    {"char_start": "0", "char_end": "2", "token": "Du", "tag": "O"},
+                    {"char_start": "3", "char_end": "8", "token": "måste", "tag": "O"},
+                    {"char_start": "9", "char_end": "14", "token": "kunna", "tag": "O"},
+                    {
+                        "char_start": "15",
+                        "char_end": "26",
+                        "token": "programmera",
+                        "tag": "B-SKILL_HARD",
+                    },
+                    {"char_start": "27", "char_end": "30", "token": "och", "tag": "O"},
+                    {
+                        "char_start": "31",
+                        "char_end": "35",
+                        "token": "koka",
+                        "tag": "B-SKILL_HARD",
+                    },
+                    {
+                        "char_start": "36",
+                        "char_end": "41",
+                        "token": "kaffe",
+                        "tag": "L-SKILL_HARD",
+                    },
+                ],
+                "Du måste kunna programmera och koka kaffe",
+                [
+                    {
+                        "char_start": "15",
+                        "char_end": "26",
+                        "token": "programmera",
+                        "tag": "SKILL_HARD",
+                    },
+                    {
+                        "char_start": "31",
+                        "char_end": "41",
+                        "token": "koka kaffe",
+                        "tag": "SKILL_HARD",
+                    },
+                ],
             ),
             # 10. BILOU: 1 single word entities + 1 multiple word entity + 1 "lost" token ("I-*")
             (

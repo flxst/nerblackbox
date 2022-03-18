@@ -23,7 +23,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
     PHASES_DATASETS = {"train": "train", "val": "validation", "test": "test"}
 
     @classmethod
-    def check_existence(cls, ner_dataset: str, ner_dataset_subset: str = "") -> Tuple[bool, str]:
+    def check_existence(
+        cls, ner_dataset: str, ner_dataset_subset: str = ""
+    ) -> Tuple[bool, str]:
         """
         checks if ner_dataset exists in huggingface datasets
 
@@ -35,16 +37,24 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             existence: True if ner_dataset exists in huggingface datasets, False otherwise
         """
         try:
-            _ = load_dataset_builder(ner_dataset, name=ner_dataset_subset if len(ner_dataset_subset) else None)
+            _ = load_dataset_builder(
+                ner_dataset,
+                name=ner_dataset_subset if len(ner_dataset_subset) else None,
+            )
             return True, ""
         except ValueError as e:
-            return False, f"Error! config name is missing for ner_dataset = {ner_dataset} " \
-                          f"(ner_dataset_subset = {ner_dataset_subset})! Error message: {e}"
+            return (
+                False,
+                f"Error! config name is missing for ner_dataset = {ner_dataset} "
+                f"(ner_dataset_subset = {ner_dataset_subset})! Error message: {e}",
+            )
         except FileNotFoundError:
             return False, f"Error! ner_dataset = {ner_dataset} unknown."
 
     @classmethod
-    def check_compatibility(cls, ner_dataset: str, ner_dataset_subset: str = "") -> Tuple[bool, str]:
+    def check_compatibility(
+        cls, ner_dataset: str, ner_dataset_subset: str = ""
+    ) -> Tuple[bool, str]:
         """
         checks if ner_dataset contains train/val/test splits
 
@@ -57,14 +67,20 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         """
         _dataset_split_names = get_dataset_split_names(
             ner_dataset,
-            config_name=ner_dataset_subset if len(ner_dataset_subset) else None
+            config_name=ner_dataset_subset if len(ner_dataset_subset) else None,
         )
         compatibility = sorted(_dataset_split_names) == ["test", "train", "validation"]
-        error_msg = "" if compatibility else f"ner_dataset = {ner_dataset} does not contain train/val/test splits."
+        error_msg = (
+            ""
+            if compatibility
+            else f"ner_dataset = {ner_dataset} does not contain train/val/test splits."
+        )
         return compatibility, error_msg
 
     @classmethod
-    def check_implementation(cls, ner_dataset: str, ner_dataset_subset: str = "") -> Tuple[bool, str]:
+    def check_implementation(
+        cls, ner_dataset: str, ner_dataset_subset: str = ""
+    ) -> Tuple[bool, str]:
         """
         problem: there is no common structure in dataset_builder.info.features for all datasets
         parsing for a few typical structures is implemented
@@ -78,12 +94,16 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             implementation: True if ner_dataset is implemented, False otherwise
         """
         implementation, _, _, _ = cls.get_infos(ner_dataset, ner_dataset_subset)
-        error_msg = "" if implementation else f"ner_dataset = {ner_dataset} can not be parsed."
+        error_msg = (
+            "" if implementation else f"ner_dataset = {ner_dataset} can not be parsed."
+        )
         return implementation, error_msg
 
     @classmethod
     def get_infos(
-        cls, ner_dataset: str, ner_dataset_subset: str = "",
+        cls,
+        ner_dataset: str,
+        ner_dataset_subset: str = "",
     ) -> Tuple[bool, Optional[List[str]], Optional[bool], Optional[Dict[str, Any]]]:
         """
         get all relevant infos about dataset
@@ -99,8 +119,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             lookup_table: e.g. {'text': 'tokens', 'tags': 'ner_tags', 'mapping': None}
                           e.g. {'text': 'sentence', 'tags': 'entities', 'mapping': {..}}
         """
-        dataset_builder = load_dataset_builder(ner_dataset,
-                                               name=ner_dataset_subset if len(ner_dataset_subset) else None)
+        dataset_builder = load_dataset_builder(
+            ner_dataset, name=ner_dataset_subset if len(ner_dataset_subset) else None
+        )
         if dataset_builder.info.features is None:
             return False, None, None, None
         else:
@@ -166,7 +187,9 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             return implementation, tags, pretokenized, lookup_table
 
     def __init__(self, ner_dataset: str, ner_dataset_subset: str = ""):
-        _, self.tags, self.pretokenized, self.lookup_table = self.get_infos(ner_dataset, ner_dataset_subset)
+        _, self.tags, self.pretokenized, self.lookup_table = self.get_infos(
+            ner_dataset, ner_dataset_subset
+        )
         self.sentences_rows_pretokenized: Dict[str, SENTENCES_ROWS_PRETOKENIZED] = {
             phase: list() for phase in self.PHASES
         }
@@ -228,7 +251,10 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         # start
         text = self.lookup_table["text"]
         tags = self.lookup_table["tags"]
-        dataset = load_dataset(self.ner_dataset, self.ner_dataset_subset if len(self.ner_dataset_subset) else None)
+        dataset = load_dataset(
+            self.ner_dataset,
+            self.ner_dataset_subset if len(self.ner_dataset_subset) else None,
+        )
         assert isinstance(
             dataset, DatasetDict
         ), f"ERROR! type(dataset) = {type(dataset)} should be DatasetDict"

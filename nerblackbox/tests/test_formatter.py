@@ -50,9 +50,13 @@ class TestAutoFormatter:
     def test_for_dataset(self, ner_dataset: str, ner_dataset_subset: str, error: bool):
         if error:
             with pytest.raises(Exception):
-                _ = AutoFormatter.for_dataset(ner_dataset=ner_dataset, ner_dataset_subset=ner_dataset_subset)
+                _ = AutoFormatter.for_dataset(
+                    ner_dataset=ner_dataset, ner_dataset_subset=ner_dataset_subset
+                )
         else:
-            auto_formatter = AutoFormatter.for_dataset(ner_dataset=ner_dataset, ner_dataset_subset=ner_dataset_subset)
+            auto_formatter = AutoFormatter.for_dataset(
+                ner_dataset=ner_dataset, ner_dataset_subset=ner_dataset_subset
+            )
             assert isinstance(
                 auto_formatter, BaseFormatter
             ), f"ERROR! type(auto_formatter) = {type(auto_formatter)} != BaseFormatter"

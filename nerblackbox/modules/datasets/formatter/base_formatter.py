@@ -24,7 +24,9 @@ SENTENCES_ROWS = Union[SENTENCES_ROWS_PRETOKENIZED, SENTENCES_ROWS_UNPRETOKENIZE
 
 
 class BaseFormatter(ABC):
-    def __init__(self, ner_dataset: str, ner_tag_list: List[str], ner_dataset_subset: str = ""):
+    def __init__(
+        self, ner_dataset: str, ner_tag_list: List[str], ner_dataset_subset: str = ""
+    ):
         """
         Args:
             ner_dataset:  'swedish_ner_corpus' or 'suc'
@@ -131,7 +133,7 @@ class BaseFormatter(ABC):
         """
         0: create directory for dataset
         """
-        directory_path = join(self.dataset_path, 'analyze_data')
+        directory_path = join(self.dataset_path, "analyze_data")
         os.makedirs(directory_path, exist_ok=True)
 
         bash_cmd = (
@@ -156,7 +158,7 @@ class BaseFormatter(ABC):
         else:
             ner_tag_mapping = dict()
 
-        json_path = join(self.dataset_path, 'ner_tag_mapping.json')
+        json_path = join(self.dataset_path, "ner_tag_mapping.json")
         with open(json_path, "w") as f:
             json.dump(ner_tag_mapping, f)
 

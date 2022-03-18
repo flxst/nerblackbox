@@ -35,25 +35,35 @@ class AutoFormatter:
         elif ner_dataset == "suc":
             return SUCFormatter()
         elif ner_dataset == "sucx":
-            assert len(ner_dataset_subset), f"ERROR! for sucx, a subset needs to be specified."
+            assert len(
+                ner_dataset_subset
+            ), f"ERROR! for sucx, a subset needs to be specified."
             return SUCXFormatter(ner_dataset_subset)
         elif ner_dataset == "swe_nerc":
             return SweNercFormatter()
         else:  # huggingface datasets
-            existence, error_msg = HuggingfaceDatasetsFormatter.check_existence(ner_dataset, ner_dataset_subset)
+            existence, error_msg = HuggingfaceDatasetsFormatter.check_existence(
+                ner_dataset, ner_dataset_subset
+            )
             if existence:
                 print(f"> ner_dataset = {ner_dataset} found in huggingface datasets")
             else:
                 raise Exception(error_msg)
 
-            compatibility, error_msg = HuggingfaceDatasetsFormatter.check_compatibility(ner_dataset, ner_dataset_subset)
+            compatibility, error_msg = HuggingfaceDatasetsFormatter.check_compatibility(
+                ner_dataset, ner_dataset_subset
+            )
             if compatibility:
                 print(f"> ner_dataset = {ner_dataset} contains train/val/test splits")
             else:
                 raise Exception(error_msg)
 
-            implementation, error_msg = HuggingfaceDatasetsFormatter.check_implementation(ner_dataset,
-                                                                                          ner_dataset_subset)
+            (
+                implementation,
+                error_msg,
+            ) = HuggingfaceDatasetsFormatter.check_implementation(
+                ner_dataset, ner_dataset_subset
+            )
             if implementation:
                 print(f"> ner_dataset = {ner_dataset} can be parsed")
             else:
