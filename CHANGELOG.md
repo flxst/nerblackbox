@@ -1,12 +1,15 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.0.13 (2022-??-??)
+## 0.0.13 (2022-03-18)
 #### Added
+- NerModelPredict: GPU batch inference
+- TextEncoder class for custom data preprocessing
 - HuggingFace datasets integration: enable subsets
 - HuggingFace datasets: support for sucx_ner
 
 #### Changed
+- NerModelPredict: improved inference time and data post-processing
 - API: load best model of experiment directly (instead of via ExperimentResults)
 - upgrade pytorch-lightning
 
