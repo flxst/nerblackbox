@@ -1,5 +1,5 @@
-# NerModelPredict
-::: nerblackbox.modules.ner_training.ner_model_predict.NerModelPredict
+# Experiment
+::: nerblackbox.api.experiment.Experiment
     rendering:
         show_root_heading: false
         show_root_toc_entry: false

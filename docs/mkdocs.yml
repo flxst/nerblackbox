@@ -42,9 +42,11 @@ nav:
         - 'features/text_encoding.md'
     - Python API:
       - Overview: 'python_api/overview.md'
-      - 'python_api/nerblackbox.md'
-      - 'python_api/experiment_results.md'
-      - 'python_api/ner_model_predict.md'
+      - 'python_api/store.md'
+      - 'python_api/dataset.md'
+      - 'python_api/experiment.md'
+      - 'python_api/model.md'
       - 'python_api/text_encoder.md'
+      - 'python_api/experiment_results.md'
     - CLI:
         - Overview: 'cli/cli.md'

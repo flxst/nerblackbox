@@ -1,4 +1,5 @@
-from nerblackbox import NerBlackBox, NerModelPredict
+from nerblackbox import Store, Dataset, Experiment, Model
+from nerblackbox.modules.experiment_results import ExperimentResults
 from os.path import abspath, isdir, join, isfile
 import shutil
 from utils import print_section_header, print_section_finish
@@ -13,79 +14,84 @@ def test_api(capsys):
     dataset_suffix = "jsonl"
     input_text = "La hepatitis es una inflamación del hígado."
 
+    ################################################################################################################
+    print_section_header(f"0. Store.set_path([..])")
+    Store.set_path(data_dir)
+    print_section_finish()
+
+    ################################################################################################################
     if isdir(data_dir):
         shutil.rmtree(data_dir)
         print(f"> removed {data_dir}\n")
 
-    ####################################################################################################################
-    print_section_header(f"1. nerbb = NerBlackBox(data_dir=data_dir) with data_dir = {data_dir}")
-    nerbb = NerBlackBox(data_dir=data_dir)
-    print_section_finish()
+    try:
+        ################################################################################################################
+        print_section_header(f"1. Store.create()")
+        Store.create()
+        assert isdir(data_dir), f"ERROR! data_dir = {data_dir} does not exist."
+        for subdirectory in ["datasets", "experiment_configs", "pretrained_models", "results"]:
+            assert isdir(join(data_dir, subdirectory)), \
+                f"ERROR! data_dir/subdirectory = {join(data_dir, subdirectory)} does not exist."
+        print_section_finish()
 
-    ####################################################################################################################
-    print_section_header(f"2. nerbb.init()")
-    nerbb.init()
-    assert isdir(data_dir), f"ERROR! data_dir = {data_dir} does not exist."
-    print_section_finish()
+        ################################################################################################################
+        print_section_header(f"2. dataset = Dataset({dataset_name}).set_up()")
+        dataset = Dataset(dataset_name)
+        dataset.set_up()
+        for phase in ["train", "val", "test"]:
+            file_path = join(data_dir, "datasets", dataset_name, f"{phase}.{dataset_suffix}")
+            assert isfile(file_path), f"ERROR! file = {file_path} does not exist."
+        print_section_finish()
 
-    ####################################################################################################################
-    print_section_header(f"3. nerbb.set_up_dataset(dataset) with dataset = {dataset_name}")
-    nerbb.set_up_dataset(dataset_name)
-    for phase in ["train", "val", "test"]:
-        file_path = join(data_dir, "datasets", dataset_name, f"{phase}.{dataset_suffix}")
-        assert isfile(file_path), f"ERROR! file = {file_path} does not exist."
-    print_section_finish()
+        ################################################################################################################
+        print_section_header(f"3. experiment = Experiment([..]).run()")
+        experiment = Experiment(
+            experiment_name,
+            model=model_name,
+            dataset=dataset_name,
+            lr_warmup_epochs=0,
+            max_epochs=3,  # 3
+            prune_ratio_train=0.2,  # 0.5
+            prune_ratio_val=0.01,  # 0.01
+            prune_ratio_test=0.2,  # 0.5
+            multiple_runs=1,
+            from_preset="original",
+        )
+        experiment.run()
+        print_section_finish()
 
-    ####################################################################################################################
-    print_section_header(f"4. nerbb.run_experiment()")
-    nerbb.run_experiment(experiment_name,
-                         model=model_name,
-                         dataset=dataset_name,
-                         lr_warmup_epochs=0,
-                         max_epochs=3,  # 3
-                         prune_ratio_train=0.2,  # 0.5
-                         prune_ratio_val=0.01,   # 0.01
-                         prune_ratio_test=0.2,   # 0.5
-                         multiple_runs=1,
-                         from_preset="original",
-                         )
-    print_section_finish()
+        ################################################################################################################
+        print_section_header(f"4. experiment.results")
+        assert isinstance(experiment.results, ExperimentResults), \
+            f"ERROR! experiment.results is not an instance of ExperimentResults."
+        for attribute in ["best_single_run"]:
+            assert hasattr(experiment.results, attribute), \
+                f"ERROR! experiment.results does not have attribute = {attribute}"
 
-    ####################################################################################################################
-    print_section_header(f"5. nerbb.get_experiment_results()")
-    experiment_results = nerbb.get_experiment_results(experiment_name)
-    assert isinstance(experiment_results, list), f"ERROR! experiment_results is not a list."
-    assert len(experiment_results) == 1, f"ERROR! len(experiment_results) = {len(experiment_results)} should be 1."
-    for attribute in ["best_single_run"]:
-        assert hasattr(experiment_results[0], attribute), \
-            f"ERROR! experiment_results[0] does not have attribute = {attribute}"
-    print_section_finish()
+        for average in [False, True]:
+            score = experiment.get_result(metric="f1", level="entity", label="micro", phase="test", average=average)
+            print(f"score (average={average}) = {score}")
+            assert isinstance(score, str), \
+                f"ERROR! experiment.get_result() did not return a str for average = {average}."
+        print_section_finish()
 
-    ####################################################################################################################
-    print_section_header(f"6. nerbb.get_model_from_experiment()")
-    ner_model_predict = nerbb.get_model_from_experiment(experiment_name)
-    assert isinstance(ner_model_predict, NerModelPredict), \
-        f"ERROR! ner_model_predict is of type {type(ner_model_predict)} but should be NerModelPredict"
-    print_section_finish()
+        ################################################################################################################
+        print_section_header(f"5. model = Model.from_experiment()")
+        model = Model.from_experiment(experiment_name)
+        assert isinstance(model, Model), \
+            f"ERROR! model is of type {type(model)} but should be Model"
+        print_section_finish()
 
-    ####################################################################################################################
-    print_section_header(f"7. nerbb.predict()")
-    predictions1 = nerbb.predict(experiment_name, input_text)
-    print(predictions1)
-    print_section_finish()
+        ################################################################################################################
+        print_section_header(f"6. model.predict()")
+        predictions = model.predict(input_text)
+        print(predictions)
+        print_section_finish()
 
-    ####################################################################################################################
-    print_section_header(f"8. ner_model_predict.predict()")
-    predictions2 = ner_model_predict.predict(input_text)
-    print(predictions2)
-    print_section_finish()
-
-    assert predictions1 == predictions2, \
-        f"ERROR! predictions from nerbb.predict() are different from ner_model_predit.predict()"
-
-    ####################################################################################################################
-    ####################################################################################################################
-    # stdout & stderr to files
-    out, err = capsys.readouterr()
-    open(join(data_dir, "err.txt"), "w").write(err)
-    open(join(data_dir, "out.txt"), "w").write(out)
+    except Exception as e:
+        raise Exception(e)
+    finally:
+        # stdout & stderr to files
+        out, err = capsys.readouterr()
+        open(join(data_dir, "err.txt"), "w").write(err)
+        open(join(data_dir, "out.txt"), "w").write(out)

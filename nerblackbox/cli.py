@@ -4,8 +4,11 @@ import os
 import subprocess
 from os.path import join
 import click
-from typing import Dict, Any
-from nerblackbox.modules.main import NerBlackBoxMain
+from nerblackbox.api.store import Store
+from nerblackbox.api.dataset import Dataset
+from nerblackbox.api.experiment import Experiment
+from nerblackbox.api.model import Model
+from nerblackbox.modules.experiment_results import ExperimentResults
 
 
 ########################################################################################################################
@@ -13,7 +16,7 @@ from nerblackbox.modules.main import NerBlackBoxMain
 ########################################################################################################################
 @click.group()
 @click.option(
-    "--data_dir", default="data", type=str, help="[str] relative path of data directory"
+    "--store_dir", default="store", type=str, help="[str] relative path of store directory"
 )
 @click.option(
     "--modify/--no-modify", default=False, help="[bool] if flag=set_up_dataset"
@@ -23,12 +26,6 @@ from nerblackbox.modules.main import NerBlackBoxMain
 )
 @click.option(
     "--verbose/--no-verbose", default=False, help="[bool] if flag=set_up_dataset"
-)
-@click.option(
-    "--from_config/--no-from_config",
-    default=True,
-    type=bool,
-    help="[bool] if flag=run_experiment",
 )
 @click.option("--run_name", default=None, type=str, help="[str] if flag=run_experiment")
 @click.option("--device", default=None, type=str, help="[str] if flag=run_experiment")
@@ -42,103 +39,64 @@ def nerbb(ctx, **kwargs_optional):
     kwargs = {k: v for k, v in kwargs_optional.items() if v is not None}
 
     # environ
-    base_dir = os.getcwd()
-    data_dir = kwargs.pop("data_dir")
-    os.environ["BASE_DIR"] = base_dir
-    os.environ["DATA_DIR"] = join(base_dir, data_dir)
-    # print('BASE_DIR = ', os.environ.get('BASE_DIR'))
-    # print('DATA_DIR = ', os.environ.get('DATA_DIR'))
+    data_dir = kwargs.pop("store_dir")
+    if len(data_dir):
+        Store.set_path(data_dir)
 
     # context
     ctx.obj = kwargs
 
 
 ########################################################################################################################
-# COMMANDS HELPER FUNCTION
-########################################################################################################################
-def _run_nerblackbox_main(_ctx_obj: Dict[str, Any], _kwargs: Dict[str, str]) -> None:
-    """
-    given context (_ctx_obj) and all relevant arguments (_kwargs), invoke NerBlackBoxMain
-    is used by every nerbb command
-    """
-    kwargs = dict(**_ctx_obj, **_kwargs)
-
-    nerblackbox_main = NerBlackBoxMain(**kwargs)
-    nerblackbox_main.main()
-
-
-########################################################################################################################
 # COMMANDS
 ########################################################################################################################
 @nerbb.command(name="analyze_data")
-@click.pass_context
 @click.argument("dataset_name")
-def analyze_data(ctx, dataset_name: str):
+def analyze_data(dataset_name: str):
     """analyze a dataset."""
-    kwargs = {
-        "flag": "analyze_data",
-        "dataset_name": dataset_name,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    dataset = Dataset(dataset_name)
+    dataset.overview()
 
 
-@nerbb.command(name="clear_data")
 @click.pass_context
+@nerbb.command(name="clear_data")
 def clear_data(ctx):
     """clear data (checkpoints and optionally results)."""
-    kwargs = {
-        "flag": "clear_data",
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    context = {k: v for k, v in ctx.obj.items() if k in ["results"]}
+    Store.clear_data(**context)
 
 
-@nerbb.command(name="download")
-@click.pass_context
-def download(ctx):
-    """
-    download & prepare built-in datasets, prepare experiment configuration.
-    needs to be called exactly once before any other CLI/API commands of the package are executed
-    in case built-in datasets shall be used.
-    """
-    kwargs = {
-        "flag": "download",
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
-
-
-@nerbb.command(name="get_experiments")
-@click.pass_context
-def get_experiments(ctx):
-    """get overview on experiments."""
-    kwargs = {
-        "flag": "get_experiments",
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
-
-
-@nerbb.command(name="get_experiment_results")
-@click.pass_context
-@click.argument("experiment_name")
-def get_experiment_results(ctx, experiment_name: str):
-    """get results for a single experiment."""
-    kwargs = {
-        "flag": "get_experiment_results",
-        "experiment_name": experiment_name,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
-
-
-@nerbb.command(name="init")
-@click.pass_context
-def init(ctx):
+@nerbb.command(name="create")
+def create():
     """
     initialize the data_dir directory.
     needs to be called exactly once before any other CLI/API commands of the package are executed.
     """
-    kwargs = {
-        "flag": "init",
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    Store.create()
+
+
+@nerbb.command(name="show_experiments")
+def show_experiments():
+    """get overview on experiments."""
+    Store.show_experiments()
+
+
+@nerbb.command(name="get_experiment_results")
+@click.argument("experiment_name")
+def get_experiment_results(experiment_name: str):
+    """get results for a single experiment."""
+    experiment = Experiment(experiment_name)
+    assert isinstance(experiment.results, ExperimentResults), \
+        f"ERROR! experiment.results is not an instance of ExperimentResults."
+    for attribute in ["best_single_run"]:
+        assert hasattr(experiment.results, attribute), \
+            f"ERROR! experiment.results does not have attribute = {attribute}"
+
+    for average in [False, True]:
+        score = experiment.get_result(metric="f1", level="entity", label="micro", phase="test", average=average)
+        print(f"score (average={average}) = {score}")
+        assert isinstance(score, str), \
+            f"ERROR! experiment.get_result() did not return a str for average = {average}."
 
 
 @nerbb.command(name="mlflow")
@@ -149,31 +107,23 @@ def mlflow():
 
 
 @nerbb.command(name="predict")
-@click.pass_context
 @click.argument("experiment_name")
 @click.argument("text_input")
-def predict(ctx, experiment_name: str, text_input: str):
+def predict(experiment_name: str, text_input: str):
     """predict labels for text_input using the best model of a single experiment."""
-    kwargs = {
-        "flag": "predict",
-        "experiment_name": experiment_name,
-        "text_input": text_input,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    model = Model.from_experiment(experiment_name)
+    predictions = model.predict(text_input)
+    print(predictions)
 
 
 @nerbb.command(name="predict_proba")
-@click.pass_context
 @click.argument("experiment_name")
 @click.argument("text_input")
-def predict_proba(ctx, experiment_name: str, text_input: str):
+def predict_proba(experiment_name: str, text_input: str):
     """predict label probabilities for text_input using the best model of a single experiment."""
-    kwargs = {
-        "flag": "predict_proba",
-        "experiment_name": experiment_name,
-        "text_input": text_input,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    model = Model.from_experiment(experiment_name)
+    predictions = model.predict_proba(text_input)
+    print(predictions)
 
 
 @nerbb.command(name="run_experiment")
@@ -181,37 +131,31 @@ def predict_proba(ctx, experiment_name: str, text_input: str):
 @click.argument("experiment_name")
 def run_experiment(ctx, experiment_name: str):
     """run a single experiment."""
-    kwargs = {
-        "flag": "run_experiment",
-        "experiment_name": experiment_name,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    context = {k: v for k, v in ctx.obj.items() if k in ["run_name", "device", "fp16"]}
+    experiment = Experiment(experiment_name, from_config=True, **context)
+    experiment.run()
 
 
 @nerbb.command(name="set_up_dataset")
 @click.pass_context
-@click.argument("dataset_name")
-@click.argument("dataset_subset_name")
-def set_up_dataset(ctx, dataset_name: str, dataset_subset_name: str = ""):
+@click.argument("dataset_and_subset_name")
+def set_up_dataset(ctx, dataset_and_subset_name: str):
     """set up a dataset using the associated Formatter class."""
-    kwargs = {
-        "flag": "set_up_dataset",
-        "dataset_name": dataset_name,
-        "dataset_subset_name": dataset_subset_name,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    split_list = dataset_and_subset_name.split()
+    dataset = Dataset(
+        dataset_name=split_list[0],
+        dataset_subset_name=split_list[-1] if len(split_list) > 1 else "",
+    )
+    context = {k: v for k, v in ctx.obj.items() if k in ["modify", "val_fraction", "verbose"]}
+    dataset.set_up(**context)
 
 
 @nerbb.command(name="show_experiment_config")
-@click.pass_context
 @click.argument("experiment_name")
-def show_experiment_config(ctx, experiment_name: str):
+def show_experiment_config(experiment_name: str):
     """show a single experiment configuration in detail."""
-    kwargs = {
-        "flag": "show_experiment_config",
-        "experiment_name": experiment_name,
-    }
-    _run_nerblackbox_main(ctx.obj, kwargs)
+    experiment = Experiment(experiment_name)
+    experiment.show_config()
 
 
 @nerbb.command(name="tensorboard")

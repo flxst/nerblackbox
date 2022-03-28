@@ -4,7 +4,7 @@ import numpy as np
 
 import torch
 
-from nerblackbox.modules.ner_training.ner_model_predict import (
+from nerblackbox.api.model import (
     derive_annotation_scheme,
     turn_tensors_into_tag_probability_distributions,
     merge_slices_for_single_document,
@@ -14,27 +14,7 @@ from nerblackbox.modules.ner_training.ner_model_predict import (
 )
 
 
-"""
-import json
-from argparse import Namespace
-
-from nerblackbox.modules.ner_training.ner_model_predict import NerModelPredict
-
-
-class TestNerModelPredict:
-
-    ner_model_predict = NerModelPredict(
-        hparams=Namespace(**{
-            "pretrained_model_name": "af-ai-center/bert-base-swedish-uncased",
-            "uncased": True,
-            "max_seq_length": 64,
-            "tag_list": json.dumps(["PER"])
-        })
-    )
-"""
-
-
-class TestNerModelPredictStatic:
+class TestModelStatic:
     @pytest.mark.parametrize(
         "id2label, error, annotation_scheme",
         [

@@ -1,6 +1,6 @@
 # Overview
 
-In this section, we discuss some useful (and mostly unique) features of **nerblackbox**:
+In this section, we discuss some useful (and partly unique) features of **nerblackbox**:
 
 * [Adaptive Fine-tuning](../adaptive_finetuning)
 * [Hyperparameter Search](../hyperparameter_search)

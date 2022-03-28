@@ -1,7 +1,7 @@
 import pytest
 from typing import Optional, Dict, Union
 
-from nerblackbox.modules.main import NerBlackBoxMain
+from nerblackbox.api.experiment import Experiment
 import os
 from os.path import join, abspath, dirname
 from pkg_resources import resource_filename
@@ -12,9 +12,9 @@ os.environ["DATA_DIR"] = DATA_DIR
 TRACKING_URI = resource_filename("nerblackbox", f"data/results/mlruns")
 
 
-class TestMain:
+class TestApiExperiment:
 
-    main = NerBlackBoxMain(flag="xyz", from_config=True)
+    experiment = Experiment("xyz", pytest=True)
 
     # 1 ################################################################################################################
     @pytest.mark.parametrize(
@@ -48,7 +48,7 @@ class TestMain:
         from_preset: Optional[str],
         hparams_processed: Optional[Dict[str, str]],
     ):
-        test_hparams_processed = self.main._process_hparams(hparams, from_preset)
+        test_hparams_processed = self.experiment._process_hparams(hparams, from_preset)
         assert (
             test_hparams_processed == hparams_processed
         ), f"ERROR! test_hparams_processed = {test_hparams_processed} != {hparams_processed}"

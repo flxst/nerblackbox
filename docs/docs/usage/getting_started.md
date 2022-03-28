@@ -1,12 +1,13 @@
 # Getting Started
 
-Use either the [Python API](../../python_api/overview) or the [CLI (Command Line Interface)](../../cli/cli).
+**nerblackbox** provides a [Python API](../../python_api/overview) with four main classes 
+`Store`, `Dataset`, `Experiment` and `Model`.
+Alternatively, a [CLI (Command Line Interface)](../../cli/cli) with the command `nerbb` is available.
 
 ??? note "basic usage"
     === "Python"
         ``` python
-        from nerblackbox import NerBlackBox
-        nerbb = NerBlackBox()
+        from nerblackbox import Store, Dataset, Experiment, Model
         ```
     === "CLI"
         ``` bash
@@ -14,50 +15,69 @@ Use either the [Python API](../../python_api/overview) or the [CLI (Command Line
         ```
 
 -----------
-## 1. Initialization
+## 1. Store
 
-The following commands need to be executed once:
+First, a store has to be created. 
+The store is a directory that contains all the data 
+(datasets, experiment configurations, results, model checkpoints)
+that **nerblackbox** needs access to. 
+It is handled by the [Store](../../python_api/store) class:
 
-??? note "initialization"
+??? note "create store"
     === "Python"
         ``` python
-        nerbb.init()
+        Store.create()
         ```
     === "CLI"
         ``` bash
-        nerbb init
+        nerbb create
         ```
 
-This creates a ``./data`` directory with the following structure:
+By default, the store is located at ``./store`` and has the following subdirectories:
 
 ``` xml
-data/
+store/
 └── datasets
 └── experiment_configs
 └── pretrained_models
 └── results
 ```
 
+If wanted, the path of the store can be adjusted (before creation) like this:
+
+??? note "adjust store path"
+    === "Python"
+        ``` python
+        Store.set_path("<store_path>")
+        ```
+    === "CLI"
+        ``` bash
+        nerbb --store_dir <store_dir> create
+        ```
+
 -----------
-## 2. Data
+## 2. Dataset
+
+Next, a dataset needs to be prepared.
 
 - [Built-in datasets](../datasets_and_models/#built-in-datasets) (including [HuggingFace Datasets](../../features/support_huggingface_datasets/))
-can be downloaded and set up using the following command:
+can easily be downloaded and set up using the [Dataset](../../python_api/dataset) class:
 
 
-    ??? note "set up dataset"
+    ??? note "set up a built-in dataset"
         === "Python"
             ``` python
-            nerbb.set_up_dataset("<dataset_name>")
+            dataset = Dataset("<dataset_name>")
+            dataset.set_up()
             ```
         === "CLI"
             ``` bash
             nerbb set_up_dataset <dataset_name>
             ```
 
-    This creates data files in the folder `./data/datasets/<dataset_name>`.
+    This creates dataset files in the folder `./store/datasets/<dataset_name>`.
 
-- [Custom datasets](../datasets_and_models/#custom-datasets) can be provided using two different data formats:
+- [Custom datasets](../datasets_and_models/#custom-datasets) can be added manually using two different data formats:
 
     - jsonl (raw data)
 
@@ -66,109 +86,141 @@ can be downloaded and set up using the following command:
     See [Custom datasets](../datasets_and_models/#custom-datasets) for more details.
 
 -----------
-## 3. Fine-tune a Model
+## 3. Experiment (fine-tune a model)
 
 Fine-tuning a **specific model** on a **specific dataset** using **specific parameters** is called an **experiment**. 
+Everything around an experiment is handled by the [Experiment](../../python_api/experiment) class.
+
+-----------
+### 3a. Define an experiment
 
 An experiment is defined 
 
-- either **statically** by an **experiment configuration** file ``./data/experiment_configs/<experiment_name>.ini``.
+- either **dynamically** using function arguments in [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment)
 
-    ??? note "run experiment statically"
+    ??? note "define experiment dynamically (only Python API)"
         === "Python"
             ``` python
-            nerbb.run_experiment("<experiment_name>", from_config=True)
+            experiment = Experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>")
+            ```
+
+- or **statically** by an **experiment configuration** file ``./store/experiment_configs/<experiment_name>.ini``.
+
+    ??? note "define experiment statically"
+        === "Python"
+            ``` python
+            experiment = Experiment("<experiment_name>", from_config=True)
             ```
         === "CLI"
-            ``` bash
-            nerbb run_experiment <experiment_name>
-            ```
+            see 3b.
 
-- or **dynamically** using function arguments in [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment)
-
-    ??? note "run experiment dynamically (only Python API)"
-        === "Python"
-            ``` python
-            nerbb.run_experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>")
-            ```
-
-    This creates an experiment configuration on the fly, which is subsequently used.
-
+Note that the dynamic variant also creates an experiment configuration, which is subsequently used.
 In both cases, the specification of the [`model`](../datasets_and_models) and the [`dataset`](../datasets_and_models) are mandatory, while the [`parameters`](../parameters_and_presets/#parameters) are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
 In particular, [adaptive fine-tuning](../../features/adaptive_finetuning) is employed to ensure that this holds irrespective of the size of the dataset.  
 
 -----------
-## 4. Inspect the Results
+### 3b. Run an experiment
 
-- Once an experiment is finished, one can inspect its main results 
-    or have a look at detailed results (e.g. learning curves):
+A fine-tuning experiment is run using the following command:
 
-    ??? note "get main results"
-        === "Python"
-            ``` python
-            experiment_results = nerbb.get_experiment_results("<experiment_name>")  # List[ExperimentResults]
-            ```
-        === "CLI"
-            ``` bash
-            nerbb get_experiment_results <experiment_name>  # prints overview on runs
-            ```
+??? note "run experiment"
+    === "Python"
+        ``` python
+        experiment.run()
+        ```
+    === "CLI"
+        ``` bash
+        nerbb run_experiment <experiment_name>  # CLI: only static experiment definition
+        ```
 
-        Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results``
+See [`Experiment.run()`](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
 
-    ??? note "get detailed results (only CLI)"
-      
-        === "CLI"
-            ``` bash
-            nerbb mlflow       # + enter http://localhost:5000 in your browser
-            nerbb tensorboard  # + enter http://localhost:6006 in your browser
-            ```
+-----------
+### 3c. Get the results
 
-    See [Detailed Analysis of Training Results](../../features/detailed_results) for more information.
+When an experiment is finished, one can get its main results like so:
+
+??? note "get main results"
+    === "Python"
+        ``` python
+        experiment.get_result(metric="f1", level="entity", phase="test")
+        ```
+
+See [`Experiment.get_result()`](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result) for further details.
+
+-----------
+## 4. Model
+
+-----------
+### 4a. Inference
+
+The best model of an experiment can be loaded and used for inference using the following commands:
+
+??? note "model inference"
+    === "Python"
+        ``` python
+        model = Model.from_experiment(<experiment_name>)
+        model.predict(<text_input>)
+        ```
+    === "CLI"
+        ``` bash
+        nerbb predict <experiment_name> "<text_input>"
+        ```
+<!---
+### 4b. Evaluation
+
+Any model can easily be evaluated on any dataset:
+
+??? note "model evaluation"
+    === "Python"
+        ``` python
+        model = Model.from_checkpoint("<checkpoint_path>")
+        model.evaluate("<dataset_name>")
+        model.get_result(metric="f1", level="entity", phase="test")
+        # 0.9234
+        ```
+--->
+
+See [Model](../../python_api/model) for further details on how to use the ``model``
+
+-----------
+## 5. Store (advanced)
+
+The [Store](../../python_api/store) class provides a few additional useful methods.
 
 - An overview of all experiments and their results can be accessed as follows:
 
     ??? note "get overview of all experiments"
         === "Python"
             ``` python
-            nerbb.get_experiments()
+            Store.show_experiments()
             ```
         === "CLI"
             ``` bash
-            nerbb get_experiments
+            nerbb show_experiments
             ```
 
-    ??? note "get overview of all experiments' main results"
+- Detailed experiment results (e.g. learning curves) can be accessed using `mlflow` or `tensorboard`:
+
+    ??? note "access detailed results"
+
         === "Python"
             ``` python
-            experiment_results_all = nerbb.get_experiment_results("all")  # List[ExperimentResults]
+            Store.mlflow("start")       # + enter http://localhost:5000 in your browser
+            Store.tensorboard("start")  # + enter http://localhost:6006 in your browser
             ```
         === "CLI"
             ``` bash
-            nerbb get_experiment_results all
+            nerbb mlflow         # + enter http://localhost:5000 in your browser
+            nerbb tensorboard    # + enter http://localhost:6006 in your browser
             ```
 
-        Python: see [ExperimentResults](../../python_api/experiment_results) for details on how to use ``experiment_results_all``
+        The underlying processes can be stopped using 
+        [`Store.mlflow("stop")`](../../python_api/store/#nerblackbox.api.store.Store.mlflow) 
+        and [`Store.tensorboard("stop")`](../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
 
------------
-## 5. Model Inference
+    See [Detailed Analysis of Training Results](../../features/detailed_results) for more information.
 
-??? note "model inference"
-    === "Python"
-        ``` python
-        # e.g. <text_input> = "annotera den här texten"
-        nerbb.predict("<experiment_name>", <text_input>)
-
-        # same but w/o having to reload the best model for multiple predictions
-        ner_model_predict = nerbb.get_model_from_experiment(<experiment_name>)
-        ner_model_predict.predict(<text_input>)
-        ```
-    === "CLI"
-        ``` bash
-        # e.g. <text_input> = "annotera den här texten"
-        nerbb predict <experiment_name> <text_input>
-        ```
-
-    Python: see [NerModelPredict](../../python_api/ner_model_predict) for further details on how to use ``ner_model_predict``
 
 -----------
 ## Next Steps

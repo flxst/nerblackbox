@@ -15,7 +15,7 @@ from transformers import logging
 logging.set_verbosity_error()
 
 
-class NerModelTrain2Predict(NerModel):
+class NerModelTrain2Model(NerModel):
     """
     class that translates (pytorch-lightning) NerModelTrain checkpoint to (transformers) NerModelPredict checkpoint
     """

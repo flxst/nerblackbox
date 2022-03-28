@@ -138,8 +138,8 @@ class NerModelTrain(NerModel):
 
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes
-        )  # save for NerModelPredict
-        self.hparams.encoding = json.dumps(self.encoding)  # save for NerModelPredict
+        )  # save for Model
+        self.hparams.encoding = json.dumps(self.encoding)  # save for Model
 
         # model
         self.model = AutoModelForTokenClassification.from_pretrained(

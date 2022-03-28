@@ -12,29 +12,6 @@ latest version: 0.0.13
 * PyPI: [https://pypi.org/project/nerblackbox](https://pypi.org/project/nerblackbox)
 
 -----------
-## About
-
-[Transformer-based language models](https://arxiv.org/abs/1706.03762) like [BERT](https://arxiv.org/abs/1810.04805) have had a [game-changing impact](https://paperswithcode.com/task/language-modelling) on natural language processing.
-
-In order to utilize [HuggingFace's publicly accessible pretrained models](https://huggingface.co/transformers/pretrained_models.html) for
-[named entity recognition](https://en.wikipedia.org/wiki/Named-entity_recognition),
-one needs to retrain (or "fine-tune") them using labeled text.
-
-**nerblackbox makes this easy.**
-
-![NER Black Box Overview Diagram](images/nerblackbox.png){: align=left }
-
-`You give it`
-
-- a **Dataset** (labeled text)
-- a **Pretrained Model** (transformers)
-
-`and you get`
-
-- the best **Fine-tuned Model**
-- its **Performance** on the dataset
-
------------
 ## Installation
 
 ``` bash
@@ -42,37 +19,37 @@ pip install nerblackbox
 ```
 
 -----------
-## Usage
+## About
 
-- initialize
-    ``` python
-    nerbb = NerBlackBox()
-    ```
+![nerblackbox overview diagram](images/nerblackbox.png)
 
-- fine-tune a model on a dataset
-    ``` python
-    nerbb.run_experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
-    # [output provides details on the model training]
-    ```
+Fine-tune a [language model](https://huggingface.co/transformers/pretrained_models.html) for
+[named entity recognition](https://en.wikipedia.org/wiki/Named-entity_recognition) in a few simple steps:
 
-- inspect the results
-    ``` python
-    experiment_results = nerbb.get_experiment_results("my_experiment")
-    # [experiment_results contains e.g. details on the model performance]
-    ```
+   1. Define a fine-tuning experiment by choosing a pretrained model and a dataset
+       ``` python
+       experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+       ```
+   
 
-- model inference
-    ``` python
-    model = nerbb.get_model_from_experiment("my_experiment")
-  
-    model.predict("The United Nations has never recognised Jakarta's move.")  
-    # [[
-    #  {'char_start': '4', 'char_end': '18', 'token': 'United Nations', 'tag': 'ORG'},
-    #  {'char_start': '40', 'char_end': '47', 'token': 'Jakarta', 'tag': 'LOC'}
-    # ]]
-    ```
+   2. Run the experiment and get the performance of the fine-tuned model
+       ``` python
+       experiment.run()
+       experiment.get_result(metric="f1", level="entity", phase="test")
+       # 0.9045
+       ```
 
-See [Usage](usage/getting_started) for more details.
+   3. Use the fine-tuned model for inference
+       ``` python
+       model = Model.from_experiment("my_experiment")
+       model.predict("The United Nations has never recognised Jakarta's move.")  
+       # [[
+       #  {'char_start': '4', 'char_end': '18', 'token': 'United Nations', 'tag': 'ORG'},
+       #  {'char_start': '40', 'char_end': '47', 'token': 'Jakarta', 'tag': 'LOC'}
+       # ]]
+       ```
+
+There is much more to it than that! See [Usage](usage/getting_started) to get started.
 
 -----------
 ## Features

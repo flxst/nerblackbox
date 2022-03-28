@@ -1,22 +1,25 @@
 # Python API
 
+- **Usage:**
+
+
+    === "Python"
+        ``` python
+        from nerblackbox import Store, Dataset, Experiment, Model, [..]
+        ```
+
+----------
 - **Main Classes:**
 
-    * [NerBlackBox](../nerblackbox)
-    * [ExperimentResults](../experiment_results)
-    * [NerModelPredict](../ner_model_predict)
-  
+    * [Store](../store)
+    * [Dataset](../dataset)
+    * [Experiment](../experiment)
+    * [Model](../model)
 
 ----------
 - **Additional Classes:**
     * [TextEncoder](../text_encoder)
+    * [ExperimentResults](../experiment_results)
 
 
-----------
-- **Usage:**
-
-    === "Python"
-        ``` python
-        from nerblackbox import NerBlackBox, ExperimentResults, NerModelPredict, TextEncoder
-        ```
 

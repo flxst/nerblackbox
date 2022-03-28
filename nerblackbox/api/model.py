@@ -1,7 +1,7 @@
 import json
 import string
 from os.path import join, isdir
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 import numpy as np
 
 import torch
@@ -13,16 +13,82 @@ from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor impor
     DataPreprocessor,
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
+from nerblackbox.api.store import Store
+from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.ner_training.ner_model_train2model import (
+    NerModelTrain2Model,
+)
 
 VERBOSE = False
 
 PREDICTIONS = List[List[Dict[str, Union[str, Dict]]]]
 
 
-class NerModelPredict:
+class Model:
     """
-    class that predicts tags for given text
+    model that predicts tags for given input text
+
+    Attributes: see `__init__()`
     """
+
+    @classmethod
+    def from_experiment(cls, experiment_name: str) -> Optional['Model']:
+        r"""load best model from experiment.
+
+        Args:
+            experiment_name: name of the experiment, e.g. "exp0"
+
+        Returns:
+            model: best model from experiment
+        """
+        experiment_exists, experiment_results = Store.get_experiment_results_single(experiment_name)
+        assert experiment_exists, f"ERROR! experiment = {experiment_name} does not exist."
+
+        assert (
+            isinstance(experiment_results, ExperimentResults)
+        ), f"ERROR! experiment_results expected to be an instance of ExperimentResults."
+
+        if experiment_results.best_single_run is None:
+            print(f"> ATTENTION! could not find results for experiment = {experiment_name}")
+            return None
+        elif "checkpoint" not in experiment_results.best_single_run.keys() \
+                or experiment_results.best_single_run["checkpoint"] is None:
+            print(f"> ATTENTION! there is no checkpoint for experiment = {experiment_name}.")
+            return None
+        else:
+            checkpoint_path_train = experiment_results.best_single_run[
+                "checkpoint"
+            ]
+            checkpoint_path_predict = checkpoint_path_train.strip(".ckpt")
+
+            # translate NerModelTrain checkpoint to Model checkpoint if necessary
+            if not Model.checkpoint_exists(checkpoint_path_predict):
+                ner_model_train2model = (
+                    NerModelTrain2Model.load_from_checkpoint(
+                        checkpoint_path_train
+                    )
+                )
+                ner_model_train2model.export_to_ner_model_prod(
+                    checkpoint_path_train
+                )
+
+            return Model(checkpoint_path_predict)
+
+    @classmethod
+    def from_checkpoint(cls, checkpoint_directory: str) -> Optional['Model']:
+        r"""
+
+        Args:
+            checkpoint_directory: path to the checkpoint directory
+
+        Returns:
+            model: best model from experiment
+        """
+        if not cls.checkpoint_exists(checkpoint_directory):
+            print(f"> ATTENTION! could not find checkpoint directory at {checkpoint_directory}")
+            return None
+        else:
+            return Model(checkpoint_directory)
 
     @classmethod
     def checkpoint_exists(cls, checkpoint_directory: str) -> bool:
@@ -34,10 +100,11 @@ class NerModelPredict:
         batch_size: int = 16,
         max_seq_length: int = None,
     ):
-        """
+        r"""
         Args:
-            checkpoint_directory: path
-            batch_size: used in dataloader
+            checkpoint_directory: path to the checkpoint directory
+            batch_size: batch size used by dataloader
+            max_seq_length: maximum sequence length (Optional). Loaded from checkpoint if not specified.
         """
         # 0. device
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

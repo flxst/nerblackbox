@@ -368,7 +368,7 @@ def remove_checkpoint(_checkpoint_path, _default_logger):
     """
     remove checkpoint stored at _checkpoint_path
     --------------------------------------------
-    :param _checkpoint_path: [str], e.g. '[..]/data/results/checkpoints/exp_default/run1/epoch=0.ckpt'
+    :param _checkpoint_path: [str], e.g. '[..]/store/results/checkpoints/exp_default/run1/epoch=0.ckpt'
     :param _default_logger:  [DefaultLogger]
     :return: -
     """

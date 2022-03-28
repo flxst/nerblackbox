@@ -1,12 +1,9 @@
 import pytest
 from typing import Optional, Dict, Any
+from nerblackbox.api.utils import Utils
 
-from nerblackbox.api import NerBlackBox
 
-
-class TestApi:
-
-    nerbb = NerBlackBox()
+class TestApiUtils:
 
     # 1 ################################################################################################################
     @pytest.mark.parametrize(
@@ -25,7 +22,7 @@ class TestApi:
     def test_process_kwargs_optional(
         self, kwargs_optional: Optional[Dict[str, Any]], kwargs: Dict[str, Any]
     ):
-        test_kwargs = self.nerbb._process_kwargs_optional(kwargs_optional)
+        test_kwargs = Utils.process_kwargs_optional(kwargs_optional)
         assert test_kwargs == kwargs, f"ERROR! test_kwargs = {test_kwargs} != {kwargs}"
 
     # 2 ################################################################################################################
@@ -47,7 +44,7 @@ class TestApi:
         ],
     )
     def test_extract_hparams(self, _kwargs: Dict[str, Any], _hparams: Dict[str, Any]):
-        test_hparams = self.nerbb._extract_hparams(_kwargs)
+        test_hparams = Utils.extract_hparams(_kwargs)
         assert (
             test_hparams == _hparams
         ), f"ERROR! test_hparams = {test_hparams} != {_hparams}"

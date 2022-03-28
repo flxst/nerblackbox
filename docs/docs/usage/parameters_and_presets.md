@@ -2,7 +2,7 @@
 
 An experiment is defined by a set of parameters. 
 
-These can be specified in a [static experiment configuration](../getting_started/#3-fine-tune-a-model) file ``./data/experiment_configs/<experiment_name>.ini``.
+These can be specified in a [static experiment configuration](../getting_started/#3-fine-tune-a-model) file ``./store/experiment_configs/<experiment_name>.ini``.
 
 ??? example "Example: custom_experiment.ini"
     ``` markdown
