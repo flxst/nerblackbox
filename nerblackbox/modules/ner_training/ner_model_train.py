@@ -146,6 +146,8 @@ class NerModelTrain(NerModel):
             self.pretrained_model_name,
             num_labels=len(self.annotation.classes),
             return_dict=False,
+            ignore_mismatched_sizes=True,  # if pretrained model = AutoModelForTokenClassification
+                                           # with different number of annotation classes
         )
         self.model.resize_token_embeddings(
             len(self.tokenizer)
