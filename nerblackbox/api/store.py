@@ -144,6 +144,9 @@ class Store:
         Returns:
             experiment_results: for experiment with experiment_name
         """
+        if cls.client is None:
+            cls._update_client()
+
         if isdir(env_variable("DIR_MLFLOW")):
             if update_experiments:
                 cls._update_experiments()

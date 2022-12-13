@@ -3,7 +3,7 @@ coverage
 jupyter
 mkdocs-click
 mkdocs-material
-mkdocstrings
+mkdocstrings[python]
 mypy
 pip-chill
 pylint
