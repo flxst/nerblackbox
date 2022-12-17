@@ -297,17 +297,20 @@ class DataPreprocessor:
             for entity_dict in _data[n]["tags"]:
                 entity_text = entity_dict["token"]
                 entity_words = self._tokens2words(self.tokenizer.tokenize(entity_text))
-                entity_words_indices = [
-                    index + words[index:].index(entity_word)
-                    for entity_word in entity_words
-                ]
+                try:
+                    entity_words_indices = list()
+                    for k, entity_word in enumerate(entity_words):
+                        entity_words_index = index + k + words[index + k:].index(entity_word)
+                        entity_words_indices.append(entity_words_index)
+                except ValueError as e:
+                    raise Exception(e)
                 for i, entity_word_index in enumerate(entity_words_indices):
                     tags[entity_word_index] = (
                         f"B-{entity_dict['tag']}"
                         if i == 0
                         else f"I-{entity_dict['tag']}"
                     )
-                index = max(entity_words_indices)
+                index = max(entity_words_indices) + 1
 
             _data_pretokenized.append(
                 {
@@ -337,7 +340,7 @@ class DataPreprocessor:
                 data = [json.loads(jline) for jline in jlines]
 
             # 2. pretokenize data
-            data_pretokenized = self._pretokenize_data(data)
+            data_pretokenized = self._pretokenize_data(data, verbose=False)
 
             # 3. write csv files "pretokenized_{phase}.csv"
             df = pd.DataFrame(data_pretokenized)

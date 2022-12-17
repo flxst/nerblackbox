@@ -32,6 +32,13 @@ tokenizer = AutoTokenizer.from_pretrained(
     use_fast=True,
 )
 
+tokenizer_KB = AutoTokenizer.from_pretrained(
+    "KB/bert-base-swedish-cased",
+    do_lower_case=False,
+    additional_special_tokens=["[newline]", "[NEWLINE]"],
+    use_fast=True,
+)
+
 csv_reader = CsvReader(
     path=resource_filename("nerblackbox", "tests/test_data"),
     tokenizer=tokenizer,
@@ -42,7 +49,7 @@ csv_reader = CsvReader(
 )
 
 data_preprocessor = DataPreprocessor(
-    tokenizer=tokenizer,
+    tokenizer=tokenizer_KB,
     do_lower_case=False,
     default_logger=PseudoDefaultLogger(),
     max_seq_length=4,
@@ -217,6 +224,7 @@ class TestDataProcessor:
         "data, data_pretokenized",
         [
             (
+                # data
                 [
                     {
                         "text": "arbetsförmedlingen ai-center finns i stockholm.",
@@ -246,7 +254,15 @@ class TestDataProcessor:
                             },
                         ],
                     },
+                    {
+                        "text": "Enligt Rory har mamman sagt åt honom att barn måste ha tålamod och inte får slå de vuxna. När Rory får veta",
+                        "tags": [
+                            {"char_start": 7, "char_end": 11, "token": "Rory", "tag": "PI"},
+                            {"char_start": 94, "char_end": 98, "token": "Rory", "tag": "PI"},
+                        ]
+                    },
                 ],
+                # data pretokenized
                 [
                     {
                         "text": "arbetsförmedlingen ai - center finns i stockholm .",
@@ -255,6 +271,10 @@ class TestDataProcessor:
                     {
                         "text": "this example contains hugging face",
                         "tags": "O O O B-ORG I-ORG",
+                    },
+                    {
+                        "text": "Enligt Rory har mamman sagt åt honom att barn måste ha tålamod och inte får slå de vuxna . När Rory får veta",
+                        "tags": "O B-PI O O O O O O O O O O O O O O O O O O B-PI O O",
                     },
                 ],
             ),
