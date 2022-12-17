@@ -144,6 +144,35 @@ class Model:
         # 5. batch_size (dataloader)
         self.batch_size = batch_size
 
+    def predict_on_file(self,
+                        input_file: str,
+                        output_file: str) -> None:
+        """
+        predict tags for all input texts in input file, write results to output file
+
+        Args:
+            input_file: e.g. strangnas/test.jsonl
+            output_file: e.g. strangnas/test_anonymized.jsonl
+        """
+        print(f"> read   input_file = {input_file}")
+        with open(input_file, "r") as f:
+            input_lines = [json.loads(line) for line in f]
+
+        output_lines = list()
+        for input_lines in input_lines:
+            text = input_lines["text"]
+            tags = self.predict(text)[0]
+            output_line = {
+                "text": text,
+                "tags": tags,
+            }
+            output_lines.append(output_line)
+
+        print(f"> write output_file = {output_file}")
+        with open(output_file, "w") as f:
+            for line in output_lines:
+                f.write(json.dumps(line, ensure_ascii=False) + "\n")
+
     def predict(
         self,
         input_texts: Union[str, List[str]],
@@ -316,11 +345,11 @@ class Model:
 
         # merge
         tokens = [
-            merge_slices_for_single_document(tokens[offsets[i] : offsets[i + 1]])
+            merge_slices_for_single_document(tokens[offsets[i]: offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] with len = number_of_input_texts
         predictions = [
-            merge_slices_for_single_document(predictions[offsets[i] : offsets[i + 1]])
+            merge_slices_for_single_document(predictions[offsets[i]: offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] or List[List[Dict[str, float]]] with len = number_of_input_texts
 
