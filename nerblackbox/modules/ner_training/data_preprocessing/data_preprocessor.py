@@ -262,6 +262,30 @@ class DataPreprocessor:
                 i += 1
         return _tokens
 
+    def _resolve_overlapping_tags(self, _tags: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+
+        Args:
+            _tags: e.g.
+            [
+             {"token": "Bajo peso", "tag": "Concept", "char_start": 4651, "char_end": 4660},
+             {"token": "peso", "tag": "Concept", "char_start": 4656, "char_end": 4660},
+             {"token": "más", "tag": "Predicate", "char_start": 4681, "char_end": 4684},
+            ]
+
+        Returns:
+            _resolved_tags: e.g.
+            [
+             {"token": "Bajo peso", "tag": "Concept", "char_start": 4651, "char_end": 4660},
+             {"token": "más", "tag": "Predicate", "char_start": 4681, "char_end": 4684},
+            ]
+        """
+        _resolved_tags = list()
+        for i in range(len(_tags)):
+            if i == 0 or _tags[i-1]["char_end"] <= _tags[i]["char_start"]:
+                _resolved_tags.append(_tags[i])
+        return _resolved_tags
+
     def _pretokenize_data(
         self, _data: SENTENCES_ROWS_UNPRETOKENIZED
     ) -> List[Dict[str, str]]:
@@ -294,7 +318,8 @@ class DataPreprocessor:
             words = self._tokens2words(self.tokenizer.tokenize(_data[n]["text"]))
             index = 0
             tags = ["O"] * len(words)
-            for entity_dict in _data[n]["tags"]:
+            entity_dicts = self._resolve_overlapping_tags(_data[n]["tags"])
+            for entity_dict in entity_dicts:
                 entity_text = entity_dict["token"]
                 entity_words = self._tokens2words(self.tokenizer.tokenize(entity_text))
                 try:
@@ -303,6 +328,15 @@ class DataPreprocessor:
                         entity_words_index = index + k + words[index + k:].index(entity_word)
                         entity_words_indices.append(entity_words_index)
                 except ValueError as e:
+                    print("words", words)
+                    print("entity_dict", entity_dict)
+                    print("entity_text", entity_text)
+                    print("entity_words", entity_words)
+                    print("-------------")
+                    print("k", k)
+                    print("entity_word", entity_word)
+                    print("entity_words_index", entity_words_index)
+                    print("entity_words_indices", entity_words_indices)
                     raise Exception(e)
                 for i, entity_word_index in enumerate(entity_words_indices):
                     tags[entity_word_index] = (
@@ -340,7 +374,7 @@ class DataPreprocessor:
                 data = [json.loads(jline) for jline in jlines]
 
             # 2. pretokenize data
-            data_pretokenized = self._pretokenize_data(data, verbose=False)
+            data_pretokenized = self._pretokenize_data(data)
 
             # 3. write csv files "pretokenized_{phase}.csv"
             df = pd.DataFrame(data_pretokenized)

@@ -221,6 +221,24 @@ class TestDataProcessor:
         assert test_words == words, f"test_words = {test_words} != {words}"
 
     @pytest.mark.parametrize(
+        "tags, resolved_tags",
+        [
+            (
+                    [{"token": "Bajo peso", "tag": "Concept", "char_start": 4651, "char_end": 4660},
+                     {"token": "peso", "tag": "Concept", "char_start": 4656, "char_end": 4660},
+                     {"token": "más", "tag": "Predicate", "char_start": 4681, "char_end": 4684},
+                     ],
+                    [{"token": "Bajo peso", "tag": "Concept", "char_start": 4651, "char_end": 4660},
+                     {"token": "más", "tag": "Predicate", "char_start": 4681, "char_end": 4684},
+                     ],
+            ),
+        ],
+    )
+    def test_resolve_overlapping_tags(self, tags: List[Dict[str, Any]], resolved_tags: List[Dict[str, Any]]):
+        test_resolved_tags = data_preprocessor._resolve_overlapping_tags(tags)
+        assert test_resolved_tags == resolved_tags, f"test_resolved_tags = {test_resolved_tags} != {resolved_tags}"
+
+    @pytest.mark.parametrize(
         "data, data_pretokenized",
         [
             (
