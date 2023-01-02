@@ -11,13 +11,8 @@ def readme():
         return f.read()
 
 
-def requirements():
-    with open(f"{BASE_DIR}/requirements.txt") as f:
-        return f.read().splitlines()
-
-
-def requirements_dev():
-    with open(f"{BASE_DIR}/requirements_dev.txt") as f:
+def requirements(_requirements: str):
+    with open(f"{BASE_DIR}/{_requirements}.txt") as f:
         return f.read().splitlines()
 
 
@@ -56,9 +51,10 @@ setup(
     packages=find_packages(),
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    install_requires=requirements(),
+    install_requires=requirements("requirements"),
     extras_require={
-        "dev": requirements_dev(),
+        "dev": requirements("requirements_dev"),
+        "annotation": requirements("requirements_annotation"),
     },
     python_requires=">=3.6",
     entry_points="""
