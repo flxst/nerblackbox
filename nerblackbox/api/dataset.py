@@ -69,8 +69,8 @@ class Dataset:
             input_lines = [json.loads(line) for line in f]
         print(f"> read {len(input_lines)} documents from {self.file_path}")
 
-        index_train_end = (1-val_fraction-test_fraction)*len(input_lines)
-        index_val_end = (1-test_fraction)*len(input_lines)
+        index_train_end = int((1-val_fraction-test_fraction)*len(input_lines))
+        index_val_end = int((1-test_fraction)*len(input_lines))
         output_lines = {
             "train": input_lines[:index_train_end],
             "val": input_lines[index_train_end: index_val_end],
