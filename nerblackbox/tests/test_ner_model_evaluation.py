@@ -155,6 +155,10 @@ class TestNerModelEvaluation:
                 np.array([-100, 2, 1, -100]),
                 np.array(["[S]", "PER", "ORG", "[S]"]),
             ),
+            (
+                np.array([0, -100, 1, 2]),
+                np.array(["O", "[S]", "ORG", "PER"]),
+            ),
         ],
     )
     def test_convert_tag_ids_to_tags(
@@ -178,6 +182,16 @@ class TestNerModelEvaluation:
                     "true": np.array(["PER", "ORG"]),
                     "pred": np.array(["ORG", "O"]),
                 },
+            ),
+            (
+                    {
+                        "true": np.array(["PER", "[S]", "ORG", "[S]"]),
+                        "pred": np.array(["PER", "ORG", "O", "O"]),
+                    },
+                    {
+                        "true": np.array(["PER", "ORG"]),
+                        "pred": np.array(["PER", "O"]),
+                    },
             ),
         ],
     )

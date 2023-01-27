@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import torch
+from collections import Counter
 from seqeval.metrics import classification_report as classification_report_seqeval
 from sklearn.metrics import classification_report as classification_report_sklearn
 from sklearn.metrics import confusion_matrix as confusion_matrix_sklearn
@@ -166,13 +167,50 @@ class NerModelEvaluation:
         }
         _epoch_tags = self._get_rid_of_special_tag_occurrences(tags)
 
+        #####################
+        # DEBUG START
+        #####################
         self.default_logger.log_debug("phase:", phase)
         self.default_logger.log_debug(
             "true:", np.shape(tags["true"]), list(set(tags["true"]))
         )
         self.default_logger.log_debug(
+            "true counter:", Counter(tags["true"])
+        )
+        self.default_logger.log_debug(
+            f"true[:7]:", tags["true"][:7]
+        )
+        self.default_logger.log_debug(
             "pred:", np.shape(tags["pred"]), list(set(tags["pred"]))
         )
+        self.default_logger.log_debug(
+            "pred counter:", Counter(tags["pred"])
+        )
+        self.default_logger.log_debug(
+            f"pred[:7]:", tags["pred"][:7]
+        )
+
+        self.default_logger.log_debug(
+            "epoch true:", np.shape(_epoch_tags["true"]), list(set(_epoch_tags["true"]))
+        )
+        self.default_logger.log_debug(
+            "epoch true counter:", Counter(_epoch_tags["true"])
+        )
+        self.default_logger.log_debug(
+            f"epoch true[:7]:", _epoch_tags["true"][:7]
+        )
+        self.default_logger.log_debug(
+            "epoch pred:", np.shape(_epoch_tags["pred"]), list(set(_epoch_tags["pred"]))
+        )
+        self.default_logger.log_debug(
+            "epoch pred counter:", Counter(_epoch_tags["pred"])
+        )
+        self.default_logger.log_debug(
+            f"epoch pred[:7]:", _epoch_tags["pred"][:7]
+        )
+        #####################
+        # DEBUG END
+        #####################
 
         # batch / dataset metrics
         _epoch_metrics = {"token_all_loss": _np_epoch["loss"]}
