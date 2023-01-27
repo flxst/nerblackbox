@@ -324,10 +324,12 @@ class DataPreprocessor:
                 entity_words = self._tokens2words(self.tokenizer.tokenize(entity_text))
                 try:
                     entity_words_indices = list()
-                    for k, entity_word in enumerate(entity_words):
-                        entity_words_index = index + k + words[index + k:].index(entity_word)
+                    for entity_word in entity_words:
+                        entity_words_index = index + words[index:].index(entity_word)
                         entity_words_indices.append(entity_words_index)
+                        index = entity_words_index + 1
                 except ValueError as e:
+                    print("=== ERROR ENCOUNTERED ===")
                     print("words", words)
                     print("entity_dict", entity_dict)
                     print("entity_text", entity_text)
@@ -344,7 +346,6 @@ class DataPreprocessor:
                         if i == 0
                         else f"I-{entity_dict['tag']}"
                     )
-                index = max(entity_words_indices) + 1
 
             _data_pretokenized.append(
                 {

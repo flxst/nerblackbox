@@ -279,6 +279,14 @@ class TestDataProcessor:
                             {"char_start": 94, "char_end": 98, "token": "Rory", "tag": "PI"},
                         ]
                     },
+                    {
+                        "text": "Socialsekreterare Molly Knös ringer och bokar in möte 2020-08-09.\n2020-08-09",
+                        "tags": [
+                            {"char_start": 18, "char_end": 28, "token": "Molly Knös", "tag": "PI"},
+                            {"char_start": 54, "char_end": 64, "token": "2020-08-09", "tag": "PI"},
+                            {"char_start": 66, "char_end": 76, "token": "2020-08-09", "tag": "PI"},
+                        ]
+                    },
                 ],
                 # data pretokenized
                 [
@@ -293,6 +301,10 @@ class TestDataProcessor:
                     {
                         "text": "Enligt Rory har mamman sagt åt honom att barn måste ha tålamod och inte får slå de vuxna . När Rory får veta",
                         "tags": "O B-PI O O O O O O O O O O O O O O O O O O B-PI O O",
+                    },
+                    {
+                        "text": "Socialsekreterare Molly Knös ringer och bokar in möte 2020 - 08 - 09 . 2020 - 08 - 09",
+                        "tags": "O B-PI I-PI O O O O O B-PI I-PI I-PI I-PI I-PI O B-PI I-PI I-PI I-PI I-PI",
                     },
                 ],
             ),
