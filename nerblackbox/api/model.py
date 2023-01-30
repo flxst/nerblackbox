@@ -8,6 +8,7 @@ import torch
 from transformers import AutoModelForTokenClassification, AutoTokenizer
 from typing import List, Union, Dict
 from torch.nn.functional import softmax
+from huggingface_hub import hf_hub_download
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
     DataPreprocessor,
@@ -91,6 +92,39 @@ class Model:
             return Model(checkpoint_directory)
 
     @classmethod
+    def from_huggingface(cls, repo_id: str) -> Optional['Model']:
+        r"""
+
+        Args:
+            repo_id: id of the huggingface hub repo id, e.g. 'KB/bert-base-swedish-cased-ner'
+
+        Returns:
+            model: model
+        """
+        # download files and get local file paths in cache directory
+        filenames = [
+            "config.json",
+            "pytorch_model.bin",
+            "special_tokens_map.json",
+            "tokenizer_config.json",
+            "vocab.txt",
+        ]
+        local_file_paths = []
+        for filename in filenames:
+            local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
+            local_file_paths.append(local_file_path)
+        assert len(local_file_paths) == len(filenames), \
+            f"ERROR! #local_file_paths = {len(local_file_paths)} does not correspond to #files = {len(filenames)}."
+
+        # extract cache directory
+        cache_directories = ["/".join(local_file_path.split("/")[:-1]) for local_file_path in local_file_paths]
+        assert len(set(cache_directories)) == 1, f"ERROR! cache directory could not be found due to inconsistency."
+        cache_directory = cache_directories[0]
+
+        # create Model from files in cache directory
+        return Model(cache_directory)
+
+    @classmethod
     def checkpoint_exists(cls, checkpoint_directory: str) -> bool:
         return isdir(checkpoint_directory)
 
@@ -109,20 +143,21 @@ class Model:
         # 0. device
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-        # 1: max_seq_length
-        if max_seq_length is not None:
-            self.max_seq_length = max_seq_length
-        else:
-            path_max_seq_length = join(checkpoint_directory, "max_seq_length.json")
-            with open(path_max_seq_length, "r") as f:
-                self.max_seq_length = json.load(f)
+        # 1: config (max_seq_length & annotation)
+        path_config = join(checkpoint_directory, "config.json")
+        with open(path_config, "r") as f:
+            config = json.load(f)
 
-        # 2. annotation
-        path_annotation_classes = join(checkpoint_directory, "annotation_classes.json")
-        with open(path_annotation_classes, "r") as f:
-            self.annotation_classes = json.load(f)
-        id2label = {i: label for i, label in enumerate(self.annotation_classes)}
-        label2id = {label: i for i, label in id2label.items()}
+        if max_seq_length:
+            self.max_seq_length = max_seq_length
+        elif "max_seq_length" in config.keys():
+            self.max_seq_length = config["max_seq_length"]
+        else:
+            self.max_seq_length = config["max_position_embeddings"]
+
+        id2label = {int(_id): label for _id, label in config["id2label"].items()}
+        label2id = {label: int(_id) for _id, label in config["id2label"].items()}
+        self.annotation_classes = list(config["id2label"].values())
 
         self.annotation_scheme = derive_annotation_scheme(id2label)
 

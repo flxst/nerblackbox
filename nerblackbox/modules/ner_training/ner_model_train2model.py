@@ -69,18 +69,21 @@ class NerModelTrain2Model(NerModel):
         if not isdir(export_directory):
             os.makedirs(export_directory, exist_ok=False)
 
-            # 1. max_seq_length
-            path_max_seq_length = join(export_directory, "max_seq_length.json")
-            with open(path_max_seq_length, "w") as f:
-                json.dump(self.max_seq_length, f)
+            # 1. tokenizer
+            self.tokenizer.save_pretrained(export_directory)
 
-            # 2. annotation
-            path_annotation_classes = join(export_directory, "annotation_classes.json")
-            with open(path_annotation_classes, "w") as f:
-                json.dump(self.annotation_classes, f)
-
-            # 3. model
+            # 2. model
             self.model.save_pretrained(export_directory)
 
-            # 4. tokenizer
-            self.tokenizer.save_pretrained(export_directory)
+            # 3. config (max_seq_length & annotation)
+            path_config = join(export_directory, "config.json")
+            assert isfile(path_config), f"ERROR! config file at {path_config} does not exist."
+            with open(path_config, "r") as f:
+                config = json.load(f)
+
+            config["max_seq_length"] = self.max_seq_length
+            config["id2label"] = {_id: _label for _id, _label in enumerate(self.annotation_classes)}
+            config["label2id"] = {_label: _id for _id, _label in enumerate(self.annotation_classes)}
+
+            with open(path_config, "w") as f:
+                json.dump(config, f)
