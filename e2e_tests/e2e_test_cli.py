@@ -122,5 +122,7 @@ def test_cli(capsys):
     ####################################################################################################################
     # stdout & stderr to files
     out, err = capsys.readouterr()
-    open(join(data_dir, "err.txt"), "w").write(err)
-    open(join(data_dir, "out.txt"), "w").write(out)
+    with open(join(data_dir, "err.txt"), "w") as f:
+        f.write(err)
+    with open(join(data_dir, "out.txt"), "w") as f:
+        f.write(out)
