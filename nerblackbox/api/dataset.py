@@ -92,6 +92,7 @@ class Dataset:
         modify: bool = True,
         val_fraction: float = 0.3,
         verbose: bool = False,
+        shuffle: bool = False,
     ):
         r"""downloads and sets up the dataset. creates the following files:
 
@@ -105,6 +106,7 @@ class Dataset:
             modify: if True: modify tags as specified in method modify_ner_tag_mapping()  TODO: better explanation
             val_fraction: fraction of the validation dataset if it is split off from the training dataset
             verbose: verbose output
+            shuffle: whether to shuffle train/val/test datasets
         """
         _parameters = {
             "ner_dataset": self.dataset_name,
@@ -120,7 +122,7 @@ class Dataset:
         formatter.create_ner_tag_mapping_json(
             modify=modify
         )  # II: create ner tag mapping
-        formatter.format_data(shuffle=True)  # III: format data
+        formatter.format_data(shuffle=shuffle)  # III: format data
         formatter.resplit_data(val_fraction=val_fraction, write_csv=True)  # IV: resplit data
         formatter.analyzer.analyze_data()  # V: analyze data
         formatter.analyzer.plot_data()  # V: analyze data
