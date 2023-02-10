@@ -547,8 +547,8 @@ class Model:
                 metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
                 and values = float between 0 and 1
         """
-        # dataset = Dataset(dataset_name)
-        # dataset.set_up()
+        dataset = Dataset(dataset_name)
+        dataset.set_up()
         dir_path = f"{Store.get_path()}/datasets/{dataset_name}"
         return self._evaluate_on_csv(dir_path,
                                      phase=phase,
@@ -933,11 +933,11 @@ def restore_unknown_tokens(
             try:
                 char_start = input_text.index(token, char_start)
                 token_char_margins.append((char_start, char_start + len(token)))
-                char_start += len(token)
             except ValueError:
                 if verbose:
                     print(f"! token = {token} not found in example[{char_start}:]")
                 token_char_margins.append((None, None))
+            char_start += len(token)
             unknown_counter = 0
 
     # 2. restore unknown tokens
