@@ -71,23 +71,23 @@ class Tags:
     # 2. HELPER METHODS
     ####################################################################################################################
     def _assert_plain_tags(self) -> None:
-        for tag in self.tag_list:
+        for i, tag in enumerate(self.tag_list):
             if tag != "O" and (len(tag) > 2 and tag[1] == "-"):
-                raise Exception("ERROR! tags to not have expected plain format.")
+                raise Exception(f"ERROR! tags do not have expected plain format. tag = {tag} encountered at index {i}.")
 
     def _assert_bio_tags(self) -> None:
-        for tag in self.tag_list:
+        for i, tag in enumerate(self.tag_list):
             if tag != "O" and (
                 len(tag) <= 2 or tag[0] not in ["B", "I"] or tag[1] != "-"
             ):
-                raise Exception("ERROR! tags to not have expected bio format.")
+                raise Exception(f"ERROR! tags do not have expected bio format. tag = {tag} encountered at index {i}.")
 
     def _assert_bilou_tags(self) -> None:
-        for tag in self.tag_list:
+        for i, tag in enumerate(self.tag_list):
             if tag != "O" and (
                 len(tag) <= 2 or tag[0] not in ["B", "I", "L", "U"] or tag[1] != "-"
             ):
-                raise Exception("ERROR! tags to not have expected bilou format.")
+                raise Exception(f"ERROR! tags do not have expected bilou format. tag = {tag} encountered at index {i}.")
 
     def _convert_tags_plain2bio(self) -> List[str]:
         """

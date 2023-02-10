@@ -1,4 +1,3 @@
-from typing import Optional
 from nerblackbox.modules.datasets.formatter.swedish_ner_corpus_formatter import (
     SwedishNerCorpusFormatter,
 )
@@ -28,7 +27,7 @@ class AutoFormatter:
         """
         if ner_dataset == "swedish_ner_corpus":
             return SwedishNerCorpusFormatter()
-        elif ner_dataset == "conll2003":
+        elif ner_dataset == "conll2003_from_source":
             return CoNLL2003Formatter()
         elif ner_dataset == "sic":
             return SICFormatter()
