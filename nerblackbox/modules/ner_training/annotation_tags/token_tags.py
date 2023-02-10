@@ -4,7 +4,7 @@ from copy import deepcopy
 
 
 class TokenTags:
-    def __init__(self, token_tag_list: List[Dict[str, str]], scheme: str):
+    def __init__(self, token_tag_list: List[Dict[str, str]], scheme: str, level: str = "token"):
         """
         Args:
             token_tag_list: e.g. [
@@ -15,9 +15,10 @@ class TokenTags:
         """
         self.token_tag_list: List[Dict[str, str]] = token_tag_list
         self.scheme = scheme
-        self.level = "token"
+        self.level = level
 
-        self._assert_scheme_consistency()
+        if self.level in ["token", "word"]:
+            self._assert_scheme_consistency()
 
     def _assert_scheme_consistency(self):
         """
@@ -101,6 +102,35 @@ class TokenTags:
                 f"ERROR! restore annotation scheme consistency "
                 f"not implemented for scheme = {self.scheme}."
             )
+
+    def merge_tokens_to_words(self) -> None:
+        """
+        discard tokens that are not first token of a word
+
+        Changed Attr:
+            token_tag_list: List[Dict[str, str]], e.g.
+            [
+                {"char_start": "0", "char_end": "4", "token": "2020", "tag": "B-TAG"},
+                {"char_start": "4", "char_end": "5", "token": "-, "tag": "I-TAG"},
+                {"char_start": "5", "char_end": "7", "token": "04, "tag": "I-TAG"},
+                ..
+            ]
+            --->
+            [
+                {"char_start": "0", "char_end": "7", "token": "2020-04", "tag": "B-TAG"},
+                ..
+            ]
+            level: 'word'
+
+        """
+        for i in range(len(self.token_tag_list)-1, 0, -1):
+            if i > 0 and self.token_tag_list[i]["char_start"] == self.token_tag_list[i-1]["char_end"]:
+                self.token_tag_list[i]["tag"] = "DELETE"
+                self.token_tag_list[i-1]["char_end"] = self.token_tag_list[i]["char_end"]
+                self.token_tag_list[i-1]["token"] += self.token_tag_list[i]["token"]
+
+        self.token_tag_list = [elem for elem in self.token_tag_list if elem["tag"] != "DELETE"]
+        self.level = "word"
 
     def merge_tokens_to_entities(self, original_text: str, verbose: bool) -> None:
         """

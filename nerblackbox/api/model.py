@@ -1,6 +1,6 @@
 import json
 import string
-from os.path import join, isdir
+from os.path import join, isdir, isfile
 from typing import Tuple, Any, Optional
 import numpy as np
 
@@ -9,20 +9,30 @@ from transformers import AutoModelForTokenClassification, AutoTokenizer
 from typing import List, Union, Dict
 from torch.nn.functional import softmax
 from huggingface_hub import hf_hub_download
+from itertools import product
+
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
 from nerblackbox.modules.ner_training.data_preprocessing.data_preprocessor import (
     DataPreprocessor,
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.api.store import Store
+from nerblackbox.api.dataset import Dataset
+from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
 from nerblackbox.modules.experiment_results import ExperimentResults
 from nerblackbox.modules.ner_training.ner_model_train2model import (
     NerModelTrain2Model,
 )
-
-VERBOSE = False
+from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import (
+    CsvReader,
+)
+from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 
 PREDICTIONS = List[List[Dict[str, Union[str, Dict]]]]
+EVALUATION_DICT = Dict[str, Dict[str, Dict[str, float]]]
+
+VERBOSE = False
+DEBUG = False
 
 
 class Model:
@@ -330,6 +340,7 @@ class Model:
         input_examples = self.data_preprocessor.get_input_examples_predict(
             examples=input_texts,
         )
+
         dataloader_all, offsets_all = self.data_preprocessor.to_dataloader(
             input_examples, self.annotation_classes, batch_size=self.batch_size
         )
@@ -338,6 +349,7 @@ class Model:
 
         inputs_batches = list()
         outputs_batches = list()
+
         for sample in dataloader:
             inputs_batches.append(sample["input_ids"])
             sample.pop("labels")
@@ -401,7 +413,7 @@ class Model:
         # 2. post processing
         predictions = [
             self._post_processing(
-                level, autocorrect, proba, input_texts[i], tokens[i], predictions[i]
+                level, autocorrect, proba, input_texts[i], tokens[i], predictions[i],
             )
             for i in range(number_of_input_texts)
         ]
@@ -432,12 +444,12 @@ class Model:
         ######################################
         # 1 input_text, merged chunks, tokens -> words
         ######################################
-        _word_predictions: List[
+        _token_predictions: List[
             Tuple[str, Union[str, Dict[str, float]]]
-        ] = merge_token_to_word_predictions(tokens, predictions)
+        ] = merge_subtoken_to_token_predictions(tokens, predictions)
 
-        word_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
-            _word_predictions, input_text, verbose=VERBOSE
+        token_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
+            _token_predictions, input_text, verbose=VERBOSE
         )
 
         if autocorrect or level == "entity":
@@ -445,21 +457,290 @@ class Model:
                 proba is False
             ), f"ERROR! autocorrect = {autocorrect} / level = {level} not allowed if proba = {proba}"
 
-            word_predictions_str: List[Dict[str, str]] = assert_typing(word_predictions)
+        #######################################
+        token_predictions_str: List[Dict[str, str]] = assert_typing(token_predictions)
+        token_tags = TokenTags(token_predictions_str, scheme=self.annotation_scheme)
+        token_tags.merge_tokens_to_words()
+        #######################################
 
-            token_tags = TokenTags(word_predictions_str, scheme=self.annotation_scheme)
+        if autocorrect:
+            token_tags.restore_annotation_scheme_consistency()
 
-            if autocorrect:
-                token_tags.restore_annotation_scheme_consistency()
+        if level == "entity":
+            token_tags.merge_tokens_to_entities(
+                original_text=input_text, verbose=VERBOSE
+            )
 
-            if level == "entity":
-                token_tags.merge_tokens_to_entities(
-                    original_text=input_text, verbose=VERBOSE
-                )
+        predictions = token_tags.as_list()
 
-            word_predictions = token_tags.as_list()
+        return predictions
 
-        return word_predictions
+    def evaluate_on_dataset(self,
+                            dataset_name: str,
+                            dataset_format: str = "infer",
+                            phase: str = "test",
+                            derived_from_jsonl: bool = False,
+                            class_mapping: Optional[Dict[str, str]] = None,
+                            number: Optional[int] = None):
+        """
+        evaluate model on dataset
+
+        Args:
+            dataset_name: e.g. 'conll2003'
+            dataset_format: 'huggingface', 'jsonl', 'csv'
+            phase: e.g. 'test'
+            derived_from_jsonl:
+            class_mapping: e.g. {"PER": "PI", "ORG": "PI}
+            number: e.g. 100
+
+        Returns: Dict with keys [labels][levels][metrics]
+                           where labels = 'micro', 'macro'
+                                 levels = 'entity', 'token'
+                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
+                      and values = [float]
+
+        """
+        dataset_formats = ["infer", "jsonl", "csv", "huggingface"]
+        phases = ["train", "val", "test"]
+        assert dataset_format in dataset_formats, f"ERROR! dataset_format={dataset_format} unknown (known={dataset_formats})"
+        assert phase in phases, f"ERROR! phase = {phase} unknown (known={phases})"
+
+        if dataset_format == "infer":
+            file_path_jsonl = join(Store.get_path(), "datasets", dataset_name, f"{phase}.jsonl")
+            file_path_csv = join(Store.get_path(), "datasets", dataset_name, f"{phase}.csv")
+            if isfile(file_path_jsonl):
+                dataset_format = "jsonl"
+            elif isfile(file_path_csv):
+                dataset_format = "csv"
+            else:
+                dataset_format = "huggingface"
+            print(f"> dataset_format = {dataset_format} (inferred)")
+
+        dir_path = join(Store.get_path(), "datasets", dataset_name)
+        if dataset_format == "huggingface":
+            return self.evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
+        elif dataset_format == "jsonl":
+            return self.evaluate_on_jsonl(dir_path, phase, class_mapping, number)
+        elif dataset_format == "csv":
+            return self.evaluate_on_csv(dir_path, phase, class_mapping, number, derived_from_jsonl)
+
+    def evaluate_on_huggingface(self,
+                                dataset_name: str,
+                                phase: str,
+                                class_mapping: Optional[Dict[str, str]] = None,
+                                number: Optional[int] = None) -> EVALUATION_DICT:
+        """
+        download huggingface dataset as csv and evaluate model
+
+        Args:
+            dataset_name: e.g. 'conll2003'
+            phase: e.g. 'test'
+            class_mapping: e.g. {"PER": "PI", "ORG": "PI}
+            number: e.g. 100
+
+        Returns: Dict with keys [labels][levels][metrics]
+                           where labels = 'micro', 'macro'
+                                 levels = 'entity', 'token'
+                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
+                      and values = [float]
+        """
+        dataset = Dataset(dataset_name)
+        dataset.set_up()
+        dir_path = f"./store/datasets/{dataset_name}"
+        return self.evaluate_on_csv(dir_path,
+                                    phase=phase,
+                                    class_mapping=class_mapping,
+                                    number=number,
+                                    derived_from_jsonl=False)
+
+    def evaluate_on_jsonl(self,
+                          dir_path: str,
+                          phase: str,
+                          class_mapping: Optional[Dict[str, str]] = None,
+                          number: Optional[int] = None) -> EVALUATION_DICT:
+        """evaluate model on ground truth data in jsonl file
+
+        Args:
+            dir_path: e.g. './store/datasets/my_dataset'
+            phase: e.g. 'test'
+            class_mapping: e.g. {"PER": "PI", "ORG": "PI"}
+            number: e.g. 100
+
+        Returns: Dict with keys [labels][levels][metrics]
+                           where labels = 'micro', 'macro'
+                                 levels = 'entity', 'token'
+                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
+                      and values = [float]
+        """
+        assert isdir(dir_path), f"ERROR! could not find {dir_path}"
+        data_preprocessor = DataPreprocessor(
+            tokenizer=self.tokenizer,
+            do_lower_case=False,
+            max_seq_length=self.max_seq_length,
+            default_logger=PseudoDefaultLogger(),
+        )
+        data_preprocessor._pretokenize(dir_path)
+
+        return self.evaluate_on_csv(dir_path,
+                                    phase=phase,
+                                    class_mapping=class_mapping,
+                                    number=number,
+                                    derived_from_jsonl=True)
+
+    def evaluate_on_csv(self,
+                        dir_path: str,
+                        phase: str,
+                        class_mapping: Optional[Dict[str, str]] = None,
+                        number: Optional[int] = None,
+                        derived_from_jsonl: bool = False) -> EVALUATION_DICT:
+        """
+
+        Args:
+            dir_path: e.g. './store/datasets/my_dataset'
+            phase: e.g. 'test'
+            class_mapping: e.g. {"PER": "PI", "ORG": "PI}
+            number: e.g. 100
+            derived_from_jsonl: should be True is csv was created from jsonl through pretokenization
+
+        Returns: Dict with keys [labels][levels][metrics]
+                           where labels = 'micro', 'macro'
+                                 levels = 'entity', 'token'
+                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
+                      and values = [float]
+
+        """
+
+
+        # derived_from_jsonl = True  => pretokenized_<phase>.csv is used
+        # derived_from_jsonl = False => <phase>.csv is used
+        file_path = join(dir_path, f"pretokenized_{phase}.csv" if derived_from_jsonl else f"{phase}.csv")
+        assert isfile(file_path), f"ERROR! could not find {file_path}"
+
+        csv_reader = CsvReader(
+            dir_path,
+            self.tokenizer,
+            pretokenized=derived_from_jsonl is False,
+            do_lower_case=self.tokenizer.do_lower_case,
+            default_logger=None,
+        )
+        data = csv_reader.get_input_examples(phase)
+        ground_truth = [elem.tags.split() for elem in data]
+        input_texts = [elem.text for elem in data]
+        if number is not None:
+            ground_truth = ground_truth[:number]
+            input_texts = input_texts[:number]
+
+        predictions = self.predict(input_texts, level="word")
+        predictions = [[elem["tag"] for elem in prediction] for prediction in predictions]
+
+        if DEBUG:
+            print(len(ground_truth[0]), ground_truth[0])
+            print(len(predictions[0]), predictions[0])
+            print()
+            exit()
+
+        def convert_plain_to_bio(_predictions: List[str]) -> List[str]:
+            tags = Tags(_predictions)
+            return tags.convert_scheme("plain", "bio")
+
+        if self.annotation_scheme == "plain":
+            print("> ATTENTION! predictions converted from plain to bio annotation scheme!")
+            predictions = [convert_plain_to_bio(prediction) for prediction in predictions]
+
+        return self._evaluate(ground_truth, predictions, class_mapping)
+
+    @staticmethod
+    def _evaluate(ground_truth: List[List[str]],
+                  predictions: List[List[str]],
+                  class_mapping: Optional[Dict[str, str]] = None) -> EVALUATION_DICT:
+        """
+        evaluate by compareing ground_truth with predictions (after applying class_mapping)
+
+        Args:
+            ground_truth: e.g. [["B-PER", "I-PER"], ["O", "B-ORG"]]
+            predictions: e.g. [["B-PER", "O"], ["O", "B-ORG"]]
+            class_mapping: e.g. {"PER": "PI", "ORG": "PI}
+
+        Returns: Dict with keys [labels][levels][metrics]
+                           where labels = 'micro', 'macro'
+                                 levels = 'entity', 'token'
+                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
+                      and values = [float]
+        """
+
+        # class mapping
+        def map_class(_class: str) -> str:
+            """
+            maps class according to class_mapping
+            Args:
+                _class: e.g. "B-PER"
+
+            Returns:
+                _class_new: e.g. "B-PI"
+
+            """
+            if _class == "O":
+                return "O"
+            else:
+                assert "-" in _class, f"ERROR! class = {_class} expected to be of BIO scheme."
+                _class_prefix = _class.split("-")[0]
+                _class_plain = _class.split("-")[-1]
+                if _class_plain in class_mapping.keys():
+                    _class_plain_new = class_mapping[_class_plain]
+                    _class_new = f"{_class_prefix}-{_class_plain_new}"
+                else:
+                    _class_new = "O"
+                return _class_new
+
+        if class_mapping is not None:
+            predictions = [[map_class(elem) for elem in sublist] for sublist in predictions]
+
+        # flatten
+        true_flat = [elem for sublist in ground_truth for elem in sublist]
+        pred_flat = [elem for sublist in predictions for elem in sublist]
+
+        if DEBUG:
+            print(true_flat[:30])
+            print(pred_flat[:30])
+
+        # 4. evaluate: compare ground truth with predictions
+        # NerMetrics
+        labels = ["micro", "macro"]
+        metrics = ["precision", "recall", "f1"]
+        metrics_hf = [f"{metric}_HF" for metric in metrics]
+        levels = ["entity", "token"]
+        evaluation = {
+            label: {
+                level: {
+                    metric: None
+                    for metric in metrics + metrics_hf
+                }
+                for level in levels
+            }
+            for label in labels
+        }
+
+        ner_metrics_entity = NerMetrics(true_flat, pred_flat, level="entity", scheme="bio")
+        ner_metrics_entity.compute(metrics)
+        print("== ENTITY (nerblackbox) ==")
+        for metric in metrics:
+            _metric = metric if metric == "acc" else f"{metric}_micro"
+            print(f"> {metric}: {ner_metrics_entity.results_as_dict()[_metric]:.3f}")
+        print()
+
+        for metric, label in product(metrics, labels):
+            evaluation[label]["entity"][metric] = ner_metrics_entity.results_as_dict()[f"{metric}_{label}"]
+
+        # seqeval - just for testing - start
+        from seqeval.metrics import precision_score, recall_score, f1_score
+        scores = [precision_score, recall_score, f1_score]
+        print("== ENTITY (seqeval) ==")
+        for metric_hf, score in zip(metrics_hf, scores):
+            result = score(ground_truth, predictions, )
+            print(f"> {metric_hf}: {result:.3f}")
+            evaluation["micro"]["entity"][f"{metric_hf}"] = result
+
+        return evaluation
 
 
 ########################################################################################################################
@@ -561,7 +842,7 @@ def merge_slices_for_single_document(_list: List[List[Any]]) -> List[Any]:
         return _list_flat
 
 
-def merge_token_to_word_predictions(
+def merge_subtoken_to_token_predictions(
     tokens: List[str],
     predictions: List[Any],
 ) -> List[Tuple[str, Any]]:
@@ -571,20 +852,20 @@ def merge_token_to_word_predictions(
         predictions:  e.g. ["[S]", "ORG", "ORG", "O", "O", "O", "[S]", "[S]"]
 
     Returns:
-        word_predictions: e.g. [("arbetsförmedlingen", "ORG"), ("finns", "O"), ("i", "O"), ("stockholm", "O")]
+        token_predictions: e.g. [("arbetsförmedlingen", "ORG"), ("finns", "O"), ("i", "O"), ("stockholm", "O")]
     """
     # predict tags on words between [CLS] and [SEP]
-    word_predictions_list = list()
+    token_predictions_list = list()
     for token, example_token_prediction in zip(tokens, predictions):
         if token not in ["[CLS]", "[SEP]", "[PAD]"]:
             if not token.startswith("##"):
-                word_predictions_list.append([token, example_token_prediction])
+                token_predictions_list.append([token, example_token_prediction])
             else:
-                word_predictions_list[-1][0] += token.strip("##")
+                token_predictions_list[-1][0] += token.strip("##")
 
-    word_predictions = [(elem[0], elem[1]) for elem in word_predictions_list]
+    token_predictions = [(elem[0], elem[1]) for elem in token_predictions_list]
 
-    return word_predictions
+    return token_predictions
 
 
 def restore_unknown_tokens(
@@ -624,9 +905,10 @@ def restore_unknown_tokens(
                     if token in string.punctuation or len(token) != 1:
                         char_start = input_text.index(token, char_start)
                     else:  # i.e. len(token) == 1
-                        char_start = input_text.index(f" {token}", char_start + 1)
+                        char_start = input_text.index(f" {token}", char_start)
                 except ValueError:  # .index() did not find anything
-                    pass
+                    if verbose:
+                        print(f"! token = {token} not found in example[{char_start}:] (unknown)")
                 unknown_counter -= 1
 
             # find token_char_margins for token
@@ -682,7 +964,11 @@ def restore_unknown_tokens(
                 char_start_margin is not None
             ), f"ERROR! could not find char_start_margin"
             assert char_end_margin is not None, (
-                f"ERROR! could not find char_end_margin. token = {token}. "
+                f"ERROR! could not find char_end_margin. token = {token}\n"
+                f"char_start_margin = {char_start_margin}\n"
+                f"word_predictions = {word_predictions}\n"
+                f"input_text = {input_text}\n"
+                f"token_char_margins = {token_char_margins}\n"
                 f"word_predictions_restored = {word_predictions_restored}"
             )
             assert (

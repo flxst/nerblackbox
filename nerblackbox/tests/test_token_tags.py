@@ -964,3 +964,117 @@ class TestTokenTags:
             f"{test_example_word_predictions_merged} != "
             f"{example_word_predictions_merged}"
         )
+
+    ####################################################################################################################
+    @pytest.mark.parametrize(
+        "scheme, "
+        "example_token_predictions,"
+        "example_word_predictions",
+        [
+            # 1. BIO: 1 single word entity
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "O",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "O",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "18",
+                            "token": "arbetsförmedlingen",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "19",
+                            "char_end": "24",
+                            "token": "finns",
+                            "tag": "O",
+                        },
+                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                        {
+                            "char_start": "27",
+                            "char_end": "36",
+                            "token": "stockholm",
+                            "tag": "O",
+                        },
+                    ],
+            ),
+            (
+                    "bio",
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "4",
+                            "token": "2020",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "4",
+                            "char_end": "5",
+                            "token": "-",
+                            "tag": "I-PER",
+                        },
+                        {
+                            "char_start": "5",
+                            "char_end": "7",
+                            "token": "04",
+                            "tag": "O",
+                        },
+                        {
+                            "char_start": "8",
+                            "char_end": "10",
+                            "token": "it",
+                            "tag": "O",
+                        },
+                    ],
+                    [
+                        {
+                            "char_start": "0",
+                            "char_end": "7",
+                            "token": "2020-04",
+                            "tag": "B-ORG",
+                        },
+                        {
+                            "char_start": "8",
+                            "char_end": "10",
+                            "token": "it",
+                            "tag": "O",
+                        },
+                    ],
+            )
+        ],
+    )
+    def test_merge_tokens_to_words(
+            self,
+            scheme: str,
+            example_token_predictions: List[Dict[str, Any]],
+            example_word_predictions: List[Dict[str, Any]],
+    ):
+        token_tags = TokenTags(example_token_predictions, scheme=scheme)
+        token_tags.merge_tokens_to_words()
+        test_example_word_predictions = token_tags.as_list()
+        assert (
+                test_example_word_predictions == example_word_predictions
+        ), (
+            f"test_example_word_predictions = "
+            f"{test_example_word_predictions} != "
+            f"{example_word_predictions}"
+        )

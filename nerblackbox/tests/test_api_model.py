@@ -8,7 +8,7 @@ from nerblackbox.api.model import (
     derive_annotation_scheme,
     turn_tensors_into_tag_probability_distributions,
     merge_slices_for_single_document,
-    merge_token_to_word_predictions,
+    merge_subtoken_to_token_predictions,
     restore_unknown_tokens,
     assert_typing,
 )
@@ -163,7 +163,7 @@ class TestModelStatic:
         ), f"ERROR! test_list_documents = {test_list_documents} != {list_documents} = list_documents"
 
     @pytest.mark.parametrize(
-        "tokens, predictions, word_predictions",
+        "tokens, predictions, token_predictions",
         [
             (
                 [
@@ -193,19 +193,74 @@ class TestModelStatic:
                     ("stockholm", "O"),
                 ],
             ),
+            (
+                    [
+                        "[CLS]",
+                        "arbetsförmedl",
+                        "##ingen",
+                        "finns",
+                        "i",
+                        "stockholm",
+                        "[SEP]",
+                        "[PAD]",
+                    ],
+                    [
+                        "[S]",
+                        "ORG",
+                        "PER",
+                        "O",
+                        "O",
+                        "O",
+                        "[S]",
+                        "[S]",
+                    ],
+                    [
+                        ("arbetsförmedlingen", "ORG"),
+                        ("finns", "O"),
+                        ("i", "O"),
+                        ("stockholm", "O"),
+                    ],
+            ),
+            (
+                [
+                    "[CLS]",
+                    "1996",
+                    "-",
+                    "08",
+                    "-",
+                    "30",
+                    "[PAD]",
+                ],
+                [
+                    "[S]",
+                    "ORG",
+                    "ORG",
+                    "O",
+                    "ORG",
+                    "O",
+                    "[S]",
+                ],
+                [
+                    ("1996", "ORG"),
+                    ("-", "ORG"),
+                    ("08", "O"),
+                    ("-", "ORG"),
+                    ("30", "O"),
+                ],
+            ),
         ],
     )
-    def test_merge_token_to_word_predictions(
+    def test_merge_subtoken_to_token_predictions(
         self,
         tokens: List[str],
         predictions: List[Union[str, Dict[str, float]]],
-        word_predictions: List[Tuple[Union[str, Dict[str, float]]]],
+        token_predictions: List[Tuple[Union[str, Dict[str, float]]]],
     ):
-        test_word_predictions = merge_token_to_word_predictions(tokens, predictions)
-        assert test_word_predictions == word_predictions, (
-            f"test_word_predictions = "
-            f"{test_word_predictions} != "
-            f"{word_predictions}"
+        test_token_predictions = merge_subtoken_to_token_predictions(tokens, predictions)
+        assert test_token_predictions == token_predictions, (
+            f"test_token_predictions = "
+            f"{test_token_predictions} != "
+            f"{token_predictions}"
         )
 
     ####################################################################################################################
