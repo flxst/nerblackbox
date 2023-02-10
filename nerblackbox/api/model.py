@@ -36,10 +36,8 @@ DEBUG = False
 
 
 class Model:
-    """
+    r"""
     model that predicts tags for given input text
-
-    Attributes: see `__init__()`
     """
 
     @classmethod
@@ -192,7 +190,7 @@ class Model:
     def predict_on_file(self,
                         input_file: str,
                         output_file: str) -> None:
-        """
+        r"""
         predict tags for all input texts in input file, write results to output file
 
         Args:
@@ -224,7 +222,7 @@ class Model:
         level: str = "entity",
         autocorrect: bool = False,
     ) -> PREDICTIONS:
-        """predict tags for input texts. output on entity or word level.
+        r"""predict tags for input texts. output on entity or word level.
 
         Examples:
             ```
@@ -271,7 +269,7 @@ class Model:
         return self._predict(input_texts, level, autocorrect, proba=False)
 
     def predict_proba(self, input_texts: Union[str, List[str]]) -> PREDICTIONS:
-        """predict probability distributions for input texts. output on word level.
+        r"""predict probability distributions for input texts. output on word level.
 
         Examples:
             ```
@@ -301,7 +299,7 @@ class Model:
         autocorrect: bool = False,
         proba: bool = False,
     ) -> PREDICTIONS:
-        """predict tags or probabilities for tags
+        r"""predict tags or probabilities for tags
 
         Args:
             input_texts:  e.g. ["example 1", "example 2"]
@@ -429,7 +427,7 @@ class Model:
         tokens: List[str],
         predictions: List[Any],
     ):
-        """
+        r"""
         Args:
             level: "word" or "entity"
             autocorrect: e.g. False
@@ -479,30 +477,33 @@ class Model:
                             dataset_name: str,
                             dataset_format: str = "infer",
                             phase: str = "test",
-                            derived_from_jsonl: bool = False,
                             class_mapping: Optional[Dict[str, str]] = None,
-                            number: Optional[int] = None):
-        """
-        evaluate model on dataset
+                            number: Optional[int] = None,
+                            derived_from_jsonl: bool = False) -> EVALUATION_DICT:
+        r"""
+        evaluate model on dataset from huggingface or local dataset in jsonl or csv format
 
         Args:
             dataset_name: e.g. 'conll2003'
             dataset_format: 'huggingface', 'jsonl', 'csv'
             phase: e.g. 'test'
-            derived_from_jsonl:
             class_mapping: e.g. {"PER": "PI", "ORG": "PI}
             number: e.g. 100
+            derived_from_jsonl:
 
-        Returns: Dict with keys [labels][levels][metrics]
-                           where labels = 'micro', 'macro'
-                                 levels = 'entity', 'token'
-                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
-                      and values = [float]
+        Returns:
+            evaluation_dict:
+                Dict with keys [labels][levels][metrics]
+                where labels in ['micro', 'macro'],
+                levels in ['entity', 'token']
+                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                and values = float between 0 and 1
 
         """
         dataset_formats = ["infer", "jsonl", "csv", "huggingface"]
         phases = ["train", "val", "test"]
-        assert dataset_format in dataset_formats, f"ERROR! dataset_format={dataset_format} unknown (known={dataset_formats})"
+        assert dataset_format in dataset_formats, \
+            f"ERROR! dataset_format={dataset_format} unknown (known={dataset_formats})"
         assert phase in phases, f"ERROR! phase = {phase} unknown (known={phases})"
 
         if dataset_format == "infer":
@@ -518,19 +519,19 @@ class Model:
 
         dir_path = join(Store.get_path(), "datasets", dataset_name)
         if dataset_format == "huggingface":
-            return self.evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
+            return self._evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
         elif dataset_format == "jsonl":
-            return self.evaluate_on_jsonl(dir_path, phase, class_mapping, number)
+            return self._evaluate_on_jsonl(dir_path, phase, class_mapping, number)
         elif dataset_format == "csv":
-            return self.evaluate_on_csv(dir_path, phase, class_mapping, number, derived_from_jsonl)
+            return self._evaluate_on_csv(dir_path, phase, class_mapping, number, derived_from_jsonl)
 
-    def evaluate_on_huggingface(self,
-                                dataset_name: str,
-                                phase: str,
-                                class_mapping: Optional[Dict[str, str]] = None,
-                                number: Optional[int] = None) -> EVALUATION_DICT:
-        """
-        download huggingface dataset as csv and evaluate model
+    def _evaluate_on_huggingface(self,
+                                 dataset_name: str,
+                                 phase: str,
+                                 class_mapping: Optional[Dict[str, str]] = None,
+                                 number: Optional[int] = None) -> EVALUATION_DICT:
+        r"""
+        evaluate model on dataset from huggingface
 
         Args:
             dataset_name: e.g. 'conll2003'
@@ -538,27 +539,30 @@ class Model:
             class_mapping: e.g. {"PER": "PI", "ORG": "PI}
             number: e.g. 100
 
-        Returns: Dict with keys [labels][levels][metrics]
-                           where labels = 'micro', 'macro'
-                                 levels = 'entity', 'token'
-                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
-                      and values = [float]
+        Returns:
+            evaluation_dict:
+                Dict with keys [labels][levels][metrics]
+                where labels in ['micro', 'macro'],
+                levels in ['entity', 'token']
+                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                and values = float between 0 and 1
         """
-        dataset = Dataset(dataset_name)
-        dataset.set_up()
-        dir_path = f"./store/datasets/{dataset_name}"
-        return self.evaluate_on_csv(dir_path,
-                                    phase=phase,
-                                    class_mapping=class_mapping,
-                                    number=number,
-                                    derived_from_jsonl=False)
+        # dataset = Dataset(dataset_name)
+        # dataset.set_up()
+        dir_path = f"{Store.get_path()}/datasets/{dataset_name}"
+        return self._evaluate_on_csv(dir_path,
+                                     phase=phase,
+                                     class_mapping=class_mapping,
+                                     number=number,
+                                     derived_from_jsonl=False)
 
-    def evaluate_on_jsonl(self,
-                          dir_path: str,
-                          phase: str,
-                          class_mapping: Optional[Dict[str, str]] = None,
-                          number: Optional[int] = None) -> EVALUATION_DICT:
-        """evaluate model on ground truth data in jsonl file
+    def _evaluate_on_jsonl(self,
+                           dir_path: str,
+                           phase: str,
+                           class_mapping: Optional[Dict[str, str]] = None,
+                           number: Optional[int] = None) -> EVALUATION_DICT:
+        r"""
+        evaluate model on local dataset in jsonl format
 
         Args:
             dir_path: e.g. './store/datasets/my_dataset'
@@ -566,11 +570,13 @@ class Model:
             class_mapping: e.g. {"PER": "PI", "ORG": "PI"}
             number: e.g. 100
 
-        Returns: Dict with keys [labels][levels][metrics]
-                           where labels = 'micro', 'macro'
-                                 levels = 'entity', 'token'
-                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
-                      and values = [float]
+        Returns:
+            evaluation_dict:
+                Dict with keys [labels][levels][metrics]
+                where labels in ['micro', 'macro'],
+                levels in ['entity', 'token']
+                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                and values = float between 0 and 1
         """
         assert isdir(dir_path), f"ERROR! could not find {dir_path}"
         data_preprocessor = DataPreprocessor(
@@ -581,19 +587,20 @@ class Model:
         )
         data_preprocessor._pretokenize(dir_path)
 
-        return self.evaluate_on_csv(dir_path,
-                                    phase=phase,
-                                    class_mapping=class_mapping,
-                                    number=number,
-                                    derived_from_jsonl=True)
+        return self._evaluate_on_csv(dir_path,
+                                     phase=phase,
+                                     class_mapping=class_mapping,
+                                     number=number,
+                                     derived_from_jsonl=True)
 
-    def evaluate_on_csv(self,
-                        dir_path: str,
-                        phase: str,
-                        class_mapping: Optional[Dict[str, str]] = None,
-                        number: Optional[int] = None,
-                        derived_from_jsonl: bool = False) -> EVALUATION_DICT:
-        """
+    def _evaluate_on_csv(self,
+                         dir_path: str,
+                         phase: str,
+                         class_mapping: Optional[Dict[str, str]] = None,
+                         number: Optional[int] = None,
+                         derived_from_jsonl: bool = False) -> EVALUATION_DICT:
+        r"""
+        evaluate model on local dataset in csv format
 
         Args:
             dir_path: e.g. './store/datasets/my_dataset'
@@ -602,15 +609,14 @@ class Model:
             number: e.g. 100
             derived_from_jsonl: should be True is csv was created from jsonl through pretokenization
 
-        Returns: Dict with keys [labels][levels][metrics]
-                           where labels = 'micro', 'macro'
-                                 levels = 'entity', 'token'
-                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
-                      and values = [float]
-
+        Returns:
+            evaluation_dict:
+                Dict with keys [labels][levels][metrics]
+                where labels in ['micro', 'macro'],
+                levels in ['entity', 'token']
+                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                and values = float between 0 and 1
         """
-
-
         # derived_from_jsonl = True  => pretokenized_<phase>.csv is used
         # derived_from_jsonl = False => <phase>.csv is used
         file_path = join(dir_path, f"pretokenized_{phase}.csv" if derived_from_jsonl else f"{phase}.csv")
@@ -634,8 +640,10 @@ class Model:
         predictions = [[elem["tag"] for elem in prediction] for prediction in predictions]
 
         if DEBUG:
-            print(len(ground_truth[0]), ground_truth[0])
-            print(len(predictions[0]), predictions[0])
+            n_example = 0
+            print(len(input_texts[n_example]), input_texts[n_example])
+            print(len(ground_truth[n_example]), ground_truth[n_example])
+            print(len(predictions[n_example]), predictions[n_example])
             print()
             exit()
 
@@ -647,30 +655,39 @@ class Model:
             print("> ATTENTION! predictions converted from plain to bio annotation scheme!")
             predictions = [convert_plain_to_bio(prediction) for prediction in predictions]
 
+        # check that ground truth and predictions have same lengths
+        assert len(ground_truth) == len(predictions), \
+            f"ERROR! #ground_truth = {len(ground_truth)}, #predictions = {len(predictions)}"
+        for i in range(len(ground_truth)):
+            assert len(ground_truth[i]) == len(predictions[i]), \
+                f"ERROR! #ground_truth[{i}] = {len(ground_truth[i])} ({ground_truth[i]}), " \
+                f"#predictions[{i}] = {len(predictions[i])} ({predictions[i]})"
+
         return self._evaluate(ground_truth, predictions, class_mapping)
 
     @staticmethod
     def _evaluate(ground_truth: List[List[str]],
                   predictions: List[List[str]],
                   class_mapping: Optional[Dict[str, str]] = None) -> EVALUATION_DICT:
-        """
-        evaluate by compareing ground_truth with predictions (after applying class_mapping)
+        r"""
+        evaluate by comparing ground_truth with predictions (after applying class_mapping)
 
         Args:
             ground_truth: e.g. [["B-PER", "I-PER"], ["O", "B-ORG"]]
             predictions: e.g. [["B-PER", "O"], ["O", "B-ORG"]]
             class_mapping: e.g. {"PER": "PI", "ORG": "PI}
 
-        Returns: Dict with keys [labels][levels][metrics]
-                           where labels = 'micro', 'macro'
-                                 levels = 'entity', 'token'
-                                 metrics = 'precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF'
-                      and values = [float]
+        Returns:
+            evaluation_dict:
+                Dict with keys [labels][levels][metrics]
+                where labels in ['micro', 'macro'],
+                levels in ['entity', 'token']
+                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                and values = float between 0 and 1
         """
-
         # class mapping
         def map_class(_class: str) -> str:
-            """
+            r"""
             maps class according to class_mapping
             Args:
                 _class: e.g. "B-PER"
@@ -698,6 +715,7 @@ class Model:
         # flatten
         true_flat = [elem for sublist in ground_truth for elem in sublist]
         pred_flat = [elem for sublist in predictions for elem in sublist]
+        assert len(true_flat) == len(pred_flat), f"ERROR! true_flat = {len(true_flat)}, #pred_flat = {len(pred_flat)}"
 
         if DEBUG:
             print(true_flat[:30])
@@ -747,7 +765,7 @@ class Model:
 ########################################################################################################################
 ########################################################################################################################
 def derive_annotation_scheme(_id2label: Dict[int, str]) -> str:
-    """
+    r"""
     Args:
         _id2label: e.g. {0: "O", 1: "B-PER", 2: "I-PER"}
 

@@ -10,8 +10,6 @@ PHASES = ["train", "val", "test"]
 class Dataset:
     r"""
     class to download, set up and inspect a single dataset
-
-    Attributes: see `__init__()`
     """
     path = os.environ.get("DATA_DIR")
 
