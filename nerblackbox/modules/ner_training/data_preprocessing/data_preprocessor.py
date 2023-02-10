@@ -315,37 +315,22 @@ class DataPreprocessor:
         """
         _data_pretokenized = list()
         for n in range(len(_data)):
-            words = self._tokens2words(self.tokenizer.tokenize(_data[n]["text"]))
-            index = 0
-            tags = ["O"] * len(words)
+            word_tuples = self.tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str(_data[n]["text"])
+            tags = ["O"] * len(word_tuples)
             entity_dicts = self._resolve_overlapping_tags(_data[n]["tags"])
             for entity_dict in entity_dicts:
-                entity_text = entity_dict["token"]
-                entity_words = self._tokens2words(self.tokenizer.tokenize(entity_text))
-                try:
-                    entity_words_indices = list()
-                    for entity_word in entity_words:
-                        entity_words_index = index + words[index:].index(entity_word)
-                        entity_words_indices.append(entity_words_index)
-                        index = entity_words_index + 1
-                except ValueError as e:
-                    print("=== ERROR ENCOUNTERED ===")
-                    print("words", words)
-                    print("entity_dict", entity_dict)
-                    print("entity_text", entity_text)
-                    print("entity_words", entity_words)
-                    print("-------------")
-                    print("k", k)
-                    print("entity_word", entity_word)
-                    print("entity_words_index", entity_words_index)
-                    print("entity_words_indices", entity_words_indices)
-                    raise Exception(e)
-                for i, entity_word_index in enumerate(entity_words_indices):
-                    tags[entity_word_index] = (
-                        f"B-{entity_dict['tag']}"
-                        if i == 0
-                        else f"I-{entity_dict['tag']}"
-                    )
+                entity_char_start = entity_dict["char_start"]
+                entity_char_end = entity_dict["char_end"]
+                entity_tag = entity_dict["tag"]
+                for word_index, word_tuple in enumerate(word_tuples):
+                    word_char_start = word_tuple[1][0]
+                    word_char_end = word_tuple[1][1]
+                    if word_char_start == entity_char_start and word_char_end <= entity_char_end:
+                        tags[word_index] = f"B-{entity_tag}"
+                    elif word_char_start >= entity_char_start and word_char_end <= entity_char_end:
+                        tags[word_index] = f"I-{entity_tag}"
+
+            words = [word_tuple[0] for word_tuple in word_tuples]
 
             _data_pretokenized.append(
                 {
