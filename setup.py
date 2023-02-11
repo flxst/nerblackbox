@@ -34,7 +34,7 @@ setup(
     name="nerblackbox",
     version=get_package_version("nerblackbox/__about__.py"),
     author="Felix Stollenwerk",
-    author_email="felix.stollenwerk@arbetsformedlingen.se",
+    author_email="felix.stollenwerk@ai.se",
     description="fine-tune transformer-based language models for named entity recognition",
     long_description=readme(),
     long_description_content_type="text/x-rst",
@@ -54,9 +54,9 @@ setup(
     install_requires=requirements("requirements"),
     extras_require={
         "dev": requirements("requirements_dev"),
-        "annotation": requirements("requirements_annotation"),
+        # "annotation": requirements("requirements_annotation"),
     },
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     entry_points="""
             [console_scripts]
             nerbb=nerblackbox.cli:nerbb
@@ -66,10 +66,10 @@ setup(
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Development Status :: 2 - Pre-Alpha",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Operating System :: Unix",
         "Topic :: Text Processing :: Linguistic",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
