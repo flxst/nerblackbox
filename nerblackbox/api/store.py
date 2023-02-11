@@ -15,7 +15,7 @@ from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
 
 
-VERBOSE = False
+VERBOSE = True
 
 
 class Store:
@@ -64,8 +64,6 @@ class Store:
         r"""
         create store at cls.path
         """
-        cls._update_client()
-
         if resource_isdir(Requirement.parse("nerblackbox"), "nerblackbox/modules/data"):
             data_source = resource_filename(
                 Requirement.parse("nerblackbox"), "nerblackbox/modules/data"
@@ -81,6 +79,8 @@ class Store:
             else:
                 shutil.copytree(data_source, data_dir)
                 print(f"> {cls.path} created.")
+
+            cls._update_client()
         else:
             print("Store.create() not executed successfully")
             exit(0)
@@ -252,7 +252,7 @@ class Store:
 
         data_dir_exists_before = isdir(env_variable("DATA_DIR"))
         mlflow_subdirectory_exists_before = isdir(env_variable("DIR_MLFLOW"))
-        cls.client = MlflowClient()  # creates initial subdirectory DATA_DIR/results/mlruns/0
+        cls.client = MlflowClient()  # creates initial subdirectory DATA_DIR/results/mlruns/0 (if cli is used)
         mlflow_subdirectory_exists_after = isdir(env_variable("DIR_MLFLOW"))
 
         if mlflow_subdirectory_exists_before is False and mlflow_subdirectory_exists_after is True:
@@ -262,6 +262,10 @@ class Store:
             else:
                 # if only DIR_MLFLOW is new => delete only DIR_MLFLOW
                 shutil.rmtree(env_variable("DIR_MLFLOW"))
+
+        if data_dir_exists_before:
+            # create DIR_MLFLOW and subdirectory .trash
+            os.makedirs(join(env_variable("DIR_MLFLOW"), ".trash"), exist_ok=True)
 
     @classmethod
     def _update_experiments(cls) -> None:

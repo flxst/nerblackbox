@@ -1,5 +1,5 @@
 matplotlib
-mlflow~=1.8.0
+mlflow~=1.30.0
 pytorch-lightning~=1.5.10
 omegaconf
 seqeval~=1.2.2
