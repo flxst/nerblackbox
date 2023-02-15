@@ -1,4 +1,4 @@
-# Multiple Runs with Different Random Seeds
+# [Training] Multiple Runs with Different Random Seeds
 
 The results of a fine-tuning run depend on the employed random seed, see e.g. [this paper](https://arxiv.org/abs/2202.02617) for a discussion. 
 One may conduct multiple runs with different seeds that are otherwise identical, in order to 

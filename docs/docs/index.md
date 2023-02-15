@@ -54,17 +54,33 @@ There is much more to it than that! See [Usage](usage/getting_started) to get st
 -----------
 ## Features
 
-* adaptive fine-tuning
-* hyperparameter search
-* multiple runs with different random seeds
-* detailed analysis of training results
-* support for pretokenized and unpretokenized datasets
-* support for various annotation schemes
-* seamless use of datasets from [HuggingFace Datasets](https://huggingface.co/docs/datasets/)
-* special token support
-* GPU support
-* language agnosticism
-* based on [HuggingFace Transformers](https://huggingface.co/transformers/), [PyTorch Lightning](https://www.pytorchlightning.ai/) and [MLflow](https://mlflow.org/docs/latest/index.html)
+*Data*
+
+* Support for Different Data Formats
+* Support for Different Annotation Schemes
+* Integration of HuggingFace Datasets
+* Text Encoding
+
+*Training*
+
+* Adaptive Fine-tuning
+* Hyperparameter Search
+* Multiple Runs with Different Random Seeds
+* Detailed Analysis of Training Results
+
+*Evaluation*
+
+* Evaluation of a Model on a Dataset
+
+*Inference*
+
+* Versatile Model Inference
+
+*Other*
+
+* Compatibility with HuggingFace
+* GPU Support
+* Language Agnosticism
 
 See [Features](features/overview) for more details.
 

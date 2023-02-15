@@ -96,7 +96,7 @@ Everything around an experiment is handled by the [Experiment](../../python_api/
 
 An experiment is defined 
 
-- either **dynamically** using function arguments in [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment)
+- either **dynamically** through arguments when an [Experiment](../../python_api/experiment/) instance is created
 
     ??? note "define experiment dynamically (only Python API)"
         === "Python"
@@ -116,7 +116,7 @@ An experiment is defined
 
 Note that the dynamic variant also creates an experiment configuration, which is subsequently used.
 In both cases, the specification of the [`model`](../datasets_and_models) and the [`dataset`](../datasets_and_models) are mandatory, while the [`parameters`](../parameters_and_presets/#parameters) are all optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
-In particular, [adaptive fine-tuning](../../features/adaptive_finetuning) is employed to ensure that this holds irrespective of the size of the dataset.  
+In particular, [adaptive fine-tuning](../../features/training/adaptive_finetuning) is employed to ensure that this holds irrespective of the size of the dataset.  
 
 -----------
 ### 3b. Run an experiment
@@ -219,7 +219,7 @@ The [Store](../../python_api/store) class provides a few additional useful metho
         [`Store.mlflow("stop")`](../../python_api/store/#nerblackbox.api.store.Store.mlflow) 
         and [`Store.tensorboard("stop")`](../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
 
-    See [Detailed Analysis of Training Results](../../features/detailed_results) for more information.
+    See [Detailed Analysis of Training Results](../../features/training/detailed_results) for more information.
 
 
 -----------

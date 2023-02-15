@@ -9,7 +9,7 @@ theme:
   favicon: images/package-16.svg
   icon:
     logo: octicons/package-16
-copyright: Copyright &copy; 2021 - 2022 Felix Stollenwerk
+copyright: Copyright &copy; 2021 - 2023 Felix Stollenwerk
 plugins:
   - mkdocstrings
   - search
@@ -19,7 +19,8 @@ markdown_extensions:
   - admonition
   - pymdownx.highlight
   - pymdownx.superfences
-  - pymdownx.tabbed
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
   - mkdocs-click
 extra_css:
@@ -32,14 +33,17 @@ nav:
       - 'usage/parameters_and_presets.md'
     - Features:
         - 'features/overview.md'
-        - 'features/adaptive_finetuning.md'
-        - 'features/hyperparameter_search.md'
-        - 'features/multiple_runs.md'
-        - 'features/detailed_results.md'
-        - 'features/support_pretokenized.md'
-        - 'features/support_annotation_schemes.md'
-        - 'features/support_huggingface_datasets.md'
-        - 'features/text_encoding.md'
+        - 'features/data/support_pretokenized.md'
+        - 'features/data/support_annotation_schemes.md'
+        - 'features/data/support_huggingface_datasets.md'
+        - 'features/data/text_encoding.md'
+        - 'features/training/adaptive_finetuning.md'
+        - 'features/training/hyperparameter_search.md'
+        - 'features/training/multiple_runs.md'
+        - 'features/training/detailed_results.md'
+        - 'features/evaluation/support_evaluation.md'
+        - 'features/inference/versatile_model_inference.md'
+        - 'features/other/compatibility_with_huggingface.md'
     - Python API:
       - Overview: 'python_api/overview.md'
       - 'python_api/store.md'
