@@ -5,6 +5,8 @@ import numpy as np
 import torch
 
 from nerblackbox.api.model import (
+    EVALUATION_DICT,
+    round_evaluation_dict,
     derive_annotation_scheme,
     turn_tensors_into_tag_probability_distributions,
     merge_slices_for_single_document,
@@ -15,6 +17,47 @@ from nerblackbox.api.model import (
 
 
 class TestModelStatic:
+    @pytest.mark.parametrize(
+        "evaluation_dict, rounded_decimals, evaluation_dict_rounded",
+        [
+            (
+                    {
+                        "micro": {
+                            "entity": {
+                                'precision': 0.9847222222222223,
+                                'recall': 0.9916083916083916,
+                                'f1': 0.9881533101045297,
+                                'precision_seqeval': 0.9833564493758669,
+                                'recall_seqeval': 0.9916083916083916,
+                                'f1_seqeval': 0.9874651810584958,
+                            },
+                        }
+                    },
+                    3,
+                    {
+                        "micro": {
+                            "entity": {
+                                'precision': 0.985,
+                                'recall': 0.992,
+                                'f1': 0.988,
+                                'precision_seqeval': 0.983,
+                                'recall_seqeval': 0.992,
+                                'f1_seqeval': 0.987,
+                            }
+                        }
+                    },
+            ),
+        ],
+    )
+    def test_derive_evaluation_dict(
+            self, evaluation_dict: EVALUATION_DICT, rounded_decimals: int, evaluation_dict_rounded: EVALUATION_DICT,
+    ):
+        test_evaluation_dict_rounded = round_evaluation_dict(evaluation_dict, rounded_decimals)
+        assert (
+                test_evaluation_dict_rounded == evaluation_dict_rounded
+        ), f"ERROR! test_evaluation_dict_rounded = {test_evaluation_dict_rounded} " \
+           f"!= {evaluation_dict_rounded} = evaluation_dict_rounded"
+
     @pytest.mark.parametrize(
         "id2label, error, annotation_scheme",
         [

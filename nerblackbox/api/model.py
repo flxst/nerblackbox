@@ -479,7 +479,8 @@ class Model:
                             phase: str = "test",
                             class_mapping: Optional[Dict[str, str]] = None,
                             number: Optional[int] = None,
-                            derived_from_jsonl: bool = False) -> EVALUATION_DICT:
+                            derived_from_jsonl: bool = False,
+                            rounded_decimals: Optional[int] = 3) -> EVALUATION_DICT:
         r"""
         evaluate model on dataset from huggingface or local dataset in jsonl or csv format
 
@@ -490,13 +491,14 @@ class Model:
             class_mapping: e.g. {"PER": "PI", "ORG": "PI}
             number: e.g. 100
             derived_from_jsonl:
+            rounded_decimals: if not None, results will be rounded to provided decimals
 
         Returns:
             evaluation_dict:
-                Dict with keys [labels][levels][metrics]
-                where labels in ['micro', 'macro'],
-                levels in ['entity', 'token']
-                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                Dict with keys [label][level][metric]
+                where label in ['micro', 'macro'],
+                level in ['entity', 'token']
+                metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
                 and values = float between 0 and 1
 
         """
@@ -519,11 +521,18 @@ class Model:
 
         dir_path = join(Store.get_path(), "datasets", dataset_name)
         if dataset_format == "huggingface":
-            return self._evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
+            evaluation_dict = self._evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
         elif dataset_format == "jsonl":
-            return self._evaluate_on_jsonl(dir_path, phase, class_mapping, number)
+            evaluation_dict = self._evaluate_on_jsonl(dir_path, phase, class_mapping, number)
         elif dataset_format == "csv":
-            return self._evaluate_on_csv(dir_path, phase, class_mapping, number, derived_from_jsonl)
+            evaluation_dict = self._evaluate_on_csv(dir_path, phase, class_mapping, number, derived_from_jsonl)
+        else:
+            raise Exception(f"ERROR! dataset_format = {dataset_format} unknown.")
+
+        if rounded_decimals is None:
+            return evaluation_dict
+        else:
+            return round_evaluation_dict(evaluation_dict, rounded_decimals)
 
     def _evaluate_on_huggingface(self,
                                  dataset_name: str,
@@ -541,10 +550,10 @@ class Model:
 
         Returns:
             evaluation_dict:
-                Dict with keys [labels][levels][metrics]
-                where labels in ['micro', 'macro'],
-                levels in ['entity', 'token']
-                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                Dict with keys [label][level][metric]
+                where label in ['micro', 'macro'],
+                level in ['entity', 'token']
+                metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
                 and values = float between 0 and 1
         """
         dataset = Dataset(dataset_name)
@@ -572,10 +581,10 @@ class Model:
 
         Returns:
             evaluation_dict:
-                Dict with keys [labels][levels][metrics]
-                where labels in ['micro', 'macro'],
-                levels in ['entity', 'token']
-                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                Dict with keys [label][level][metric]
+                where label in ['micro', 'macro'],
+                level in ['entity', 'token']
+                metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
                 and values = float between 0 and 1
         """
         assert isdir(dir_path), f"ERROR! could not find {dir_path}"
@@ -611,10 +620,10 @@ class Model:
 
         Returns:
             evaluation_dict:
-                Dict with keys [labels][levels][metrics]
-                where labels in ['micro', 'macro'],
-                levels in ['entity', 'token']
-                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                Dict with keys [label][level][metric]
+                where label in ['micro', 'macro'],
+                level in ['entity', 'token']
+                metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
                 and values = float between 0 and 1
         """
         # derived_from_jsonl = True  => pretokenized_<phase>.csv is used
@@ -679,10 +688,10 @@ class Model:
 
         Returns:
             evaluation_dict:
-                Dict with keys [labels][levels][metrics]
-                where labels in ['micro', 'macro'],
-                levels in ['entity', 'token']
-                metrics in ['precision', 'recall', 'f1', 'precision_HF', 'recall_HF', 'f1_HF']
+                Dict with keys [label][level][metric]
+                where label in ['micro', 'macro'],
+                level in ['entity', 'token']
+                metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
                 and values = float between 0 and 1
         """
         # class mapping
@@ -725,13 +734,13 @@ class Model:
         # NerMetrics
         labels = ["micro", "macro"]
         metrics = ["precision", "recall", "f1"]
-        metrics_hf = [f"{metric}_HF" for metric in metrics]
+        metrics_seqeval = [f"{metric}_seqeval" for metric in metrics]
         levels = ["entity", "token"]
         evaluation = {
             label: {
                 level: {
                     metric: None
-                    for metric in metrics + metrics_hf
+                    for metric in metrics + metrics_seqeval
                 }
                 for level in levels
             }
@@ -753,10 +762,10 @@ class Model:
         from seqeval.metrics import precision_score, recall_score, f1_score
         scores = [precision_score, recall_score, f1_score]
         print("== ENTITY (seqeval) ==")
-        for metric_hf, score in zip(metrics_hf, scores):
+        for metric_seqeval, score in zip(metrics_seqeval, scores):
             result = score(ground_truth, predictions, )
-            print(f"> {metric_hf}: {result:.3f}")
-            evaluation["micro"]["entity"][f"{metric_hf}"] = result
+            print(f"> {metric_seqeval}: {result:.3f}")
+            evaluation["micro"]["entity"][f"{metric_seqeval}"] = result
 
         return evaluation
 
@@ -764,6 +773,52 @@ class Model:
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
+def round_evaluation_dict(_evaluation_dict: EVALUATION_DICT, _rounded_decimals: int) -> EVALUATION_DICT:
+    r"""
+
+    Args:
+        _evaluation_dict: e.g.
+        {
+            "micro": {
+                "entity": {
+                    'precision': 0.9847222222222223,
+                    'recall': 0.9916083916083916,
+                    'f1': 0.9881533101045297,
+                    'precision_seqeval': 0.9833564493758669,
+                    'recall_seqeval': 0.9916083916083916,
+                    'f1_seqeval': 0.9874651810584958,
+                }
+            }
+        }
+        _rounded_decimals: e.g. 3
+
+    Returns:
+        _evaluation_dict_rounded: e.g.
+        {
+            "micro": {
+                "entity": {
+                    'precision': 0.985,
+                    'recall': 0.992,
+                    'f1': 0.988,
+                    'precision_seqeval': 0.983,
+                    'recall_seqeval': 0.992,
+                    'f1_seqeval': 0.987,
+                }
+            }
+        }
+    """
+    return {
+        k1: {
+            k2: {
+                k3: round(v3, _rounded_decimals) if isinstance(v3, float) else None
+                for k3, v3 in v2.items()
+            }
+            for k2, v2 in v1.items()
+        }
+        for k1, v1 in _evaluation_dict.items()
+    }
+
+
 def derive_annotation_scheme(_id2label: Dict[int, str]) -> str:
     r"""
     Args:

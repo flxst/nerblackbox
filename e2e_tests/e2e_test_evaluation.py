@@ -40,7 +40,7 @@ def evaluate(_model: str, _dataset: str, split: str, number=None) -> EVALUATION_
     return {
         "micro": {
             "entity": {
-                f"{metric}_HF": evaluation_results[f"overall_{metric}"]
+                f"{metric}_seqeval": evaluation_results[f"overall_{metric}"]
                 for metric in METRICS
             }
         }
@@ -81,7 +81,8 @@ def test_evaluation(capsys):
             evaluation_dict_nerblackbox = model_huggingface.evaluate_on_dataset(dataset,
                                                                                 "huggingface",
                                                                                 phase=phase,
-                                                                                number=number)
+                                                                                number=number,
+                                                                                rounded_decimals=None)
 
             # huggingface evaluate
             evaluation_dict_huggingface = evaluate(model,
@@ -95,10 +96,10 @@ def test_evaluation(capsys):
             print()
 
             for metric in METRICS:
-                result_nerblackbox = evaluation_dict_nerblackbox["micro"]["entity"][f"{metric}_HF"]
-                result_huggingface = evaluation_dict_huggingface["micro"]["entity"][f"{metric}_HF"]
+                result_nerblackbox = evaluation_dict_nerblackbox["micro"]["entity"][f"{metric}_seqeval"]
+                result_huggingface = evaluation_dict_huggingface["micro"]["entity"][f"{metric}_seqeval"]
                 assert result_nerblackbox == result_huggingface, \
-                    f"ERROR! metric = {metric}_HF: nerblackbox = {result_nerblackbox}, " \
+                    f"ERROR! metric = {metric}_seqeval: nerblackbox = {result_nerblackbox}, " \
                     f"huggingface evaluate = {result_huggingface}"
 
             print_section_finish()
