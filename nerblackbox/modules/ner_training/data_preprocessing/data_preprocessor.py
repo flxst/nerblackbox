@@ -110,35 +110,59 @@ class DataPreprocessor:
         return input_examples, annotation
 
     def get_input_examples_predict(
-        self, examples: List[str]
-    ) -> Dict[str, InputExamples]:
+        self,
+        examples: List[str],
+        is_pretokenized: bool,
+    ) -> Tuple[Dict[str, InputExamples], List[str], List[List[Tuple[int, int]]]]:
         """
         - get input examples for PREDICT from input argument examples
 
         Args:
             examples:       [list] of [str]
+            is_pretokenized: True if examples are pretokenized
 
         Returns:
-            input_examples: [dict] w/ key = 'predict' & value = [list] of [InputExample]
+            input_examples:         [dict] w/ key = 'predict' & value = [list] of [InputExample]
+            examples_pretokenized:  [list] of [str]
+            pretokenization_offsets: [list] of [list] of [tuples]
         """
         # create input_examples
         if self.do_lower_case:
             examples = [example.lower() for example in examples]
 
+        if is_pretokenized:
+            _data_pretokenized = [
+                {
+                    "text": example,
+                    "tags": " ".join(["O" for _ in range(len(example.split()))]),  # pseudo tags
+                }
+                for example in examples
+            ]
+            pretokenization_offsets = None
+        else:
+            _data = [
+                {
+                    "text": example,
+                    "tags": [],
+                }
+                for example in examples
+            ]
+            _data_pretokenized, pretokenization_offsets = self._pretokenize_data(_data)
+
+        examples_pretokenized = [elem["text"] for elem in _data_pretokenized]
+
         input_examples = {
             "predict": [
                 InputExample(
                     guid="",
-                    text=example,
-                    tags=" ".join(
-                        ["O" for _ in range(len(example.split()))]
-                    ),  # pseudo tags
+                    text=elem["text"],
+                    tags=elem["tags"],
                 )
-                for example in examples
+                for elem in _data_pretokenized
             ]
         }
 
-        return input_examples
+        return input_examples, examples_pretokenized, pretokenization_offsets
 
     def to_dataloader(
         self,
@@ -288,7 +312,7 @@ class DataPreprocessor:
 
     def _pretokenize_data(
         self, _data: SENTENCES_ROWS_UNPRETOKENIZED
-    ) -> List[Dict[str, str]]:
+    ) -> Tuple[List[Dict[str, str]], List[List[Tuple[int, int]]]]:
         """
         pretokenize data (text and text simultaneously)
 
@@ -312,8 +336,12 @@ class DataPreprocessor:
                 },
                 ..
             ]
+            _pretokenization_offsets: e.g. [
+                [(0,17), (18,20), (20,21), (21,26)]
+            ]
         """
         _data_pretokenized = list()
+        _pretokenization_offsets = list()
         for n in range(len(_data)):
             word_tuples = self.tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str(_data[n]["text"])
             tags = ["O"] * len(word_tuples)
@@ -331,6 +359,8 @@ class DataPreprocessor:
                         tags[word_index] = f"I-{entity_tag}"
 
             words = [word_tuple[0] for word_tuple in word_tuples]
+            pretokenization_offsets = [word_tuple[1] for word_tuple in word_tuples]
+            _pretokenization_offsets.append(pretokenization_offsets)
 
             _data_pretokenized.append(
                 {
@@ -339,7 +369,7 @@ class DataPreprocessor:
                 }
             )
 
-        return _data_pretokenized
+        return _data_pretokenized, _pretokenization_offsets
 
     def _pretokenize(self, dataset_path: str) -> None:  # pragma: no cover
         """
@@ -360,7 +390,7 @@ class DataPreprocessor:
                 data = [json.loads(jline) for jline in jlines]
 
             # 2. pretokenize data
-            data_pretokenized = self._pretokenize_data(data)
+            data_pretokenized, _ = self._pretokenize_data(data)
 
             # 3. write csv files "pretokenized_{phase}.csv"
             df = pd.DataFrame(data_pretokenized)

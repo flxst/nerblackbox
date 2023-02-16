@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Any
+from typing import List, Dict, Union, Any, Tuple
 from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 from copy import deepcopy
 
@@ -131,6 +131,42 @@ class TokenTags:
 
         self.token_tag_list = [elem for elem in self.token_tag_list if elem["tag"] != "DELETE"]
         self.level = "word"
+
+    def unpretokenize(self, _pretokenization_offsets: List[Tuple[int, int]]):
+        """
+        revert pretokenization using pretokenization offsets.
+
+        Args:
+            _pretokenization_offsets: e.g. [(0,4), (4,5), (5,7), (7,8), (8,10), (11,15)]
+
+        Changed Attr:
+            token_tag_list: List[Dict[str, str]], e.g.
+                [
+                    {'char_start': '0', 'char_end': '4', 'token': '2021', 'tag': 'B-PI'},
+                    {'char_start': '5', 'char_end': '6', 'token': '-', 'tag': 'I-PI'},
+                    {'char_start': '7', 'char_end': '9', 'token': '10', 'tag': 'I-PI'},
+                    {'char_start': '10', 'char_end': '11', 'token': '-', 'tag': 'I-PI'},
+                    {'char_start': '12', 'char_end': '14', 'token': '14', 'tag': 'I-PI'},
+                    {'char_start': '15', 'char_end': '20', 'token': 'Mamma', 'tag': 'O'},
+                ]
+            --->
+                [
+                    {'char_start': '0', 'char_end': '4', 'token': '2021', 'tag': 'B-PI'},
+                    {'char_start': '4', 'char_end': '5', 'token': '-', 'tag': 'I-PI'},
+                    {'char_start': '5', 'char_end': '7', 'token': '10', 'tag': 'I-PI'},
+                    {'char_start': '7', 'char_end': '8', 'token': '-', 'tag': 'I-PI'},
+                    {'char_start': '8', 'char_end': '10', 'token': '14', 'tag': 'I-PI'},
+                    {'char_start': '11', 'char_end': '15', 'token': 'Mamma', 'tag': 'O'},
+                ]
+        """
+        assert len(self.token_tag_list) == len(_pretokenization_offsets), \
+            f"ERROR! #token_tag_list = {len(self.token_tag_list)} != " \
+            f"#pretokenization_offsets = {len(_pretokenization_offsets)}"
+
+        nr_tokens = len(self.token_tag_list)
+        for j in range(nr_tokens):
+            self.token_tag_list[j]["char_start"] = str(_pretokenization_offsets[j][0])
+            self.token_tag_list[j]["char_end"] = str(_pretokenization_offsets[j][1])
 
     def merge_tokens_to_entities(self, original_text: str, verbose: bool) -> None:
         """

@@ -32,7 +32,6 @@ PREDICTIONS = List[List[Dict[str, Union[str, Dict]]]]
 EVALUATION_DICT = Dict[str, Dict[str, Dict[str, float]]]
 
 VERBOSE = False
-DEBUG = False
 
 
 class Model:
@@ -221,6 +220,7 @@ class Model:
         input_texts: Union[str, List[str]],
         level: str = "entity",
         autocorrect: bool = False,
+        is_pretokenized: bool = False,
     ) -> PREDICTIONS:
         r"""predict tags for input texts. output on entity or word level.
 
@@ -261,14 +261,15 @@ class Model:
             input_texts:   e.g. ["example 1", "example 2"]
             level:         "entity" or "word"
             autocorrect:   if True, autocorrect annotation scheme (e.g. B- and I- tags).
+            is_pretokenized: True if input_texts are pretokenized
 
         Returns:
             predictions: [list] of predictions for the different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, tag
         """
-        return self._predict(input_texts, level, autocorrect, proba=False)
+        return self._predict(input_texts, level, autocorrect, proba=False, is_pretokenized=is_pretokenized)
 
-    def predict_proba(self, input_texts: Union[str, List[str]]) -> PREDICTIONS:
+    def predict_proba(self, input_texts: Union[str, List[str]], is_pretokenized: bool = False) -> PREDICTIONS:
         r"""predict probability distributions for input texts. output on word level.
 
         Examples:
@@ -284,13 +285,14 @@ class Model:
 
         Args:
             input_texts:   e.g. ["example 1", "example 2"]
+            is_pretokenized: True if input_texts are pretokenized
 
         Returns:
             predictions: [list] of probability predictions for different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
                          where proba_dist = [dict] that maps self.annotation.classes to probabilities
         """
-        return self._predict(input_texts, level="word", autocorrect=False, proba=True)
+        return self._predict(input_texts, level="word", autocorrect=False, proba=True, is_pretokenized=is_pretokenized)
 
     def _predict(
         self,
@@ -298,6 +300,7 @@ class Model:
         level: str = "entity",
         autocorrect: bool = False,
         proba: bool = False,
+        is_pretokenized: bool = False,
     ) -> PREDICTIONS:
         r"""predict tags or probabilities for tags
 
@@ -306,6 +309,7 @@ class Model:
             level:        "entity" or "word"
             autocorrect:  if True, autocorrect annotation scheme (e.g. B- and I- tags).
             proba:        if True, predict probabilities instead of labels (on word level)
+            is_pretokenized: True if input_texts are pretokenized
 
         Returns:
             predictions: [list] of [list] of [dict] w/ keys = char_start, char_end, word, tag/proba_dist
@@ -335,9 +339,11 @@ class Model:
             max_seq_length=self.max_seq_length,
             default_logger=PseudoDefaultLogger(),
         )
-        input_examples = self.data_preprocessor.get_input_examples_predict(
-            examples=input_texts,
-        )
+        input_examples, input_texts_pretokenized, pretokenization_offsets = \
+            self.data_preprocessor.get_input_examples_predict(
+                examples=input_texts,
+                is_pretokenized=is_pretokenized,
+            )
 
         dataloader_all, offsets_all = self.data_preprocessor.to_dataloader(
             input_examples, self.annotation_classes, batch_size=self.batch_size
@@ -411,7 +417,14 @@ class Model:
         # 2. post processing
         predictions = [
             self._post_processing(
-                level, autocorrect, proba, input_texts[i], tokens[i], predictions[i],
+                level,
+                autocorrect,
+                proba,
+                input_texts[i],
+                input_texts_pretokenized[i],
+                pretokenization_offsets[i] if pretokenization_offsets is not None else None,
+                tokens[i],
+                predictions[i],
             )
             for i in range(number_of_input_texts)
         ]
@@ -424,17 +437,21 @@ class Model:
         autocorrect: bool,
         proba: bool,
         input_text: str,
+        input_text_pretokenized: str,
+        pretokenization_offsets: Optional[List[Tuple[int, int]]],
         tokens: List[str],
         predictions: List[Any],
-    ):
+    ) -> List[List[Dict[str, str]]]:
         r"""
         Args:
             level: "word" or "entity"
             autocorrect: e.g. False
             proba: e.g. False
-            input_text: e.g. "we are in stockholm"
-            tokens: e.g. ["we", "are", "in", "stockholm"]
-            predictions: e.g. ["O", "O", "O", "B-LOC"]
+            input_text: e.g. "we are in stockholm."
+            input_text_pretokenized: e.g. "we are in stockholm ."
+            pretokenization_offsets: e.g. [(0,2), (3,6), (7,9), (10,19), (19,20)]
+            tokens: e.g. ["we", "are", "in", "stockholm", "."]
+            predictions: e.g. ["O", "O", "O", "B-LOC", "O"]
 
         Returns:
             input_text_word_predictions: ???
@@ -447,7 +464,7 @@ class Model:
         ] = merge_subtoken_to_token_predictions(tokens, predictions)
 
         token_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
-            _token_predictions, input_text, verbose=VERBOSE
+            _token_predictions, input_text_pretokenized, verbose=VERBOSE
         )
 
         if autocorrect or level == "entity":
@@ -460,6 +477,8 @@ class Model:
         token_tags = TokenTags(token_predictions_str, scheme=self.annotation_scheme)
         token_tags.merge_tokens_to_words()
         #######################################
+        if pretokenization_offsets is not None:
+            token_tags.unpretokenize(pretokenization_offsets)
 
         if autocorrect:
             token_tags.restore_annotation_scheme_consistency()
@@ -645,16 +664,8 @@ class Model:
             ground_truth = ground_truth[:number]
             input_texts = input_texts[:number]
 
-        predictions = self.predict(input_texts, level="word")
+        predictions = self.predict(input_texts, level="word", is_pretokenized=True)
         predictions = [[elem["tag"] for elem in prediction] for prediction in predictions]
-
-        if DEBUG:
-            n_example = 0
-            print(len(input_texts[n_example]), input_texts[n_example])
-            print(len(ground_truth[n_example]), ground_truth[n_example])
-            print(len(predictions[n_example]), predictions[n_example])
-            print()
-            exit()
 
         def convert_plain_to_bio(_predictions: List[str]) -> List[str]:
             tags = Tags(_predictions)
@@ -670,7 +681,8 @@ class Model:
         for i in range(len(ground_truth)):
             assert len(ground_truth[i]) == len(predictions[i]), \
                 f"ERROR! #ground_truth[{i}] = {len(ground_truth[i])} ({ground_truth[i]}), " \
-                f"#predictions[{i}] = {len(predictions[i])} ({predictions[i]})"
+                f"#predictions[{i}] = {len(predictions[i])} ({predictions[i]})," \
+                f"input_texts[{i}] = {input_texts[i]}"
 
         return self._evaluate(ground_truth, predictions, class_mapping)
 
@@ -726,10 +738,6 @@ class Model:
         pred_flat = [elem for sublist in predictions for elem in sublist]
         assert len(true_flat) == len(pred_flat), f"ERROR! true_flat = {len(true_flat)}, #pred_flat = {len(pred_flat)}"
 
-        if DEBUG:
-            print(true_flat[:30])
-            print(pred_flat[:30])
-
         # 4. evaluate: compare ground truth with predictions
         # NerMetrics
         labels = ["micro", "macro"]
@@ -749,11 +757,11 @@ class Model:
 
         ner_metrics_entity = NerMetrics(true_flat, pred_flat, level="entity", scheme="bio")
         ner_metrics_entity.compute(metrics)
-        print("== ENTITY (nerblackbox) ==")
+        # print("== ENTITY (nerblackbox) ==")
         for metric in metrics:
             _metric = metric if metric == "acc" else f"{metric}_micro"
-            print(f"> {metric}: {ner_metrics_entity.results_as_dict()[_metric]:.3f}")
-        print()
+            # print(f"> {metric}: {ner_metrics_entity.results_as_dict()[_metric]:.3f}")
+        # print()
 
         for metric, label in product(metrics, labels):
             evaluation[label]["entity"][metric] = ner_metrics_entity.results_as_dict()[f"{metric}_{label}"]
@@ -761,10 +769,10 @@ class Model:
         # seqeval - just for testing - start
         from seqeval.metrics import precision_score, recall_score, f1_score
         scores = [precision_score, recall_score, f1_score]
-        print("== ENTITY (seqeval) ==")
+        # print("== ENTITY (seqeval) ==")
         for metric_seqeval, score in zip(metrics_seqeval, scores):
             result = score(ground_truth, predictions, )
-            print(f"> {metric_seqeval}: {result:.3f}")
+            # print(f"> {metric_seqeval}: {result:.3f}")
             evaluation["micro"]["entity"][f"{metric_seqeval}"] = result
 
         return evaluation

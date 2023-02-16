@@ -165,9 +165,11 @@ class TestCsvReaderAndDataProcessor:
         test_sentences = [
             elem.text for v in test_input_examples.values() for elem in v
         ]  # retrieve example sentences
-        test_input_examples_predict = data_preprocessor.get_input_examples_predict(
-            test_sentences
-        )["predict"]
+        test_input_examples_predict, _, _ = data_preprocessor.get_input_examples_predict(
+            test_sentences,
+            is_pretokenized=True,
+        )
+        test_input_examples_predict = test_input_examples_predict["predict"]
         assert len(test_input_examples_predict) == len(
             input_examples["predict"]
         ), f"len(test_input_examples_predict) = {len(test_input_examples_predict)} != {len(input_examples['predict'])}"
@@ -315,7 +317,7 @@ class TestDataProcessor:
         data: SENTENCES_ROWS_UNPRETOKENIZED,
         data_pretokenized: List[Dict[str, str]],
     ):
-        test_data_pretokenized = data_preprocessor._pretokenize_data(data)
+        test_data_pretokenized, _ = data_preprocessor._pretokenize_data(data)
         assert (
             test_data_pretokenized == data_pretokenized
         ), f"test_data_pretokenized = {test_data_pretokenized} != {data_pretokenized}"

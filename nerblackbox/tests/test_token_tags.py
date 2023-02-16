@@ -1,5 +1,5 @@
 import pytest
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
 
 
@@ -1078,3 +1078,44 @@ class TestTokenTags:
             f"{test_example_word_predictions} != "
             f"{example_word_predictions}"
         )
+
+    ####################################################################################################################
+    @pytest.mark.parametrize(
+        "predictions, scheme, pretokenization_offsets, predictions_unpretokenized",
+        [
+            (
+                    [
+                        {'char_start': '0', 'char_end': '4', 'token': '2021', 'tag': 'B-PI'},
+                        {'char_start': '5', 'char_end': '6', 'token': '-', 'tag': 'I-PI'},
+                        {'char_start': '7', 'char_end': '9', 'token': '10', 'tag': 'I-PI'},
+                        {'char_start': '10', 'char_end': '11', 'token': '-', 'tag': 'I-PI'},
+                        {'char_start': '12', 'char_end': '14', 'token': '14', 'tag': 'I-PI'},
+                        {'char_start': '15', 'char_end': '20', 'token': 'Mamma', 'tag': 'O'},
+                    ],
+                    "bio",
+                    [(0, 4), (4, 5), (5, 7), (7, 8), (8, 10), (11, 15)],
+                    [
+                        {'char_start': '0', 'char_end': '4', 'token': '2021', 'tag': 'B-PI'},
+                        {'char_start': '4', 'char_end': '5', 'token': '-', 'tag': 'I-PI'},
+                        {'char_start': '5', 'char_end': '7', 'token': '10', 'tag': 'I-PI'},
+                        {'char_start': '7', 'char_end': '8', 'token': '-', 'tag': 'I-PI'},
+                        {'char_start': '8', 'char_end': '10', 'token': '14', 'tag': 'I-PI'},
+                        {'char_start': '11', 'char_end': '15', 'token': 'Mamma', 'tag': 'O'},
+                    ],
+            ),
+        ],
+    )
+    def test_unpretokenize(
+            self,
+            predictions: List[Dict[str, str]],
+            scheme: str,
+            pretokenization_offsets: List[Tuple[int, int]],
+            predictions_unpretokenized: List[Dict[str, str]],
+    ):
+        token_tags = TokenTags(predictions, scheme=scheme)
+        token_tags.unpretokenize(pretokenization_offsets)
+        test_predictions_unpretokenized = token_tags.as_list()
+        assert (
+                test_predictions_unpretokenized == predictions_unpretokenized
+        ), f"ERROR! test_predictions_unpretokenized = {test_predictions_unpretokenized} " \
+           f"!= {predictions_unpretokenized} = predictions_unpretokenized"
