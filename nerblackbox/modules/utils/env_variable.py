@@ -17,4 +17,6 @@ def env_variable(key: str) -> str:
         "MLFLOW_FILE": f"{data_dir}/results/mlruns/mlflow_artifact.txt",
     }
 
+    assert key in env_variable_dict.keys(), f"ERROR! key = {key} not found in env_variable_dict."
+
     return env_variable_dict[key]

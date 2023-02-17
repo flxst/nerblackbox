@@ -9,6 +9,7 @@ from nerblackbox.api.dataset import Dataset
 from nerblackbox.api.experiment import Experiment
 from nerblackbox.api.model import Model
 from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.utils.env_variable import env_variable
 
 
 ########################################################################################################################
@@ -102,7 +103,7 @@ def get_experiment_results(experiment_name: str):
 @nerbb.command(name="mlflow")
 def mlflow():
     """show detailed experiment results in mlflow (port = 5000)."""
-    cd_dir = f'{join(os.environ.get("DATA_DIR"), "results")}'
+    cd_dir = f'{join(env_variable("DATA_DIR"), "results")}'
     subprocess.run(f"cd {cd_dir}; mlflow ui", shell=True)
 
 
@@ -112,6 +113,7 @@ def mlflow():
 def predict(experiment_name: str, text_input: str):
     """predict labels for text_input using the best model of a single experiment."""
     model = Model.from_experiment(experiment_name)
+    assert isinstance(model, Model), f"ERROR! model from experiment {experiment_name} could not be loaded."
     predictions = model.predict(text_input)
     print(predictions)
 
@@ -122,6 +124,7 @@ def predict(experiment_name: str, text_input: str):
 def predict_proba(experiment_name: str, text_input: str):
     """predict label probabilities for text_input using the best model of a single experiment."""
     model = Model.from_experiment(experiment_name)
+    assert isinstance(model, Model), f"ERROR! model from experiment {experiment_name} could not be loaded."
     predictions = model.predict_proba(text_input)
     print(predictions)
 
@@ -161,7 +164,7 @@ def show_experiment_config(experiment_name: str):
 @nerbb.command(name="tensorboard")
 def tensorboard():
     """show detailed experiment results in tensorboard. (port = 6006)."""
-    cd_dir = f'{join(os.environ.get("DATA_DIR"), "results")}'
+    cd_dir = f'{join(env_variable("DATA_DIR"), "results")}'
     subprocess.run(
         f"cd {cd_dir}; tensorboard --logdir tensorboard --reload_multifile=true",
         shell=True,

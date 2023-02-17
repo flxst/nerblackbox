@@ -1,7 +1,7 @@
 import torch
 import mlflow
 import os
-from typing import Tuple
+from typing import Tuple, Dict, Any
 from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -231,9 +231,9 @@ def get_callback_info(_callbacks, _params, _hparams):
     :param _hparams:   [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
     :return: _callback_info: [dict] w/ keys 'epoch_best', 'epoch_stopped', 'checkpoint_best'
     """
-    callback_info = dict()
+    callback_info: Dict[str, Any] = dict()
 
-    checkpoint_best = _callbacks[0].last_model_path
+    checkpoint_best: str = _callbacks[0].last_model_path
     callback_info["epoch_best"] = checkpoint2epoch(checkpoint_best)
 
     callback_info["checkpoint_best"] = join(

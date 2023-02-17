@@ -68,7 +68,7 @@ class TestNerMetricsTable:
             assert set(tested_columns) == set(self.df[self.level].columns[2:])
 
     def _single_row_and_label_category_test(
-        self, true: np.array, pred: np.array, row: int, labels: str
+        self, true: np.ndarray, pred: np.ndarray, row: int, labels: str
     ) -> List[str]:
         """
         test true against pred values for single row in csv and specific labels

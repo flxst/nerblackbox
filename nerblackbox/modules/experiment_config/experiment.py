@@ -79,7 +79,7 @@ class Experiment:
             run_names = [
                 run_name for run_name in self.exp.run_names if run_name == self.run_name
             ]
-            assert len(run_names) == 1
+            assert len(run_names) == 1, f"ERROR! found {len(run_names)} runs with name = {self.run_name}"
 
         for run_name, run_nr in product(
             run_names, list(range(1, int(multiple_runs) + 1))

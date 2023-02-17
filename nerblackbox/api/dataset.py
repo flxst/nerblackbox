@@ -25,7 +25,7 @@ class Dataset:
         """
         self.dataset_name = dataset_name
         self.dataset_subset_name = dataset_subset_name
-        self.file_path = None  # only for instances created through from_file method
+        self.file_path: Optional[str] = None  # only for instances created through from_file method
 
     @classmethod
     def from_file(cls,
@@ -63,6 +63,8 @@ class Dataset:
             val_fraction: e.g. 0.1
             test_fraction: e.g. 0.2
         """
+        assert isinstance(self.file_path, str), f"ERROR! type(self.file_path) = {self.file_path} should be str."
+
         with open(self.file_path, "r") as f:
             input_lines = [json.loads(line) for line in f]
         print(f"> read {len(input_lines)} documents from {self.file_path}")

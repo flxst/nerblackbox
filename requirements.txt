@@ -10,5 +10,3 @@ numpy~=1.23.4
 datasets~=2.9.0
 evaluate~=0.4.0
 torchmetrics<0.7  # see https://github.com/PyTorchLightning/pytorch-lightning/issues/11524
-
-dataclasses==0.7; python_version < "3.7"

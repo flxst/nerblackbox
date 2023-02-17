@@ -246,7 +246,7 @@ class TestExperimentResults:
     ####################################################################################################################
     def test_from_mlflow_runs(self):
         if self.runs is not None:
-            test_experiment_results = self.experiment_results.from_mlflow_runs(
+            test_experiment_results: ExperimentResults = self.experiment_results.from_mlflow_runs(
                 self.runs, self.experiment_id, self.experiment_name
             )
             test_experiment_results.single_runs[("info", "run_id")] = [
@@ -288,15 +288,15 @@ class TestExperimentResults:
             ) = self.experiment_results._parse_runs(self.runs)
             test_parameters_runs[("info", "run_id")] = ["<run_id_2>", "<run_id_1>"]
 
-            for k in self.true_parameters_runs.keys():
+            for k1 in self.true_parameters_runs.keys():
                 assert (
-                    test_parameters_runs[k] == self.true_parameters_runs[k]
-                ), f"ERROR! test_parameter_runs[{k}] = {test_parameters_runs[k]} != {self.true_parameters_runs[k]}"
+                    test_parameters_runs[k1] == self.true_parameters_runs[k1]
+                ), f"ERROR! test_parameter_runs[{k1}] = {test_parameters_runs[k1]} != {self.true_parameters_runs[k1]}"
 
-            for k in self.true_parameters_experiment.keys():
+            for k2 in self.true_parameters_experiment.keys():
                 assert (
-                    test_parameters_experiment[k] == self.true_parameters_experiment[k]
-                ), f"ERROR! test_parameter_experiment[{k}] = {test_parameters_experiment[k]} != {self.true_parameters_experiment[k]}"
+                    test_parameters_experiment[k2] == self.true_parameters_experiment[k2]
+                ), f"ERROR! test_parameter_experiment[{k2}] = {test_parameters_experiment[k2]} != {self.true_parameters_experiment[k2]}"
 
     def test_rename_parameters_runs(self):
         if self.runs is not None:

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from itertools import product
 
 
@@ -65,11 +65,11 @@ class LoggedMetrics:
 
     def get_metrics(
         self,
-        required_tag_groups: List[str] = None,
-        required_phases: List[str] = None,
-        required_levels: List[str] = None,
-        required_averaging_groups: List[str] = None,
-        exclude: List[str] = None,
+        required_tag_groups: Optional[List[str]] = None,
+        required_phases: Optional[List[str]] = None,
+        required_levels: Optional[List[str]] = None,
+        required_averaging_groups: Optional[List[str]] = None,
+        exclude: Optional[List[str]] = None,
     ) -> List[str]:
         """
         get metrics, filtered

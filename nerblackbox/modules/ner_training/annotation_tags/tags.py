@@ -256,7 +256,7 @@ class Tags:
             )
 
         tag_list_converted = [tup[0] for tup in converted_tuples]
-        asr_abidance = 1 - np.average([tup[1] for tup in converted_tuples])
+        asr_abidance = float(1 - np.average([tup[1] for tup in converted_tuples]))
         return tag_list_converted, asr_abidance
 
     ####################################################################################################################

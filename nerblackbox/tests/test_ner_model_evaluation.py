@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import torch
-from typing import Dict, List, Union, Optional, Any
+from typing import Dict, List, Union, Optional
 from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvaluation
 from nerblackbox.modules.ner_training.metrics.logged_metrics import LoggedMetrics
 from nerblackbox.tests.utils import PseudoDefaultLogger
@@ -76,8 +76,8 @@ class TestNerModelEvaluation:
     def test_convert_and_combine(
         self,
         outputs: List[torch.Tensor],
-        np_batch: Dict[str, List[np.array]],
-        np_epoch: Dict[str, Union[np.number, np.array]],
+        np_batch: Dict[str, List[np.ndarray]],
+        np_epoch: Dict[str, Union[np.number, np.ndarray]],
     ) -> None:
         # 1. output -> np_batch
         test_np_batch = self.ner_model_evaluation._convert_output_to_np_batch(outputs)
@@ -97,10 +97,9 @@ class TestNerModelEvaluation:
                     test_np_epoch[key] == np_epoch[key]
                 ), f"test_np_epoch[{key}] = {test_np_epoch[key]} != {np_epoch[key]}"
             else:
-                for _test, _true in zip(test_np_epoch[key], np_epoch[key]):
-                    assert np.array_equal(
-                        _test, _true
-                    ), f"test_np_epoch[{key}] = {_test} != {_true}"
+                assert np.array_equal(
+                    test_np_epoch[key], np_epoch[key]
+                ), f"test_np_epoch[{key}] = {test_np_epoch[key]} != {np_epoch[key]}"
 
     @pytest.mark.parametrize(
         "_np_tag_ids, " "_np_logits, " "true_flat, " "pred_flat",
@@ -128,10 +127,10 @@ class TestNerModelEvaluation:
     )
     def test_reduce_and_flatten(
         self,
-        _np_tag_ids: np.array,
-        _np_logits: np.array,
-        true_flat: np.array,
-        pred_flat: np.array,
+        _np_tag_ids: np.ndarray,
+        _np_logits: np.ndarray,
+        true_flat: np.ndarray,
+        pred_flat: np.ndarray,
     ) -> None:
         test_true_flat, test_pred_flat = self.ner_model_evaluation._reduce_and_flatten(
             _np_tag_ids, _np_logits
@@ -148,23 +147,23 @@ class TestNerModelEvaluation:
         "_np_tag_ids, " "tags",
         [
             (
-                np.array([0, 2, 1, 2]),
-                np.array(["O", "PER", "ORG", "PER"]),
+                [0, 2, 1, 2],
+                ["O", "PER", "ORG", "PER"],
             ),
             (
-                np.array([-100, 2, 1, -100]),
-                np.array(["[S]", "PER", "ORG", "[S]"]),
+                [-100, 2, 1, -100],
+                ["[S]", "PER", "ORG", "[S]"],
             ),
             (
-                np.array([0, -100, 1, 2]),
-                np.array(["O", "[S]", "ORG", "PER"]),
+                [0, -100, 1, 2],
+                ["O", "[S]", "ORG", "PER"],
             ),
         ],
     )
     def test_convert_tag_ids_to_tags(
         self,
-        _np_tag_ids: np.array,
-        tags: np.array,
+        _np_tag_ids: List[int],
+        tags: List[str],
     ) -> None:
         test_tags = self.ner_model_evaluation._convert_tag_ids_to_tags(_np_tag_ids)
         assert np.array_equal(test_tags, tags), f"test = {test_tags} != {tags} = true"
@@ -175,30 +174,30 @@ class TestNerModelEvaluation:
         [
             (
                 {
-                    "true": np.array(["[S]", "PER", "ORG", "[S]"]),
-                    "pred": np.array(["PER", "ORG", "O", "O"]),
+                    "true": ["[S]", "PER", "ORG", "[S]"],
+                    "pred": ["PER", "ORG", "O", "O"],
                 },
                 {
-                    "true": np.array(["PER", "ORG"]),
-                    "pred": np.array(["ORG", "O"]),
+                    "true": ["PER", "ORG"],
+                    "pred": ["ORG", "O"],
                 },
             ),
             (
                     {
-                        "true": np.array(["PER", "[S]", "ORG", "[S]"]),
-                        "pred": np.array(["PER", "ORG", "O", "O"]),
+                        "true": ["PER", "[S]", "ORG", "[S]"],
+                        "pred": ["PER", "ORG", "O", "O"],
                     },
                     {
-                        "true": np.array(["PER", "ORG"]),
-                        "pred": np.array(["PER", "O"]),
+                        "true": ["PER", "ORG"],
+                        "pred": ["PER", "O"],
                     },
             ),
         ],
     )
     def test_get_rid_of_special_tag_occurrences(
         self,
-        _tags: Dict[str, np.array],
-        tags_new: Dict[str, np.array],
+        _tags: Dict[str, List[str]],
+        tags_new: Dict[str, List[str]],
     ) -> None:
         test_tags_new = self.ner_model_evaluation._get_rid_of_special_tag_occurrences(
             _tags
@@ -214,27 +213,27 @@ class TestNerModelEvaluation:
         [
             (
                 "all",
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                {"true": ["O", "ORG", "PER"], "pred": []},
                 ["O", "ORG", "PER"],
                 None,
             ),
             (
                 "fil",
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                {"true": ["O", "ORG", "PER"], "pred": []},
                 ["ORG", "PER"],
                 None,
             ),
             (
                 "O",
-                {"true": np.array(["O", "ORG", "PER"]), "pred": np.array([])},
+                {"true": ["O", "ORG", "PER"], "pred": []},
                 ["O"],
                 None,
             ),
             (
                 "PER",
                 {
-                    "true": np.array(["O", "ORG", "PER"]),
-                    "pred": np.array(["O", "PER", "ORG"]),
+                    "true": ["O", "ORG", "PER"],
+                    "pred": ["O", "PER", "ORG"],
                 },
                 ["PER"],
                 1,
@@ -242,8 +241,8 @@ class TestNerModelEvaluation:
             (
                 "PER",
                 {
-                    "true": np.array(["O", "PER", "ORG"]),
-                    "pred": np.array(["O", "ORG", "PER"]),
+                    "true": ["O", "PER", "ORG"],
+                    "pred": ["O", "ORG", "PER"],
                 },
                 ["PER"],
                 1,
@@ -251,8 +250,8 @@ class TestNerModelEvaluation:
             (
                 "ORG",
                 {
-                    "true": np.array(["O", "ORG", "PER"]),
-                    "pred": np.array(["O", "PER", "ORG"]),
+                    "true": ["O", "ORG", "PER"],
+                    "pred": ["O", "PER", "ORG"],
                 },
                 ["ORG"],
                 0,
@@ -260,51 +259,51 @@ class TestNerModelEvaluation:
             (
                 "ORG",
                 {
-                    "true": np.array(["O", "PER", "ORG"]),
-                    "pred": np.array(["O", "ORG", "PER"]),
+                    "true": ["O", "PER", "ORG"],
+                    "pred": ["O", "ORG", "PER"],
                 },
                 ["ORG"],
                 0,
             ),
             (
                 "all",
-                {"true": np.array(["ORG"]), "pred": np.array([])},
+                {"true": ["ORG"], "pred": []},
                 ["O", "ORG", "PER"],
                 None,
             ),
             (
                 "fil",
-                {"true": np.array(["ORG"]), "pred": np.array([])},
+                {"true": ["ORG"], "pred": []},
                 ["ORG", "PER"],
                 None,
             ),
             (
                 "O",
-                {"true": np.array(["ORG"]), "pred": np.array([])},
+                {"true": ["ORG"], "pred": []},
                 ["O"],
                 None,
             ),
             (
                 "PER",
-                {"true": np.array(["ORG"]), "pred": np.array([])},
+                {"true": ["ORG"], "pred": []},
                 ["PER"],
                 None,
             ),
             (
                 "ORG",
-                {"true": np.array(["ORG"]), "pred": np.array([])},
+                {"true": ["ORG"], "pred": []},
                 ["ORG"],
                 0,
             ),
             (
                 "PER",
-                {"true": np.array(["PER"]), "pred": np.array([])},
+                {"true": ["PER"], "pred": []},
                 ["PER"],
                 0,
             ),
             (
                 "ORG",
-                {"true": np.array(["PER"]), "pred": np.array([])},
+                {"true": ["PER"], "pred": []},
                 ["ORG"],
                 None,
             ),
@@ -313,7 +312,7 @@ class TestNerModelEvaluation:
     def test_get_filtered_classes(
         self,
         _tag_subset: str,
-        _tags_plain: Dict[str, np.array],
+        _tags_plain: Dict[str, List[str]],
         _filtered_classes: List[str],
         _filtered_class_index: Optional[int],
     ) -> None:
@@ -336,8 +335,8 @@ class TestNerModelEvaluation:
             (
                 "plain",
                 {
-                    "true": np.array(["O", "PER", "ORG", "PER"]),
-                    "pred": np.array(["O", "PER", "ORG", "PER"]),
+                    "true": ["O", "PER", "ORG", "PER"],
+                    "pred": ["O", "PER", "ORG", "PER"],
                 },
                 "test",
                 "fil",
@@ -365,8 +364,8 @@ class TestNerModelEvaluation:
             (
                 "plain",
                 {
-                    "true": np.array(["O", "PER", "ORG", "PER"]),
-                    "pred": np.array(["O", "PER", "ORG", "PER"]),
+                    "true": ["O", "PER", "ORG", "PER"],
+                    "pred": ["O", "PER", "ORG", "PER"],
                 },
                 "test",
                 "PER",
@@ -382,8 +381,8 @@ class TestNerModelEvaluation:
             (
                 "bio",
                 {
-                    "true": np.array(["O", "B-PER", "I-PER", "O", "B-PER"]),
-                    "pred": np.array(["O", "B-PER", "I-PER", "I-PER", "B-PER"]),
+                    "true": ["O", "B-PER", "I-PER", "O", "B-PER"],
+                    "pred": ["O", "B-PER", "I-PER", "I-PER", "B-PER"],
                 },
                 "test",
                 "PER",
@@ -399,8 +398,8 @@ class TestNerModelEvaluation:
             (
                 "bio",
                 {
-                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                    "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
+                    "true": ["O", "B-PER", "B-ORG", "O"],
+                    "pred": ["O", "B-ORG", "I-ORG", "O"],
                 },
                 "test",
                 "PER",
@@ -416,8 +415,8 @@ class TestNerModelEvaluation:
             (
                 "bio",
                 {
-                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                    "pred": np.array(["O", "B-ORG", "I-ORG", "O"]),
+                    "true": ["O", "B-PER", "B-ORG", "O"],
+                    "pred": ["O", "B-ORG", "I-ORG", "O"],
                 },
                 "test",
                 "ORG",
@@ -433,8 +432,8 @@ class TestNerModelEvaluation:
             (
                 "bio",
                 {
-                    "true": np.array(["O", "B-PER", "B-ORG", "O"]),
-                    "pred": np.array(["O", "B-ORG", "B-ORG", "O"]),
+                    "true": ["O", "B-PER", "B-ORG", "O"],
+                    "pred": ["O", "B-ORG", "B-ORG", "O"],
                 },
                 "test",
                 "PER",
@@ -452,7 +451,7 @@ class TestNerModelEvaluation:
     def test_compute_metrics_for_tags_subset(
         self,
         annotation_scheme: str,
-        _tags: Dict[str, np.array],
+        _tags: Dict[str, List[str]],
         _phase: str,
         tag_subset: str,
         metrics: Dict[str, float],
@@ -623,9 +622,9 @@ class TestNerModelEvaluation:
         self,
         annotation_scheme: str,
         phase: str,
-        np_epoch: Dict[str, Union[np.number, np.array]],
-        epoch_metrics: Dict[str, np.array],
-        epoch_tags: Dict[str, np.array],
+        np_epoch: Dict[str, Union[float, np.ndarray]],
+        epoch_metrics: Dict[str, float],
+        epoch_tags: Dict[str, np.ndarray],
     ) -> None:
         if annotation_scheme == "plain":
             (
@@ -730,7 +729,7 @@ class TestNerModelEvaluation:
         self,
         phase: str,
         outputs: List[torch.Tensor],
-        epoch_metrics: Dict[str, np.array],
+        epoch_metrics: Dict[str, float],
         epoch_loss: float,
     ) -> None:
         test_epoch_metrics, _, _, test_epoch_loss = self.ner_model_evaluation.execute(

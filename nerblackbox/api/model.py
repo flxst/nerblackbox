@@ -28,8 +28,8 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import
 )
 from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 
-PREDICTIONS = List[List[Dict[str, Union[str, Dict]]]]
-EVALUATION_DICT = Dict[str, Dict[str, Dict[str, float]]]
+PREDICTIONS = List[List[Dict[str, Any]]]
+EVALUATION_DICT = Dict[str, Dict[str, Dict[str, Optional[float]]]]
 
 VERBOSE = False
 
@@ -139,7 +139,7 @@ class Model:
         self,
         checkpoint_directory: str,
         batch_size: int = 16,
-        max_seq_length: int = None,
+        max_seq_length: Optional[int] = None,
     ):
         r"""
         Args:
@@ -201,8 +201,8 @@ class Model:
             input_lines = [json.loads(line) for line in f]
 
         output_lines = list()
-        for input_lines in input_lines:
-            text = input_lines["text"]
+        for input_line in input_lines:
+            text = input_line["text"]
             tags = self.predict(text)[0]
             output_line = {
                 "text": text,
@@ -527,9 +527,12 @@ class Model:
             f"ERROR! dataset_format={dataset_format} unknown (known={dataset_formats})"
         assert phase in phases, f"ERROR! phase = {phase} unknown (known={phases})"
 
+        store_path = Store.get_path()
+        assert isinstance(store_path, str), f"ERROR! type(store_path) = {type(store_path)} shoudl be str."
+
         if dataset_format == "infer":
-            file_path_jsonl = join(Store.get_path(), "datasets", dataset_name, f"{phase}.jsonl")
-            file_path_csv = join(Store.get_path(), "datasets", dataset_name, f"{phase}.csv")
+            file_path_jsonl = join(store_path, "datasets", dataset_name, f"{phase}.jsonl")
+            file_path_csv = join(store_path, "datasets", dataset_name, f"{phase}.csv")
             if isfile(file_path_jsonl):
                 dataset_format = "jsonl"
             elif isfile(file_path_csv):
@@ -538,7 +541,7 @@ class Model:
                 dataset_format = "huggingface"
             print(f"> dataset_format = {dataset_format} (inferred)")
 
-        dir_path = join(Store.get_path(), "datasets", dataset_name)
+        dir_path = join(store_path, "datasets", dataset_name)
         if dataset_format == "huggingface":
             evaluation_dict = self._evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
         elif dataset_format == "jsonl":
@@ -664,8 +667,8 @@ class Model:
             ground_truth = ground_truth[:number]
             input_texts = input_texts[:number]
 
-        predictions = self.predict(input_texts, level="word", is_pretokenized=True)
-        predictions = [[elem["tag"] for elem in prediction] for prediction in predictions]
+        _predictions = self.predict(input_texts, level="word", is_pretokenized=True)
+        predictions = [[elem["tag"] for elem in _prediction] for _prediction in _predictions]
 
         def convert_plain_to_bio(_predictions: List[str]) -> List[str]:
             tags = Tags(_predictions)
@@ -717,6 +720,7 @@ class Model:
                 _class_new: e.g. "B-PI"
 
             """
+            assert isinstance(class_mapping, dict), f"ERROR! type(class_mapping) = {type(class_mapping)} should be dict"
             if _class == "O":
                 return "O"
             else:
@@ -744,7 +748,7 @@ class Model:
         metrics = ["precision", "recall", "f1"]
         metrics_seqeval = [f"{metric}_seqeval" for metric in metrics]
         levels = ["entity", "token"]
-        evaluation = {
+        evaluation: EVALUATION_DICT = {
             label: {
                 level: {
                     metric: None

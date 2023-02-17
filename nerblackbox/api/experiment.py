@@ -108,6 +108,7 @@ class Experiment:
         }
 
         if self.from_config is False:
+            assert self.hparams is not None, f"ERROR! self.hparams is None."
             self._write_config_file(hparams=self.hparams)
 
         mlflow.projects.run(
@@ -152,6 +153,9 @@ class Experiment:
         else:
             key = f"{phase.upper()}_{level[:3].upper()}_{metric.upper()}"
             base_quantity = self.results.best_average_run if average else self.results.best_single_run
+            assert isinstance(base_quantity, dict), \
+                f"ERROR! type(base_quantity) = {type(base_quantity)} should be dict."
+
             if key in base_quantity:
                 if isinstance(base_quantity[key], str):      # average = True,  e.g. "0.9011 +- 0.0023"
                     return base_quantity[key]
@@ -221,8 +225,8 @@ class Experiment:
         if dataset is not None:
             kwargs["dataset_name"] = dataset
 
-        hparams = Utils.extract_hparams(kwargs)
-        kwargs["hparams"] = self._process_hparams(hparams, from_preset)
+        _hparams = Utils.extract_hparams(kwargs)
+        kwargs["hparams"] = self._process_hparams(_hparams, from_preset)
         kwargs["run_name"] = kwargs["run_name"] if "run_name" in kwargs else ""
         kwargs["device"] = kwargs["device"] if "device" in kwargs else "gpu"
         kwargs["fp16"] = int(kwargs["fp16"]) if "fp16" in kwargs else 0
@@ -231,12 +235,11 @@ class Experiment:
             kwargs["from_preset"] = from_preset
 
         # get rid of keys in kwargs that are present in kwargs["hparams"]
-        for key in hparams.keys():
+        for key in _hparams.keys():
             if key in kwargs.keys():
                 kwargs.pop(key)
 
-        if hparams == {}:
-            hparams = None
+        hparams = None if _hparams == {} else _hparams
 
         return kwargs, hparams
 
@@ -288,6 +291,7 @@ class Experiment:
                 )
         else:
             # DYNAMIC - assert that model & dataset are specified
+            assert self.hparams is not None, f"ERROR! self.hparams is None."
             for field in ["pretrained_model_name", "dataset_name"]:
                 if field not in self.hparams.keys():
                     field_displayed = (

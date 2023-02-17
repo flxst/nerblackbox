@@ -22,6 +22,7 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     EncodingsKeys,
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
+from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import InputExamples
 
 SENTENCES_ROWS_UNPRETOKENIZED = List[Dict[str, Any]]
 
@@ -115,7 +116,7 @@ class TestCsvReaderAndDataProcessor:
         self,
         annotation_classes: List[str],
         annotation_scheme: str,
-        input_examples: Dict[str, List[InputExample]],
+        input_examples: Dict[str, InputExamples],
     ) -> None:
 
         ##################################
@@ -165,11 +166,11 @@ class TestCsvReaderAndDataProcessor:
         test_sentences = [
             elem.text for v in test_input_examples.values() for elem in v
         ]  # retrieve example sentences
-        test_input_examples_predict, _, _ = data_preprocessor.get_input_examples_predict(
+        _test_input_examples_predict, _, _ = data_preprocessor.get_input_examples_predict(
             test_sentences,
             is_pretokenized=True,
         )
-        test_input_examples_predict = test_input_examples_predict["predict"]
+        test_input_examples_predict = _test_input_examples_predict["predict"]
         assert len(test_input_examples_predict) == len(
             input_examples["predict"]
         ), f"len(test_input_examples_predict) = {len(test_input_examples_predict)} != {len(input_examples['predict'])}"

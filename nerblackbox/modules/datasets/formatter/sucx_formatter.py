@@ -144,7 +144,7 @@ class SUCXFormatter(BaseFormatter):
         Returns:
             _row_list: e.g. ["Det", "PER", "X", "B"]
         """
-        pass
+        return []
 
     def _format_original_file(self, _row_list: List[str]) -> Optional[List[str]]:
         """

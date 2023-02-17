@@ -1,5 +1,6 @@
 import json
 
+from typing import Dict
 from transformers import AutoModelForTokenClassification
 from omegaconf import DictConfig
 from torch.optim.lr_scheduler import LambdaLR
@@ -79,8 +80,8 @@ class NerModelTrain(NerModel):
             self.params, self.hparams, experiment=self.experiment
         )
 
-        self.epoch_metrics = {"val": dict(), "test": dict()}
-        self.classification_reports = {"val": dict(), "test": dict()}
+        self.epoch_metrics: Dict[str, Dict] = {"val": dict(), "test": dict()}
+        self.classification_reports: Dict[str, Dict] = {"val": dict(), "test": dict()}
 
         self.encoding = read_encoding(self.params.dataset_name)
         self.default_logger.log_info(f"> read encoding: {self.encoding}")
@@ -135,6 +136,11 @@ class NerModelTrain(NerModel):
         self.default_logger.log_debug(
             "> self.annotation.classes:", self.annotation.classes
         )
+
+        assert isinstance(self.hparams, DictConfig), \
+            f"ERROR! type(self.hparams) = {type(self.hparams)} should be DictConfig."
+        assert isinstance(self._hparams, DictConfig), \
+            f"ERROR! type(self._hparams) = {type(self._hparams)} should be DictConfig."
 
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes

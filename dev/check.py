@@ -26,7 +26,7 @@ def main(args):
         commands_list.append(command)
     if args.mypy:
         # --disallow-untyped-calls --disallow-untyped-defs --disallow-incomplete-defs
-        command = f'mypy --config-file=pyproject.toml {BASE_DIR}/nerblackbox'
+        command = f'mypy --config-file={BASE_DIR}/dev/pyproject.toml {BASE_DIR}/nerblackbox'
         commands_list.append(command)
     if args.coverage:
         command = f'coverage run --source=nerblackbox ' \

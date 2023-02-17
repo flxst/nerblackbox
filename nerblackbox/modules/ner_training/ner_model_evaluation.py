@@ -39,7 +39,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def execute(
         self, phase: str, outputs: List[torch.Tensor]
-    ) -> Tuple[Dict[str, np.array], str, str, float]:
+    ) -> Tuple[Dict[str, float], str, str, float]:
         """
         - validate on all batches of one epoch, i.e. whole val or test dataset
 
@@ -48,15 +48,15 @@ class NerModelEvaluation:
             outputs: [list] of [lists] = [batch_loss, batch_tag_ids, batch_logits] with 3 torch tensors for each batch
 
         Returns:
-            epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
+            epoch_metrics          [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [float]
             classification_report: [str]
             confusion_matrix:      [str]
             epoch_loss:            [float] mean of of all batch losses
         """
         print()
-        np_batch: Dict[str, List[np.array]] = self._convert_output_to_np_batch(outputs)
+        np_batch: Dict[str, List[np.ndarray]] = self._convert_output_to_np_batch(outputs)
         np_epoch: Dict[
-            str, Union[np.number, np.array]
+            str, Union[float, np.ndarray]
         ] = self._combine_np_batch_to_np_epoch(np_batch)
 
         # epoch metrics
@@ -78,12 +78,15 @@ class NerModelEvaluation:
             classification_report = ""
             confusion_matrix = ""
 
+        assert isinstance(np_epoch["loss"], float), \
+            f"ERROR! type(np_epoch['loss']) = {type(np_epoch['loss'])} should be float."
+
         return epoch_metrics, classification_report, confusion_matrix, np_epoch["loss"]
 
     @staticmethod
     def _convert_output_to_np_batch(
         outputs: List[torch.Tensor],
-    ) -> Dict[str, List[np.array]]:
+    ) -> Dict[str, List[np.ndarray]]:
         """
         - converts pytorch lightning output to np_batch dictionary
 
@@ -108,8 +111,8 @@ class NerModelEvaluation:
 
     @staticmethod
     def _combine_np_batch_to_np_epoch(
-        np_batch: Dict[str, List[np.array]]
-    ) -> Dict[str, Union[np.number, np.array]]:
+        np_batch: Dict[str, List[np.ndarray]]
+    ) -> Dict[str, Union[float, np.ndarray]]:
         """
         - combine np_batch to np_epoch
 
@@ -121,12 +124,12 @@ class NerModelEvaluation:
 
         Returns:
             np_epoch: [dict] w/ key-value pairs:
-                                'loss':     [np value]
+                                'loss':     [float]
                                 'tag_ids':  [1D np array] of length      <batch_size> x <seq_length>
                                 'logits'    [2D np array] of size shape [<batch_size> x <seq_length>, <num_tags>]
         """
         return {
-            "loss": np.stack(np_batch["loss"]).mean(),
+            "loss": float(np.stack(np_batch["loss"]).mean()),
             "tag_ids": np.concatenate(
                 np_batch["tag_ids"]
             ),  # shape: [dataset_size, seq_length]
@@ -139,24 +142,30 @@ class NerModelEvaluation:
     # 1. COMPUTE METRICS ###############################################################################################
     ####################################################################################################################
     def _compute_metrics(
-        self, phase: str, _np_epoch: Dict[str, Union[np.number, np.array]]
-    ) -> Tuple[Dict[str, np.array], Dict[str, np.array]]:
+        self, phase: str, _np_epoch: Dict[str, Union[float, np.ndarray]]
+    ) -> Tuple[Dict[str, float], Dict[str, List[str]]]:
         """
         - compute loss, acc, f1 scores for size/phase = batch/train or epoch/val-test
 
         Args:
             phase:         [str], 'train', 'val', 'test'
             _np_epoch: [dict] w/ key-value pairs:
-                                 'loss':     [np value]
+                                 'loss':     [float]
                                  'tag_ids':  [1D np array] of length      <batch_size> x <seq_length>
                                  'logits':   [2D np array] of size shape [<batch_size> x <seq_length>, <num_tags>]
 
         Returns:
-            _epoch_metrics  [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
-            _epoch_tags     [dict] w/ keys 'true', 'pred'                & values = [np array]
+            _epoch_metrics  [dict] w/ keys 'all_acc', 'fil_f1_micro', .. & values = [float]
+            _epoch_tags     [dict] w/ keys 'true', 'pred'                & values = [list] of [str]
         """
         # batch / dataset
-        tag_ids = dict()
+        tag_ids: Dict[str, List[int]] = {field: [] for field in ["true", "pred"]}
+
+        assert isinstance(_np_epoch["tag_ids"], np.ndarray), \
+            f"ERROR! type(_np_epoch['tag_ids']) = {type(_np_epoch['tag_ids'])} should be np.ndarray"
+        assert isinstance(_np_epoch["logits"], np.ndarray), \
+            f"ERROR! type(_np_epoch['tag_ids']) = {type(_np_epoch['tag_ids'])} should be np.ndarray"
+
         tag_ids["true"], tag_ids["pred"] = self._reduce_and_flatten(
             _np_epoch["tag_ids"], _np_epoch["logits"]
         )
@@ -213,23 +222,25 @@ class NerModelEvaluation:
         #####################
 
         # batch / dataset metrics
-        _epoch_metrics = {"token_all_loss": _np_epoch["loss"]}
+        assert isinstance(_np_epoch["loss"], float), \
+            f"ERROR! type(np_epoch['loss']) = {type(_np_epoch['loss'])} should be float."
+
+        _epoch_metrics: Dict[str, float] = {"token_all_loss": _np_epoch["loss"]}
         for tag_subset in [
             "all",
             "fil",
         ] + self.annotation_plain.classes:
-            _epoch_metrics.update(
-                self._compute_metrics_for_tags_subset(
+            _epoch_metrics_update = self._compute_metrics_for_tags_subset(
                     _epoch_tags, phase, tag_subset=tag_subset
                 )
-            )
+            _epoch_metrics.update(_epoch_metrics_update)
 
         return _epoch_metrics, _epoch_tags
 
     @staticmethod
     def _reduce_and_flatten(
-        _np_tag_ids: np.array, _np_logits: np.array
-    ) -> Tuple[np.array, np.array]:
+        _np_tag_ids: np.ndarray, _np_logits: np.ndarray
+    ) -> Tuple[List[int], List[int]]:
         """
         helper method for _compute_metrics()
         reduce _np_logits (3D -> 2D), flatten both np arrays (2D -> 1D)
@@ -239,60 +250,67 @@ class NerModelEvaluation:
             _np_logits:  [np array] of shape [batch_size, seq_length, num_tags]
 
         Returns:
-            true_flat: [np array] of shape [batch_size * seq_length], _np_tag_ids               flattened
-            pred_flat: [np array] of shape [batch_size * seq_length], _np_logits    reduced and flattened
+            true_flat: [list] of length [batch_size * seq_length], _np_tag_ids               flattened
+            pred_flat: [list] of length [batch_size * seq_length], _np_logits    reduced and flattened
         """
-        true_flat = _np_tag_ids.flatten()
-        pred_flat = np.argmax(_np_logits, axis=-1).flatten()
+        true_flat = list(_np_tag_ids.flatten())
+        pred_flat = list(np.argmax(_np_logits, axis=-1).flatten())
         return true_flat, pred_flat
 
-    def _convert_tag_ids_to_tags(self, _tag_ids: np.array) -> np.array:
+    def _convert_tag_ids_to_tags(self, _tag_ids: List[int]) -> List[str]:
         """
         helper method for _compute_metrics()
         convert tag_ids (int) to tags (str)
         special tags [*] have tag_id = -100 and are converted to [S]
 
         Args:
-            _tag_ids: [np array] of shape [batch_size * seq_length] with [int] elements
+            _tag_ids: [list] of length [batch_size * seq_length] with [int] elements
 
         Returns:
-            _tags:    [np array] of shape [batch_size * seq_length] with [str] elements
+            _tags:    [list] of length [batch_size * seq_length] with [str] elements
         """
-        return np.array(
-            [
-                self.annotation.classes[int(tag_id)] if tag_id >= 0 else "[S]"
-                for tag_id in _tag_ids
-            ]
-        )
+        return [
+            self.annotation.classes[int(tag_id)] if tag_id >= 0 else "[S]"
+            for tag_id in _tag_ids
+        ]
 
     @staticmethod
     def _get_rid_of_special_tag_occurrences(
-        _tags: Dict[str, np.array]
-    ) -> Dict[str, np.array]:
+        _tags: Dict[str, List[str]]
+    ) -> Dict[str, List[str]]:
         """
         helper method for _compute_metrics()
         get rid of all elements where '[S]' occurs in true array
 
         Args:
             _tags:      [dict] w/ keys = 'true', 'pred' and
-                                  values = [np array] of shape [batch_size * seq_length]
+                                  values = [list] of length [batch_size * seq_length]
 
         Returns:
             _tags_new:  [dict] w/ keys = 'true', 'pred' and
-                                  values = [np array] of shape [batch_size * seq_length - # of spec. token occurrences]
+                                  values = [list] of length [batch_size * seq_length - # of spec. token occurrences]
         """
-        pad_indices = np.where(_tags["true"] == "[S]")
-        return {key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]}
+        # 1. convert lists to numpy arrays
+        _tags_np = {k: np.array(v) for k, v in _tags.items()}
+
+        # 2. get rid of special tag occurrences
+        pad_indices = np.where(_tags_np["true"] == "[S]")
+        _tags_np_new = {key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]}
+
+        # 3. convert numpy arrays to lists
+        _tags_new = {k: list(v) for k, v in _tags_np_new.items()}
+
+        return _tags_new
 
     def _compute_metrics_for_tags_subset(
-        self, _tags: Dict[str, np.array], _phase: str, tag_subset: str
+        self, _tags: Dict[str, List[str]], _phase: str, tag_subset: str
     ) -> Dict[str, float]:
         """
         helper method for _compute_metrics()
         compute metrics for tags subset (e.g. 'all', 'fil')
 
         Args:
-            _tags:      [dict] w/ keys 'true', 'pred'      & values = [np array]
+            _tags:      [dict] w/ keys 'true', 'pred'      & values = [list] of [str]
             _phase:     [str], 'train', 'val'
             tag_subset: [str], e.g. 'all', 'fil', 'PER'
 
@@ -382,7 +400,7 @@ class NerModelEvaluation:
         return _metrics
 
     def _get_filtered_classes(
-        self, _tag_subset: str, _tags_plain: Optional[Dict[str, np.array]] = None
+        self, _tag_subset: str, _tags_plain: Optional[Dict[str, List[str]]] = None
     ) -> Tuple[List[str], Optional[int]]:
         """
         helper method for _compute_metrics()
@@ -390,7 +408,7 @@ class NerModelEvaluation:
 
         Args:
             _tag_subset: [str], e.g. 'all', 'fil', 'PER'
-            _tags_plain: [dict] w/ keys 'true', 'pred'      & values = [np array]
+            _tags_plain: [dict] w/ keys 'true', 'pred'      & values = [list] of [str]
 
         Returns:
             _filtered_classes:     list of filtered tags
@@ -430,7 +448,7 @@ class NerModelEvaluation:
     ####################################################################################################################
     def _get_classification_report(
         self,
-        epoch_tags: Dict[str, np.array],
+        epoch_tags: Dict[str, List[str]],
         phase: Optional[str] = None,
         epoch: Optional[int] = None,
     ) -> str:
@@ -438,7 +456,7 @@ class NerModelEvaluation:
         - get token-based (sklearn) & chunk-based (seqeval) classification report
 
         Args:
-            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [np array]
+            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [list] of [str]
             phase:          [str], 'train', 'val', 'test'
             epoch:          [int]
 
@@ -497,7 +515,7 @@ class NerModelEvaluation:
 
     def _get_confusion_matrix_str(
         self,
-        epoch_tags: Dict[str, np.array],
+        epoch_tags: Dict[str, List[str]],
         phase: Optional[str] = None,
         epoch: Optional[int] = None,
     ) -> str:
@@ -505,7 +523,7 @@ class NerModelEvaluation:
         - get token-based (sklearn) confusion matrix
 
         Args:
-            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [np array]
+            epoch_tags:     [dict] w/ keys 'true', 'pred'      & values = [list] of [str]
             phase:          [str], 'train', 'val', 'test'
             epoch:          [int]
 

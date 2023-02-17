@@ -2,7 +2,6 @@ import json
 import os
 from os.path import join, isdir, isfile
 
-import omegaconf.errors
 from transformers import AutoModelForTokenClassification
 from omegaconf import DictConfig
 from omegaconf.errors import ConfigKeyError
@@ -27,6 +26,9 @@ class NerModelTrain2Model(NerModel):
         super().__init__(hparams)
 
     def _preparations(self):
+        assert isinstance(self.hparams, DictConfig), \
+            f"ERROR! type(self.hparams) = {type(self.hparams)} should be a DictConfig."
+
         self.annotation_classes = json.loads(self.hparams["annotation_classes"])
         self.pretrained_model_name = self.hparams["pretrained_model_name"]
         try:

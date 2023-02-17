@@ -385,7 +385,8 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
         Returns:
             _row_list: e.g. ["Det", "PER", "X", "B"]
         """
-        pass  # not necessary as _read_original_file() is not used
+        # not necessary as _read_original_file() is not used
+        return []
 
     def _format_original_file(
         self, _row_list: List[str]

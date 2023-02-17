@@ -1,6 +1,6 @@
 import os
 import glob
-from typing import List, Union, Dict, Tuple
+from typing import List, Union, Dict, Tuple, Optional, Any
 from os.path import isdir, abspath, join, isfile
 import subprocess
 import signal
@@ -25,20 +25,20 @@ class Store:
     Attributes:
          path: path to store's main directory
     """
-    path: str = os.environ.get("DATA_DIR")
+    path: Optional[str] = os.environ.get("DATA_DIR")
 
     # will be set by _update_client() & _update_experiments()
-    client: MlflowClient = None
-    experiment_id2name: Dict[str, str] = None
-    experiment_name2id: Dict[str, str] = None
+    client: Optional[MlflowClient] = None
+    experiment_id2name: Optional[Dict[str, str]] = None
+    experiment_name2id: Optional[Dict[str, str]] = None
 
-    process = {
+    process: Dict[str, Any] = {
         "mlflow": None,
         "tensorboard": None,
     }
 
     @classmethod
-    def get_path(cls) -> str:
+    def get_path(cls) -> Optional[str]:
         r"""
         Returns:
             cls.path: path to store's main directory
@@ -46,7 +46,7 @@ class Store:
         return cls.path
 
     @classmethod
-    def set_path(cls, path: str) -> str:
+    def set_path(cls, path: str) -> Optional[str]:
         r"""
         Args:
             path: path to store's main directory
@@ -95,6 +95,9 @@ class Store:
             experiments: overview of experiments that have been run
         """
         cls._update_experiments()
+
+        assert isinstance(cls.experiment_id2name, dict), \
+            f"ERROR! type(cls.experiment_id2name) = {type(cls.experiment_id2name)} should be dict."
 
         experiments_overview = sorted(
             [
@@ -157,7 +160,9 @@ class Store:
 
             if experiment_name in cls.experiment_name2id.keys():
                 experiment_id: str = cls.experiment_name2id[experiment_name]
-                runs: List[Run] = cls.client.search_runs(experiment_id)
+                assert isinstance(cls.client, MlflowClient), \
+                    f"ERROR! type(cls.client) = {type(cls.client)} should be MlflowClient"
+                runs: List[Run] = cls.client.search_runs([experiment_id])
 
                 return True, ExperimentResults.from_mlflow_runs(
                     runs,
@@ -197,6 +202,7 @@ class Store:
         """
         :used attr: clear_all [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
         """
+        assert isinstance(cls.path, str), f"ERROR! type(cls.path) = {type(cls.path)} should be str."
         results_dir = join(cls.path, "results")
         assert isdir(results_dir), f"directory {results_dir} does not exist."
 
@@ -333,7 +339,7 @@ class Store:
         Returns:
             start_command: e.g. "cd [..]; mlflow ui"
         """
-        cmd_cd = f'cd {join(os.environ.get("DATA_DIR"), "results")}'
+        cmd_cd = f'cd {join(env_variable("DATA_DIR"), "results")}'
         if server_type == "mlflow":
             return f'{cmd_cd}; mlflow ui'
         elif server_type == "tensorboard":

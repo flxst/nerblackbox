@@ -1,11 +1,10 @@
-import os
 from os.path import join
-import numpy as np
 import pytorch_lightning as pl
+from pytorch_lightning.core.optimizer import LightningOptimizer
 from abc import ABC, abstractmethod
 import torch
 from torch.optim.optimizer import Optimizer
-from typing import List, Dict, Optional, Callable, Tuple, Any
+from typing import List, Dict, Optional, Callable, Tuple, Any, Union
 from omegaconf import DictConfig
 
 from torch.optim.lr_scheduler import LambdaLR
@@ -26,6 +25,7 @@ from nerblackbox.modules.ner_training.ner_model_evaluation import NerModelEvalua
 from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
 from nerblackbox.modules.ner_training.logging.mlflow_client import MLflowClient
 from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
+from nerblackbox.modules.utils.env_variable import env_variable
 
 
 class NerModel(pl.LightningModule, ABC):
@@ -96,7 +96,7 @@ class NerModel(pl.LightningModule, ABC):
         except ValueError:
             # use local model
             self.pretrained_model_name = join(
-                os.environ.get("DATA_DIR"),
+                env_variable("DATA_DIR"),
                 "pretrained_models",
                 self.params.pretrained_model_name,
             )
@@ -181,15 +181,16 @@ class NerModel(pl.LightningModule, ABC):
 
     def optimizer_step(
         self,
-        epoch: int = None,
-        batch_idx: int = None,
-        optimizer: Optimizer = None,
-        optimizer_idx: int = None,
+        epoch: int,
+        batch_idx: int,
+        optimizer: Union[Optimizer, LightningOptimizer],
+        optimizer_idx: int = 0,
         optimizer_closure: Optional[Callable] = None,
-        on_tpu: bool = None,
-        using_native_amp: bool = None,
-        using_lbfgs: bool = None,
+        on_tpu: bool = False,
+        using_native_amp: bool = False,
+        using_lbfgs: bool = False,
     ) -> None:
+        assert isinstance(optimizer, Optimizer), f"ERROR! type(optimizer) = {type(optimizer)} should be Optimizer."
 
         # update params
         if optimizer is not None:
@@ -222,6 +223,8 @@ class NerModel(pl.LightningModule, ABC):
         :return:        [dict] w/ key 'val_loss' & value = mean batch loss of val dataset [float]
         """
         # OPTIONAL
+        assert self.trainer is not None, f"ERROR! self.trainer is None."
+
         if self.trainer.state.fn == "fit":
             metrics = "loss"
         elif self.trainer.state.fn == "validate":
@@ -502,14 +505,14 @@ class NerModel(pl.LightningModule, ABC):
     def _log_metrics_confusion_matrix_classification_report(
         self,
         phase: str,
-        epoch_metrics: Dict[str, np.array],
+        epoch_metrics: Dict[str, float],
         confusion_matrix: Optional[str] = "",
         classification_report: Optional[str] = "",
     ) -> None:
         """
         Args:
             phase:                  'val', 'test'
-            epoch_metrics           keys 'all_acc', 'fil_f1_micro', .. & values = [np array]
+            epoch_metrics           keys 'all_acc', 'fil_f1_micro', .. & values = [flaot]
             confusion_matrix:
             classification_report:
         """

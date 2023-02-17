@@ -17,13 +17,14 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     InputExamples,
 )
 from nerblackbox.modules.ner_training.annotation_tags.annotation import Annotation
+from nerblackbox.modules.ner_training.logging.default_logger import DefaultLogger
 from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.modules.utils.util_functions import get_dataset_path
 from torch.utils.data import DataLoader, Sampler, RandomSampler, SequentialSampler
 from pkg_resources import resource_filename
 from copy import deepcopy
 from os.path import join, isfile
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Dict, Tuple, Optional, Any, Union
 
 PHASES = ["train", "val", "test"]
 SENTENCES_ROWS_UNPRETOKENIZED = List[Dict[str, Any]]
@@ -34,7 +35,7 @@ class DataPreprocessor:
         self,
         tokenizer,
         do_lower_case: bool,
-        default_logger: PseudoDefaultLogger,
+        default_logger: Union[DefaultLogger, PseudoDefaultLogger],
         max_seq_length: int = 64,
     ):
         """
@@ -113,7 +114,7 @@ class DataPreprocessor:
         self,
         examples: List[str],
         is_pretokenized: bool,
-    ) -> Tuple[Dict[str, InputExamples], List[str], List[List[Tuple[int, int]]]]:
+    ) -> Tuple[Dict[str, InputExamples], List[str], Optional[List[List[Tuple[int, int]]]]]:
         """
         - get input examples for PREDICT from input argument examples
 
@@ -286,7 +287,8 @@ class DataPreprocessor:
                 i += 1
         return _tokens
 
-    def _resolve_overlapping_tags(self, _tags: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    @staticmethod
+    def _resolve_overlapping_tags(_tags: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
 
         Args:

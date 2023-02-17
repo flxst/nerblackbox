@@ -158,8 +158,8 @@ class InputExamplesToTensors:
         all_tag_ids = list()
         for offsets in all_offsets:
             # create an empty array of -100
-            arr_tag_ids: np.array = np.ones(len(offsets), dtype=int) * tag_id_special
-            arr_offsets: np.array = np.array(offsets)
+            arr_tag_ids: np.ndarray = np.ones(len(offsets), dtype=int) * tag_id_special
+            arr_offsets: np.ndarray = np.array(offsets)
 
             # set labels whose first offset position is 0 and the second is not 0
             nr_matches: int = len(
@@ -171,7 +171,7 @@ class InputExamplesToTensors:
             index += nr_matches
 
             # convert
-            tag_ids: List[int] = arr_tag_ids.tolist()
+            tag_ids: List[int] = list(arr_tag_ids)
             all_tag_ids.append(tag_ids)
 
         return all_tag_ids

@@ -619,7 +619,7 @@ class TestModelStatic:
     )
     def test_restore_unknown_tokens(
         self,
-        word_predictions: List[Tuple[Union[str, Any], ...]],
+        word_predictions: List[Tuple[str, Union[str, Dict[str, float]]]],  # List[Tuple[Union[str, Any], ...]],  # #
         input_text: str,
         word_predictions_restored: List[Dict[str, Any]],
     ):

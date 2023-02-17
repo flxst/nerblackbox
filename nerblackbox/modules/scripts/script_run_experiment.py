@@ -116,11 +116,11 @@ def _parse_args(_parser, _args):
             )
             group_dict["fp16"] = (
                 True
-                if group_dict["fp16"] and group_dict["device"].type == "cuda"
+                if group_dict["fp16"] and group_dict["device"] and group_dict["device"].type == "cuda"
                 else False
             )
             group_dict["from_config"] = bool(group_dict["from_config"])
-            if len(group_dict["run_name"]) == 0:
+            if group_dict["run_name"] is not None and len(group_dict["run_name"]) == 0:
                 group_dict["run_name"] = None
             _params = argparse.Namespace(**group_dict)
 

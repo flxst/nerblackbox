@@ -63,7 +63,7 @@ class CsvReader:
     ####################################################################################################################
     # PRIVATE METHODS
     ####################################################################################################################
-    def _process(self):
+    def _process(self) -> None:
         """
         read csv, get data and annotation_classes
 
@@ -73,7 +73,7 @@ class CsvReader:
 
         Returns: -
         """
-        annotation_classes_found = list()
+        annotation_classes_found: List[str] = list()
         for phase in ["train", "val", "test"]:
             # data
             self.data[phase] = self._read_csv(
@@ -93,7 +93,7 @@ class CsvReader:
                 list(set(annotation_classes_found + annotation_classes_phase))
             )
 
-        self.annotation_classes: List[str] = ["O"] + [
+        self.annotation_classes = ["O"] + [
             elem for elem in annotation_classes_found if elem != "O"
         ]
 
@@ -120,7 +120,7 @@ class CsvReader:
             path, names=["tags", "text"], header=None, sep=self.csv_file_separator
         )
 
-    def _create_list_of_input_examples(self, df, set_type):
+    def _create_list_of_input_examples(self, df, set_type) -> List[InputExample]:
         """
         create list of input examples from pandas dataframe created from _read_csv() method
         -----------------------------------------------------------------------------------
