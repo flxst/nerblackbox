@@ -233,13 +233,14 @@ class Experiment:
 
         if not self.from_config:
             kwargs["from_preset"] = from_preset
+            hparams = kwargs.pop("hparams")
 
-        # get rid of keys in kwargs that are present in kwargs["hparams"]
-        for key in _hparams.keys():
-            if key in kwargs.keys():
-                kwargs.pop(key)
-
-        hparams = None if _hparams == {} else _hparams
+            # get rid of keys in kwargs that are present in hparams
+            for key in hparams.keys():
+                if key in kwargs.keys():
+                    kwargs.pop(key)
+        else:
+            hparams = None
 
         return kwargs, hparams
 
@@ -256,10 +257,12 @@ class Experiment:
             _hparams:        [dict], e.g. {'multiple_runs': '2'} with hparams to use
         """
         _hparams = get_preset(from_preset)
+
         if _hparams is None:
             _hparams = hparams
         elif hparams is not None:
             _hparams.update(**hparams)
+
         return _hparams
 
     def _checks(self):
