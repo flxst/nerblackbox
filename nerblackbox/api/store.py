@@ -284,7 +284,7 @@ class Store:
         cls.experiment_id2name = {
             elem["_experiment_id"]: elem["_name"]
             for elem in [
-                vars(experiment) for experiment in cls.client.list_experiments()
+                vars(experiment) for experiment in cls.client.search_experiments()
             ]
             if elem["_name"] != "Default"
         }

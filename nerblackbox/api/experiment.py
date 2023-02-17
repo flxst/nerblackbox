@@ -116,7 +116,7 @@ class Experiment:
             entry_point="run_experiment",
             experiment_name=self.experiment_name,
             parameters=_parameters,
-            use_conda=False,
+            env_manager="local",
         )
 
         experiment_exists, self.results = Store.get_experiment_results_single(self.experiment_name)
