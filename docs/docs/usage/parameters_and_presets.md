@@ -2,7 +2,7 @@
 
 An experiment is defined by a set of parameters. 
 
-These can be specified in a [static experiment configuration](../getting_started/#3-fine-tune-a-model) file ``./store/experiment_configs/<experiment_name>.ini``.
+These can be specified in a [static experiment configuration](../getting_started/#3-experiment-fine-tune-a-model) file ``./store/experiment_configs/<experiment_name>.ini``.
 
 ??? example "Example: custom_experiment.ini"
     ``` markdown
@@ -49,9 +49,9 @@ These can be specified in a [static experiment configuration](../getting_started
     lr_schedule = cosine
     ```
 
-Alternatively, the parameters can be used to [define an experiment dynamically](../getting_started/#3-fine-tune-a-model).
+Alternatively, the parameters can be used to [define an experiment dynamically](../getting_started/#3-experiment-fine-tune-a-model).
 In that case, there are several hyperparameter [presets](./#presets) available 
-for use with [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment).
+for use with [Experiment()](../../python_api/experiment).
 
 In the following, we will go through the different parameters step by step to see what they mean.
 
@@ -177,8 +177,8 @@ others are **optional** and are set to default values if not specified.
 -----------
 ## Presets
 
-When an experiment is defined [dynamically](../getting_started/#3-fine-tune-a-model), there are several hyperparameter presets available.
-They can be specified using the ``from_preset`` argument in [`nerbb.run_experiment()`](../../python_api/nerblackbox/#nerblackbox.api.NerBlackBox.run_experiment).
+When an experiment is defined [dynamically](../getting_started/#3-experiment-fine-tune-a-model), there are several hyperparameter presets available.
+They can be specified using the ``from_preset`` argument in [Experiment()](../../python_api/experiment).
 
 In the following, we list the different presets together with the [Hyperparameters](./#4-hyperparameters) that they entail:
 

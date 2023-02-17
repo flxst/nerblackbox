@@ -62,7 +62,7 @@ To include your own custom dataset, do the following:
 
 - Create a folder ``./data/datasets/<custom_dataset>``
     and add three files ``train.*``, ``val.*``, ``test.*`` to it. 
-    The filename extension is either ``* = jsonl`` or ``* = csv``, depending on the [data format](../../features/support_pretokenized) (standard or pretokenized).
+    The filename extension is either ``* = jsonl`` or ``* = csv``, depending on the [data format](../../../features/data/support_pretokenized) (standard or pretokenized).
 
 - If your data consists of standard annotations, it must adhere to the following ``.jsonl`` format:
       ```
@@ -79,8 +79,8 @@ To include your own custom dataset, do the following:
       ``<tags> <tab> <text>``, where in ``<tags>`` and ``<text>`` the tags and tokens are separated by whitespace.
       This format is suitable for many public datasets. 
 
-- Use ``dataset_name = <custom_dataset>`` as [`parameter`](../parameters_and_presets/#1-dataset) 
-    when [`fine-tuning a model`](../getting_started/#3-fine-tune-a-model).
+- Use ``dataset_name = <custom_dataset>`` as [parameter](../parameters_and_presets/#1-dataset) 
+    when [fine-tuning a model](../getting_started/#3-experiment-fine-tune-a-model).
 
 <!---
 TODO
@@ -105,4 +105,4 @@ To include your own custom model, do the following:
 - ``<custom_model>`` must include the architecture type, e.g. ``bert``
 
 - Use ``pretrained_model_name = <custom_model>`` as [parameter](../parameters_and_presets/#2-model)
-    when [fine-tuning a model](../getting_started/#3-fine-tune-a-model).
+    when [fine-tuning a model](../getting_started/#3-experiment-fine-tune-a-model).

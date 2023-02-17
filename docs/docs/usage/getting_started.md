@@ -202,7 +202,7 @@ The [Store](../../python_api/store) class provides a few additional useful metho
 
 - Detailed experiment results (e.g. learning curves) can be accessed using `mlflow` or `tensorboard`:
 
-    ??? note "access detailed results"
+    ??? note "get detailed results"
 
         === "Python"
             ``` python
@@ -215,7 +215,7 @@ The [Store](../../python_api/store) class provides a few additional useful metho
             nerbb tensorboard    # + enter http://localhost:6006 in your browser
             ```
 
-        The underlying processes can be stopped using 
+        Python: The underlying processes can be stopped using 
         [`Store.mlflow("stop")`](../../python_api/store/#nerblackbox.api.store.Store.mlflow) 
         and [`Store.tensorboard("stop")`](../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
 

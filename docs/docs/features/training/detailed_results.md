@@ -17,12 +17,21 @@ The main results of an experiment, especially the micro-averaged f1 score, can b
 In addition, on may have a look at much more detailed results of an experiment
 using `mlflow` or `tensorboard`.
 
-??? note "get detailed results (only CLI)"
+??? note "get detailed results"
+    === "Python"
+        ``` python
+        Store.mlflow("start")       # + enter http://localhost:5000 in your browser
+        Store.tensorboard("start")  # + enter http://localhost:6006 in your browser
+        ```
     === "CLI"
         ``` bash
-        nerbb mlflow       # + enter http://localhost:5000 in your browser
-        nerbb tensorboard  # + enter http://localhost:6006 in your browser
+        nerbb mlflow         # + enter http://localhost:5000 in your browser
+        nerbb tensorboard    # + enter http://localhost:6006 in your browser
         ```
+
+    Python: The underlying processes can be stopped using
+    [`Store.mlflow("stop")`](../../../python_api/store/#nerblackbox.api.store.Store.mlflow)
+    and [`Store.tensorboard("stop")`](../../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
 
 - `mlflow` displays precision, recall and f1 score for every single class, 
     as well the respective micro- and macro-averages over all classes, both on the token and entity level.
