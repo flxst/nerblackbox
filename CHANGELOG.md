@@ -1,7 +1,7 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.0.14 (2023-02-14)
+## 0.0.14 (2023-02-18)
 #### Added
 - Model: prediction on file
 - Model: evaluation of any model on any dataset

@@ -74,7 +74,7 @@ Fine-tune a `language model <https://huggingface.co/transformers/pretrained_mode
     #  {'char_start': '40', 'char_end': '47', 'token': 'Jakarta', 'tag': 'LOC'}
     # ]]
 
-There is much more to it than that! See the `documentation <https://flxst.github.io/nerblackbox/usage/getting_started/>`_ to get started.
+There is much more to it than that! See the `documentation <https://flxst.github.io/nerblackbox/usage/getting_started/>`__ to get started.
 
 Features
 ========
@@ -107,7 +107,7 @@ Features
 * GPU Support
 * Language Agnosticism
 
-See the `documentation <https://flxst.github.io/nerblackbox/features/overview>`_ for more details.
+See the `documentation <https://flxst.github.io/nerblackbox/features/overview>`__ for more details.
 
 Citation
 ========
