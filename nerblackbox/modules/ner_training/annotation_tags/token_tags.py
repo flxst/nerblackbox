@@ -4,7 +4,9 @@ from copy import deepcopy
 
 
 class TokenTags:
-    def __init__(self, token_tag_list: List[Dict[str, str]], scheme: str, level: str = "token"):
+    def __init__(
+        self, token_tag_list: List[Dict[str, str]], scheme: str, level: str = "token"
+    ):
         """
         Args:
             token_tag_list: e.g. [
@@ -123,13 +125,21 @@ class TokenTags:
             level: 'word'
 
         """
-        for i in range(len(self.token_tag_list)-1, 0, -1):
-            if i > 0 and self.token_tag_list[i]["char_start"] == self.token_tag_list[i-1]["char_end"]:
+        for i in range(len(self.token_tag_list) - 1, 0, -1):
+            if (
+                i > 0
+                and self.token_tag_list[i]["char_start"]
+                == self.token_tag_list[i - 1]["char_end"]
+            ):
                 self.token_tag_list[i]["tag"] = "DELETE"
-                self.token_tag_list[i-1]["char_end"] = self.token_tag_list[i]["char_end"]
-                self.token_tag_list[i-1]["token"] += self.token_tag_list[i]["token"]
+                self.token_tag_list[i - 1]["char_end"] = self.token_tag_list[i][
+                    "char_end"
+                ]
+                self.token_tag_list[i - 1]["token"] += self.token_tag_list[i]["token"]
 
-        self.token_tag_list = [elem for elem in self.token_tag_list if elem["tag"] != "DELETE"]
+        self.token_tag_list = [
+            elem for elem in self.token_tag_list if elem["tag"] != "DELETE"
+        ]
         self.level = "word"
 
     def unpretokenize(self, _pretokenization_offsets: List[Tuple[int, int]]):
@@ -159,9 +169,10 @@ class TokenTags:
                     {'char_start': '11', 'char_end': '15', 'token': 'Mamma', 'tag': 'O'},
                 ]
         """
-        assert len(self.token_tag_list) == len(_pretokenization_offsets), \
-            f"ERROR! #token_tag_list = {len(self.token_tag_list)} != " \
+        assert len(self.token_tag_list) == len(_pretokenization_offsets), (
+            f"ERROR! #token_tag_list = {len(self.token_tag_list)} != "
             f"#pretokenization_offsets = {len(_pretokenization_offsets)}"
+        )
 
         nr_tokens = len(self.token_tag_list)
         for j in range(nr_tokens):

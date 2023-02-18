@@ -26,8 +26,9 @@ class NerModelTrain2Model(NerModel):
         super().__init__(hparams)
 
     def _preparations(self):
-        assert isinstance(self.hparams, DictConfig), \
-            f"ERROR! type(self.hparams) = {type(self.hparams)} should be a DictConfig."
+        assert isinstance(
+            self.hparams, DictConfig
+        ), f"ERROR! type(self.hparams) = {type(self.hparams)} should be a DictConfig."
 
         self.annotation_classes = json.loads(self.hparams["annotation_classes"])
         self.pretrained_model_name = self.hparams["pretrained_model_name"]
@@ -79,13 +80,19 @@ class NerModelTrain2Model(NerModel):
 
             # 3. config (max_seq_length & annotation)
             path_config = join(export_directory, "config.json")
-            assert isfile(path_config), f"ERROR! config file at {path_config} does not exist."
+            assert isfile(
+                path_config
+            ), f"ERROR! config file at {path_config} does not exist."
             with open(path_config, "r") as f:
                 config = json.load(f)
 
             config["max_seq_length"] = self.max_seq_length
-            config["id2label"] = {_id: _label for _id, _label in enumerate(self.annotation_classes)}
-            config["label2id"] = {_label: _id for _id, _label in enumerate(self.annotation_classes)}
+            config["id2label"] = {
+                _id: _label for _id, _label in enumerate(self.annotation_classes)
+            }
+            config["label2id"] = {
+                _label: _id for _id, _label in enumerate(self.annotation_classes)
+            }
 
             with open(path_config, "w") as f:
                 json.dump(config, f)

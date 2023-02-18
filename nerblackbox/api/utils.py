@@ -1,13 +1,10 @@
-
 from typing import Optional, Dict, Any
 
 
 class Utils:
-
     @classmethod
     def process_kwargs_optional(
-            cls,
-            _kwargs_optional: Optional[Dict[str, Any]] = None
+        cls, _kwargs_optional: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         general helper function

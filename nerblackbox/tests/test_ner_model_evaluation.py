@@ -183,14 +183,14 @@ class TestNerModelEvaluation:
                 },
             ),
             (
-                    {
-                        "true": ["PER", "[S]", "ORG", "[S]"],
-                        "pred": ["PER", "ORG", "O", "O"],
-                    },
-                    {
-                        "true": ["PER", "ORG"],
-                        "pred": ["PER", "O"],
-                    },
+                {
+                    "true": ["PER", "[S]", "ORG", "[S]"],
+                    "pred": ["PER", "ORG", "O", "O"],
+                },
+                {
+                    "true": ["PER", "ORG"],
+                    "pred": ["PER", "O"],
+                },
             ),
         ],
     )

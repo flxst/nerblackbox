@@ -190,7 +190,9 @@ class NerModel(pl.LightningModule, ABC):
         using_native_amp: bool = False,
         using_lbfgs: bool = False,
     ) -> None:
-        assert isinstance(optimizer, Optimizer), f"ERROR! type(optimizer) = {type(optimizer)} should be Optimizer."
+        assert isinstance(
+            optimizer, Optimizer
+        ), f"ERROR! type(optimizer) = {type(optimizer)} should be Optimizer."
 
         # update params
         if optimizer is not None:

@@ -114,7 +114,9 @@ class DataPreprocessor:
         self,
         examples: List[str],
         is_pretokenized: bool,
-    ) -> Tuple[Dict[str, InputExamples], List[str], Optional[List[List[Tuple[int, int]]]]]:
+    ) -> Tuple[
+        Dict[str, InputExamples], List[str], Optional[List[List[Tuple[int, int]]]]
+    ]:
         """
         - get input examples for PREDICT from input argument examples
 
@@ -135,7 +137,9 @@ class DataPreprocessor:
             _data_pretokenized = [
                 {
                     "text": example,
-                    "tags": " ".join(["O" for _ in range(len(example.split()))]),  # pseudo tags
+                    "tags": " ".join(
+                        ["O" for _ in range(len(example.split()))]
+                    ),  # pseudo tags
                 }
                 for example in examples
             ]
@@ -308,7 +312,7 @@ class DataPreprocessor:
         """
         _resolved_tags = list()
         for i in range(len(_tags)):
-            if i == 0 or _tags[i-1]["char_end"] <= _tags[i]["char_start"]:
+            if i == 0 or _tags[i - 1]["char_end"] <= _tags[i]["char_start"]:
                 _resolved_tags.append(_tags[i])
         return _resolved_tags
 
@@ -345,7 +349,11 @@ class DataPreprocessor:
         _data_pretokenized = list()
         _pretokenization_offsets = list()
         for n in range(len(_data)):
-            word_tuples = self.tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str(_data[n]["text"])
+            word_tuples = (
+                self.tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str(
+                    _data[n]["text"]
+                )
+            )
             tags = ["O"] * len(word_tuples)
             entity_dicts = self._resolve_overlapping_tags(_data[n]["tags"])
             for entity_dict in entity_dicts:
@@ -355,9 +363,15 @@ class DataPreprocessor:
                 for word_index, word_tuple in enumerate(word_tuples):
                     word_char_start = word_tuple[1][0]
                     word_char_end = word_tuple[1][1]
-                    if word_char_start == entity_char_start and word_char_end <= entity_char_end:
+                    if (
+                        word_char_start == entity_char_start
+                        and word_char_end <= entity_char_end
+                    ):
                         tags[word_index] = f"B-{entity_tag}"
-                    elif word_char_start >= entity_char_start and word_char_end <= entity_char_end:
+                    elif (
+                        word_char_start >= entity_char_start
+                        and word_char_end <= entity_char_end
+                    ):
                         tags[word_index] = f"I-{entity_tag}"
 
             words = [word_tuple[0] for word_tuple in word_tuples]

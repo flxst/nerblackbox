@@ -967,113 +967,109 @@ class TestTokenTags:
 
     ####################################################################################################################
     @pytest.mark.parametrize(
-        "scheme, "
-        "example_token_predictions,"
-        "example_word_predictions",
+        "scheme, " "example_token_predictions," "example_word_predictions",
         [
             # 1. BIO: 1 single word entity
             (
-                    "bio",
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "O",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "O",
-                        },
-                    ],
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "18",
-                            "token": "arbetsförmedlingen",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "19",
-                            "char_end": "24",
-                            "token": "finns",
-                            "tag": "O",
-                        },
-                        {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
-                        {
-                            "char_start": "27",
-                            "char_end": "36",
-                            "token": "stockholm",
-                            "tag": "O",
-                        },
-                    ],
+                "bio",
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "18",
+                        "token": "arbetsförmedlingen",
+                        "tag": "B-ORG",
+                    },
+                    {
+                        "char_start": "19",
+                        "char_end": "24",
+                        "token": "finns",
+                        "tag": "O",
+                    },
+                    {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                    {
+                        "char_start": "27",
+                        "char_end": "36",
+                        "token": "stockholm",
+                        "tag": "O",
+                    },
+                ],
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "18",
+                        "token": "arbetsförmedlingen",
+                        "tag": "B-ORG",
+                    },
+                    {
+                        "char_start": "19",
+                        "char_end": "24",
+                        "token": "finns",
+                        "tag": "O",
+                    },
+                    {"char_start": "25", "char_end": "26", "token": "i", "tag": "O"},
+                    {
+                        "char_start": "27",
+                        "char_end": "36",
+                        "token": "stockholm",
+                        "tag": "O",
+                    },
+                ],
             ),
             (
-                    "bio",
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "4",
-                            "token": "2020",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "4",
-                            "char_end": "5",
-                            "token": "-",
-                            "tag": "I-PER",
-                        },
-                        {
-                            "char_start": "5",
-                            "char_end": "7",
-                            "token": "04",
-                            "tag": "O",
-                        },
-                        {
-                            "char_start": "8",
-                            "char_end": "10",
-                            "token": "it",
-                            "tag": "O",
-                        },
-                    ],
-                    [
-                        {
-                            "char_start": "0",
-                            "char_end": "7",
-                            "token": "2020-04",
-                            "tag": "B-ORG",
-                        },
-                        {
-                            "char_start": "8",
-                            "char_end": "10",
-                            "token": "it",
-                            "tag": "O",
-                        },
-                    ],
-            )
+                "bio",
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "4",
+                        "token": "2020",
+                        "tag": "B-ORG",
+                    },
+                    {
+                        "char_start": "4",
+                        "char_end": "5",
+                        "token": "-",
+                        "tag": "I-PER",
+                    },
+                    {
+                        "char_start": "5",
+                        "char_end": "7",
+                        "token": "04",
+                        "tag": "O",
+                    },
+                    {
+                        "char_start": "8",
+                        "char_end": "10",
+                        "token": "it",
+                        "tag": "O",
+                    },
+                ],
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "7",
+                        "token": "2020-04",
+                        "tag": "B-ORG",
+                    },
+                    {
+                        "char_start": "8",
+                        "char_end": "10",
+                        "token": "it",
+                        "tag": "O",
+                    },
+                ],
+            ),
         ],
     )
     def test_merge_tokens_to_words(
-            self,
-            scheme: str,
-            example_token_predictions: List[Dict[str, Any]],
-            example_word_predictions: List[Dict[str, Any]],
+        self,
+        scheme: str,
+        example_token_predictions: List[Dict[str, Any]],
+        example_word_predictions: List[Dict[str, Any]],
     ):
         token_tags = TokenTags(example_token_predictions, scheme=scheme)
         token_tags.merge_tokens_to_words()
         test_example_word_predictions = token_tags.as_list()
-        assert (
-                test_example_word_predictions == example_word_predictions
-        ), (
+        assert test_example_word_predictions == example_word_predictions, (
             f"test_example_word_predictions = "
             f"{test_example_word_predictions} != "
             f"{example_word_predictions}"
@@ -1084,38 +1080,63 @@ class TestTokenTags:
         "predictions, scheme, pretokenization_offsets, predictions_unpretokenized",
         [
             (
-                    [
-                        {'char_start': '0', 'char_end': '4', 'token': '2021', 'tag': 'B-PI'},
-                        {'char_start': '5', 'char_end': '6', 'token': '-', 'tag': 'I-PI'},
-                        {'char_start': '7', 'char_end': '9', 'token': '10', 'tag': 'I-PI'},
-                        {'char_start': '10', 'char_end': '11', 'token': '-', 'tag': 'I-PI'},
-                        {'char_start': '12', 'char_end': '14', 'token': '14', 'tag': 'I-PI'},
-                        {'char_start': '15', 'char_end': '20', 'token': 'Mamma', 'tag': 'O'},
-                    ],
-                    "bio",
-                    [(0, 4), (4, 5), (5, 7), (7, 8), (8, 10), (11, 15)],
-                    [
-                        {'char_start': '0', 'char_end': '4', 'token': '2021', 'tag': 'B-PI'},
-                        {'char_start': '4', 'char_end': '5', 'token': '-', 'tag': 'I-PI'},
-                        {'char_start': '5', 'char_end': '7', 'token': '10', 'tag': 'I-PI'},
-                        {'char_start': '7', 'char_end': '8', 'token': '-', 'tag': 'I-PI'},
-                        {'char_start': '8', 'char_end': '10', 'token': '14', 'tag': 'I-PI'},
-                        {'char_start': '11', 'char_end': '15', 'token': 'Mamma', 'tag': 'O'},
-                    ],
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "4",
+                        "token": "2021",
+                        "tag": "B-PI",
+                    },
+                    {"char_start": "5", "char_end": "6", "token": "-", "tag": "I-PI"},
+                    {"char_start": "7", "char_end": "9", "token": "10", "tag": "I-PI"},
+                    {"char_start": "10", "char_end": "11", "token": "-", "tag": "I-PI"},
+                    {
+                        "char_start": "12",
+                        "char_end": "14",
+                        "token": "14",
+                        "tag": "I-PI",
+                    },
+                    {
+                        "char_start": "15",
+                        "char_end": "20",
+                        "token": "Mamma",
+                        "tag": "O",
+                    },
+                ],
+                "bio",
+                [(0, 4), (4, 5), (5, 7), (7, 8), (8, 10), (11, 15)],
+                [
+                    {
+                        "char_start": "0",
+                        "char_end": "4",
+                        "token": "2021",
+                        "tag": "B-PI",
+                    },
+                    {"char_start": "4", "char_end": "5", "token": "-", "tag": "I-PI"},
+                    {"char_start": "5", "char_end": "7", "token": "10", "tag": "I-PI"},
+                    {"char_start": "7", "char_end": "8", "token": "-", "tag": "I-PI"},
+                    {"char_start": "8", "char_end": "10", "token": "14", "tag": "I-PI"},
+                    {
+                        "char_start": "11",
+                        "char_end": "15",
+                        "token": "Mamma",
+                        "tag": "O",
+                    },
+                ],
             ),
         ],
     )
     def test_unpretokenize(
-            self,
-            predictions: List[Dict[str, str]],
-            scheme: str,
-            pretokenization_offsets: List[Tuple[int, int]],
-            predictions_unpretokenized: List[Dict[str, str]],
+        self,
+        predictions: List[Dict[str, str]],
+        scheme: str,
+        pretokenization_offsets: List[Tuple[int, int]],
+        predictions_unpretokenized: List[Dict[str, str]],
     ):
         token_tags = TokenTags(predictions, scheme=scheme)
         token_tags.unpretokenize(pretokenization_offsets)
         test_predictions_unpretokenized = token_tags.as_list()
-        assert (
-                test_predictions_unpretokenized == predictions_unpretokenized
-        ), f"ERROR! test_predictions_unpretokenized = {test_predictions_unpretokenized} " \
-           f"!= {predictions_unpretokenized} = predictions_unpretokenized"
+        assert test_predictions_unpretokenized == predictions_unpretokenized, (
+            f"ERROR! test_predictions_unpretokenized = {test_predictions_unpretokenized} "
+            f"!= {predictions_unpretokenized} = predictions_unpretokenized"
+        )

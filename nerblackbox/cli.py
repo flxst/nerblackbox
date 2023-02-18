@@ -17,7 +17,10 @@ from nerblackbox.modules.utils.env_variable import env_variable
 ########################################################################################################################
 @click.group()
 @click.option(
-    "--store_dir", default="store", type=str, help="[str] relative path of store directory"
+    "--store_dir",
+    default="store",
+    type=str,
+    help="[str] relative path of store directory",
 )
 @click.option(
     "--modify/--no-modify", default=False, help="[bool] if flag=set_up_dataset"
@@ -87,17 +90,22 @@ def show_experiments():
 def get_experiment_results(experiment_name: str):
     """get results for a single experiment."""
     experiment = Experiment(experiment_name)
-    assert isinstance(experiment.results, ExperimentResults), \
-        f"ERROR! experiment.results is not an instance of ExperimentResults."
+    assert isinstance(
+        experiment.results, ExperimentResults
+    ), f"ERROR! experiment.results is not an instance of ExperimentResults."
     for attribute in ["best_single_run"]:
-        assert hasattr(experiment.results, attribute), \
-            f"ERROR! experiment.results does not have attribute = {attribute}"
+        assert hasattr(
+            experiment.results, attribute
+        ), f"ERROR! experiment.results does not have attribute = {attribute}"
 
     for average in [False, True]:
-        score = experiment.get_result(metric="f1", level="entity", label="micro", phase="test", average=average)
+        score = experiment.get_result(
+            metric="f1", level="entity", label="micro", phase="test", average=average
+        )
         print(f"score (average={average}) = {score}")
-        assert isinstance(score, str), \
-            f"ERROR! experiment.get_result() did not return a str for average = {average}."
+        assert isinstance(
+            score, str
+        ), f"ERROR! experiment.get_result() did not return a str for average = {average}."
 
 
 @nerbb.command(name="mlflow")
@@ -113,7 +121,9 @@ def mlflow():
 def predict(experiment_name: str, text_input: str):
     """predict labels for text_input using the best model of a single experiment."""
     model = Model.from_experiment(experiment_name)
-    assert isinstance(model, Model), f"ERROR! model from experiment {experiment_name} could not be loaded."
+    assert isinstance(
+        model, Model
+    ), f"ERROR! model from experiment {experiment_name} could not be loaded."
     predictions = model.predict(text_input)
     print(predictions)
 
@@ -124,7 +134,9 @@ def predict(experiment_name: str, text_input: str):
 def predict_proba(experiment_name: str, text_input: str):
     """predict label probabilities for text_input using the best model of a single experiment."""
     model = Model.from_experiment(experiment_name)
-    assert isinstance(model, Model), f"ERROR! model from experiment {experiment_name} could not be loaded."
+    assert isinstance(
+        model, Model
+    ), f"ERROR! model from experiment {experiment_name} could not be loaded."
     predictions = model.predict_proba(text_input)
     print(predictions)
 
@@ -149,7 +161,9 @@ def set_up_dataset(ctx, dataset_and_subset_name: str):
         dataset_name=split_list[0],
         dataset_subset_name=split_list[-1] if len(split_list) > 1 else "",
     )
-    context = {k: v for k, v in ctx.obj.items() if k in ["modify", "val_fraction", "verbose"]}
+    context = {
+        k: v for k, v in ctx.obj.items() if k in ["modify", "val_fraction", "verbose"]
+    }
     dataset.set_up(**context)
 
 

@@ -13,15 +13,16 @@ from nerblackbox.modules.experiment_results import ExperimentResults
 
 
 class Experiment:
-
-    def __init__(self,
-                 experiment_name: str,
-                 from_config: bool = False,
-                 model: Optional[str] = None,
-                 dataset: Optional[str] = None,
-                 from_preset: Optional[str] = "adaptive",
-                 pytest: bool = False,
-                 **kwargs_optional: Any):
+    def __init__(
+        self,
+        experiment_name: str,
+        from_config: bool = False,
+        model: Optional[str] = None,
+        dataset: Optional[str] = None,
+        from_preset: Optional[str] = "adaptive",
+        pytest: bool = False,
+        **kwargs_optional: Any,
+    ):
         self.experiment_name = experiment_name
         self.from_preset = from_preset
 
@@ -31,17 +32,23 @@ class Experiment:
         self.results: Optional[ExperimentResults]
 
         if not pytest:
-            experiment_exists, experiment_results = Store.get_experiment_results_single(experiment_name)
+            experiment_exists, experiment_results = Store.get_experiment_results_single(
+                experiment_name
+            )
             if experiment_exists:
                 self.from_config = True
                 self.results = experiment_results
                 print(f"> experiment = {experiment_name} found, results loaded.")
             else:
                 self.from_config = from_config
-                self.kwargs, self.hparams = self._parse_arguments(model, dataset, self.from_preset, **kwargs_optional)
+                self.kwargs, self.hparams = self._parse_arguments(
+                    model, dataset, self.from_preset, **kwargs_optional
+                )
                 self._checks()  # self.hparams, self.from_preset, self.from_config
                 self.results = None
-                print(f"> experiment = {experiment_name} not found, create new experiment.")
+                print(
+                    f"> experiment = {experiment_name} not found, create new experiment."
+                )
 
     def show_config(self) -> None:
         r"""
@@ -81,23 +88,23 @@ class Experiment:
     def run(self):
         r"""run a single experiment.
 
-           Note:
+        Note:
 
-           - from_config == True -> experiment config file is used, no other optional arguments will be used
+        - from_config == True -> experiment config file is used, no other optional arguments will be used
 
-           - from_config == False -> experiment config file is created dynamically, optional arguments will be used
+        - from_config == False -> experiment config file is created dynamically, optional arguments will be used
 
-               - model and dataset are mandatory.
+            - model and dataset are mandatory.
 
-               - All other arguments relate to hyperparameters and are optional.
-                 They are determined using the following hierarchy:
+            - All other arguments relate to hyperparameters and are optional.
+              They are determined using the following hierarchy:
 
-                 1) optional argument
+              1) optional argument
 
-                 2) from_preset (adaptive, original, stable),
-                    which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"
+              2) from_preset (adaptive, original, stable),
+                 which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"
 
-                 3) default experiment configuration
+              3) default experiment configuration
         """
         _parameters = {
             "experiment_name": self.experiment_name,
@@ -119,8 +126,12 @@ class Experiment:
             env_manager="local",
         )
 
-        experiment_exists, self.results = Store.get_experiment_results_single(self.experiment_name)
-        assert experiment_exists, f"ERROR! experiment = {self.experiment_name} does not exist."
+        experiment_exists, self.results = Store.get_experiment_results_single(
+            self.experiment_name
+        )
+        assert (
+            experiment_exists
+        ), f"ERROR! experiment = {self.experiment_name} does not exist."
         print("### single runs ###")
         print(self.results.single_runs.T)
         print()
@@ -128,13 +139,13 @@ class Experiment:
         print(self.results.average_runs.T)
 
     def get_result(
-            self,
-            metric: str = "f1",
-            level: str = "entity",
-            label: str = "micro",
-            phase: str = "test",
-            average: bool = False,
-            ) -> Optional[str]:
+        self,
+        metric: str = "f1",
+        level: str = "entity",
+        label: str = "micro",
+        phase: str = "test",
+        average: bool = False,
+    ) -> Optional[str]:
         r"""
 
         Args:
@@ -152,17 +163,28 @@ class Experiment:
             return None
         else:
             key = f"{phase.upper()}_{level[:3].upper()}_{metric.upper()}"
-            base_quantity = self.results.best_average_run if average else self.results.best_single_run
-            assert isinstance(base_quantity, dict), \
-                f"ERROR! type(base_quantity) = {type(base_quantity)} should be dict."
+            base_quantity = (
+                self.results.best_average_run
+                if average
+                else self.results.best_single_run
+            )
+            assert isinstance(
+                base_quantity, dict
+            ), f"ERROR! type(base_quantity) = {type(base_quantity)} should be dict."
 
             if key in base_quantity:
-                if isinstance(base_quantity[key], str):      # average = True,  e.g. "0.9011 +- 0.0023"
+                if isinstance(
+                    base_quantity[key], str
+                ):  # average = True,  e.g. "0.9011 +- 0.0023"
                     return base_quantity[key]
-                elif isinstance(base_quantity[key], float):  # average = False, e.g. 0.9045..
+                elif isinstance(
+                    base_quantity[key], float
+                ):  # average = False, e.g. 0.9045..
                     return f"{base_quantity[key]:.4f}"
                 else:
-                    raise Exception(f"ERROR! found result of unexpected type = {type(base_quantity[key])}")
+                    raise Exception(
+                        f"ERROR! found result of unexpected type = {type(base_quantity[key])}"
+                    )
             else:
                 print(f"ATTENTION! no results found")
                 return None
@@ -179,7 +201,7 @@ class Experiment:
             env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
         )
         assert (
-                isfile(config_path) is False
+            isfile(config_path) is False
         ), f"ERROR! experiment config file {config_path} already exists!"
 
         # write config file: helper functions
@@ -188,7 +210,7 @@ class Experiment:
 
         def _write_key_value(_key: str):
             assert (
-                    hparams is not None
+                hparams is not None
             ), f"ERROR! self.hparams is None - _write_key_value() failed."
             if _key in hparams.keys():
                 f.write(f"{_key} = {hparams[_key]}\n")
@@ -213,11 +235,13 @@ class Experiment:
 
             _write("\n[runA]")
 
-    def _parse_arguments(self,
-                         model: Optional[str] = None,
-                         dataset: Optional[str] = None,
-                         from_preset: Optional[str] = "adaptive",
-                         **kwargs_optional: Any) -> Tuple[Dict[str, str], Optional[Dict[str, str]]]:
+    def _parse_arguments(
+        self,
+        model: Optional[str] = None,
+        dataset: Optional[str] = None,
+        from_preset: Optional[str] = "adaptive",
+        **kwargs_optional: Any,
+    ) -> Tuple[Dict[str, str], Optional[Dict[str, str]]]:
         kwargs = Utils.process_kwargs_optional(kwargs_optional)
 
         if model is not None:
@@ -246,7 +270,7 @@ class Experiment:
 
     @staticmethod
     def _process_hparams(
-            hparams: Optional[Dict[str, Union[str, int, bool]]], from_preset: Optional[str]
+        hparams: Optional[Dict[str, Union[str, int, bool]]], from_preset: Optional[str]
     ) -> Optional[Dict[str, Union[str, int, bool]]]:
         """
         Args:
@@ -274,7 +298,7 @@ class Experiment:
         """
         # assert STATIC or DYNAMIC
         assert (self.hparams is None and self.from_config is True) or (
-                self.hparams is not None and self.from_config is False
+            self.hparams is not None and self.from_config is False
         ), (
             f"ERROR! Need to specify "
             f"EITHER hparams (currently {self.hparams}) "

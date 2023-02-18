@@ -137,10 +137,12 @@ class NerModelTrain(NerModel):
             "> self.annotation.classes:", self.annotation.classes
         )
 
-        assert isinstance(self.hparams, DictConfig), \
-            f"ERROR! type(self.hparams) = {type(self.hparams)} should be DictConfig."
-        assert isinstance(self._hparams, DictConfig), \
-            f"ERROR! type(self._hparams) = {type(self._hparams)} should be DictConfig."
+        assert isinstance(
+            self.hparams, DictConfig
+        ), f"ERROR! type(self.hparams) = {type(self.hparams)} should be DictConfig."
+        assert isinstance(
+            self._hparams, DictConfig
+        ), f"ERROR! type(self._hparams) = {type(self._hparams)} should be DictConfig."
 
         self.hparams.annotation_classes = json.dumps(
             self.annotation.classes
@@ -153,7 +155,7 @@ class NerModelTrain(NerModel):
             num_labels=len(self.annotation.classes),
             return_dict=False,
             ignore_mismatched_sizes=True,  # if pretrained model = AutoModelForTokenClassification
-                                           # with different number of annotation classes
+            # with different number of annotation classes
         )
         self.model.resize_token_embeddings(
             len(self.tokenizer)

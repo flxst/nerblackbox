@@ -22,7 +22,9 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
     EncodingsKeys,
 )
 from nerblackbox.tests.utils import PseudoDefaultLogger
-from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import InputExamples
+from nerblackbox.modules.ner_training.data_preprocessing.tools.utils import (
+    InputExamples,
+)
 
 SENTENCES_ROWS_UNPRETOKENIZED = List[Dict[str, Any]]
 
@@ -166,7 +168,11 @@ class TestCsvReaderAndDataProcessor:
         test_sentences = [
             elem.text for v in test_input_examples.values() for elem in v
         ]  # retrieve example sentences
-        _test_input_examples_predict, _, _ = data_preprocessor.get_input_examples_predict(
+        (
+            _test_input_examples_predict,
+            _,
+            _,
+        ) = data_preprocessor.get_input_examples_predict(
             test_sentences,
             is_pretokenized=True,
         )
@@ -227,19 +233,50 @@ class TestDataProcessor:
         "tags, resolved_tags",
         [
             (
-                    [{"token": "Bajo peso", "tag": "Concept", "char_start": 4651, "char_end": 4660},
-                     {"token": "peso", "tag": "Concept", "char_start": 4656, "char_end": 4660},
-                     {"token": "más", "tag": "Predicate", "char_start": 4681, "char_end": 4684},
-                     ],
-                    [{"token": "Bajo peso", "tag": "Concept", "char_start": 4651, "char_end": 4660},
-                     {"token": "más", "tag": "Predicate", "char_start": 4681, "char_end": 4684},
-                     ],
+                [
+                    {
+                        "token": "Bajo peso",
+                        "tag": "Concept",
+                        "char_start": 4651,
+                        "char_end": 4660,
+                    },
+                    {
+                        "token": "peso",
+                        "tag": "Concept",
+                        "char_start": 4656,
+                        "char_end": 4660,
+                    },
+                    {
+                        "token": "más",
+                        "tag": "Predicate",
+                        "char_start": 4681,
+                        "char_end": 4684,
+                    },
+                ],
+                [
+                    {
+                        "token": "Bajo peso",
+                        "tag": "Concept",
+                        "char_start": 4651,
+                        "char_end": 4660,
+                    },
+                    {
+                        "token": "más",
+                        "tag": "Predicate",
+                        "char_start": 4681,
+                        "char_end": 4684,
+                    },
+                ],
             ),
         ],
     )
-    def test_resolve_overlapping_tags(self, tags: List[Dict[str, Any]], resolved_tags: List[Dict[str, Any]]):
+    def test_resolve_overlapping_tags(
+        self, tags: List[Dict[str, Any]], resolved_tags: List[Dict[str, Any]]
+    ):
         test_resolved_tags = data_preprocessor._resolve_overlapping_tags(tags)
-        assert test_resolved_tags == resolved_tags, f"test_resolved_tags = {test_resolved_tags} != {resolved_tags}"
+        assert (
+            test_resolved_tags == resolved_tags
+        ), f"test_resolved_tags = {test_resolved_tags} != {resolved_tags}"
 
     @pytest.mark.parametrize(
         "data, data_pretokenized",
@@ -278,17 +315,42 @@ class TestDataProcessor:
                     {
                         "text": "Enligt Rory har mamman sagt åt honom att barn måste ha tålamod och inte får slå de vuxna. När Rory får veta",
                         "tags": [
-                            {"char_start": 7, "char_end": 11, "token": "Rory", "tag": "PI"},
-                            {"char_start": 94, "char_end": 98, "token": "Rory", "tag": "PI"},
-                        ]
+                            {
+                                "char_start": 7,
+                                "char_end": 11,
+                                "token": "Rory",
+                                "tag": "PI",
+                            },
+                            {
+                                "char_start": 94,
+                                "char_end": 98,
+                                "token": "Rory",
+                                "tag": "PI",
+                            },
+                        ],
                     },
                     {
                         "text": "Socialsekreterare Molly Knös ringer och bokar in möte 2020-08-09.\n2020-08-09",
                         "tags": [
-                            {"char_start": 18, "char_end": 28, "token": "Molly Knös", "tag": "PI"},
-                            {"char_start": 54, "char_end": 64, "token": "2020-08-09", "tag": "PI"},
-                            {"char_start": 66, "char_end": 76, "token": "2020-08-09", "tag": "PI"},
-                        ]
+                            {
+                                "char_start": 18,
+                                "char_end": 28,
+                                "token": "Molly Knös",
+                                "tag": "PI",
+                            },
+                            {
+                                "char_start": 54,
+                                "char_end": 64,
+                                "token": "2020-08-09",
+                                "tag": "PI",
+                            },
+                            {
+                                "char_start": 66,
+                                "char_end": 76,
+                                "token": "2020-08-09",
+                                "tag": "PI",
+                            },
+                        ],
                     },
                 ],
                 # data pretokenized

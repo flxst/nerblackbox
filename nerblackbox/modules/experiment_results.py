@@ -57,11 +57,21 @@ class ExperimentResults:
         """
         self._id: str = _id if _id is not None else ""
         self.name: str = name if name is not None else ""
-        self.experiment: pd.DataFrame = experiment if experiment is not None else pd.DataFrame()
-        self.single_runs: pd.DataFrame = single_runs if single_runs is not None else pd.DataFrame()
-        self.average_runs: pd.DataFrame = average_runs if average_runs is not None else pd.DataFrame()
-        self.best_single_run: Dict = best_single_run if best_single_run is not None else dict()
-        self.best_average_run: Dict = best_average_run if best_average_run is not None else dict()
+        self.experiment: pd.DataFrame = (
+            experiment if experiment is not None else pd.DataFrame()
+        )
+        self.single_runs: pd.DataFrame = (
+            single_runs if single_runs is not None else pd.DataFrame()
+        )
+        self.average_runs: pd.DataFrame = (
+            average_runs if average_runs is not None else pd.DataFrame()
+        )
+        self.best_single_run: Dict = (
+            best_single_run if best_single_run is not None else dict()
+        )
+        self.best_average_run: Dict = (
+            best_average_run if best_average_run is not None else dict()
+        )
 
     @classmethod
     def from_mlflow_runs(

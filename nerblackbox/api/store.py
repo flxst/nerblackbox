@@ -55,8 +55,8 @@ class Store:
         """
         data_dir = abspath(path)
         os.environ["DATA_DIR"] = data_dir  # environment variable
-        cls.path = data_dir                # cls.path
-        cls._update_client()               # cls.client
+        cls.path = data_dir  # cls.path
+        cls._update_client()  # cls.client
         return cls.get_path()
 
     @classmethod
@@ -86,7 +86,9 @@ class Store:
             exit(0)
 
     @classmethod
-    def show_experiments(cls, as_df: bool = True) -> Union[pd.DataFrame, Dict[str, str]]:
+    def show_experiments(
+        cls, as_df: bool = True
+    ) -> Union[pd.DataFrame, Dict[str, str]]:
         r"""
         Args:
             as_df: if True, return pandas DataFrame. if False, return dict
@@ -96,8 +98,9 @@ class Store:
         """
         cls._update_experiments()
 
-        assert isinstance(cls.experiment_id2name, dict), \
-            f"ERROR! type(cls.experiment_id2name) = {type(cls.experiment_id2name)} should be dict."
+        assert isinstance(
+            cls.experiment_id2name, dict
+        ), f"ERROR! type(cls.experiment_id2name) = {type(cls.experiment_id2name)} should be dict."
 
         experiments_overview = sorted(
             [
@@ -119,13 +122,17 @@ class Store:
         cls._update_experiments()
 
         assert (
-                cls.experiment_name2id is not None
+            cls.experiment_name2id is not None
         ), f"ERROR! cls.experiment_name2id is None."
 
         # get ExperimentResults
         experiment_results_list: List[ExperimentResults] = list()
-        for _name, _id in sorted(list(cls.experiment_name2id.items()), key=lambda x: x[1]):  # sort by id
-            experiment_exists, experiment_results = cls.get_experiment_results_single(_name, update_experiments=False)
+        for _name, _id in sorted(
+            list(cls.experiment_name2id.items()), key=lambda x: x[1]
+        ):  # sort by id
+            experiment_exists, experiment_results = cls.get_experiment_results_single(
+                _name, update_experiments=False
+            )
             assert experiment_exists, f"ERROR! experiment = {_name} does not exist."
             experiment_results_list.append(experiment_results)
 
@@ -134,9 +141,9 @@ class Store:
         return experiment_results_list
 
     @classmethod
-    def get_experiment_results_single(cls,
-                                      experiment_name: str,
-                                      update_experiments: bool = True) -> Tuple[bool, ExperimentResults]:
+    def get_experiment_results_single(
+        cls, experiment_name: str, update_experiments: bool = True
+    ) -> Tuple[bool, ExperimentResults]:
         r"""
         get results for single experiment
 
@@ -155,13 +162,14 @@ class Store:
                 cls._update_experiments()
 
             assert (
-                    cls.experiment_name2id is not None
+                cls.experiment_name2id is not None
             ), f"ERROR! cls.experiment_name2id is None."
 
             if experiment_name in cls.experiment_name2id.keys():
                 experiment_id: str = cls.experiment_name2id[experiment_name]
-                assert isinstance(cls.client, MlflowClient), \
-                    f"ERROR! type(cls.client) = {type(cls.client)} should be MlflowClient"
+                assert isinstance(
+                    cls.client, MlflowClient
+                ), f"ERROR! type(cls.client) = {type(cls.client)} should be MlflowClient"
                 runs: List[Run] = cls.client.search_runs([experiment_id])
 
                 return True, ExperimentResults.from_mlflow_runs(
@@ -202,7 +210,9 @@ class Store:
         """
         :used attr: clear_all [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
         """
-        assert isinstance(cls.path, str), f"ERROR! type(cls.path) = {type(cls.path)} should be str."
+        assert isinstance(
+            cls.path, str
+        ), f"ERROR! type(cls.path) = {type(cls.path)} should be str."
         results_dir = join(cls.path, "results")
         assert isdir(results_dir), f"directory {results_dir} does not exist."
 
@@ -212,11 +222,11 @@ class Store:
         # results (mlflow, tensorboard, ..)
         if results:
             results_files = (
-                    glob.glob(join(results_dir, "mlruns", "*"))
-                    + glob.glob(join(results_dir, "mlruns", ".*"))
-                    + glob.glob(join(results_dir, "tensorboard", "*"))
-                    + glob.glob(join(results_dir, "logs.log"))
-                    + glob.glob(join(results_dir, "*.npy"))
+                glob.glob(join(results_dir, "mlruns", "*"))
+                + glob.glob(join(results_dir, "mlruns", ".*"))
+                + glob.glob(join(results_dir, "tensorboard", "*"))
+                + glob.glob(join(results_dir, "logs.log"))
+                + glob.glob(join(results_dir, "*.npy"))
             )
             objects_to_remove.extend(results_files)
 
@@ -258,10 +268,15 @@ class Store:
 
         data_dir_exists_before = isdir(env_variable("DATA_DIR"))
         mlflow_subdirectory_exists_before = isdir(env_variable("DIR_MLFLOW"))
-        cls.client = MlflowClient()  # creates initial subdirectory DATA_DIR/results/mlruns/0 (if cli is used)
+        cls.client = (
+            MlflowClient()
+        )  # creates initial subdirectory DATA_DIR/results/mlruns/0 (if cli is used)
         mlflow_subdirectory_exists_after = isdir(env_variable("DIR_MLFLOW"))
 
-        if mlflow_subdirectory_exists_before is False and mlflow_subdirectory_exists_after is True:
+        if (
+            mlflow_subdirectory_exists_before is False
+            and mlflow_subdirectory_exists_after is True
+        ):
             if data_dir_exists_before is False:
                 # if whole DATA_DIR is new => delete whole DATA_DIR
                 shutil.rmtree(env_variable("DATA_DIR"))
@@ -290,7 +305,7 @@ class Store:
         }
 
         assert (
-                cls.experiment_id2name is not None
+            cls.experiment_id2name is not None
         ), f"ERROR! cls.experiment_id2name is None."
         cls.experiment_name2id = {v: k for k, v in cls.experiment_id2name.items()}
 
@@ -308,25 +323,37 @@ class Store:
         if _action == "start":
             if cls.process[server_type] is None:
                 start_command = cls._get_start_command(server_type)
-                cls.process[server_type] = subprocess.Popen(start_command, stdout=subprocess.PIPE, shell=True,
-                                                            preexec_fn=os.setsid)
-                print(f"{server_type} process with pid = {cls.process[server_type].pid} started")
+                cls.process[server_type] = subprocess.Popen(
+                    start_command,
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                    preexec_fn=os.setsid,
+                )
+                print(
+                    f"{server_type} process with pid = {cls.process[server_type].pid} started"
+                )
                 print(link)
             else:
-                print(f"{server_type} process with pid = {cls.process[server_type].pid} already running")
+                print(
+                    f"{server_type} process with pid = {cls.process[server_type].pid} already running"
+                )
                 print(link)
         elif _action == "status":
             if cls.process[server_type] is None:
                 print(f"no {server_type} process found")
             else:
-                print(f"{server_type} process with pid = {cls.process[server_type].pid} running")
+                print(
+                    f"{server_type} process with pid = {cls.process[server_type].pid} running"
+                )
                 print(link)
         elif _action == "stop":
             if cls.process[server_type] is None:
                 print(f"no {server_type} process found")
             else:
                 os.killpg(os.getpgid(cls.process[server_type].pid), signal.SIGTERM)
-                print(f"{server_type} process with pid = {cls.process[server_type].pid} killed")
+                print(
+                    f"{server_type} process with pid = {cls.process[server_type].pid} killed"
+                )
                 print(link)
                 cls.process[server_type] = None
 
@@ -341,9 +368,9 @@ class Store:
         """
         cmd_cd = f'cd {join(env_variable("DATA_DIR"), "results")}'
         if server_type == "mlflow":
-            return f'{cmd_cd}; mlflow ui'
+            return f"{cmd_cd}; mlflow ui"
         elif server_type == "tensorboard":
-            return f'{cmd_cd}; tensorboard --logdir tensorboard --reload_multifile=true'
+            return f"{cmd_cd}; tensorboard --logdir tensorboard --reload_multifile=true"
         else:
             raise Exception(f"ERROR! server_type = {server_type} unknown.")
 
@@ -357,8 +384,8 @@ class Store:
             link: e.g. "see http://127.0.0.1:5000"
         """
         if server_type == "mlflow":
-            return f'see http://127.0.0.1:5000'
+            return f"see http://127.0.0.1:5000"
         elif server_type == "tensorboard":
-            return f'see http://127.0.0.1:6006'
+            return f"see http://127.0.0.1:6006"
         else:
             raise Exception(f"ERROR! server_type = {server_type} unknown.")

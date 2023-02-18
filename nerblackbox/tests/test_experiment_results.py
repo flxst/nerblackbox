@@ -246,8 +246,10 @@ class TestExperimentResults:
     ####################################################################################################################
     def test_from_mlflow_runs(self):
         if self.runs is not None:
-            test_experiment_results: ExperimentResults = self.experiment_results.from_mlflow_runs(
-                self.runs, self.experiment_id, self.experiment_name
+            test_experiment_results: ExperimentResults = (
+                self.experiment_results.from_mlflow_runs(
+                    self.runs, self.experiment_id, self.experiment_name
+                )
             )
             test_experiment_results.single_runs[("info", "run_id")] = [
                 "<run_id_2>",
@@ -295,7 +297,8 @@ class TestExperimentResults:
 
             for k2 in self.true_parameters_experiment.keys():
                 assert (
-                    test_parameters_experiment[k2] == self.true_parameters_experiment[k2]
+                    test_parameters_experiment[k2]
+                    == self.true_parameters_experiment[k2]
                 ), f"ERROR! test_parameter_experiment[{k2}] = {test_parameters_experiment[k2]} != {self.true_parameters_experiment[k2]}"
 
     def test_rename_parameters_runs(self):

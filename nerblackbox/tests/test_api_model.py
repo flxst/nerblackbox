@@ -21,42 +21,47 @@ class TestModelStatic:
         "evaluation_dict, rounded_decimals, evaluation_dict_rounded",
         [
             (
-                    {
-                        "micro": {
-                            "entity": {
-                                'precision': 0.9847222222222223,
-                                'recall': 0.9916083916083916,
-                                'f1': 0.9881533101045297,
-                                'precision_seqeval': 0.9833564493758669,
-                                'recall_seqeval': 0.9916083916083916,
-                                'f1_seqeval': 0.9874651810584958,
-                            },
+                {
+                    "micro": {
+                        "entity": {
+                            "precision": 0.9847222222222223,
+                            "recall": 0.9916083916083916,
+                            "f1": 0.9881533101045297,
+                            "precision_seqeval": 0.9833564493758669,
+                            "recall_seqeval": 0.9916083916083916,
+                            "f1_seqeval": 0.9874651810584958,
+                        },
+                    }
+                },
+                3,
+                {
+                    "micro": {
+                        "entity": {
+                            "precision": 0.985,
+                            "recall": 0.992,
+                            "f1": 0.988,
+                            "precision_seqeval": 0.983,
+                            "recall_seqeval": 0.992,
+                            "f1_seqeval": 0.987,
                         }
-                    },
-                    3,
-                    {
-                        "micro": {
-                            "entity": {
-                                'precision': 0.985,
-                                'recall': 0.992,
-                                'f1': 0.988,
-                                'precision_seqeval': 0.983,
-                                'recall_seqeval': 0.992,
-                                'f1_seqeval': 0.987,
-                            }
-                        }
-                    },
+                    }
+                },
             ),
         ],
     )
     def test_derive_evaluation_dict(
-            self, evaluation_dict: EVALUATION_DICT, rounded_decimals: int, evaluation_dict_rounded: EVALUATION_DICT,
+        self,
+        evaluation_dict: EVALUATION_DICT,
+        rounded_decimals: int,
+        evaluation_dict_rounded: EVALUATION_DICT,
     ):
-        test_evaluation_dict_rounded = round_evaluation_dict(evaluation_dict, rounded_decimals)
-        assert (
-                test_evaluation_dict_rounded == evaluation_dict_rounded
-        ), f"ERROR! test_evaluation_dict_rounded = {test_evaluation_dict_rounded} " \
-           f"!= {evaluation_dict_rounded} = evaluation_dict_rounded"
+        test_evaluation_dict_rounded = round_evaluation_dict(
+            evaluation_dict, rounded_decimals
+        )
+        assert test_evaluation_dict_rounded == evaluation_dict_rounded, (
+            f"ERROR! test_evaluation_dict_rounded = {test_evaluation_dict_rounded} "
+            f"!= {evaluation_dict_rounded} = evaluation_dict_rounded"
+        )
 
     @pytest.mark.parametrize(
         "id2label, error, annotation_scheme",
@@ -237,32 +242,32 @@ class TestModelStatic:
                 ],
             ),
             (
-                    [
-                        "[CLS]",
-                        "arbetsförmedl",
-                        "##ingen",
-                        "finns",
-                        "i",
-                        "stockholm",
-                        "[SEP]",
-                        "[PAD]",
-                    ],
-                    [
-                        "[S]",
-                        "ORG",
-                        "PER",
-                        "O",
-                        "O",
-                        "O",
-                        "[S]",
-                        "[S]",
-                    ],
-                    [
-                        ("arbetsförmedlingen", "ORG"),
-                        ("finns", "O"),
-                        ("i", "O"),
-                        ("stockholm", "O"),
-                    ],
+                [
+                    "[CLS]",
+                    "arbetsförmedl",
+                    "##ingen",
+                    "finns",
+                    "i",
+                    "stockholm",
+                    "[SEP]",
+                    "[PAD]",
+                ],
+                [
+                    "[S]",
+                    "ORG",
+                    "PER",
+                    "O",
+                    "O",
+                    "O",
+                    "[S]",
+                    "[S]",
+                ],
+                [
+                    ("arbetsförmedlingen", "ORG"),
+                    ("finns", "O"),
+                    ("i", "O"),
+                    ("stockholm", "O"),
+                ],
             ),
             (
                 [
@@ -299,7 +304,9 @@ class TestModelStatic:
         predictions: List[Union[str, Dict[str, float]]],
         token_predictions: List[Tuple[Union[str, Dict[str, float]]]],
     ):
-        test_token_predictions = merge_subtoken_to_token_predictions(tokens, predictions)
+        test_token_predictions = merge_subtoken_to_token_predictions(
+            tokens, predictions
+        )
         assert test_token_predictions == token_predictions, (
             f"test_token_predictions = "
             f"{test_token_predictions} != "
@@ -619,7 +626,9 @@ class TestModelStatic:
     )
     def test_restore_unknown_tokens(
         self,
-        word_predictions: List[Tuple[str, Union[str, Dict[str, float]]]],  # List[Tuple[Union[str, Any], ...]],  # #
+        word_predictions: List[
+            Tuple[str, Union[str, Dict[str, float]]]
+        ],  # List[Tuple[Union[str, Any], ...]],  # #
         input_text: str,
         word_predictions_restored: List[Dict[str, Any]],
     ):

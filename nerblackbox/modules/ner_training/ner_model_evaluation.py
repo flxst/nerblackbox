@@ -54,7 +54,9 @@ class NerModelEvaluation:
             epoch_loss:            [float] mean of of all batch losses
         """
         print()
-        np_batch: Dict[str, List[np.ndarray]] = self._convert_output_to_np_batch(outputs)
+        np_batch: Dict[str, List[np.ndarray]] = self._convert_output_to_np_batch(
+            outputs
+        )
         np_epoch: Dict[
             str, Union[float, np.ndarray]
         ] = self._combine_np_batch_to_np_epoch(np_batch)
@@ -78,8 +80,9 @@ class NerModelEvaluation:
             classification_report = ""
             confusion_matrix = ""
 
-        assert isinstance(np_epoch["loss"], float), \
-            f"ERROR! type(np_epoch['loss']) = {type(np_epoch['loss'])} should be float."
+        assert isinstance(
+            np_epoch["loss"], float
+        ), f"ERROR! type(np_epoch['loss']) = {type(np_epoch['loss'])} should be float."
 
         return epoch_metrics, classification_report, confusion_matrix, np_epoch["loss"]
 
@@ -161,10 +164,12 @@ class NerModelEvaluation:
         # batch / dataset
         tag_ids: Dict[str, List[int]] = {field: [] for field in ["true", "pred"]}
 
-        assert isinstance(_np_epoch["tag_ids"], np.ndarray), \
-            f"ERROR! type(_np_epoch['tag_ids']) = {type(_np_epoch['tag_ids'])} should be np.ndarray"
-        assert isinstance(_np_epoch["logits"], np.ndarray), \
-            f"ERROR! type(_np_epoch['tag_ids']) = {type(_np_epoch['tag_ids'])} should be np.ndarray"
+        assert isinstance(
+            _np_epoch["tag_ids"], np.ndarray
+        ), f"ERROR! type(_np_epoch['tag_ids']) = {type(_np_epoch['tag_ids'])} should be np.ndarray"
+        assert isinstance(
+            _np_epoch["logits"], np.ndarray
+        ), f"ERROR! type(_np_epoch['tag_ids']) = {type(_np_epoch['tag_ids'])} should be np.ndarray"
 
         tag_ids["true"], tag_ids["pred"] = self._reduce_and_flatten(
             _np_epoch["tag_ids"], _np_epoch["logits"]
@@ -183,21 +188,13 @@ class NerModelEvaluation:
         self.default_logger.log_debug(
             "true:", np.shape(tags["true"]), list(set(tags["true"]))
         )
-        self.default_logger.log_debug(
-            "true counter:", Counter(tags["true"])
-        )
-        self.default_logger.log_debug(
-            f"true[:7]:", tags["true"][:7]
-        )
+        self.default_logger.log_debug("true counter:", Counter(tags["true"]))
+        self.default_logger.log_debug(f"true[:7]:", tags["true"][:7])
         self.default_logger.log_debug(
             "pred:", np.shape(tags["pred"]), list(set(tags["pred"]))
         )
-        self.default_logger.log_debug(
-            "pred counter:", Counter(tags["pred"])
-        )
-        self.default_logger.log_debug(
-            f"pred[:7]:", tags["pred"][:7]
-        )
+        self.default_logger.log_debug("pred counter:", Counter(tags["pred"]))
+        self.default_logger.log_debug(f"pred[:7]:", tags["pred"][:7])
 
         self.default_logger.log_debug(
             "epoch true:", np.shape(_epoch_tags["true"]), list(set(_epoch_tags["true"]))
@@ -205,25 +202,22 @@ class NerModelEvaluation:
         self.default_logger.log_debug(
             "epoch true counter:", Counter(_epoch_tags["true"])
         )
-        self.default_logger.log_debug(
-            f"epoch true[:7]:", _epoch_tags["true"][:7]
-        )
+        self.default_logger.log_debug(f"epoch true[:7]:", _epoch_tags["true"][:7])
         self.default_logger.log_debug(
             "epoch pred:", np.shape(_epoch_tags["pred"]), list(set(_epoch_tags["pred"]))
         )
         self.default_logger.log_debug(
             "epoch pred counter:", Counter(_epoch_tags["pred"])
         )
-        self.default_logger.log_debug(
-            f"epoch pred[:7]:", _epoch_tags["pred"][:7]
-        )
+        self.default_logger.log_debug(f"epoch pred[:7]:", _epoch_tags["pred"][:7])
         #####################
         # DEBUG END
         #####################
 
         # batch / dataset metrics
-        assert isinstance(_np_epoch["loss"], float), \
-            f"ERROR! type(np_epoch['loss']) = {type(_np_epoch['loss'])} should be float."
+        assert isinstance(
+            _np_epoch["loss"], float
+        ), f"ERROR! type(np_epoch['loss']) = {type(_np_epoch['loss'])} should be float."
 
         _epoch_metrics: Dict[str, float] = {"token_all_loss": _np_epoch["loss"]}
         for tag_subset in [
@@ -231,8 +225,8 @@ class NerModelEvaluation:
             "fil",
         ] + self.annotation_plain.classes:
             _epoch_metrics_update = self._compute_metrics_for_tags_subset(
-                    _epoch_tags, phase, tag_subset=tag_subset
-                )
+                _epoch_tags, phase, tag_subset=tag_subset
+            )
             _epoch_metrics.update(_epoch_metrics_update)
 
         return _epoch_metrics, _epoch_tags
@@ -295,7 +289,9 @@ class NerModelEvaluation:
 
         # 2. get rid of special tag occurrences
         pad_indices = np.where(_tags_np["true"] == "[S]")
-        _tags_np_new = {key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]}
+        _tags_np_new = {
+            key: np.delete(_tags[key], pad_indices) for key in ["true", "pred"]
+        }
 
         # 3. convert numpy arrays to lists
         _tags_new = {k: list(v) for k, v in _tags_np_new.items()}

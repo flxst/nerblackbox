@@ -116,7 +116,9 @@ def _parse_args(_parser, _args):
             )
             group_dict["fp16"] = (
                 True
-                if group_dict["fp16"] and group_dict["device"] and group_dict["device"].type == "cuda"
+                if group_dict["fp16"]
+                and group_dict["device"]
+                and group_dict["device"].type == "cuda"
                 else False
             )
             group_dict["from_config"] = bool(group_dict["from_config"])

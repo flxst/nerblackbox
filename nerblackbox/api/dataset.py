@@ -25,12 +25,12 @@ class Dataset:
         """
         self.dataset_name = dataset_name
         self.dataset_subset_name = dataset_subset_name
-        self.file_path: Optional[str] = None  # only for instances created through from_file method
+        self.file_path: Optional[
+            str
+        ] = None  # only for instances created through from_file method
 
     @classmethod
-    def from_file(cls,
-                  dataset_name: str,
-                  file_path: str) -> Optional['Dataset']:
+    def from_file(cls, dataset_name: str, file_path: str) -> Optional["Dataset"]:
         r"""
         create a Dataset instance by reading a file
 
@@ -51,9 +51,7 @@ class Dataset:
             print(f"Error! {file_path} does not exist")
             return None
 
-    def split(self,
-              val_fraction: float = 0.1,
-              test_fraction: float = 0.2) -> None:
+    def split(self, val_fraction: float = 0.1, test_fraction: float = 0.2) -> None:
         r"""
         - read dataset from self.file_path
         - split dataset into train/val/test subsets
@@ -63,23 +61,27 @@ class Dataset:
             val_fraction: e.g. 0.1
             test_fraction: e.g. 0.2
         """
-        assert isinstance(self.file_path, str), f"ERROR! type(self.file_path) = {self.file_path} should be str."
+        assert isinstance(
+            self.file_path, str
+        ), f"ERROR! type(self.file_path) = {self.file_path} should be str."
 
         with open(self.file_path, "r") as f:
             input_lines = [json.loads(line) for line in f]
         print(f"> read {len(input_lines)} documents from {self.file_path}")
 
-        index_train_end = int((1-val_fraction-test_fraction)*len(input_lines))
-        index_val_end = int((1-test_fraction)*len(input_lines))
+        index_train_end = int((1 - val_fraction - test_fraction) * len(input_lines))
+        index_val_end = int((1 - test_fraction) * len(input_lines))
         output_lines = {
             "train": input_lines[:index_train_end],
-            "val": input_lines[index_train_end: index_val_end],
+            "val": input_lines[index_train_end:index_val_end],
             "test": input_lines[index_val_end:],
         }
 
         print()
         for phase in PHASES:
-            file_path_phase = "/".join(self.file_path.split("/")[:-1]) + f"/{phase}.jsonl"
+            file_path_phase = (
+                "/".join(self.file_path.split("/")[:-1]) + f"/{phase}.jsonl"
+            )
 
             with open(file_path_phase, "w") as f:
                 for line in output_lines[phase]:
@@ -116,14 +118,18 @@ class Dataset:
             "verbose": verbose,
         }
 
-        formatter = AutoFormatter.for_dataset(self.dataset_name, self.dataset_subset_name)
+        formatter = AutoFormatter.for_dataset(
+            self.dataset_name, self.dataset_subset_name
+        )
         formatter.create_directory()
         formatter.get_data(verbose=verbose)  # I: get_data
         formatter.create_ner_tag_mapping_json(
             modify=modify
         )  # II: create ner tag mapping
         formatter.format_data(shuffle=shuffle)  # III: format data
-        formatter.resplit_data(val_fraction=val_fraction, write_csv=True)  # IV: resplit data
+        formatter.resplit_data(
+            val_fraction=val_fraction, write_csv=True
+        )  # IV: resplit data
         formatter.analyzer.analyze_data()  # V: analyze data
         formatter.analyzer.plot_data()  # V: analyze data
 

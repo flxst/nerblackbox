@@ -40,7 +40,7 @@ class Model:
     """
 
     @classmethod
-    def from_experiment(cls, experiment_name: str) -> Optional['Model']:
+    def from_experiment(cls, experiment_name: str) -> Optional["Model"]:
         r"""load best model from experiment.
 
         Args:
@@ -49,41 +49,45 @@ class Model:
         Returns:
             model: best model from experiment
         """
-        experiment_exists, experiment_results = Store.get_experiment_results_single(experiment_name)
-        assert experiment_exists, f"ERROR! experiment = {experiment_name} does not exist."
-
+        experiment_exists, experiment_results = Store.get_experiment_results_single(
+            experiment_name
+        )
         assert (
-            isinstance(experiment_results, ExperimentResults)
+            experiment_exists
+        ), f"ERROR! experiment = {experiment_name} does not exist."
+
+        assert isinstance(
+            experiment_results, ExperimentResults
         ), f"ERROR! experiment_results expected to be an instance of ExperimentResults."
 
         if experiment_results.best_single_run is None:
-            print(f"> ATTENTION! could not find results for experiment = {experiment_name}")
+            print(
+                f"> ATTENTION! could not find results for experiment = {experiment_name}"
+            )
             return None
-        elif "checkpoint" not in experiment_results.best_single_run.keys() \
-                or experiment_results.best_single_run["checkpoint"] is None:
-            print(f"> ATTENTION! there is no checkpoint for experiment = {experiment_name}.")
+        elif (
+            "checkpoint" not in experiment_results.best_single_run.keys()
+            or experiment_results.best_single_run["checkpoint"] is None
+        ):
+            print(
+                f"> ATTENTION! there is no checkpoint for experiment = {experiment_name}."
+            )
             return None
         else:
-            checkpoint_path_train = experiment_results.best_single_run[
-                "checkpoint"
-            ]
+            checkpoint_path_train = experiment_results.best_single_run["checkpoint"]
             checkpoint_path_predict = checkpoint_path_train.strip(".ckpt")
 
             # translate NerModelTrain checkpoint to Model checkpoint if necessary
             if not Model.checkpoint_exists(checkpoint_path_predict):
-                ner_model_train2model = (
-                    NerModelTrain2Model.load_from_checkpoint(
-                        checkpoint_path_train
-                    )
-                )
-                ner_model_train2model.export_to_ner_model_prod(
+                ner_model_train2model = NerModelTrain2Model.load_from_checkpoint(
                     checkpoint_path_train
                 )
+                ner_model_train2model.export_to_ner_model_prod(checkpoint_path_train)
 
             return Model(checkpoint_path_predict)
 
     @classmethod
-    def from_checkpoint(cls, checkpoint_directory: str) -> Optional['Model']:
+    def from_checkpoint(cls, checkpoint_directory: str) -> Optional["Model"]:
         r"""
 
         Args:
@@ -93,13 +97,15 @@ class Model:
             model: best model from experiment
         """
         if not cls.checkpoint_exists(checkpoint_directory):
-            print(f"> ATTENTION! could not find checkpoint directory at {checkpoint_directory}")
+            print(
+                f"> ATTENTION! could not find checkpoint directory at {checkpoint_directory}"
+            )
             return None
         else:
             return Model(checkpoint_directory)
 
     @classmethod
-    def from_huggingface(cls, repo_id: str) -> Optional['Model']:
+    def from_huggingface(cls, repo_id: str) -> Optional["Model"]:
         r"""
 
         Args:
@@ -120,12 +126,18 @@ class Model:
         for filename in filenames:
             local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
             local_file_paths.append(local_file_path)
-        assert len(local_file_paths) == len(filenames), \
-            f"ERROR! #local_file_paths = {len(local_file_paths)} does not correspond to #files = {len(filenames)}."
+        assert len(local_file_paths) == len(
+            filenames
+        ), f"ERROR! #local_file_paths = {len(local_file_paths)} does not correspond to #files = {len(filenames)}."
 
         # extract cache directory
-        cache_directories = ["/".join(local_file_path.split("/")[:-1]) for local_file_path in local_file_paths]
-        assert len(set(cache_directories)) == 1, f"ERROR! cache directory could not be found due to inconsistency."
+        cache_directories = [
+            "/".join(local_file_path.split("/")[:-1])
+            for local_file_path in local_file_paths
+        ]
+        assert (
+            len(set(cache_directories)) == 1
+        ), f"ERROR! cache directory could not be found due to inconsistency."
         cache_directory = cache_directories[0]
 
         # create Model from files in cache directory
@@ -186,9 +198,7 @@ class Model:
         # 5. batch_size (dataloader)
         self.batch_size = batch_size
 
-    def predict_on_file(self,
-                        input_file: str,
-                        output_file: str) -> None:
+    def predict_on_file(self, input_file: str, output_file: str) -> None:
         r"""
         predict tags for all input texts in input file, write results to output file
 
@@ -267,9 +277,17 @@ class Model:
             predictions: [list] of predictions for the different examples.
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, tag
         """
-        return self._predict(input_texts, level, autocorrect, proba=False, is_pretokenized=is_pretokenized)
+        return self._predict(
+            input_texts,
+            level,
+            autocorrect,
+            proba=False,
+            is_pretokenized=is_pretokenized,
+        )
 
-    def predict_proba(self, input_texts: Union[str, List[str]], is_pretokenized: bool = False) -> PREDICTIONS:
+    def predict_proba(
+        self, input_texts: Union[str, List[str]], is_pretokenized: bool = False
+    ) -> PREDICTIONS:
         r"""predict probability distributions for input texts. output on word level.
 
         Examples:
@@ -292,7 +310,13 @@ class Model:
                          each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
                          where proba_dist = [dict] that maps self.annotation.classes to probabilities
         """
-        return self._predict(input_texts, level="word", autocorrect=False, proba=True, is_pretokenized=is_pretokenized)
+        return self._predict(
+            input_texts,
+            level="word",
+            autocorrect=False,
+            proba=True,
+            is_pretokenized=is_pretokenized,
+        )
 
     def _predict(
         self,
@@ -339,11 +363,14 @@ class Model:
             max_seq_length=self.max_seq_length,
             default_logger=PseudoDefaultLogger(),
         )
-        input_examples, input_texts_pretokenized, pretokenization_offsets = \
-            self.data_preprocessor.get_input_examples_predict(
-                examples=input_texts,
-                is_pretokenized=is_pretokenized,
-            )
+        (
+            input_examples,
+            input_texts_pretokenized,
+            pretokenization_offsets,
+        ) = self.data_preprocessor.get_input_examples_predict(
+            examples=input_texts,
+            is_pretokenized=is_pretokenized,
+        )
 
         dataloader_all, offsets_all = self.data_preprocessor.to_dataloader(
             input_examples, self.annotation_classes, batch_size=self.batch_size
@@ -396,11 +423,11 @@ class Model:
 
         # merge
         tokens = [
-            merge_slices_for_single_document(tokens[offsets[i]: offsets[i + 1]])
+            merge_slices_for_single_document(tokens[offsets[i] : offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] with len = number_of_input_texts
         predictions = [
-            merge_slices_for_single_document(predictions[offsets[i]: offsets[i + 1]])
+            merge_slices_for_single_document(predictions[offsets[i] : offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] or List[List[Dict[str, float]]] with len = number_of_input_texts
 
@@ -422,7 +449,9 @@ class Model:
                 proba,
                 input_texts[i],
                 input_texts_pretokenized[i],
-                pretokenization_offsets[i] if pretokenization_offsets is not None else None,
+                pretokenization_offsets[i]
+                if pretokenization_offsets is not None
+                else None,
                 tokens[i],
                 predictions[i],
             )
@@ -492,14 +521,16 @@ class Model:
 
         return predictions
 
-    def evaluate_on_dataset(self,
-                            dataset_name: str,
-                            dataset_format: str = "infer",
-                            phase: str = "test",
-                            class_mapping: Optional[Dict[str, str]] = None,
-                            number: Optional[int] = None,
-                            derived_from_jsonl: bool = False,
-                            rounded_decimals: Optional[int] = 3) -> EVALUATION_DICT:
+    def evaluate_on_dataset(
+        self,
+        dataset_name: str,
+        dataset_format: str = "infer",
+        phase: str = "test",
+        class_mapping: Optional[Dict[str, str]] = None,
+        number: Optional[int] = None,
+        derived_from_jsonl: bool = False,
+        rounded_decimals: Optional[int] = 3,
+    ) -> EVALUATION_DICT:
         r"""
         evaluate model on dataset from huggingface or local dataset in jsonl or csv format
 
@@ -523,15 +554,20 @@ class Model:
         """
         dataset_formats = ["infer", "jsonl", "csv", "huggingface"]
         phases = ["train", "val", "test"]
-        assert dataset_format in dataset_formats, \
-            f"ERROR! dataset_format={dataset_format} unknown (known={dataset_formats})"
+        assert (
+            dataset_format in dataset_formats
+        ), f"ERROR! dataset_format={dataset_format} unknown (known={dataset_formats})"
         assert phase in phases, f"ERROR! phase = {phase} unknown (known={phases})"
 
         store_path = Store.get_path()
-        assert isinstance(store_path, str), f"ERROR! type(store_path) = {type(store_path)} shoudl be str."
+        assert isinstance(
+            store_path, str
+        ), f"ERROR! type(store_path) = {type(store_path)} shoudl be str."
 
         if dataset_format == "infer":
-            file_path_jsonl = join(store_path, "datasets", dataset_name, f"{phase}.jsonl")
+            file_path_jsonl = join(
+                store_path, "datasets", dataset_name, f"{phase}.jsonl"
+            )
             file_path_csv = join(store_path, "datasets", dataset_name, f"{phase}.csv")
             if isfile(file_path_jsonl):
                 dataset_format = "jsonl"
@@ -543,11 +579,17 @@ class Model:
 
         dir_path = join(store_path, "datasets", dataset_name)
         if dataset_format == "huggingface":
-            evaluation_dict = self._evaluate_on_huggingface(dataset_name, phase, class_mapping, number)
+            evaluation_dict = self._evaluate_on_huggingface(
+                dataset_name, phase, class_mapping, number
+            )
         elif dataset_format == "jsonl":
-            evaluation_dict = self._evaluate_on_jsonl(dir_path, phase, class_mapping, number)
+            evaluation_dict = self._evaluate_on_jsonl(
+                dir_path, phase, class_mapping, number
+            )
         elif dataset_format == "csv":
-            evaluation_dict = self._evaluate_on_csv(dir_path, phase, class_mapping, number, derived_from_jsonl)
+            evaluation_dict = self._evaluate_on_csv(
+                dir_path, phase, class_mapping, number, derived_from_jsonl
+            )
         else:
             raise Exception(f"ERROR! dataset_format = {dataset_format} unknown.")
 
@@ -556,11 +598,13 @@ class Model:
         else:
             return round_evaluation_dict(evaluation_dict, rounded_decimals)
 
-    def _evaluate_on_huggingface(self,
-                                 dataset_name: str,
-                                 phase: str,
-                                 class_mapping: Optional[Dict[str, str]] = None,
-                                 number: Optional[int] = None) -> EVALUATION_DICT:
+    def _evaluate_on_huggingface(
+        self,
+        dataset_name: str,
+        phase: str,
+        class_mapping: Optional[Dict[str, str]] = None,
+        number: Optional[int] = None,
+    ) -> EVALUATION_DICT:
         r"""
         evaluate model on dataset from huggingface
 
@@ -581,17 +625,21 @@ class Model:
         dataset = Dataset(dataset_name)
         dataset.set_up()
         dir_path = f"{Store.get_path()}/datasets/{dataset_name}"
-        return self._evaluate_on_csv(dir_path,
-                                     phase=phase,
-                                     class_mapping=class_mapping,
-                                     number=number,
-                                     derived_from_jsonl=False)
+        return self._evaluate_on_csv(
+            dir_path,
+            phase=phase,
+            class_mapping=class_mapping,
+            number=number,
+            derived_from_jsonl=False,
+        )
 
-    def _evaluate_on_jsonl(self,
-                           dir_path: str,
-                           phase: str,
-                           class_mapping: Optional[Dict[str, str]] = None,
-                           number: Optional[int] = None) -> EVALUATION_DICT:
+    def _evaluate_on_jsonl(
+        self,
+        dir_path: str,
+        phase: str,
+        class_mapping: Optional[Dict[str, str]] = None,
+        number: Optional[int] = None,
+    ) -> EVALUATION_DICT:
         r"""
         evaluate model on local dataset in jsonl format
 
@@ -618,18 +666,22 @@ class Model:
         )
         data_preprocessor._pretokenize(dir_path)
 
-        return self._evaluate_on_csv(dir_path,
-                                     phase=phase,
-                                     class_mapping=class_mapping,
-                                     number=number,
-                                     derived_from_jsonl=True)
+        return self._evaluate_on_csv(
+            dir_path,
+            phase=phase,
+            class_mapping=class_mapping,
+            number=number,
+            derived_from_jsonl=True,
+        )
 
-    def _evaluate_on_csv(self,
-                         dir_path: str,
-                         phase: str,
-                         class_mapping: Optional[Dict[str, str]] = None,
-                         number: Optional[int] = None,
-                         derived_from_jsonl: bool = False) -> EVALUATION_DICT:
+    def _evaluate_on_csv(
+        self,
+        dir_path: str,
+        phase: str,
+        class_mapping: Optional[Dict[str, str]] = None,
+        number: Optional[int] = None,
+        derived_from_jsonl: bool = False,
+    ) -> EVALUATION_DICT:
         r"""
         evaluate model on local dataset in csv format
 
@@ -650,7 +702,10 @@ class Model:
         """
         # derived_from_jsonl = True  => pretokenized_<phase>.csv is used
         # derived_from_jsonl = False => <phase>.csv is used
-        file_path = join(dir_path, f"pretokenized_{phase}.csv" if derived_from_jsonl else f"{phase}.csv")
+        file_path = join(
+            dir_path,
+            f"pretokenized_{phase}.csv" if derived_from_jsonl else f"{phase}.csv",
+        )
         assert isfile(file_path), f"ERROR! could not find {file_path}"
 
         csv_reader = CsvReader(
@@ -668,31 +723,41 @@ class Model:
             input_texts = input_texts[:number]
 
         _predictions = self.predict(input_texts, level="word", is_pretokenized=True)
-        predictions = [[elem["tag"] for elem in _prediction] for _prediction in _predictions]
+        predictions = [
+            [elem["tag"] for elem in _prediction] for _prediction in _predictions
+        ]
 
         def convert_plain_to_bio(_predictions: List[str]) -> List[str]:
             tags = Tags(_predictions)
             return tags.convert_scheme("plain", "bio")
 
         if self.annotation_scheme == "plain":
-            print("> ATTENTION! predictions converted from plain to bio annotation scheme!")
-            predictions = [convert_plain_to_bio(prediction) for prediction in predictions]
+            print(
+                "> ATTENTION! predictions converted from plain to bio annotation scheme!"
+            )
+            predictions = [
+                convert_plain_to_bio(prediction) for prediction in predictions
+            ]
 
         # check that ground truth and predictions have same lengths
-        assert len(ground_truth) == len(predictions), \
-            f"ERROR! #ground_truth = {len(ground_truth)}, #predictions = {len(predictions)}"
+        assert len(ground_truth) == len(
+            predictions
+        ), f"ERROR! #ground_truth = {len(ground_truth)}, #predictions = {len(predictions)}"
         for i in range(len(ground_truth)):
-            assert len(ground_truth[i]) == len(predictions[i]), \
-                f"ERROR! #ground_truth[{i}] = {len(ground_truth[i])} ({ground_truth[i]}), " \
-                f"#predictions[{i}] = {len(predictions[i])} ({predictions[i]})," \
+            assert len(ground_truth[i]) == len(predictions[i]), (
+                f"ERROR! #ground_truth[{i}] = {len(ground_truth[i])} ({ground_truth[i]}), "
+                f"#predictions[{i}] = {len(predictions[i])} ({predictions[i]}),"
                 f"input_texts[{i}] = {input_texts[i]}"
+            )
 
         return self._evaluate(ground_truth, predictions, class_mapping)
 
     @staticmethod
-    def _evaluate(ground_truth: List[List[str]],
-                  predictions: List[List[str]],
-                  class_mapping: Optional[Dict[str, str]] = None) -> EVALUATION_DICT:
+    def _evaluate(
+        ground_truth: List[List[str]],
+        predictions: List[List[str]],
+        class_mapping: Optional[Dict[str, str]] = None,
+    ) -> EVALUATION_DICT:
         r"""
         evaluate by comparing ground_truth with predictions (after applying class_mapping)
 
@@ -720,11 +785,15 @@ class Model:
                 _class_new: e.g. "B-PI"
 
             """
-            assert isinstance(class_mapping, dict), f"ERROR! type(class_mapping) = {type(class_mapping)} should be dict"
+            assert isinstance(
+                class_mapping, dict
+            ), f"ERROR! type(class_mapping) = {type(class_mapping)} should be dict"
             if _class == "O":
                 return "O"
             else:
-                assert "-" in _class, f"ERROR! class = {_class} expected to be of BIO scheme."
+                assert (
+                    "-" in _class
+                ), f"ERROR! class = {_class} expected to be of BIO scheme."
                 _class_prefix = _class.split("-")[0]
                 _class_plain = _class.split("-")[-1]
                 if _class_plain in class_mapping.keys():
@@ -735,12 +804,16 @@ class Model:
                 return _class_new
 
         if class_mapping is not None:
-            predictions = [[map_class(elem) for elem in sublist] for sublist in predictions]
+            predictions = [
+                [map_class(elem) for elem in sublist] for sublist in predictions
+            ]
 
         # flatten
         true_flat = [elem for sublist in ground_truth for elem in sublist]
         pred_flat = [elem for sublist in predictions for elem in sublist]
-        assert len(true_flat) == len(pred_flat), f"ERROR! true_flat = {len(true_flat)}, #pred_flat = {len(pred_flat)}"
+        assert len(true_flat) == len(
+            pred_flat
+        ), f"ERROR! true_flat = {len(true_flat)}, #pred_flat = {len(pred_flat)}"
 
         # 4. evaluate: compare ground truth with predictions
         # NerMetrics
@@ -750,16 +823,15 @@ class Model:
         levels = ["entity", "token"]
         evaluation: EVALUATION_DICT = {
             label: {
-                level: {
-                    metric: None
-                    for metric in metrics + metrics_seqeval
-                }
+                level: {metric: None for metric in metrics + metrics_seqeval}
                 for level in levels
             }
             for label in labels
         }
 
-        ner_metrics_entity = NerMetrics(true_flat, pred_flat, level="entity", scheme="bio")
+        ner_metrics_entity = NerMetrics(
+            true_flat, pred_flat, level="entity", scheme="bio"
+        )
         ner_metrics_entity.compute(metrics)
         # print("== ENTITY (nerblackbox) ==")
         for metric in metrics:
@@ -768,14 +840,20 @@ class Model:
         # print()
 
         for metric, label in product(metrics, labels):
-            evaluation[label]["entity"][metric] = ner_metrics_entity.results_as_dict()[f"{metric}_{label}"]
+            evaluation[label]["entity"][metric] = ner_metrics_entity.results_as_dict()[
+                f"{metric}_{label}"
+            ]
 
         # seqeval - just for testing - start
         from seqeval.metrics import precision_score, recall_score, f1_score
+
         scores = [precision_score, recall_score, f1_score]
         # print("== ENTITY (seqeval) ==")
         for metric_seqeval, score in zip(metrics_seqeval, scores):
-            result = score(ground_truth, predictions, )
+            result = score(
+                ground_truth,
+                predictions,
+            )
             # print(f"> {metric_seqeval}: {result:.3f}")
             evaluation["micro"]["entity"][f"{metric_seqeval}"] = result
 
@@ -785,7 +863,9 @@ class Model:
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
-def round_evaluation_dict(_evaluation_dict: EVALUATION_DICT, _rounded_decimals: int) -> EVALUATION_DICT:
+def round_evaluation_dict(
+    _evaluation_dict: EVALUATION_DICT, _rounded_decimals: int
+) -> EVALUATION_DICT:
     r"""
 
     Args:
@@ -993,7 +1073,9 @@ def restore_unknown_tokens(
                         char_start = input_text.index(f" {token}", char_start)
                 except ValueError:  # .index() did not find anything
                     if verbose:
-                        print(f"! token = {token} not found in example[{char_start}:] (unknown)")
+                        print(
+                            f"! token = {token} not found in example[{char_start}:] (unknown)"
+                        )
                 unknown_counter -= 1
 
             # find token_char_margins for token
