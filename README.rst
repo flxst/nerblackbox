@@ -33,29 +33,6 @@ Resources
 - Documentation: https://flxst.github.io/nerblackbox
 - PyPI: https://pypi.org/project/nerblackbox
 
-About
-=====
-
-`Transformer-based language models <https://arxiv.org/abs/1706.03762>`_ like `BERT <https://arxiv.org/abs/1810.04805>`_ have had a `game-changing impact <https://paperswithcode.com/task/language-modelling>`_ on Natural Language Processing.
-
-In order to utilize `Hugging Face's publicly accessible pretrained models <https://huggingface.co/transformers/pretrained_models.html>`_ for
-`Named Entity Recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_,
-one needs to retrain (or "fine-tune") them using labeled text.
-
-**nerblackbox makes this easy.**
-
-.. image:: https://raw.githubusercontent.com/flxst/nerblackbox/master/docs/docs/images/nerblackbox.png
-
-You give it
-
-- a **Dataset** (labeled text)
-- a **Pretrained Model** (transformers)
-
-and you get
-
-- the best **Fine-tuned Model**
-- its **Performance** on the dataset
-
 Installation
 ============
 
@@ -63,10 +40,74 @@ Installation
 
     pip install nerblackbox
 
-Usage
+About
 =====
 
-see documentation: https://flxst.github.io/nerblackbox
+.. image:: https://raw.githubusercontent.com/flxst/nerblackbox/master/docs/docs/images/nerblackbox.png
+
+Fine-tune a `language model <https://huggingface.co/transformers/pretrained_models.html>`_ for
+`named entity recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_ in a few simple steps:
+
+1. Define a fine-tuning experiment by choosing a pretrained model and a dataset
+
+::
+
+   experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+
+
+2. Run the experiment and get the performance of the fine-tuned model
+
+::
+
+   experiment.run()
+   experiment.get_result(metric="f1", level="entity", phase="test")
+   # 0.9045
+
+3. Use the fine-tuned model for inference
+
+::
+
+    model = Model.from_experiment("my_experiment")
+    model.predict("The United Nations has never recognised Jakarta's move.")
+    # [[
+    #  {'char_start': '4', 'char_end': '18', 'token': 'United Nations', 'tag': 'ORG'},
+    #  {'char_start': '40', 'char_end': '47', 'token': 'Jakarta', 'tag': 'LOC'}
+    # ]]
+
+There is much more to it than that! See the `documentation <https://flxst.github.io/nerblackbox/usage/getting_started/>`_ to get started.
+
+Features
+========
+
+*Data*
+
+* Support for Different Data Formats
+* Support for Different Annotation Schemes
+* Integration of HuggingFace Datasets
+* Text Encoding
+
+*Training*
+
+* Adaptive Fine-tuning
+* Hyperparameter Search
+* Multiple Runs with Different Random Seeds
+* Detailed Analysis of Training Results
+
+*Evaluation*
+
+* Evaluation of a Model on a Dataset
+
+*Inference*
+
+* Versatile Model Inference
+
+*Other*
+
+* Compatibility with HuggingFace
+* GPU Support
+* Language Agnosticism
+
+See the `documentation <https://flxst.github.io/nerblackbox/features/overview>`_ for more details.
 
 Citation
 ========

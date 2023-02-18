@@ -1,6 +1,19 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.14 (2023-??-??)
+#### Added
+- Model: prediction on file
+- Model: evaluation of any model on any dataset
+
+#### Changed
+- API: complete renewal using classes Store, Dataset, Experiment, Model
+- Supported python versions: 3.8 to 3.11
+- Dataset: no shuffling by default
+
+#### Fixed
+- Model: base model with NER classification head can be loaded
+
 ## 0.0.13 (2022-03-18)
 #### Added
 - NerModelPredict: GPU batch inference
