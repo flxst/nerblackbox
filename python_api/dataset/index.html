@@ -13,7 +13,7 @@
     
     
       
-        <title>Overview - nerblackbox</title>
+        <title>Dataset - nerblackbox</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cli-command-line-interface" class="md-skip">
+        <a href="#dataset" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Dataset
             
           </span>
         </div>
@@ -205,13 +205,15 @@
         
   
   
+    
+  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="../../python_api/overview/" class="md-tabs__link">
+      <a href="../overview/" class="md-tabs__link md-tabs__link--active">
         Python API
       </a>
     </li>
@@ -221,15 +223,13 @@
         
   
   
-    
-  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="./" class="md-tabs__link md-tabs__link--active">
+      <a href="../../cli/cli/" class="md-tabs__link">
         CLI
       </a>
     </li>
@@ -569,12 +569,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
       
       
       
@@ -597,7 +599,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         Overview
       </a>
     </li>
@@ -611,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/store/" class="md-nav__link">
+      <a href="../store/" class="md-nav__link">
         Store
       </a>
     </li>
@@ -623,11 +625,73 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../python_api/dataset/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Dataset
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Dataset
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.dataset.Dataset.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.dataset.Dataset.from_file" class="md-nav__link">
+    from_file()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.dataset.Dataset.set_up" class="md-nav__link">
+    set_up()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.dataset.Dataset.split" class="md-nav__link">
+    split()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -639,7 +703,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/experiment/" class="md-nav__link">
+      <a href="../experiment/" class="md-nav__link">
         Experiment
       </a>
     </li>
@@ -653,7 +717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/model/" class="md-nav__link">
+      <a href="../model/" class="md-nav__link">
         Model
       </a>
     </li>
@@ -667,7 +731,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/text_encoder/" class="md-nav__link">
+      <a href="../text_encoder/" class="md-nav__link">
         TextEncoder
       </a>
     </li>
@@ -681,7 +745,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_api/experiment_results/" class="md-nav__link">
+      <a href="../experiment_results/" class="md-nav__link">
         ExperimentResults
       </a>
     </li>
@@ -701,14 +765,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
       
       
       
@@ -729,142 +791,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Overview
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../cli/cli/" class="md-nav__link">
         Overview
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#nerbb" class="md-nav__link">
-    nerbb
-  </a>
-  
-    <nav class="md-nav" aria-label="nerbb">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-analyze_data" class="md-nav__link">
-    analyze_data
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-clear_data" class="md-nav__link">
-    clear_data
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-create" class="md-nav__link">
-    create
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-get_experiment_results" class="md-nav__link">
-    get_experiment_results
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-mlflow" class="md-nav__link">
-    mlflow
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-predict" class="md-nav__link">
-    predict
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-predict_proba" class="md-nav__link">
-    predict_proba
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-run_experiment" class="md-nav__link">
-    run_experiment
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-set_up_dataset" class="md-nav__link">
-    set_up_dataset
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-show_experiment_config" class="md-nav__link">
-    show_experiment_config
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-show_experiments" class="md-nav__link">
-    show_experiments
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nerbb-tensorboard" class="md-nav__link">
-    tensorboard
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -890,119 +821,297 @@
                 
 
 
-<h1 id="cli-command-line-interface">CLI (Command Line Interface)</h1>
-<h2 id="nerbb">nerbb</h2>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb [OPTIONS] COMMAND [ARGS]...
+<h1 id="dataset">Dataset</h1>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+  <div class="doc doc-contents first">
+
+  
+      <p>class to download, set up and inspect a single dataset</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.dataset.Dataset.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">dataset_subset_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dataset_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>name of dataset, e.g. "swedish_ner_corpus"</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_subset_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>name of subset if applicable (for HuggingFace Datasets), e.g. "simple_cased"</p></td>
+          <td>
+                <code>&#39;&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.dataset.Dataset.from_file" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_file</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>create a Dataset instance by reading a file</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dataset_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>name of dataset, e.g. "strangnas"</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>file_path</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>e.g. "strangnas/strangnas.jsonl"</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.dataset.Dataset">Dataset</span>]</code>
+          </td>
+          <td><p>dataset instance</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.dataset.Dataset.set_up" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_up</span><span class="p">(</span><span class="n">modify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">val_fraction</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>downloads and sets up the dataset. creates the following files:</p>
+<div class="highlight"><pre><span></span><code>&lt;STORE_DIR&gt;/datasets/&lt;dataset_name&gt;/train.*
+&lt;STORE_DIR&gt;/datasets/&lt;dataset_name&gt;/val.*
+&lt;STORE_DIR&gt;/datasets/&lt;dataset_name&gt;/test.*
 </code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --store_dir TEXT          [str] relative path of store directory
-  --modify / --no-modify    [bool] if flag=set_up_dataset
-  --val_fraction FLOAT      [float] if flag=set_up_dataset
-  --verbose / --no-verbose  [bool] if flag=set_up_dataset
-  --run_name TEXT           [str] if flag=run_experiment
-  --device TEXT             [str] if flag=run_experiment
-  --fp16 / --no-fp16        [bool] if flag=run_experiment
-  --results / --no-results  [bool] if flag=clear_data
-  --help                    Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-analyze_data">nerbb analyze_data</h3>
-<p>analyze a dataset.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb analyze_data [OPTIONS] DATASET_NAME
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-clear_data">nerbb clear_data</h3>
-<p>clear data (checkpoints and optionally results).</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb clear_data [OPTIONS]
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-create">nerbb create</h3>
-<p>initialize the data_dir directory.
-needs to be called exactly once before any other CLI/API commands of the package are executed.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb create [OPTIONS]
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-get_experiment_results">nerbb get_experiment_results</h3>
-<p>get results for a single experiment.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb get_experiment_results [OPTIONS] EXPERIMENT_NAME
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-mlflow">nerbb mlflow</h3>
-<p>show detailed experiment results in mlflow (port = 5000).</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb mlflow [OPTIONS]
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-predict">nerbb predict</h3>
-<p>predict labels for text_input using the best model of a single experiment.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb predict [OPTIONS] EXPERIMENT_NAME TEXT_INPUT
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-predict_proba">nerbb predict_proba</h3>
-<p>predict label probabilities for text_input using the best model of a single experiment.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb predict_proba [OPTIONS] EXPERIMENT_NAME TEXT_INPUT
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-run_experiment">nerbb run_experiment</h3>
-<p>run a single experiment.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb run_experiment [OPTIONS] EXPERIMENT_NAME
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-set_up_dataset">nerbb set_up_dataset</h3>
-<p>set up a dataset using the associated Formatter class.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb set_up_dataset [OPTIONS] DATASET_AND_SUBSET_NAME
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-show_experiment_config">nerbb show_experiment_config</h3>
-<p>show a single experiment configuration in detail.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb show_experiment_config [OPTIONS] EXPERIMENT_NAME
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-show_experiments">nerbb show_experiments</h3>
-<p>get overview on experiments.</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb show_experiments [OPTIONS]
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h3 id="nerbb-tensorboard">nerbb tensorboard</h3>
-<p>show detailed experiment results in tensorboard. (port = 6006).</p>
-<p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>nerbb tensorboard [OPTIONS]
-</code></pre></div>
-<p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
+<p>where <code>* = json</code> or <code>* = csv</code>, depending on whether the data is pretokenized or not</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>modify</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>if True: modify tags as specified in method modify_ner_tag_mapping()  TODO: better explanation</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>val_fraction</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>fraction of the validation dataset if it is split off from the training dataset</p></td>
+          <td>
+                <code>0.3</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>verbose</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>verbose output</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>shuffle</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>whether to shuffle train/val/test datasets</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.dataset.Dataset.split" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">split</span><span class="p">(</span><span class="n">val_fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">test_fraction</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <ul>
+<li>read dataset from self.file_path</li>
+<li>split dataset into train/val/test subsets</li>
+<li>write subsets to PHASE.jsonl</li>
+</ul>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>val_fraction</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>e.g. 0.1</p></td>
+          <td>
+                <code>0.1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>test_fraction</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>e.g. 0.2</p></td>
+          <td>
+                <code>0.2</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
 
               
             </article>
@@ -1018,7 +1127,7 @@ needs to be called exactly once before any other CLI/API commands of the package
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../../python_api/experiment_results/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ExperimentResults" rel="prev">
+        <a href="../store/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Store" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -1027,11 +1136,26 @@ needs to be called exactly once before any other CLI/API commands of the package
               <span class="md-footer__direction">
                 Previous
               </span>
-              ExperimentResults
+              Store
             </div>
           </div>
         </a>
       
+      
+        
+        <a href="../experiment/" class="md-footer__link md-footer__link--next" aria-label="Next: Experiment" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Experiment
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
       
     </nav>
   

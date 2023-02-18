@@ -13,7 +13,7 @@
     
     
       
-        <title>ExperimentResults - nerblackbox</title>
+        <title>Model - nerblackbox</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#experimentresults" class="md-skip">
+        <a href="#model" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ExperimentResults
+              Model
             
           </span>
         </div>
@@ -653,11 +653,101 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../model/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Model
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Model
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.evaluate_on_dataset" class="md-nav__link">
+    evaluate_on_dataset()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.from_checkpoint" class="md-nav__link">
+    from_checkpoint()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.from_experiment" class="md-nav__link">
+    from_experiment()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.from_huggingface" class="md-nav__link">
+    from_huggingface()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.predict" class="md-nav__link">
+    predict()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.predict_on_file" class="md-nav__link">
+    predict_on_file()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.model.Model.predict_proba" class="md-nav__link">
+    predict_proba()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -681,59 +771,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          ExperimentResults
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../experiment_results/" class="md-nav__link">
         ExperimentResults
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#nerblackbox.modules.experiment_results.ExperimentResults.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nerblackbox.modules.experiment_results.ExperimentResults.from_mlflow_runs" class="md-nav__link">
-    from_mlflow_runs()
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -807,7 +849,7 @@
                 
 
 
-<h1 id="experimentresults">ExperimentResults</h1>
+<h1 id="model">Model</h1>
 
 
 <div class="doc doc-object doc-class">
@@ -817,7 +859,7 @@
   <div class="doc doc-contents first">
 
   
-      <p>class that contains results of a single experiment.</p>
+      <p>model that predicts tags for given input text</p>
 
 
 
@@ -837,8 +879,8 @@
 
 
 
-<h2 id="nerblackbox.modules.experiment_results.ExperimentResults.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">single_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average_runs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_single_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_average_run</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h2 id="nerblackbox.api.model.Model.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">checkpoint_directory</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">max_seq_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
@@ -858,71 +900,31 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>_id</code></td>
+          <td><code>checkpoint_directory</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str]</code>
+                <code>str</code>
           </td>
-          <td><p>e.g. '1'</p></td>
+          <td><p>path to the checkpoint directory</p></td>
           <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>name</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[str]</code>
-          </td>
-          <td><p>e.g. 'my_experiment'</p></td>
-          <td>
-                <code>None</code>
+              <em>required</em>
           </td>
         </tr>
         <tr>
-          <td><code>experiment</code></td>
+          <td><code>batch_size</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span>]</code>
+                <code>int</code>
           </td>
-          <td><p>overview on experiment parameters</p></td>
+          <td><p>batch size used by dataloader</p></td>
           <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>single_runs</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span>]</code>
-          </td>
-          <td><p>overview on run parameters &amp; single  results</p></td>
-          <td>
-                <code>None</code>
+                <code>16</code>
           </td>
         </tr>
         <tr>
-          <td><code>average_runs</code></td>
+          <td><code>max_seq_length</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span>]</code>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>overview on run parameters &amp; average results</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>best_single_run</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
-          </td>
-          <td><p>overview on best run parameters &amp; single results</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>best_average_run</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
-          </td>
-          <td><p>overview on best run parameters &amp; average results</p></td>
+          <td><p>maximum sequence length (Optional). Loaded from checkpoint if not specified.</p></td>
           <td>
                 <code>None</code>
           </td>
@@ -938,8 +940,132 @@
 
 
 
-<h2 id="nerblackbox.modules.experiment_results.ExperimentResults.from_mlflow_runs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_mlflow_runs</span><span class="p">(</span><span class="n">_runs</span><span class="p">,</span> <span class="n">_experiment_id</span><span class="p">,</span> <span class="n">_experiment_name</span><span class="p">)</span></code>
+<h2 id="nerblackbox.api.model.Model.evaluate_on_dataset" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">dataset_format</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">class_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">derived_from_jsonl</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rounded_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>evaluate model on dataset from huggingface or local dataset in jsonl or csv format</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dataset_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>e.g. 'conll2003'</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_format</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>'huggingface', 'jsonl', 'csv'</p></td>
+          <td>
+                <code>&#39;infer&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>phase</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>e.g. 'test'</p></td>
+          <td>
+                <code>&#39;test&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>class_mapping</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, str]]</code>
+          </td>
+          <td><p>e.g. {"PER": "PI", "ORG": "PI}</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>number</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>e.g. 100</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>derived_from_jsonl</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>rounded_decimals</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>if not None, results will be rounded to provided decimals</p></td>
+          <td>
+                <code>3</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>evaluation_dict</code></td>          <td>
+                <code><span title="nerblackbox.api.model.EVALUATION_DICT">EVALUATION_DICT</span></code>
+          </td>
+          <td><p>Dict with keys [label][level][metric]
+where label in ['micro', 'macro'],
+level in ['entity', 'token']
+metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
+and values = float between 0 and 1</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.from_checkpoint" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_checkpoint</span><span class="p">(</span><span class="n">checkpoint_directory</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -963,31 +1089,11 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>_runs</code></td>
-          <td>
-                <code><span title="typing.List">List</span>[<span title="mlflow.entities.Run">Run</span>]</code>
-          </td>
-          <td><p>[List of mlflow.entities.Run]</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>_experiment_id</code></td>
+          <td><code>checkpoint_directory</code></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>[str], e.g. '0'</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>_experiment_name</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>[str], e.g. 'my_experiment'</p></td>
+          <td><p>path to the checkpoint directory</p></td>
           <td>
               <em>required</em>
           </td>
@@ -999,16 +1105,397 @@
   <table>
     <thead>
       <tr>
-        <th>Type</th>
+<th>Name</th>        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-          <td>
-                <code><span title="nerblackbox.modules.experiment_results.ExperimentResults">ExperimentResults</span></code>
+<td><code>model</code></td>          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
           </td>
-          <td><p>ExperimentResults instance</p></td>
+          <td><p>best model from experiment</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.from_experiment" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_experiment</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>load best model from experiment.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>experiment_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>name of the experiment, e.g. "exp0"</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>model</code></td>          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
+          </td>
+          <td><p>best model from experiment</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.from_huggingface" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_huggingface</span><span class="p">(</span><span class="n">repo_id</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>repo_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>id of the huggingface hub repo id, e.g. 'KB/bert-base-swedish-cased-ner'</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>model</code></td>          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
+          </td>
+          <td><p>model</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.predict" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">predict</span><span class="p">(</span><span class="n">input_texts</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="n">autocorrect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_pretokenized</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>predict tags for input texts. output on entity or word level.</p>
+
+<p><strong>Examples:</strong></p>
+    <p><div class="highlight"><pre><span></span><code>predict([&quot;arbetsförmedlingen finns i stockholm&quot;], level=&quot;word&quot;, autocorrect=False)
+# [[
+#     {&quot;char_start&quot;: &quot;0&quot;, &quot;char_end&quot;: &quot;18&quot;, &quot;token&quot;: &quot;arbetsförmedlingen&quot;, &quot;tag&quot;: &quot;I-ORG&quot;},
+#     {&quot;char_start&quot;: &quot;19&quot;, &quot;char_end&quot;: &quot;24&quot;, &quot;token&quot;: &quot;finns&quot;, &quot;tag&quot;: &quot;O&quot;},
+#     {&quot;char_start&quot;: &quot;25&quot;, &quot;char_end&quot;: &quot;26&quot;, &quot;token&quot;: &quot;i&quot;, &quot;tag&quot;: &quot;O&quot;},
+#     {&quot;char_start&quot;: &quot;27&quot;, &quot;char_end&quot;: &quot;36&quot;, &quot;token&quot;: &quot;stockholm&quot;, &quot;tag&quot;: &quot;B-LOC&quot;},
+# ]]
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>predict([&quot;arbetsförmedlingen finns i stockholm&quot;], level=&quot;word&quot;, autocorrect=True)
+# [[
+#     {&quot;char_start&quot;: &quot;0&quot;, &quot;char_end&quot;: &quot;18&quot;, &quot;token&quot;: &quot;arbetsförmedlingen&quot;, &quot;tag&quot;: &quot;B-ORG&quot;},
+#     {&quot;char_start&quot;: &quot;19&quot;, &quot;char_end&quot;: &quot;24&quot;, &quot;token&quot;: &quot;finns&quot;, &quot;tag&quot;: &quot;O&quot;},
+#     {&quot;char_start&quot;: &quot;25&quot;, &quot;char_end&quot;: &quot;26&quot;, &quot;token&quot;: &quot;i&quot;, &quot;tag&quot;: &quot;O&quot;},
+#     {&quot;char_start&quot;: &quot;27&quot;, &quot;char_end&quot;: &quot;36&quot;, &quot;token&quot;: &quot;stockholm&quot;, &quot;tag&quot;: &quot;B-LOC&quot;},
+# ]]
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>predict([&quot;arbetsförmedlingen finns i stockholm&quot;], level=&quot;entity&quot;, autocorrect=False)
+# [[
+#     {&quot;char_start&quot;: &quot;27&quot;, &quot;char_end&quot;: &quot;36&quot;, &quot;token&quot;: &quot;stockholm&quot;, &quot;tag&quot;: &quot;LOC&quot;},
+# ]]
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>predict([&quot;arbetsförmedlingen finns i stockholm&quot;], level=&quot;entity&quot;, autocorrect=True)
+# [[
+#     {&quot;char_start&quot;: &quot;0&quot;, &quot;char_end&quot;: &quot;18&quot;, &quot;token&quot;: &quot;arbetsförmedlingen&quot;, &quot;tag&quot;: &quot;ORG&quot;},
+#     {&quot;char_start&quot;: &quot;27&quot;, &quot;char_end&quot;: &quot;36&quot;, &quot;token&quot;: &quot;stockholm&quot;, &quot;tag&quot;: &quot;LOC&quot;},
+# ]]
+</code></pre></div></p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input_texts</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td><p>e.g. ["example 1", "example 2"]</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>level</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>"entity" or "word"</p></td>
+          <td>
+                <code>&#39;entity&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>autocorrect</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>if True, autocorrect annotation scheme (e.g. B- and I- tags).</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>is_pretokenized</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>True if input_texts are pretokenized</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>predictions</code></td>          <td>
+                <code><span title="nerblackbox.api.model.PREDICTIONS">PREDICTIONS</span></code>
+          </td>
+          <td><p>[list] of predictions for the different examples.
+         each list contains a [list] of [dict] w/ keys = char_start, char_end, word, tag</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.predict_on_file" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">predict_on_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>predict tags for all input texts in input file, write results to output file</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input_file</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>e.g. strangnas/test.jsonl</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>output_file</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>e.g. strangnas/test_anonymized.jsonl</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.predict_proba" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">predict_proba</span><span class="p">(</span><span class="n">input_texts</span><span class="p">,</span> <span class="n">is_pretokenized</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>predict probability distributions for input texts. output on word level.</p>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code>predict_proba([&quot;arbetsförmedlingen finns i stockholm&quot;])
+# [[
+#     {&quot;char_start&quot;: &quot;0&quot;, &quot;char_end&quot;: &quot;18&quot;, &quot;token&quot;: &quot;arbetsförmedlingen&quot;, &quot;proba_dist: {&quot;O&quot;: 0.21, &quot;B-ORG&quot;: 0.56, ..}},
+#     {&quot;char_start&quot;: &quot;19&quot;, &quot;char_end&quot;: &quot;24&quot;, &quot;token&quot;: &quot;finns&quot;, &quot;proba_dist: {&quot;O&quot;: 0.87, &quot;B-ORG&quot;: 0.02, ..}},
+#     {&quot;char_start&quot;: &quot;25&quot;, &quot;char_end&quot;: &quot;26&quot;, &quot;token&quot;: &quot;i&quot;, &quot;proba_dist: {&quot;O&quot;: 0.95, &quot;B-ORG&quot;: 0.01, ..}},
+#     {&quot;char_start&quot;: &quot;27&quot;, &quot;char_end&quot;: &quot;36&quot;, &quot;token&quot;: &quot;stockholm&quot;, &quot;proba_dist: {&quot;O&quot;: 0.14, &quot;B-ORG&quot;: 0.22, ..}},
+# ]]
+</code></pre></div>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input_texts</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td><p>e.g. ["example 1", "example 2"]</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>is_pretokenized</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>True if input_texts are pretokenized</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>predictions</code></td>          <td>
+                <code><span title="nerblackbox.api.model.PREDICTIONS">PREDICTIONS</span></code>
+          </td>
+          <td><p>[list] of probability predictions for different examples.
+         each list contains a [list] of [dict] w/ keys = char_start, char_end, word, proba_dist
+         where proba_dist = [dict] that maps self.annotation.classes to probabilities</p></td>
         </tr>
     </tbody>
   </table>
@@ -1039,7 +1526,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../text_encoder/" class="md-footer__link md-footer__link--prev" aria-label="Previous: TextEncoder" rel="prev">
+        <a href="../experiment/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Experiment" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -1048,20 +1535,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              TextEncoder
+              Experiment
             </div>
           </div>
         </a>
       
       
         
-        <a href="../../cli/cli/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview" rel="next">
+        <a href="../text_encoder/" class="md-footer__link md-footer__link--next" aria-label="Next: TextEncoder" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Overview
+              TextEncoder
             </div>
           </div>
           <div class="md-footer__button md-icon">
