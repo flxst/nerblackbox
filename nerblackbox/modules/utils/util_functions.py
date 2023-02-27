@@ -213,7 +213,7 @@ def get_package_version() -> str:
 def checkpoint2epoch(_checkpoint_name: str) -> int:
     """
     Args:
-        _checkpoint_name: e.g. 'epoch=2.ckpt' or 'epoch=2_v0.ckpt'
+        _checkpoint_name: e.g. 'epoch=2.ckpt' or 'epoch=2_LAST.ckpt'
 
     Returns:
         _epoch:           e.g. 2
@@ -227,9 +227,9 @@ def epoch2checkpoint(_epoch: int) -> str:
         _epoch:           e.g. 2
 
     Returns:
-        _checkpoint_name: e.g. 'epoch=2.ckpt'
+        _checkpoint_name: e.g. 'epoch=2_LAST.ckpt'
     """
-    return f"epoch={_epoch}.ckpt"
+    return f"epoch={_epoch}_LAST.ckpt"
 
 
 def get_run_name(_run_name_nr: str) -> str:

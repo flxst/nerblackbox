@@ -5,8 +5,8 @@ from typing import Tuple, Dict, Any
 from os.path import join
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.callbacks.base import Callback
-from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+from pytorch_lightning.callbacks import Callback
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.seed import seed_everything
 
 from nerblackbox.modules.ner_training.ner_model_train import (
@@ -178,7 +178,7 @@ def get_callbacks(_params, _hparams, _log_dirs) -> Tuple[Callback, ...]:
         verbose=True,
         save_last=True,
     )
-    model_checkpoint.CHECKPOINT_NAME_LAST = "{epoch}"
+    model_checkpoint.CHECKPOINT_NAME_LAST = "{epoch}_LAST"
 
     _callbacks: Tuple[Callback, ...]
     if early_stopping:

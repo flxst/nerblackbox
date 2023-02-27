@@ -1,12 +1,12 @@
-matplotlib
+matplotlib~=3.5.2
 mlflow~=1.30.0
-pytorch-lightning~=1.5.10
-omegaconf
+pytorch-lightning~=1.9.3
+omegaconf~=2.2.2
 seqeval~=1.2.2
-scikit-learn
-tensorboardx
+scikit-learn~=1.1.1
+tensorboardX~=2.5.1
 transformers~=4.26.0
 numpy~=1.23.4
 datasets~=2.9.0
 evaluate~=0.4.0
-torchmetrics<0.7  # see https://github.com/PyTorchLightning/pytorch-lightning/issues/11524
+torchmetrics~=0.11.1
