@@ -218,7 +218,7 @@ def checkpoint2epoch(_checkpoint_name: str) -> int:
     Returns:
         _epoch:           e.g. 2
     """
-    return int(_checkpoint_name.split("epoch=")[-1].split("_")[0].replace(".ckpt", ""))
+    return int(_checkpoint_name.split("epoch=")[-1].replace(".ckpt", ""))
 
 
 def epoch2checkpoint(_epoch: int) -> str:
@@ -227,9 +227,9 @@ def epoch2checkpoint(_epoch: int) -> str:
         _epoch:           e.g. 2
 
     Returns:
-        _checkpoint_name: e.g. 'epoch=2_LAST.ckpt'
+        _checkpoint_name: e.g. 'epoch=2.ckpt'
     """
-    return f"epoch={_epoch}_LAST.ckpt"
+    return f"epoch={_epoch}.ckpt"
 
 
 def get_run_name(_run_name_nr: str) -> str:

@@ -13,21 +13,20 @@ from nerblackbox.tests.test_utils import pytest_approx
 
 class TestUtilFunctions:
     @pytest.mark.parametrize(
-        "checkpoint_name, epoch, restored_checkpoint_name",
+        "checkpoint_name, epoch",
         [
-            ("epoch=2.ckpt", 2, "epoch=2_LAST.ckpt"),
-            ("epoch=35.ckpt", 35, "epoch=35_LAST.ckpt"),
-            ("epoch=35_LAST.ckpt", 35, "epoch=35_LAST.ckpt"),
+            ("epoch=2.ckpt", 2),
+            ("epoch=35.ckpt", 35),
         ],
     )
-    def test_checkpoint2epoch(self, checkpoint_name: str, epoch: int, restored_checkpoint_name: str):
+    def test_checkpoint2epoch(self, checkpoint_name: str, epoch: int):
         test_epoch = checkpoint2epoch(checkpoint_name)
         assert test_epoch == epoch, f"ERROR! test_epoch = {test_epoch} != {epoch}"
 
         test_restored_checkpoint_name = epoch2checkpoint(epoch)
         assert (
-            test_restored_checkpoint_name == restored_checkpoint_name
-        ), f"ERROR! test_restored_checkpoint_name = {test_restored_checkpoint_name} != {restored_checkpoint_name}"
+            test_restored_checkpoint_name == checkpoint_name
+        ), f"ERROR! test_restored_checkpoint_name = {test_restored_checkpoint_name} != {checkpoint_name}"
 
     @pytest.mark.parametrize(
         "run_name, run_nr, run_name_nr",

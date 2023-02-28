@@ -16,7 +16,6 @@ class ExperimentResults:
 
     METRICS = {
         "EPOCH_BEST": "EPOCH_BEST",
-        "EPOCH_STOPPED": "EPOCH_STOPPED",
         "EPOCH_BEST_VAL_ENTITY_FIL_F1_MICRO": "VAL_ENT_F1",
         "EPOCH_BEST_TEST_ENTITY_FIL_F1_MICRO": "TEST_ENT_F1",
         "EPOCH_BEST_VAL_TOKEN_FIL_F1_MICRO": "VAL_TOK_F1",
@@ -194,18 +193,13 @@ class ExperimentResults:
                         except:
                             _parameters_runs[("metrics", k)] = [-1]
 
-        for k in ["epoch_best".upper(), "epoch_stopped".upper()]:
+        for k in ["epochs".upper(), "epoch_best".upper()]:
             try:
                 _parameters_runs[("metrics", k)] = [
                     int(elem) for elem in _parameters_runs[("metrics", k)]
                 ]
             except:
                 _parameters_runs[("metrics", k)] = [-1]
-
-        if _parameters_runs[("metrics", "epoch_best".upper())] != [-1]:
-            _parameters_runs[("metrics", "epochs".upper())] = [
-                elem + 1 for elem in _parameters_runs[("metrics", "epoch_best".upper())]
-            ]
 
         return _parameters_runs, _parameters_experiment
 
