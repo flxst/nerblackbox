@@ -18,4 +18,4 @@ CREATE THE DOCUMENTATION
 
 4. push the documentation to github (branch `gh-pages`) manually
    
-    ``git checkout gh-pages && git push public gh-pages``
+    ``git checkout gh-pages && git push origin gh-pages``
