@@ -14,3 +14,4 @@ from nerblackbox.api.dataset import Dataset
 from nerblackbox.api.experiment import Experiment
 from nerblackbox.api.model import Model
 from nerblackbox.modules.ner_training.data_preprocessing.text_encoder import TextEncoder
+from nerblackbox.api.annotation_tool import AnnotationTool

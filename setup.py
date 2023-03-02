@@ -54,7 +54,6 @@ setup(
     install_requires=requirements("requirements"),
     extras_require={
         "dev": requirements("requirements_dev"),
-        # "annotation": requirements("requirements_annotation"),
     },
     python_requires=">=3.8",
     entry_points="""
