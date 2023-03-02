@@ -9,13 +9,13 @@ body:
         #### Before submitting a bug, please make sure the issue hasn't been already addressed by searching through [the existing and past issues](https://github.com/flxst/nerblackbox/issues).
 
   - type: textarea
-      id: system-info
-      attributes:
-        label: System Info
-        description: Please share your system info with us.
-        placeholder: nerblackbox version, platform, python version, ...
-      validations:
-        required: true
+    id: system-info
+    attributes:
+      label: System Info
+      description: Please share your system info with us.
+      placeholder: nerblackbox version, platform, python version, ...
+    validations:
+      required: true
 
   - type: textarea
     attributes:
