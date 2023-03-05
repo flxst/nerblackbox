@@ -8,6 +8,7 @@ from nerblackbox.modules.annotation.file_conversion import (
 )
 from nerblackbox.modules.annotation.utils import extract_labels
 from nerblackbox.modules.annotation.annotation_tool_base import AnnotationToolBase
+from nerblackbox.modules.annotation.io import read_jsonl, write_jsonl, read_json, write_json
 
 
 class AnnotationToolLabelStudio(AnnotationToolBase):
@@ -50,7 +51,9 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
             _input_file: e.g. '[..]/batch_1_TOOL.jsonl
             _output_file: e.g. '[..]/batch_1.jsonl
         """
-        labelstudio2nerblackbox(_input_file, _output_file)
+        input_lines = read_json(_input_file)
+        output_lines = labelstudio2nerblackbox(input_lines)
+        write_jsonl(_output_file, output_lines)
 
     def _nerblackbox2tool(self, _input_file: str, _output_file: str) -> None:
         """
@@ -58,7 +61,9 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
             _input_file: e.g. '[..]/batch_1.jsonl
             _output_file: e.g. '[..]/batch_1_TOOL.jsonl
         """
-        nerblackbox2labelstudio(_input_file, _output_file)
+        input_lines = read_jsonl(_input_file)
+        output_lines = nerblackbox2labelstudio(input_lines)
+        write_json(_output_file, output_lines)
 
     def _download(self, _project: LabelStudioProject, _paths: Dict[str, str], _project_name: str) -> None:
         """

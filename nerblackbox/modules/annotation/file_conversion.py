@@ -1,31 +1,70 @@
-import os
-import json
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 
+########################################################################################################################
+# nerblackbox <-> labelstudio
+########################################################################################################################
 def nerblackbox2labelstudio(
-        _input_file: str, _output_file: str, _max_lines: Optional[int] = None, verbose: bool = False
-):
+        _input_lines: List[Dict[str, Any]], _max_lines: Optional[int] = None
+) -> List[Dict[str, Any]]:
     """
     convert data from nerblackbox to labelstudio format
 
     Args:
-        _input_file: e.g. '[..]/batch_1.jsonl
-        _output_file: e.g. '[..]/batch_1_LABELSTUDIO.json'
+        _input_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "tags": [
+                        {"char_start": 1, "char_end": 11, "token": "2020-05-20", "tag": "PI"},
+                        {"char_start": 12, "char_end": 20, "token": "John Doe", "tag": "PI"},
+                        ]
+                }
+            ]
         _max_lines: e.g. 30
-        verbose:
+
+    Returns:
+        _output_lines: e.g.
+            [
+                {
+                    {
+                        "data": {
+                            "text": "\n2020-05-20 John Doe pratar.",
+                        },
+                        "annotations": [{
+                            "result": [
+                                {
+                                    "id": "0",
+                                    [..]
+                                    "value": {
+                                        "start": 1,
+                                        "end": 11,
+                                        "text": "2020-05-20",
+                                        "labels": ["PI"],
+                                    },
+                                },
+                                {
+                                    "id": "1",
+                                    [..]
+                                    "value": {
+                                        "start": 12,
+                                        "end": 20,
+                                        "text": "John Doe",
+                                        "labels": ["PI"],
+                                    },
+                                },
+                            ]
+                        }]
+                    }
+                }
+            ]
     """
-    if verbose:
-        print(f"> read input_file = {_input_file}")
-    with open(_input_file, "r") as f:
-        input_lines = [json.loads(line) for line in f]
-
     if _max_lines is not None:
-        input_lines = input_lines[:_max_lines]
+        _input_lines = _input_lines[:_max_lines]
 
-    output_lines = list()
+    _output_lines = list()
     idx = 0
-    for i, input_line in enumerate(input_lines):
+    for i, input_line in enumerate(_input_lines):
         output_line = {
             "data": {
                 "text": input_line["text"],
@@ -49,108 +88,67 @@ def nerblackbox2labelstudio(
             }],
         }
         idx += len(input_line["tags"])
-        output_lines.append(output_line)
+        _output_lines.append(output_line)
 
-    if verbose:
-        print(f"> write output_file = {_output_file}")
-    with open(_output_file, "w") as f:
-        f.write(json.dumps(output_lines, ensure_ascii=False))
+    return _output_lines
 
 
-def doccano2nerblackbox(_input_file: str, _output_file: str, verbose: bool = False) -> None:
-    """
-    convert data from doccano to nerblackbox format
-
-    Args:
-        _input_file: e.g. '[..]/batch_1_DOCCANO.jsonl'
-        _output_file: e.g. '[..]/batch_1.jsonl
-        verbose:
-    """
-    if verbose:
-        print(f"> read input_file = {_input_file}")
-    with open(_input_file, "r") as f:
-        input_lines = [json.loads(line) for line in f]
-
-    output_lines = list()
-    for input_line in input_lines:
-        output_line = {
-            "text": input_line["text"],
-            "tags": [
-                {
-                    "char_start": label[0],
-                    "char_end": label[1],
-                    "token": input_line["text"][label[0]: label[1]],
-                    "tag": label[2],
-                }
-                for label in input_line["label"]
-            ],
-        }
-        output_lines.append(output_line)
-
-    if verbose:
-        print(f"> write output_file = {_output_file}")
-
-    os.makedirs("/".join(_output_file.split("/")[:-1]), exist_ok=True)
-    with open(_output_file, "w") as f:
-        for line in output_lines:
-            f.write(json.dumps(line, ensure_ascii=False) + "\n")
-
-
-def nerblackbox2doccano(
-    _input_file: str, _output_file: str, _max_lines: Optional[int] = None, verbose: bool = False
-) -> None:
-    """
-    convert data from nerblackbox to doccano format
-
-    Args:
-        _input_file: e.g. '[..]/batch_1.jsonl
-        _output_file: e.g. '[..]/batch_1_DOCCANO.jsonl'
-        _max_lines: e.g. 30
-        verbose:
-    """
-
-    if verbose:
-        print(f"> read input_file = {_input_file}")
-    with open(_input_file, "r") as f:
-        input_lines = [json.loads(line) for line in f]
-
-    if _max_lines is not None:
-        input_lines = input_lines[:_max_lines]
-
-    output_lines = list()
-    for input_line in input_lines:
-        output_line = {
-            "text": input_line["text"],
-            "label": [
-                [int(tag["char_start"]), int(tag["char_end"]), tag["tag"]]
-                for tag in input_line["tags"]
-            ],
-        }
-        output_lines.append(output_line)
-
-    if verbose:
-        print(f"> write output_file = {_output_file}")
-    with open(_output_file, "w") as f:
-        for line in output_lines:
-            f.write(json.dumps(line, ensure_ascii=False) + "\n")
-
-
-def labelstudio2nerblackbox(_input_file: str, _output_file: str, verbose: bool = False):
+def labelstudio2nerblackbox(
+        _input_lines: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
     """
     convert data from labelstudio to nerblackbox format
 
     Args:
-        _input_file: e.g. '[..]/batch_1_LABELSTUDIO.json'
-        _output_file: e.g. '[..]/batch_1.jsonl
-        verbose:
-    """
-    if verbose:
-        print(f"> read input_file = {_input_file}")
-    with open(_input_file, "r") as f:
-        input_lines = json.load(f)
+        _input_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "tags": [
+                        {"char_start": 1, "char_end": 11, "token": "2020-05-20", "tag": "PI"},
+                        {"char_start": 12, "char_end": 20, "token": "John Doe", "tag": "PI"},
+                        ]
+                }
+            ]
 
-    output_lines = list()
-    for input_line in input_lines:
+    Returns:
+        _output_lines: e.g.
+            [
+                {
+                    {
+                        "data": {
+                            "text": "\n2020-05-20 John Doe pratar.",
+                        },
+                        "annotations": [{
+                            "result": [
+                                {
+                                    "id": "0",
+                                    [..]
+                                    "value": {
+                                        "start": 1,
+                                        "end": 11,
+                                        "text": "2020-05-20",
+                                        "labels": ["PI"],
+                                    },
+                                },
+                                {
+                                    "id": "1",
+                                    [..]
+                                    "value": {
+                                        "start": 12,
+                                        "end": 20,
+                                        "text": "John Doe",
+                                        "labels": ["PI"],
+                                    },
+                                },
+                            ]
+                        }]
+                    }
+                }
+            ]
+    """
+    _output_lines = list()
+    for input_line in _input_lines:
         output_line = {
             "text": input_line["data"]["text"],
             "tags": [
@@ -163,12 +161,104 @@ def labelstudio2nerblackbox(_input_file: str, _output_file: str, verbose: bool =
                 for label in input_line["annotations"][0]["result"]
             ]
         }
-        output_lines.append(output_line)
+        _output_lines.append(output_line)
 
-    if verbose:
-        print(f"> write output_file = {_output_file}")
+    return _output_lines
 
-    os.makedirs("/".join(_output_file.split("/")[:-1]), exist_ok=True)
-    with open(_output_file, "w") as f:
-        for line in output_lines:
-            f.write(json.dumps(line, ensure_ascii=False) + "\n")
+
+########################################################################################################################
+# nerblackbox <-> doccano
+########################################################################################################################
+def nerblackbox2doccano(
+    _input_lines: List[Dict[str, Any]], _max_lines: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    """
+    convert data from nerblackbox to doccano format
+
+    Args:
+        _input_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "tags": [
+                        {"char_start": 1, "char_end": 11, "token": "2020-05-20", "tag": "PI"},
+                        {"char_start": 12, "char_end": 20, "token": "John Doe", "tag": "PI"},
+                        ]
+                }
+            ]
+        _max_lines: e.g. 30
+
+    Returns:
+        _output_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "label": [
+                        [1, 11, "PI"],
+                        [12, 20, "PI"],
+                    ]
+                }
+            ]
+    """
+    if _max_lines is not None:
+        _input_lines = _input_lines[:_max_lines]
+
+    _output_lines = list()
+    for input_line in _input_lines:
+        output_line = {
+            "text": input_line["text"],
+            "label": [
+                [int(tag["char_start"]), int(tag["char_end"]), tag["tag"]]
+                for tag in input_line["tags"]
+            ],
+        }
+        _output_lines.append(output_line)
+
+    return _output_lines
+
+
+def doccano2nerblackbox(_input_lines: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    convert data from doccano to nerblackbox format
+
+    Args:
+        _input_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "label": [
+                        [1, 11, "PI"],
+                        [12, 20, "PI"],
+                    ]
+                }
+            ]
+
+    Returns:
+        _output_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "tags": [
+                        {"char_start": 1, "char_end": 11, "token": "2020-05-20", "tag": "PI"},
+                        {"char_start": 12, "char_end": 20, "token": "John Doe", "tag": "PI"},
+                        ]
+                }
+            ]
+    """
+    _output_lines = list()
+    for input_line in _input_lines:
+        output_line = {
+            "text": input_line["text"],
+            "tags": [
+                {
+                    "char_start": label[0],
+                    "char_end": label[1],
+                    "token": input_line["text"][label[0]: label[1]],
+                    "tag": label[2],
+                }
+                for label in input_line["label"]
+            ],
+        }
+        _output_lines.append(output_line)
+
+    return _output_lines

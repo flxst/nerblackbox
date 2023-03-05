@@ -33,4 +33,3 @@ def get_label_color(index: int) -> str:
     """
     effective_index = index % len(LABEL_COLORS)
     return LABEL_COLORS[effective_index]
-

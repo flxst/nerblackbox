@@ -10,6 +10,7 @@ from nerblackbox.modules.annotation.file_conversion import (
 )
 from nerblackbox.modules.annotation.utils import extract_labels
 from nerblackbox.modules.annotation.annotation_tool_base import AnnotationToolBase
+from nerblackbox.modules.annotation.io import read_jsonl, write_jsonl
 
 
 class AnnotationToolDoccano(AnnotationToolBase):
@@ -54,7 +55,9 @@ class AnnotationToolDoccano(AnnotationToolBase):
             _input_file: e.g. '[..]/batch_1_TOOL.jsonl
             _output_file: e.g. '[..]/batch_1.jsonl
         """
-        doccano2nerblackbox(_input_file, _output_file)
+        input_lines = read_jsonl(_input_file)
+        output_lines = doccano2nerblackbox(input_lines)
+        write_jsonl(_output_file, output_lines)
 
     def _nerblackbox2tool(self, _input_file: str, _output_file: str) -> None:
         """
@@ -62,7 +65,9 @@ class AnnotationToolDoccano(AnnotationToolBase):
             _input_file: e.g. '[..]/batch_1.jsonl
             _output_file: e.g. '[..]/batch_1_TOOL.jsonl
         """
-        nerblackbox2doccano(_input_file, _output_file)
+        input_lines = read_jsonl(_input_file)
+        output_lines = nerblackbox2doccano(input_lines)
+        write_jsonl(_output_file, output_lines)
 
     def _download(self, _project: DoccanoProject, _paths: Dict[str, str], _project_name: str) -> None:
         """
