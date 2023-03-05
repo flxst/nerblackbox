@@ -359,7 +359,7 @@ class Model:
         # 1. pure model inference
         self.data_preprocessor = DataPreprocessor(
             tokenizer=self.tokenizer,
-            do_lower_case=False,
+            do_lower_case=self.tokenizer.do_lower_case,
             max_seq_length=self.max_seq_length,
             default_logger=PseudoDefaultLogger(),
         )
