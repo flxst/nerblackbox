@@ -70,6 +70,7 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
             config_name=ner_dataset_subset if len(ner_dataset_subset) else None,
         )
         compatibility = sorted(_dataset_split_names) == ["test", "train", "validation"]
+        # or sorted(_dataset_split_names) == ["test", "train", "val"]
         error_msg = (
             ""
             if compatibility
@@ -305,7 +306,46 @@ class HuggingfaceDatasetsFormatter(BaseFormatter):
                         if len(elem["token"]) == elem["char_end"] - elem["char_start"]
                     ]
 
+                    # there are datasets where "char_start" and "char_end" refer to a whole document, not the sentence
+                    # e.g. ehealth_kd:
+                    # {
+                    #   "text": "La mayoría de [..],
+                    #   "tags": [{"token": "mayoría", "tag": "Predicate", "char_start": 95, "char_end": 102},
+                    #   [..]
+                    # }
+                    # -> normalization needed
+                    _dict = self.normalize_boundaries(_dict)
+
                     self.sentences_rows_unpretokenized[phase].append(_dict)
+
+    @staticmethod
+    def normalize_boundaries(_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        make sure that entity boundaries ("char_start" & "char_end") refer to document
+
+        Args:
+            _dict: e.g.
+                {
+                  "text": "La mayoría de [..],
+                  "tags": [{"token": "mayoría", "tag": "Predicate", "char_start": 95, "char_end": 102},
+                }
+
+        Returns:
+                {
+                  "text": "La mayoría de [..],
+                  "tags": [{"token": "mayoría", "tag": "Predicate", "char_start": 3, "char_end": 10},
+                }
+        """
+        tag = _dict["tags"][0]
+        index_old = tag["char_start"]
+        index_new = _dict["text"].find(tag["token"])
+        index_difference = index_new - index_old
+
+        for i, tag in enumerate(_dict["tags"]):
+            tag["char_start"] += index_difference
+            tag["char_end"] += index_difference
+
+        return _dict
 
     def create_ner_tag_mapping(self) -> Dict[str, str]:
         """
