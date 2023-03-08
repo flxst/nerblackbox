@@ -144,12 +144,13 @@ class BaseFormatter(ABC):
         except subprocess.CalledProcessError as e:
             print(e)
 
-    def create_ner_tag_mapping_json(self, modify: bool) -> None:  # pragma: no cover
+    def create_ner_tag_mapping_json(self, modify: bool, verbose: bool = False) -> None:  # pragma: no cover
         """
         II: create customized ner_training tag mapping to map tags in original data to tags in formatted data
 
         Args:
             modify:      [bool], if True: modify tags as specified in method modify_ner_tag_mapping()
+            verbose:     output
 
         Returns: -
         """
@@ -162,8 +163,9 @@ class BaseFormatter(ABC):
         with open(json_path, "w") as f:
             json.dump(ner_tag_mapping, f)
 
-        print(f"> dumped the following dict to {json_path}:")
-        print(ner_tag_mapping)
+        if verbose:
+            print(f"> dumped the following dict to {json_path}:")
+            print(ner_tag_mapping)
 
     ####################################################################################################################
     # HELPER: READ ORIGINAL
@@ -232,7 +234,7 @@ class BaseFormatter(ABC):
         print(f"> phase = {phase}: wrote {len(df)} sentences to {file_path}")
 
     def _write_formatted_jsonl(
-        self, phase: str, sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED
+        self, phase: str, sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED, verbose: bool = False
     ) -> None:  # pragma: no cover
         """
         save to jsonl file
@@ -250,6 +252,7 @@ class BaseFormatter(ABC):
                                     'tags': [{..}, ..]
                                 }
                             ]
+            verbose: output
 
         Returns: -
         """
@@ -257,9 +260,10 @@ class BaseFormatter(ABC):
         with open(file_path, "w") as file:
             for sentence_row in sentences_rows:
                 file.write(json.dumps(sentence_row, ensure_ascii=False) + "\n")
-        print(
-            f"> phase = {phase}: wrote {len(sentences_rows)} sentences to {file_path}"
-        )
+        if verbose:
+            print(
+                f"> phase = {phase}: wrote {len(sentences_rows)} sentences to {file_path}"
+            )
 
     def _format_sentences_rows(
         self, sentences_rows: SENTENCES_ROWS_PRETOKENIZED

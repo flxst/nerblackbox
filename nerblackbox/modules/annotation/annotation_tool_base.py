@@ -20,6 +20,7 @@ class AnnotationToolBase(ABC):
     def __init__(self,
                  tool: str,
                  client: Client,
+                 url: str,
                  dataset_name: str,
                  username: Optional[str] = None,
                  password: Optional[str] = None):
@@ -27,13 +28,16 @@ class AnnotationToolBase(ABC):
         Args:
             tool: 'doccano' or 'labelstudio'
             client: e.g. DoccanoClient or LabelStudioClient
+            url: e.g. 'https://localhost:8080'
             dataset_name: e.g. 'strangnas_test'
         """
         self.tool = tool
         self.client = client
+        self.url = url
         self.dataset_name = dataset_name
         self.username = username
         self.password = password
+        self.connected: bool = False
         self._login()
 
     ####################################################################################################################
@@ -73,7 +77,7 @@ class AnnotationToolBase(ABC):
         pass
 
     @abstractmethod
-    def _download(self, _project: Project, _paths: Dict[str, str], _project_name: str):
+    def _download(self, _project: Project, _paths: Dict[str, str], _project_name: str, verbose: bool = False):
         """
         download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
 
@@ -81,6 +85,7 @@ class AnnotationToolBase(ABC):
             _project: Project
             _paths: [dict] w/ keys 'directory', 'file_nerblackbox', 'file_tool'
             _project_name: e.g. 'batch_1'
+            verbose: output
         """
         pass
 
@@ -159,12 +164,13 @@ class AnnotationToolBase(ABC):
         else:  # expected_nr_of_projects == 1
             return projects[0]
 
-    def download(self, project_name: str) -> None:
+    def download(self, project_name: str, verbose: bool = False) -> None:
         """
         download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
 
         Args:
             project_name: e.g. 'batch_1'
+            verbose: output
         """
         paths = self._get_paths(project_name)
 
@@ -172,19 +178,21 @@ class AnnotationToolBase(ABC):
         project = self._get_project_by_name(project_name, 1)
 
         # 1. download data
-        self._download(project, paths, project_name)
+        self._download(project, paths, project_name, verbose)
 
         # 2. translate format from labelstudio to nerblackbox
         self._tool2nerblackbox(paths['file_tool'], paths['file_nerblackbox'])
-        print(f"> translate data to nerblackbox format")
+        if verbose:
+            print(f"> translate data to nerblackbox format")
         print(f"> save data at {paths['file_nerblackbox']}")
 
-    def upload(self, project_name: str) -> None:
+    def upload(self, project_name: str, verbose: bool = False) -> None:
         """
         upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
 
         Args:
             project_name: e.g. 'batch_2'
+            verbose: output
         """
         paths = self._get_paths(project_name)
 
@@ -193,7 +201,8 @@ class AnnotationToolBase(ABC):
 
         # 1. translate format from nerblackbox to labelstudio
         self._nerblackbox2tool(paths['file_nerblackbox'], paths['file_tool'])
-        print(f"> translated data to labelstudio format")
+        if verbose:
+            print(f"> translated data to annotation tool format")
 
         # 2. upload
-        self._upload(project_name, paths)
+        self._upload(project_name, paths, verbose)

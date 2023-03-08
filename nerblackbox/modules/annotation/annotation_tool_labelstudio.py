@@ -23,13 +23,20 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
         url = _config_dict["url"]
         super().__init__(tool="labelstudio",
                          client=LabelStudioClient(url, _config_dict["api_key"]),
+                         url=url,
                          dataset_name=_dataset_name)
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
     ####################################################################################################################
     def _login(self) -> None:
-        self.client.check_connection()
+        try:
+            self.client.check_connection()
+            self.connected = True
+            print(f"> successfully connected to LabelStudio at {self.url}")
+        except Exception:
+            print(f"ERROR! could not connect to LabelStudio at {self.url}. Is the server running?")
+            self.connected = False
 
     def _get_projects(self, _project_name: str) -> List[LabelStudioProject]:
         """
@@ -65,7 +72,9 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
         output_lines = nerblackbox2labelstudio(input_lines)
         write_json(_output_file, output_lines)
 
-    def _download(self, _project: LabelStudioProject, _paths: Dict[str, str], _project_name: str) -> None:
+    def _download(self,
+                  _project: LabelStudioProject, _paths: Dict[str, str], _project_name: str, verbose: bool = False
+                  ) -> None:
         """
         download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
 
@@ -73,22 +82,25 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
             _project: Project
             _paths: [dict] w/ keys 'directory', 'file_nerblackbox', 'file_tool'
             _project_name: e.g. 'batch_1'
+            verbose: output
         """
         tasks = _project.export_tasks()
         tasks.reverse()
         with open(_paths['file_tool'], "w") as f:
             f.write(json.dumps(tasks, ensure_ascii=False))
-        print(
-            f"> download data from project = {_project_name} to {_paths['file_tool']}"
-        )
+        if verbose:
+            print(
+                f"> download data from project = {_project_name} to {_paths['file_tool']}"
+            )
 
-    def _upload(self, _project_name: str, _paths: Dict[str, str]) -> None:
+    def _upload(self, _project_name: str, _paths: Dict[str, str], verbose: bool = False) -> None:
         """
         upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
 
         Args:
             _project_name: e.g. 'batch_2'
             _paths: [dict] w/ keys 'directory', 'file_nerblackbox', 'file_tool'
+            verbose: output
         """
         # 2. create project
         project = self.client.start_project(
@@ -104,13 +116,14 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
         if len(labels) > 0:
             for (label_name, label_color) in labels:
                 label_config += f'        <Label value="{label_name}" background="{label_color}"/>\n'
-                print(f"> added label '{label_name}' with color {label_color}")
+                if verbose:
+                    print(f"> added label '{label_name}' with color {label_color}")
             label_config += '    </Labels>\n    <Text name="text" value="$text"/>\n</View>'
             project.set_params(label_config=label_config)
 
         # 4. upload data
-        print(_paths['file_tool'])
         project.import_tasks(
             tasks=_paths['file_tool'],
         )
-        print(f"> uploaded file {_paths['file_tool']}")
+        if verbose:
+            print(f"> uploaded file {_paths['file_tool']}")

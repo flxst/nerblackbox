@@ -25,6 +25,7 @@ class AnnotationToolDoccano(AnnotationToolBase):
         url = _config_dict["url"]
         super().__init__(tool="doccano",
                          client=DoccanoClient(url),
+                         url=url,
                          dataset_name=_dataset_name,
                          username=_config_dict["username"],
                          password=_config_dict["password"])
@@ -33,7 +34,13 @@ class AnnotationToolDoccano(AnnotationToolBase):
     # ABSTRACT BASE METHODS
     ####################################################################################################################
     def _login(self) -> None:
-        self.client.login(username=self.username, password=self.password)
+        try:
+            self.client.login(username=self.username, password=self.password)
+            self.connected = True
+            print(f"> successfully connected to Doccano at {self.url}")
+        except Exception:
+            print(f"ERROR! could not connect to Doccano at {self.url}. Is the server running?")
+            self.connected = False
 
     def _get_projects(self, _project_name: str) -> List[DoccanoProject]:
         """
@@ -69,7 +76,9 @@ class AnnotationToolDoccano(AnnotationToolBase):
         output_lines = nerblackbox2doccano(input_lines)
         write_jsonl(_output_file, output_lines)
 
-    def _download(self, _project: DoccanoProject, _paths: Dict[str, str], _project_name: str) -> None:
+    def _download(self,
+                  _project: DoccanoProject, _paths: Dict[str, str], _project_name: str, verbose: bool = False
+                  ) -> None:
         """
         download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
 
@@ -77,29 +86,33 @@ class AnnotationToolDoccano(AnnotationToolBase):
             _project: Project
             _paths: [dict] w/ keys 'directory', 'file_nerblackbox', 'file_tool'
             _project_name: e.g. 'batch_1'
+            verbose: output
         """
         downloaded_file_path = self.client.download(
             _project.id,
             "JSONL",
         )
-        print(
-            f"> download data from project = {_project.name} to {downloaded_file_path}"
-        )
+        if verbose:
+            print(
+                f"> download data from project = {_project.name} to {downloaded_file_path}"
+            )
 
         # 2. unzip
         with zipfile.ZipFile(downloaded_file_path, "r") as zip_ref:
             zip_ref.extractall(_paths['directory'])
         os.remove(downloaded_file_path)
-        print(f"> unzip file to {_paths['file_tool']}")
-        print(f"> remove zip file")
+        if verbose:
+            print(f"> unzip file to {_paths['file_tool']}")
+            print(f"> remove zip file")
 
-    def _upload(self, _project_name: str, _paths: Dict[str, str]) -> None:
+    def _upload(self, _project_name: str, _paths: Dict[str, str], verbose: bool = False) -> None:
         """
         upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
 
         Args:
             _project_name: e.g. 'batch_2'
             _paths: [dict] w/ keys 'directory', 'file_nerblackbox', 'file_tool'
+            verbose: output
         """
         # 2. create project
         project = self.client.create_project(
@@ -113,7 +126,8 @@ class AnnotationToolDoccano(AnnotationToolBase):
         labels = extract_labels(_paths['file_nerblackbox'])
         for (label_name, label_color) in labels:
             self.client.create_label_type(project.id, "span", label_name, color=label_color)
-            print(f"> added label '{label_name}' with color {label_color}")
+            if verbose:
+                print(f"> added label '{label_name}' with color {label_color}")
 
         # 4. upload data
         self.client.upload(
@@ -124,4 +138,5 @@ class AnnotationToolDoccano(AnnotationToolBase):
             "text",
             "label",
         )
-        print(f"> uploaded file {_paths['file_tool']}")
+        if verbose:
+            print(f"> uploaded file {_paths['file_tool']}")

@@ -15,9 +15,6 @@ from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.experiment_results import ExperimentResults
 
 
-VERBOSE = True
-
-
 class Store:
     r"""
     client for the store that contains all data (datasets, experiment configuration files, models, results)
@@ -60,9 +57,12 @@ class Store:
         return cls.get_path()
 
     @classmethod
-    def create(cls) -> None:
+    def create(cls, verbose: bool = False) -> None:
         r"""
         create store at cls.path
+
+        Args:
+            verbose: output
         """
         if resource_isdir(Requirement.parse("nerblackbox"), "nerblackbox/modules/data"):
             data_source = resource_filename(
@@ -70,7 +70,7 @@ class Store:
             )
 
             data_dir = env_variable("DATA_DIR")
-            if VERBOSE:
+            if verbose:
                 print("data_source =", data_source)
                 print("data_target =", data_dir)
 
@@ -142,7 +142,7 @@ class Store:
 
     @classmethod
     def get_experiment_results_single(
-        cls, experiment_name: str, update_experiments: bool = True
+        cls, experiment_name: str, update_experiments: bool = True, verbose: bool = False
     ) -> Tuple[bool, ExperimentResults]:
         r"""
         get results for single experiment
@@ -150,6 +150,7 @@ class Store:
         Args:
             experiment_name: e.g. 'exp0'
             update_experiments: whether to update cls.experiment_id2name & cls.experiment_name2id
+            verbose: output
 
         Returns:
             experiment_results: for experiment with experiment_name
@@ -178,9 +179,10 @@ class Store:
                     experiment_name,
                 )
             else:
-                print(f"no experiment with experiment_name = {experiment_name} found")
-                print(f"experiments that were found:")
-                print(list(cls.experiment_name2id.keys()))
+                if verbose:
+                    print(f"no experiment with experiment_name = {experiment_name} found")
+                    print(f"experiments that were found:")
+                    print(list(cls.experiment_name2id.keys()))
                 return False, ExperimentResults()
         else:
             return False, ExperimentResults()

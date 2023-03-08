@@ -16,11 +16,12 @@ from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter impor
 
 class AutoFormatter:
     @staticmethod
-    def for_dataset(ner_dataset: str, ner_dataset_subset: str = "") -> BaseFormatter:
+    def for_dataset(ner_dataset: str, ner_dataset_subset: str = "", verbose: bool = False) -> BaseFormatter:
         """
         Args:
             ner_dataset: e.g. "conll2003"
             ner_dataset_subset: e.g. "simple_cased"
+            verbose: output
 
         Returns:
             formatter: e.g. CoNLL2003Formatter
@@ -45,7 +46,8 @@ class AutoFormatter:
                 ner_dataset, ner_dataset_subset
             )
             if existence:
-                print(f"> ner_dataset = {ner_dataset} found in huggingface datasets")
+                if verbose:
+                    print(f"> ner_dataset = {ner_dataset} found in huggingface datasets")
             else:
                 raise Exception(error_msg)
 
@@ -53,7 +55,8 @@ class AutoFormatter:
                 ner_dataset, ner_dataset_subset
             )
             if compatibility:
-                print(f"> ner_dataset = {ner_dataset} contains train/val/test splits")
+                if verbose:
+                    print(f"> ner_dataset = {ner_dataset} contains train/val/test splits")
             else:
                 raise Exception(error_msg)
 
@@ -64,7 +67,8 @@ class AutoFormatter:
                 ner_dataset, ner_dataset_subset
             )
             if implementation:
-                print(f"> ner_dataset = {ner_dataset} can be parsed")
+                if verbose:
+                    print(f"> ner_dataset = {ner_dataset} can be parsed")
             else:
                 raise Exception(error_msg)
 

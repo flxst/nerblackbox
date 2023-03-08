@@ -10,20 +10,23 @@ class AnnotationTool:
     @classmethod
     def from_config(cls,
                     dataset_name: str,
-                    config_file: str) -> AnnotationToolBase:
+                    config_file: str,
+                    verbose: bool = False) -> AnnotationToolBase:
         """
         Args:
             dataset_name: e.g. 'strangnas_test'
             config_file: path to config file
+            verbose: output
         """
 
         assert isfile(config_file), f"config file {config_file} does not exist."
         config = ConfigParser()
         config.read(config_file)
         config_dict = dict(config.items("main"))
-        print(f"> read config from {config_file}")
         tool = config_dict.pop("tool")
-        print(f"> tool = {tool}")
+        if verbose:
+            print(f"> read config from {config_file}")
+            print(f"> tool = {tool}")
 
         if tool == "doccano":
             return AnnotationToolDoccano(dataset_name, config_dict)

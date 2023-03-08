@@ -21,10 +21,12 @@ class Experiment:
         dataset: Optional[str] = None,
         from_preset: Optional[str] = "adaptive",
         pytest: bool = False,
+        verbose: bool = False,
         **kwargs_optional: Any,
     ):
         self.experiment_name = experiment_name
         self.from_preset = from_preset
+        self.verbose = verbose
 
         self.from_config: bool
         self.kwargs: Dict[str, str]
@@ -33,7 +35,8 @@ class Experiment:
 
         if not pytest:
             experiment_exists, experiment_results = Store.get_experiment_results_single(
-                experiment_name
+                experiment_name,
+                verbose=self.verbose,
             )
             if experiment_exists:
                 self.from_config = True
@@ -127,7 +130,8 @@ class Experiment:
         )
 
         experiment_exists, self.results = Store.get_experiment_results_single(
-            self.experiment_name
+            self.experiment_name,
+            verbose=self.verbose,
         )
         assert (
             experiment_exists

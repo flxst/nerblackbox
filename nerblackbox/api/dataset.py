@@ -119,12 +119,13 @@ class Dataset:
         }
 
         formatter = AutoFormatter.for_dataset(
-            self.dataset_name, self.dataset_subset_name
+            self.dataset_name, self.dataset_subset_name, verbose
         )
         formatter.create_directory()
         formatter.get_data(verbose=verbose)  # I: get_data
         formatter.create_ner_tag_mapping_json(
-            modify=modify
+            modify=modify,
+            verbose=verbose
         )  # II: create ner tag mapping
         formatter.format_data(shuffle=shuffle)  # III: format data
         formatter.resplit_data(
