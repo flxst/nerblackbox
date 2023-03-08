@@ -20,7 +20,6 @@ from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.utils.util_functions import (
     get_package_version,
     checkpoint2epoch,
-    epoch2checkpoint,
 )
 from nerblackbox.modules.ner_training.callbacks.custom_early_stopping import (
     CustomEarlyStopping,
@@ -359,7 +358,7 @@ def _tb_logger_stopped_epoch(
     So technically speaking there are 2 logs for each run, pytorch-lightning's default & the one below. 
     """
     # log
-    _tb_logger.experiment.add_hparams(
+    _tb_logger.log_hyperparams(
         vars(_hparams),
         hparams_dict,
     )
