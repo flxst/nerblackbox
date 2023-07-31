@@ -9,7 +9,10 @@ from omegaconf import DictConfig
 
 from torch.optim.lr_scheduler import LambdaLR
 
-from transformers import AdamW
+# previously:
+# from transformers import AdamW
+# see https://github.com/huggingface/transformers/issues/25006
+from torch.optim import AdamW
 from transformers import get_linear_schedule_with_warmup
 from transformers import get_constant_schedule_with_warmup
 from transformers import get_cosine_schedule_with_warmup
