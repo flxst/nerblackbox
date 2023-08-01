@@ -1,4 +1,4 @@
-# [Other] Compatibility with HuggingFace
+# Compatibility with HuggingFace
 
 **nerblackbox** is heavily based on [HuggingFace Transformers](https://huggingface.co/transformers/). 
 Moreover, [HuggingFace Datasets](https://huggingface.co/docs/datasets/index) and [HuggingFace Evaluate](https://huggingface.co/docs/evaluate/index) are well-integrated, 

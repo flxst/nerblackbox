@@ -1,5 +1,5 @@
-# ExperimentResults
-::: nerblackbox.modules.experiment_results.ExperimentResults
+# AnnotationTool
+::: nerblackbox.api.annotation_tool.AnnotationTool
     rendering:
         show_root_heading: false
         show_root_toc_entry: false

@@ -18,8 +18,8 @@
 
 ----------
 - **Additional Classes:**
+    * [AnnotationTool](../annotation_tool)
     * [TextEncoder](../text_encoder)
-    * [ExperimentResults](../experiment_results)
 
 
 

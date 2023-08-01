@@ -1,4 +1,4 @@
-# [Data] Text Encoding
+# Text Encoding
 
 Text may contain whitespace characters (e.g. "\n", "\t") or special characters (e.g. "•", emojis) that a pre-trained model has never seen before. 
 While the whitespace characters are ignored in the tokenization process, the special characters lead to out-of-vocabulary tokens which get replaced by 

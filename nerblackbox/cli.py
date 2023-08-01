@@ -1,6 +1,5 @@
 """Command Line Interface of the nerblackbox package."""
 
-import os
 import subprocess
 from os.path import join
 import click

@@ -1,49 +1,44 @@
-# [Evaluation] Evaluation of a Model on a Dataset
+# Evaluation
 
-The [Model](../../../python_api/model) class provides the functionalities to evaluate a model on a dataset.
-Both the model and the dataset can either be loaded from local files or directly from the [HuggingFace Hub](https://huggingface.co/datasets).
-
+The [Model](../../../python_api/model) class provides the functionality to evaluate **any** NER model on **any** NER dataset.
+Both the fine-tuned NER model and the dataset can either be loaded from [HuggingFace (HF)](https://huggingface.co) or the Local Filesystem (LF).
 
 ----------
-1) load the [Model](../../../python_api/model) instance:
+## Usage
 
-??? note "from local checkpoint directory"
+1) load a [Model](../../../python_api/model) instance:
+
+??? note "load model"
     ``` python
+    # from local checkpoint directory
     model = Model.from_checkpoint("<checkpoint_directory>")
-    ```
 
-??? note "from local experiment"
-    ``` python
+    # from experiment
     model = Model.from_experiment("<experiment_name>")
-    ```
-   
-??? note "from huggingface"
-    ``` python
+
+    # from HuggingFace
     model = Model.from_huggingface("<repo_id>")
     ```
 
-----------
 2) use the [evaluate_on_dataset()](../../../python_api/model/#nerblackbox.api.model.Model.evaluate_on_dataset) method:
 
-??? note "on local dataset in [standard format](../../data/support_pretokenized/)"
+??? note "model evaluation on dataset"
     ``` python
+    # local dataset in standard format (jsonl)
     evaluation_dict = model.evaluate_on_dataset("<local_dataset_in_standard_format>", "jsonl", phase="test")
-    ```
 
-??? note "on local dataset in [pretokenized format](../../data/support_pretokenized/)"
-    ``` python
+    # local dataset in pretokenized format (csv)
     evaluation_dict = model.evaluate_on_dataset("<local_dataset_in_pretokenized_format>", "csv", phase="test")
-    ```
 
-??? note "on huggingface dataset in [pretokenized format](../../data/support_pretokenized/)"
-    ``` python
+    # huggingface dataset in pretokenized format
     evaluation_dict = model.evaluate_on_dataset("<huggingface_dataset_in_pretokenized_format>", "huggingface", phase="test")
     ```
 
-----------
-The returned object `evaluation_dict` is a nested dictionary `evaluation_dict[label][level][metric]` where 
+### Interpretation
 
-- `label` in `['micro', 'macro']` 
+The returned object `evaluation_dict` is a nested dictionary `evaluation_dict[label][level][metric]` where
+
+- `label` in `['micro', 'macro']`
 - `level` in `['entity', 'token']`
 - `metric` in `['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']`
 
@@ -64,8 +59,8 @@ The metrics `precision`, `recall` and `f1` are **nerblackbox**'s evaluation resu
 The difference lies in the way model predictions which are inconsistent with the employed [annotation scheme](../../data/support_annotation_schemes) are handled.
 While **nerblackbox**'s evaluation ignores them, **seqeval** takes them into account.
 
-----------
-A complete example of an evaluation using both the model and the dataset from the HuggingFace Hub:
+### Example
+A complete example of an evaluation using both the model and the dataset from HuggingFace:
 
 ??? example "complete evaluation example"
     ``` python

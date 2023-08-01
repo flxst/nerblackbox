@@ -26,31 +26,21 @@ markdown_extensions:
 extra_css:
   - stylesheets/extra.css
 nav:
-    - Overview: 'index.md'
-    - Usage:
-      - 'usage/getting_started.md'
-      - 'usage/datasets_and_models.md'
-      - 'usage/parameters_and_presets.md'
-    - Features:
-        - 'features/overview.md'
-        - 'features/data/support_pretokenized.md'
-        - 'features/data/support_annotation_schemes.md'
-        - 'features/data/support_huggingface_datasets.md'
-        - 'features/data/text_encoding.md'
-        - 'features/training/adaptive_finetuning.md'
-        - 'features/training/hyperparameter_search.md'
-        - 'features/training/multiple_runs.md'
-        - 'features/training/detailed_results.md'
-        - 'features/evaluation/support_evaluation.md'
-        - 'features/inference/versatile_model_inference.md'
-        - 'features/other/compatibility_with_huggingface.md'
+    - Start: 'index.md'
+    - Preparation: 'preparation.md'
+    - Data: 'data.md'
+    - Training: 'training.md'
+    - Evaluation: 'evaluation.md'
+    - Inference: 'inference.md'
+    - Advanced:
+        - 'advanced/compatibility_with_huggingface.md'
+        - 'advanced/text_encoding.md'
     - Python API:
       - Overview: 'python_api/overview.md'
       - 'python_api/store.md'
       - 'python_api/dataset.md'
       - 'python_api/experiment.md'
       - 'python_api/model.md'
+      - 'python_api/annotation_tool.md'
       - 'python_api/text_encoder.md'
-      - 'python_api/experiment_results.md'
-    - CLI:
-        - Overview: 'cli/cli.md'
+    - CLI: 'cli.md'
