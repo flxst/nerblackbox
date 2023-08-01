@@ -51,7 +51,7 @@ class Dataset:
             print(f"Error! {file_path} does not exist")
             return None
 
-    def split(self, val_fraction: float = 0.1, test_fraction: float = 0.2) -> None:
+    def split(self, val_fraction: float = 0.1, test_fraction: float = 0.1) -> None:
         r"""
         - read dataset from self.file_path
         - split dataset into train/val/test subsets
@@ -59,7 +59,7 @@ class Dataset:
 
         Args:
             val_fraction: e.g. 0.1
-            test_fraction: e.g. 0.2
+            test_fraction: e.g. 0.1
         """
         assert isinstance(
             self.file_path, str
@@ -92,7 +92,7 @@ class Dataset:
     def set_up(
         self,
         modify: bool = True,
-        val_fraction: float = 0.3,
+        val_fraction: float = 0.111111111,
         verbose: bool = False,
         shuffle: bool = False,
     ):
@@ -136,7 +136,7 @@ class Dataset:
 
     @staticmethod
     def overview():
-        print("Dataset.overview() not yet implemented.")
+        print("Dataset.overview() not yet implemented.")  # TODO
 
     def _analyze(self):
         r"""
