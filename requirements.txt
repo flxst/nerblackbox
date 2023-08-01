@@ -4,6 +4,7 @@ pytorch-lightning~=1.9.3
 omegaconf~=2.2.2
 seqeval~=1.2.2
 scikit-learn~=1.1.1
+tensorboard~=2.13.0
 tensorboardX~=2.5.1
 transformers~=4.31.0
 numpy~=1.23.4

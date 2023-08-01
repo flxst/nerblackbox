@@ -58,7 +58,7 @@ setup(
     python_requires=">=3.8",
     entry_points="""
             [console_scripts]
-            nerbb=nerblackbox.cli:nerbb
+            nerblackbox=nerblackbox.cli:nerblackbox
         """,
     include_package_data=True,
     zip_safe=False,

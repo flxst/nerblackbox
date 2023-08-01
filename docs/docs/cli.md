@@ -2,6 +2,6 @@
 
 ::: mkdocs-click 
     :module: nerblackbox.cli
-    :command: nerbb 
+    :command: nerblackbox
     :depth: 1
 

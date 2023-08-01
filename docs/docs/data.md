@@ -21,10 +21,6 @@ It provides a simple [Dataset](../../python_api/dataset) class which allows to e
         dataset = Dataset(name="<dataset_name>", source="<source>")  # <source> = HF, BI, LF
         dataset.set_up()
         ```
-    === "CLI"
-        ``` bash
-        nerbb set_up_dataset <dataset_name>
-        ```
 
     This creates dataset files in the folder `./store/datasets/<dataset_name>`.
 

@@ -14,7 +14,7 @@ It is complemented by a [CLI](../../cli).
         ```
     === "CLI"
         ``` bash
-        nerbb --help
+        nerblackbox --help
         ```
 
 -----------
@@ -30,10 +30,6 @@ It is handled by the [Store](../../python_api/store) class:
     === "Python"
         ``` python
         Store.create()
-        ```
-    === "CLI"
-        ``` bash
-        nerbb create
         ```
 
 By default, the store is located at ``./store`` and has the following subdirectories:
@@ -53,8 +49,3 @@ If wanted, the path of the store can be adjusted (before creation) like this:
         ``` python
         Store.set_path("<store_path>")
         ```
-    === "CLI"
-        ``` bash
-        nerbb --store_dir <store_dir> create
-        ```
-

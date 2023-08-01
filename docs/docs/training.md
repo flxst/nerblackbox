@@ -30,7 +30,7 @@ An experiment is defined
 
 - either **dynamically** through arguments when an [Experiment](../../python_api/experiment/) instance is created
 
-    ??? note "define experiment dynamically (only Python API)"
+    ??? note "define experiment dynamically"
         === "Python"
             ``` python
             experiment = Experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>")
@@ -43,8 +43,6 @@ An experiment is defined
             ``` python
             experiment = Experiment("<experiment_name>", from_config=True)
             ```
-        === "CLI"
-            see 3b.
 
 Note that the dynamic variant also creates an experiment configuration, which is subsequently used.
 In both cases, the specification of the `model` and the `dataset` are mandatory and sufficient.
@@ -60,10 +58,6 @@ A fine-tuning experiment is run using the following command:
     === "Python"
         ``` python
         experiment.run()
-        ```
-    === "CLI"
-        ``` bash
-        nerbb run_experiment <experiment_name>  # CLI: only static experiment definition
         ```
 
 See [`Experiment.run()`](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
@@ -87,10 +81,6 @@ An overview of all conducted experiments and their main results can be accessed 
     === "Python"
         ``` python
         Store.show_experiments()
-        ```
-    === "CLI"
-        ``` bash
-        nerbb show_experiments
         ```
 
 -----------
