@@ -129,7 +129,7 @@ class AnnotationToolBase(ABC):
 
     def get_file_path(self, project_name: str) -> str:
         """
-        get path of local file (nerblackbox format) that corresponds to dataset_name and project_name
+        get path of local file (nerblackbox format) that corresponds to `dataset_name` and `project_name`
 
         Args:
             project_name: e.g. 'batch_1'
@@ -166,7 +166,7 @@ class AnnotationToolBase(ABC):
 
     def download(self, project_name: str, verbose: bool = False) -> None:
         """
-        download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
+        download data from project to file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"`
 
         Args:
             project_name: e.g. 'batch_1'
@@ -188,7 +188,7 @@ class AnnotationToolBase(ABC):
 
     def upload(self, project_name: str, verbose: bool = False) -> None:
         """
-        upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
+        upload data from file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"` to project
 
         Args:
             project_name: e.g. 'batch_2'

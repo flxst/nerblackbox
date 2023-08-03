@@ -34,3 +34,35 @@ class AnnotationTool:
             return AnnotationToolLabelStudio(dataset_name, config_dict)
         else:
             raise Exception(f"ERROR! tool = {tool} not implemented.")
+
+    def get_file_path(self, project_name: str) -> str:
+        """
+        get path of local file (nerblackbox format) that corresponds to `dataset_name` and `project_name`
+
+        Args:
+            project_name: e.g. 'batch_1'
+
+        Returns:
+            file_path: e.g. f"{Store.get_path()}/datasets/<dataset_name>/batch_1.jsonl"
+        """
+        pass
+
+    def download(self, project_name: str, verbose: bool = False) -> None:
+        """
+        download data from project to file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"`
+
+        Args:
+            project_name: e.g. 'batch_1'
+            verbose: output
+        """
+        pass
+
+    def upload(self, project_name: str, verbose: bool = False) -> None:
+        """
+        upload data from file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"` to project
+
+        Args:
+            project_name: e.g. 'batch_2'
+            verbose: output
+        """
+        pass
