@@ -21,7 +21,7 @@ pip install nerblackbox
 -----------
 ## About
 
-![nerblackbox overview diagram](images/nerblackbox.png)
+![nerblackboxmain](images/nerblackbox_sources.png#main)
 
 Take a dataset from one of many available sources.
 Then train, evaluate and apply a language model 
