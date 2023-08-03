@@ -37,7 +37,7 @@ def _extract_labels(_input_lines: List[Dict[str, Any]]) -> List[Tuple[str, str]]
         labels: e.g. [("PI", "#000000")]
     """
 
-    all_labels = list()
+    all_labels: List[str] = list()
     for input_line in _input_lines:
         single_labels = list(set([tag["tag"] for tag in input_line["tags"]]))
         all_labels = list(set(all_labels + single_labels))

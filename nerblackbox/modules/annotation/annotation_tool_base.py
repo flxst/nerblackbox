@@ -90,7 +90,7 @@ class AnnotationToolBase(ABC):
         pass
 
     @abstractmethod
-    def _upload(self, _project_name: str, _paths: Dict[str, str]) -> None:
+    def _upload(self, _project_name: str, _paths: Dict[str, str], verbose: bool = False) -> None:
         """
         upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
 

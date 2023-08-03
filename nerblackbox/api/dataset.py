@@ -43,6 +43,7 @@ class Dataset:
 
         self.file_extension = "csv" if self.pretokenized else "jsonl"
 
+        self.file_path: Optional[str] = None
         if self.source == "LF":
             if file_path is None:
                 self.file_path = \
@@ -50,13 +51,12 @@ class Dataset:
             else:
                 self.file_path = file_path
             self._assert_file_existence()
-        else:
-            self.file_path = None
 
     def _assert_file_existence(self) -> None:
         r"""
         check that self.file_path exists, throw error if not
         """
+        assert isinstance(self.file_path, str), f"ERROR! type(self.file_path) = {type(self.file_path)}. Expected str."
         if not isfile(self.file_path):
             raise Exception(f"ERROR! {self.file_path} does not exist")
 

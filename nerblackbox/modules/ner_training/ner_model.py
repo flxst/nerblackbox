@@ -188,9 +188,8 @@ class NerModel(pl.LightningModule, ABC):
         batch_idx: int,
         optimizer: Union[Optimizer, LightningOptimizer],
         optimizer_idx: int = 0,
-        optimizer_closure: Optional[Callable] = None,
+        optimizer_closure: Optional[Callable[[], Any]] = None,
         on_tpu: bool = False,
-        using_native_amp: bool = False,
         using_lbfgs: bool = False,
     ) -> None:
         assert isinstance(
@@ -582,7 +581,8 @@ class NerModel(pl.LightningModule, ABC):
             tb_logs[f"{phase}/learning_rate"] = self.scheduler.get_last_lr()[0]
 
         # tb_logs
-        self.logger.log_metrics(tb_logs, self.global_step)
+        if self.logger is not None:
+            self.logger.log_metrics(tb_logs, self.global_step)
 
     ####################################################################################################################
     # 3. PRINT / LOG

@@ -45,7 +45,7 @@ class AnnotationTool:
         Returns:
             file_path: e.g. f"{Store.get_path()}/datasets/<dataset_name>/batch_1.jsonl"
         """
-        pass
+        return ""
 
     def download(self, project_name: str, verbose: bool = False) -> None:
         """

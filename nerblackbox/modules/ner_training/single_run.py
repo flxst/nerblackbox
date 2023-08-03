@@ -242,7 +242,11 @@ def get_callback_info(_callbacks: Tuple[Callback, ...],
     Returns:
         _callback_info: [dict] w/ keys 'epochs', 'epoch_best', 'checkpoint_best'
     """
-    checkpoint_best: str = _callbacks[0].best_model_path
+    model_checkpoint = _callbacks[0]
+    assert isinstance(model_checkpoint, ModelCheckpoint), \
+        f"ERROR! type(model_checkpoint) = {type(model_checkpoint)}. Expected ModelCheckpoint."
+
+    checkpoint_best: str = model_checkpoint.best_model_path
     epoch_best: int = checkpoint2epoch(checkpoint_best)
 
     callback_info: Dict[str, Any] = {
