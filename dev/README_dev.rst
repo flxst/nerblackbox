@@ -7,7 +7,7 @@ Unit Testing
 
 ::
 
-    python dev/check --coverage
+    python dev/check.py --coverage
 
 output file can be found at `./dev/coverage/index.html`
 

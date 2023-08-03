@@ -75,32 +75,42 @@ Note that for datasets which are not open source, the `Required Files` need to b
 
 ### Local Filesystem (LF)
 
+Data from the Local Filesystem needs to be stored either as ``.jsonl`` or ``.csv``, depending on the [Dataset Type](#dataset-types).
+Make sure that the correct [Dataset Format](#dataset-formats) is followed. 
+You can either provide a single file or three separate files for the train/val/test [Dataset Splits](#dataset-splits).
+A single file dataset will automatically be split as part of the setup (reformatting step).
+
+The following name conventions need to be obeyed.
+
+| Dataset Type | Dataset Splits | File Name                                |           
+|--------------|----------------|------------------------------------------|
+| Standard     | No             | `<local_dataset>.jsonl`                  |
+| Standard     | Yes            | `train.jsonl`, `val.jsonl`, `test.jsonl` |
+| Pretokenized | No             | `<local_dataset>.csv`                    |
+| Pretokenized | Yes            | `train.csv`, `val.csv`, `test.csv`       |
+
 To include a dataset from your local filesystem, do the following:
 
-- Make sure that your data is stored as ``.jsonl`` (standard) or ``.csv`` (pretokenized) and has the correct [Dataset Format](#dataset-formats).
+- Create a folder ``./store/datasets/<local_dataset>``
 
-- Create a folder ``./store/datasets/<custom_dataset>``
+- Add one or three `.jsonl` or `.csv` file(s) to the folder. 
+  
 
-- Add either a single file ``<custom_dataset>.*`` or three separate files ``train.*``, ``val.*``, ``test.*`` to the folder,
-  where ``* = jsonl, csv`` is the filename extension. A single file will automatically be split as part of the setup (reformatting step).
-
-To employ a local dataset, specify ``"LF"`` as the source in addition to the name of the dataset:
+To employ the local dataset, specify its name, ``"LF"`` as the source and whether it is pretokenized and/or split:
 
 ??? example "set up a dataset from Local Filesystem (LF)"
     === "Python"
         ``` python
-        dataset = Dataset(name="my_dataset", source="LF")
+        dataset = Dataset(name="my_dataset", source="LF", pretokenized=False, split=False)
         dataset.set_up()
         ```
-
-Note that single file datasets will be automatically be split into train/validation/test subsets, see [Dataset Splits](#dataset-splits). 
 
 
 <!---
 TODO
-Own custom datasets can also be created programmatically (like the :ref:`Built-in datasets <builtindatasets>`):
+Own local datasets can also be created programmatically (like the :ref:`Built-in datasets <builtindatasets>`):
 - (todo: revise the following)
-- Create a new module ``./store/datasets/formatter/<custom_dataset>_formatter.py``
+- Create a new module ``./store/datasets/formatter/<local_dataset>_formatter.py``
 - Derive the class ``<NewDataset>Formatter`` from ``BaseFormatter`` and implement the abstract base methods
 - (todo: additional instructions needed here)
 --->
@@ -114,11 +124,13 @@ Datasets can be downloaded from a server like this:
 ??? note "Download Data from Annotation Tool"
     === "Python"
         ``` python
-        annotation_tool = AnnotationTool.from_config("<dataset_name>", config_file=f"<config_file_path>")
-        annotation_tool.download("my_dataset")
+        annotation_tool = AnnotationTool.from_config(dataset_name="<dataset_name>", config_file=f"<config_file_path>")
+        annotation_tool.download(project_name="<project_name>")
         ```
+        `<project_name>` has to correspond to a project name in the annotation tool. 
+        `<dataset_name>` is used within nerblackbox and may be chosen at discretion.
 
-A config file with the annotation tool server's access information needs to be specified.
+In order for the above to work, a config file (`*.ini`) with the annotation tool server's access information needs to be provided.
 They differ slightly for LabelStudio and Doccano, as can be seen in the following examples:
 
 ??? example "LabelStudio Integration"
@@ -134,8 +146,8 @@ They differ slightly for LabelStudio and Doccano, as can be seen in the followin
 
     === "Python"
         ``` python
-        annotation_tool = AnnotationTool.from_config("my_dataset", config_file=f"labelstudio.ini")
-        annotation_tool.download("my_dataset")
+        annotation_tool = AnnotationTool.from_config(dataset_name="my_dataset", config_file=f"labelstudio.ini")
+        annotation_tool.download(project_name="my_project")
         ```
 
 ??? example "Doccano Integration"
@@ -152,12 +164,27 @@ They differ slightly for LabelStudio and Doccano, as can be seen in the followin
 
     === "Python"
         ``` python
-        annotation_tool = AnnotationTool.from_config("my_dataset", config_file=f"doccano.ini")
-        annotation_tool.download("my_dataset")
+        annotation_tool = AnnotationTool.from_config(dataset_name="my_dataset", config_file=f"doccano.ini")
+        annotation_tool.download(project_name="my_project")
         ```
 
-After the dataset is downloaded, it can be treated just like a dataset from the [Local Filesystem (LF)](../../data/#local-filesystem-lf).
-It will have the standard [Dataset Type](#dataset-types) and the correct [Dataset Format](#dataset-formats) automatically.
+After the dataset is downloaded, it will consist of a single `.json` file of the standard [Dataset Type](#dataset-types).
+It can be treated just like a dataset from the [Local Filesystem (LF)](../../data/#local-filesystem-lf). 
+Note, however, that an additional argument `file_path` needs to be provided, as shown in the following example:
+
+??? example "set up dataset from Annotation Tool (AT)"
+    === "Python"
+        ``` python
+        # download
+        annotation_tool = AnnotationTool.from_config(dataset_name="my_dataset", config_file=f"labelstudio.ini")
+        annotation_tool.download(project_name="my_project")
+        file_path = annotation_tool.get_file_path(project_name="my_project")
+
+        # set up
+        dataset = Dataset(name="my_dataset", source="LF", pretokenized=False, split=False, file_path=file_path)  
+        dataset.set_up()
+        ```
+
 For further details, we refer to the [Python API documentation](../python_api/annotation_tool) and the
 example [notebooks](https://github.com/flxst/nerblackbox/tree/master/notebooks).
 

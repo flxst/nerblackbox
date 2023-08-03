@@ -6,7 +6,7 @@ from nerblackbox import Dataset
 
 def prepare_raw_data(_dataset_name: str) -> None:
     # download dataset from HuggingFace
-    dataset = Dataset(_dataset_name)
+    dataset = Dataset(name=_dataset_name, source="HF")
     dataset.set_up()
 
     # train dataset -> annotated data

@@ -36,7 +36,7 @@ def test_api(capsys):
 
         ################################################################################################################
         print_section_header(f"2. dataset = Dataset({dataset_name}).set_up()")
-        dataset = Dataset(dataset_name)
+        dataset = Dataset(name=dataset_name, source="HF")
         dataset.set_up()
         for phase in ["train", "val", "test"]:
             file_path = join(data_dir, "datasets", dataset_name, f"{phase}.{dataset_suffix}")

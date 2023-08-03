@@ -622,7 +622,7 @@ class Model:
                 metric in ['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']
                 and values = float between 0 and 1
         """
-        dataset = Dataset(dataset_name)
+        dataset = Dataset(name=dataset_name, source="HF")
         dataset.set_up()
         dir_path = f"{Store.get_path()}/datasets/{dataset_name}"
         return self._evaluate_on_csv(
