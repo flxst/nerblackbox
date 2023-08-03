@@ -67,7 +67,9 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
             callbacks=list(callbacks),
         )
         trainer.fit(model)
-        callback_info = get_callback_info(callbacks, params, hparams, trainer.current_epoch)
+        callback_info = get_callback_info(
+            callbacks, params, hparams, trainer.current_epoch
+        )
 
         default_logger.log_info(
             f"---\n"
@@ -159,9 +161,11 @@ def _get_model_checkpoint_directory(_params):
     return join(env_variable("DIR_CHECKPOINTS"), _params.experiment_run_name_nr)
 
 
-def get_callbacks(_params: argparse.Namespace,
-                  _hparams: argparse.Namespace,
-                  _log_dirs: argparse.Namespace) -> Tuple[Callback, ...]:
+def get_callbacks(
+    _params: argparse.Namespace,
+    _hparams: argparse.Namespace,
+    _log_dirs: argparse.Namespace,
+) -> Tuple[Callback, ...]:
     """
     Args:
         _params:     attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
@@ -228,10 +232,12 @@ def get_callbacks(_params: argparse.Namespace,
     return _callbacks
 
 
-def get_callback_info(_callbacks: Tuple[Callback, ...],
-                      _params: argparse.Namespace,
-                      _hparams: argparse.Namespace,
-                      _epochs: int) -> Dict[str, Any]:
+def get_callback_info(
+    _callbacks: Tuple[Callback, ...],
+    _params: argparse.Namespace,
+    _hparams: argparse.Namespace,
+    _epochs: int,
+) -> Dict[str, Any]:
     """
     Args:
         _callbacks: either (ModelCheckpoint) or (ModelCheckpoint, EarlyStopping)
@@ -243,8 +249,9 @@ def get_callback_info(_callbacks: Tuple[Callback, ...],
         _callback_info: [dict] w/ keys 'epochs', 'epoch_best', 'checkpoint_best'
     """
     model_checkpoint = _callbacks[0]
-    assert isinstance(model_checkpoint, ModelCheckpoint), \
-        f"ERROR! type(model_checkpoint) = {type(model_checkpoint)}. Expected ModelCheckpoint."
+    assert isinstance(
+        model_checkpoint, ModelCheckpoint
+    ), f"ERROR! type(model_checkpoint) = {type(model_checkpoint)}. Expected ModelCheckpoint."
 
     checkpoint_best: str = model_checkpoint.best_model_path
     epoch_best: int = checkpoint2epoch(checkpoint_best)
@@ -273,9 +280,7 @@ def logging_start(_params, _log_dirs):
     return _tb_logger
 
 
-def logging_end(
-    _tb_logger, _callback_info, _hparams, _model, _model_best, _logger
-):
+def logging_end(_tb_logger, _callback_info, _hparams, _model, _model_best, _logger):
     """
     :param _tb_logger:     [pytorch lightning TensorBoardLogger]
     :param _callback_info: [dict] w/ keys 'epoch_best', 'checkpoint_best'

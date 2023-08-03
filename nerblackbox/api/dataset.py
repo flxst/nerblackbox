@@ -33,7 +33,11 @@ class Dataset:
              file_path: [only for source = "LF"] absolute file_path
              subset: [only for source = "HF"] name of subset if applicable, e.g. "simple_cased"
         """
-        assert source in ["HF", "BI", "LF"], f"ERROR! source = {source} needs to be HF, BI or LF."
+        assert source in [
+            "HF",
+            "BI",
+            "LF",
+        ], f"ERROR! source = {source} needs to be HF, BI or LF."
 
         self.dataset_name = name
         self.source = source
@@ -46,8 +50,7 @@ class Dataset:
         self.file_path: Optional[str] = None
         if self.source == "LF":
             if file_path is None:
-                self.file_path = \
-                    f"{Store.get_path()}/datasets/{self.dataset_name}/{self.dataset_name}.{self.file_extension}"
+                self.file_path = f"{Store.get_path()}/datasets/{self.dataset_name}/{self.dataset_name}.{self.file_extension}"
             else:
                 self.file_path = file_path
             self._assert_file_existence()
@@ -56,11 +59,17 @@ class Dataset:
         r"""
         check that self.file_path exists, throw error if not
         """
-        assert isinstance(self.file_path, str), f"ERROR! type(self.file_path) = {type(self.file_path)}. Expected str."
+        assert isinstance(
+            self.file_path, str
+        ), f"ERROR! type(self.file_path) = {type(self.file_path)}. Expected str."
         if not isfile(self.file_path):
             raise Exception(f"ERROR! {self.file_path} does not exist")
 
-    def set_up(self, val_fraction: Optional[float] = None, test_fraction: Optional[float] = None) -> None:
+    def set_up(
+        self,
+        val_fraction: Optional[float] = None,
+        test_fraction: Optional[float] = None,
+    ) -> None:
         r"""
         sets up the dataset and creates the following files (if needed):
 
@@ -121,7 +130,8 @@ class Dataset:
         print()
         for phase in PHASES:
             file_path_phase = (
-                "/".join(self.file_path.split("/")[:-1]) + f"/{phase}.{self.file_extension}"
+                "/".join(self.file_path.split("/")[:-1])
+                + f"/{phase}.{self.file_extension}"
             )
 
             with open(file_path_phase, "w") as f:
@@ -172,8 +182,7 @@ class Dataset:
         formatter.create_directory()
         formatter.get_data(verbose=verbose)  # I: get_data
         formatter.create_ner_tag_mapping_json(
-            modify=modify,
-            verbose=verbose
+            modify=modify, verbose=verbose
         )  # II: create ner tag mapping
         formatter.format_data(shuffle=shuffle)  # III: format data
         formatter.resplit_data(

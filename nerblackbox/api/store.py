@@ -142,7 +142,10 @@ class Store:
 
     @classmethod
     def get_experiment_results_single(
-        cls, experiment_name: str, update_experiments: bool = True, verbose: bool = False
+        cls,
+        experiment_name: str,
+        update_experiments: bool = True,
+        verbose: bool = False,
     ) -> Tuple[bool, ExperimentResults]:
         r"""
         get results for single experiment
@@ -180,7 +183,9 @@ class Store:
                 )
             else:
                 if verbose:
-                    print(f"no experiment with experiment_name = {experiment_name} found")
+                    print(
+                        f"no experiment with experiment_name = {experiment_name} found"
+                    )
                     print(f"experiments that were found:")
                     print(list(cls.experiment_name2id.keys()))
                 return False, ExperimentResults()

@@ -14,21 +14,21 @@ from nerblackbox.modules.annotation.io import read_jsonl, write_jsonl
 
 
 class AnnotationToolDoccano(AnnotationToolBase):
-    def __init__(self,
-                 _dataset_name: str,
-                 _config_dict: Dict[str, str]):
+    def __init__(self, _dataset_name: str, _config_dict: Dict[str, str]):
         """
         Args:
             _dataset_name: e.g. 'strangnas_test'
             _config_dict: [dict] w/ keys 'url', 'username', 'password'
         """
         url = _config_dict["url"]
-        super().__init__(tool="doccano",
-                         client=DoccanoClient(url),
-                         url=url,
-                         dataset_name=_dataset_name,
-                         username=_config_dict["username"],
-                         password=_config_dict["password"])
+        super().__init__(
+            tool="doccano",
+            client=DoccanoClient(url),
+            url=url,
+            dataset_name=_dataset_name,
+            username=_config_dict["username"],
+            password=_config_dict["password"],
+        )
 
     ####################################################################################################################
     # ABSTRACT BASE METHODS
@@ -39,7 +39,9 @@ class AnnotationToolDoccano(AnnotationToolBase):
             self.connected = True
             print(f"> successfully connected to Doccano at {self.url}")
         except Exception:
-            print(f"ERROR! could not connect to Doccano at {self.url}. Is the server running?")
+            print(
+                f"ERROR! could not connect to Doccano at {self.url}. Is the server running?"
+            )
             self.connected = False
 
     def _get_projects(self, _project_name: str) -> List[DoccanoProject]:
@@ -76,9 +78,13 @@ class AnnotationToolDoccano(AnnotationToolBase):
         output_lines = nerblackbox2doccano(input_lines)
         write_jsonl(_output_file, output_lines)
 
-    def _download(self,
-                  _project: DoccanoProject, _paths: Dict[str, str], _project_name: str, verbose: bool = False
-                  ) -> None:
+    def _download(
+        self,
+        _project: DoccanoProject,
+        _paths: Dict[str, str],
+        _project_name: str,
+        verbose: bool = False,
+    ) -> None:
         """
         download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
 
@@ -99,13 +105,15 @@ class AnnotationToolDoccano(AnnotationToolBase):
 
         # 2. unzip
         with zipfile.ZipFile(downloaded_file_path, "r") as zip_ref:
-            zip_ref.extractall(_paths['directory'])
+            zip_ref.extractall(_paths["directory"])
         os.remove(downloaded_file_path)
         if verbose:
             print(f"> unzip file to {_paths['file_tool']}")
             print(f"> remove zip file")
 
-    def _upload(self, _project_name: str, _paths: Dict[str, str], verbose: bool = False) -> None:
+    def _upload(
+        self, _project_name: str, _paths: Dict[str, str], verbose: bool = False
+    ) -> None:
         """
         upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
 
@@ -123,16 +131,18 @@ class AnnotationToolDoccano(AnnotationToolBase):
         print(f"> created project {_project_name}")
 
         # 3. create label
-        labels = extract_labels(_paths['file_nerblackbox'])
+        labels = extract_labels(_paths["file_nerblackbox"])
         for (label_name, label_color) in labels:
-            self.client.create_label_type(project.id, "span", label_name, color=label_color)
+            self.client.create_label_type(
+                project.id, "span", label_name, color=label_color
+            )
             if verbose:
                 print(f"> added label '{label_name}' with color {label_color}")
 
         # 4. upload data
         self.client.upload(
             project.id,
-            [_paths['file_tool']],
+            [_paths["file_tool"]],
             DoccanoTask.SEQUENCE_LABELING,
             "JSONL",
             "text",

@@ -144,7 +144,9 @@ class BaseFormatter(ABC):
         except subprocess.CalledProcessError as e:
             print(e)
 
-    def create_ner_tag_mapping_json(self, modify: bool, verbose: bool = False) -> None:  # pragma: no cover
+    def create_ner_tag_mapping_json(
+        self, modify: bool, verbose: bool = False
+    ) -> None:  # pragma: no cover
         """
         II: create customized ner_training tag mapping to map tags in original data to tags in formatted data
 
@@ -234,7 +236,10 @@ class BaseFormatter(ABC):
         print(f"> phase = {phase}: wrote {len(df)} sentences to {file_path}")
 
     def _write_formatted_jsonl(
-        self, phase: str, sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED, verbose: bool = False
+        self,
+        phase: str,
+        sentences_rows: SENTENCES_ROWS_UNPRETOKENIZED,
+        verbose: bool = False,
     ) -> None:  # pragma: no cover
         """
         save to jsonl file

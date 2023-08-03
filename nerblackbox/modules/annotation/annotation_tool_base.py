@@ -17,13 +17,16 @@ class AnnotationToolBase(ABC):
         client: DoccanoClient or LabelStudioClient
         dataset_name: e.g. 'strangnas_test'
     """
-    def __init__(self,
-                 tool: str,
-                 client: Client,
-                 url: str,
-                 dataset_name: str,
-                 username: Optional[str] = None,
-                 password: Optional[str] = None):
+
+    def __init__(
+        self,
+        tool: str,
+        client: Client,
+        url: str,
+        dataset_name: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+    ):
         """
         Args:
             tool: 'doccano' or 'labelstudio'
@@ -77,7 +80,13 @@ class AnnotationToolBase(ABC):
         pass
 
     @abstractmethod
-    def _download(self, _project: Project, _paths: Dict[str, str], _project_name: str, verbose: bool = False):
+    def _download(
+        self,
+        _project: Project,
+        _paths: Dict[str, str],
+        _project_name: str,
+        verbose: bool = False,
+    ):
         """
         download data from project to file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"
 
@@ -90,7 +99,9 @@ class AnnotationToolBase(ABC):
         pass
 
     @abstractmethod
-    def _upload(self, _project_name: str, _paths: Dict[str, str], verbose: bool = False) -> None:
+    def _upload(
+        self, _project_name: str, _paths: Dict[str, str], verbose: bool = False
+    ) -> None:
         """
         upload data from file_path f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl" to project
 
@@ -119,9 +130,13 @@ class AnnotationToolBase(ABC):
         paths["file_nerblackbox"] = join(paths["directory"], f"{project_name}.jsonl")
 
         if self.tool == "doccano":
-            paths["file_tool"] = join(paths["directory"], f"{project_name}_DOCCANO.jsonl")
+            paths["file_tool"] = join(
+                paths["directory"], f"{project_name}_DOCCANO.jsonl"
+            )
         elif self.tool == "labelstudio":
-            paths["file_tool"] = join(paths["directory"], f"{project_name}_LABELSTUDIO.json")
+            paths["file_tool"] = join(
+                paths["directory"], f"{project_name}_LABELSTUDIO.json"
+            )
         else:
             raise Exception(f"ERROR! tool = {self.tool} not implemented.")
 
@@ -140,7 +155,9 @@ class AnnotationToolBase(ABC):
         _paths = self._get_paths(project_name)
         return _paths["file_nerblackbox"]
 
-    def _get_project_by_name(self, project_name: str, expected_nr_of_projects: int) -> Optional[Project]:
+    def _get_project_by_name(
+        self, project_name: str, expected_nr_of_projects: int
+    ) -> Optional[Project]:
         """
         - checks that number of existing projects with project_name is equal to expected_nr_of_projects
         - returns project if expected_nr_of_projects == 1
@@ -152,12 +169,16 @@ class AnnotationToolBase(ABC):
         Returns:
             project: Project if expected_nr_of_projects == 1, else None
         """
-        assert expected_nr_of_projects in [0, 1], f"ERROR! expected_nr_of_projects needs to be 0 or 1."
+        assert expected_nr_of_projects in [
+            0,
+            1,
+        ], f"ERROR! expected_nr_of_projects needs to be 0 or 1."
 
         projects = self._get_projects(project_name)
 
-        assert len(projects) == expected_nr_of_projects, \
-            f"ERROR! found #projects = {len(projects)} with name = {project_name}, expected {expected_nr_of_projects}"
+        assert (
+            len(projects) == expected_nr_of_projects
+        ), f"ERROR! found #projects = {len(projects)} with name = {project_name}, expected {expected_nr_of_projects}"
 
         if expected_nr_of_projects == 0:
             return None
@@ -181,7 +202,7 @@ class AnnotationToolBase(ABC):
         self._download(project, paths, project_name, verbose)
 
         # 2. translate format from labelstudio to nerblackbox
-        self._tool2nerblackbox(paths['file_tool'], paths['file_nerblackbox'])
+        self._tool2nerblackbox(paths["file_tool"], paths["file_nerblackbox"])
         if verbose:
             print(f"> translate data to nerblackbox format")
         print(f"> save data at {paths['file_nerblackbox']}")
@@ -200,7 +221,7 @@ class AnnotationToolBase(ABC):
         _ = self._get_project_by_name(project_name, 0)
 
         # 1. translate format from nerblackbox to labelstudio
-        self._nerblackbox2tool(paths['file_nerblackbox'], paths['file_tool'])
+        self._nerblackbox2tool(paths["file_nerblackbox"], paths["file_tool"])
         if verbose:
             print(f"> translated data to annotation tool format")
 

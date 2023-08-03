@@ -1,17 +1,17 @@
 from configparser import ConfigParser
 from os.path import isfile
 from nerblackbox.modules.annotation.annotation_tool_doccano import AnnotationToolDoccano
-from nerblackbox.modules.annotation.annotation_tool_labelstudio import AnnotationToolLabelStudio
+from nerblackbox.modules.annotation.annotation_tool_labelstudio import (
+    AnnotationToolLabelStudio,
+)
 from nerblackbox.modules.annotation.annotation_tool_base import AnnotationToolBase
 
 
 class AnnotationTool:
-
     @classmethod
-    def from_config(cls,
-                    dataset_name: str,
-                    config_file: str,
-                    verbose: bool = False) -> AnnotationToolBase:
+    def from_config(
+        cls, dataset_name: str, config_file: str, verbose: bool = False
+    ) -> AnnotationToolBase:
         """
         Args:
             dataset_name: e.g. 'strangnas_test'

@@ -1,4 +1,3 @@
-
 import os
 import json
 from typing import List, Dict, Any
@@ -31,7 +30,9 @@ def read_jsonl(_input_file: str, verbose: bool = False) -> List[Dict[str, Any]]:
     return input_lines
 
 
-def write_jsonl(_output_file: str, _output_lines: List[Dict[str, Any]], verbose: bool = False) -> None:
+def write_jsonl(
+    _output_file: str, _output_lines: List[Dict[str, Any]], verbose: bool = False
+) -> None:
     """
     write _output_lines to jsonl file line by line
 
@@ -65,7 +66,9 @@ def read_json(_input_file: str, verbose: bool = False) -> List[Dict[str, Any]]:
     return input_lines
 
 
-def write_json(_output_file: str, _output_lines: List[Dict[str, Any]], verbose: bool = False) -> None:
+def write_json(
+    _output_file: str, _output_lines: List[Dict[str, Any]], verbose: bool = False
+) -> None:
     if verbose:
         print(f"> write output_file = {_output_file}")
     with open(_output_file, "w") as f:

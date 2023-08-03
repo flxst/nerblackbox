@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 # nerblackbox <-> labelstudio
 ########################################################################################################################
 def nerblackbox2labelstudio(
-        _input_lines: List[Dict[str, Any]], _max_lines: Optional[int] = None
+    _input_lines: List[Dict[str, Any]], _max_lines: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
     convert data from nerblackbox to labelstudio format
@@ -69,23 +69,25 @@ def nerblackbox2labelstudio(
             "data": {
                 "text": input_line["text"],
             },
-            "annotations": [{
-                "result": [
-                    {
-                        "id": str(idx + j),
-                        "from_name": "label",
-                        "to_name": "text",
-                        "type": "labels",
-                        "value": {
-                            "start": tag["char_start"],
-                            "end": tag["char_end"],
-                            "text": tag["token"],
-                            "labels": [tag["tag"]],
-                        },
-                    }
-                    for j, tag in enumerate(input_line["tags"])
-                ],
-            }],
+            "annotations": [
+                {
+                    "result": [
+                        {
+                            "id": str(idx + j),
+                            "from_name": "label",
+                            "to_name": "text",
+                            "type": "labels",
+                            "value": {
+                                "start": tag["char_start"],
+                                "end": tag["char_end"],
+                                "text": tag["token"],
+                                "labels": [tag["tag"]],
+                            },
+                        }
+                        for j, tag in enumerate(input_line["tags"])
+                    ],
+                }
+            ],
         }
         idx += len(input_line["tags"])
         _output_lines.append(output_line)
@@ -94,7 +96,7 @@ def nerblackbox2labelstudio(
 
 
 def labelstudio2nerblackbox(
-        _input_lines: List[Dict[str, Any]],
+    _input_lines: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """
     convert data from labelstudio to nerblackbox format
@@ -159,7 +161,7 @@ def labelstudio2nerblackbox(
                     "tag": label["value"]["labels"][0],
                 }
                 for label in input_line["annotations"][0]["result"]
-            ]
+            ],
         }
         _output_lines.append(output_line)
 
@@ -253,7 +255,7 @@ def doccano2nerblackbox(_input_lines: List[Dict[str, Any]]) -> List[Dict[str, An
                 {
                     "char_start": label[0],
                     "char_end": label[1],
-                    "token": input_line["text"][label[0]: label[1]],
+                    "token": input_line["text"][label[0] : label[1]],
                     "tag": label[2],
                 }
                 for label in input_line["label"]
