@@ -21,7 +21,7 @@ In particular,
             # vocab.txt
             ```
 
-- After a [Model](../../../python_api/model) instance is created from a checkpoint, it contains a HuggingFace model and tokenizer as attributes:
+- After a [Model](../../python_api/model) instance is created from a checkpoint, it contains a HuggingFace model and tokenizer as attributes:
 
     ??? example "model attributes"
         === "Python"

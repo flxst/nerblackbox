@@ -428,8 +428,8 @@ using `mlflow` or `tensorboard`.
         ```
 
     Python: The underlying processes can be stopped using
-    [`Store.mlflow("stop")`](../../../python_api/store/#nerblackbox.api.store.Store.mlflow)
-    and [`Store.tensorboard("stop")`](../../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
+    [`Store.mlflow("stop")`](../../python_api/store/#nerblackbox.api.store.Store.mlflow)
+    and [`Store.tensorboard("stop")`](../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
 
 - `mlflow` displays precision, recall and f1 score for every single class,
 as well the respective micro- and macro-averages over all classes, both on the token and entity level.

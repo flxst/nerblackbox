@@ -1,12 +1,12 @@
 # Inference
 
-The [Model](../../../python_api/model) class provides the functionality for versatile model predictions on one or multiple documents.
+The [Model](../../python_api/model) class provides the functionality for versatile model predictions on one or multiple documents.
 The corresponding fine-tuned NER model can either be loaded from [HuggingFace (HF)](https://huggingface.co/models) or the Local Filesystem (LF).
 
 -----------
 ## Basic Usage
 
-1) load a [Model](../../../python_api/model) instance:
+1) load a [Model](../../python_api/model) instance:
 
 ??? note "load model"
     === "Python"
@@ -21,7 +21,7 @@ The corresponding fine-tuned NER model can either be loaded from [HuggingFace (H
         model = Model.from_huggingface("<repo_id>")
         ```
 
-2) use the [predict()](../../../python_api/model/#nerblackbox.api.model.Model.predict) method:
+2) use the [predict()](../../python_api/model/#nerblackbox.api.model.Model.predict) method:
 
 ??? note "model inference"
     === "Python"
@@ -48,20 +48,20 @@ The corresponding fine-tuned NER model can either be loaded from [HuggingFace (H
 ## Advanced Usage
 
 The [predict()](../python_api/model/#nerblackbox.api.model.Model.predict) method used in the example above might be the most important tool for inference. 
-However, the [Model](../../../python_api/model) class provides multiple methods to cover different use cases:
+However, the [Model](../../python_api/model) class provides multiple methods to cover different use cases:
 
-- [predict_on_file()](../../../python_api/model/#nerblackbox.api.model.Model.predict_on_file) takes a `jsonl` file as input and writes another `jsonl` file with predictions on the entity level.
+- [predict_on_file()](../../python_api/model/#nerblackbox.api.model.Model.predict_on_file) takes a `jsonl` file as input and writes another `jsonl` file with predictions on the entity level.
   This is for instance useful if one wants to annotate (large) amounts of text in production.
-- [predict()](../../../python_api/model/#nerblackbox.api.model.Model.predict) takes a single `string` or a `list of strings` as input. It allows to inspect the model predictions on the entity or word level. This is useful for instance for development and debugging.
-- [predict_proba()](../../../python_api/model/#nerblackbox.api.model.Model.predict_proba) is similar to predict(), but returns predictions on the word level only, together with their probabilities. This can be useful for instance in conjunction with active learning.
+- [predict()](../../python_api/model/#nerblackbox.api.model.Model.predict) takes a single `string` or a `list of strings` as input. It allows to inspect the model predictions on the entity or word level. This is useful for instance for development and debugging.
+- [predict_proba()](../../python_api/model/#nerblackbox.api.model.Model.predict_proba) is similar to predict(), but returns predictions on the word level only, together with their probabilities. This can be useful for instance in conjunction with active learning.
 
 An overview is given in the following table:
 
 | method                                                                                   | input                     | level         | probabilities |
 |:-----------------------------------------------------------------------------------------|:--------------------------|:--------------|:--------------|
-| [predict_on_file()](../../../python_api/model/#nerblackbox.api.model.Model.predict_on_file) | jsonl file with documents | entity | no
-| [predict()](../../../python_api/model/#nerblackbox.api.model.Model.predict)                 | one or multiple documents | entity, word  | no            |
-| [predict_proba()](../../../python_api/model/#nerblackbox.api.model.Model.predict_proba)                                               | one or multiple documents | word | yes |
+| [predict_on_file()](../../python_api/model/#nerblackbox.api.model.Model.predict_on_file) | jsonl file with documents | entity | no
+| [predict()](../../python_api/model/#nerblackbox.api.model.Model.predict)                 | one or multiple documents | entity, word  | no            |
+| [predict_proba()](../../python_api/model/#nerblackbox.api.model.Model.predict_proba)                                               | one or multiple documents | word | yes |
 
 
 ### Example
@@ -91,4 +91,4 @@ An overview is given in the following table:
         # ]]
         ```
 
-See [Model](../../../python_api/model) for further details.
+See [Model](../../python_api/model) for further details.

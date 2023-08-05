@@ -1,12 +1,12 @@
 # Evaluation
 
-The [Model](../../../python_api/model) class provides the functionality to evaluate **any** NER model on **any** NER dataset.
+The [Model](../../python_api/model) class provides the functionality to evaluate **any** NER model on **any** NER dataset.
 Both the fine-tuned NER model and the dataset can either be loaded from [HuggingFace (HF)](https://huggingface.co) or the Local Filesystem (LF).
 
 ----------
 ## Usage
 
-1) load a [Model](../../../python_api/model) instance:
+1) load a [Model](../../python_api/model) instance:
 
 ??? note "load model"
     === "Python"
@@ -21,7 +21,7 @@ Both the fine-tuned NER model and the dataset can either be loaded from [Hugging
         model = Model.from_huggingface("<repo_id>")
         ```
 
-2) use the [evaluate_on_dataset()](../../../python_api/model/#nerblackbox.api.model.Model.evaluate_on_dataset) method:
+2) use the [evaluate_on_dataset()](../../python_api/model/#nerblackbox.api.model.Model.evaluate_on_dataset) method:
 
 ??? note "model evaluation on dataset"
     === "Python"
