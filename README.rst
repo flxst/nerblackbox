@@ -43,31 +43,78 @@ Installation
 About
 =====
 
-.. image:: https://raw.githubusercontent.com/flxst/nerblackbox/master/docs/docs/images/nerblackbox.png
+.. image:: https://raw.githubusercontent.com/flxst/nerblackbox/master/docs/docs/images/nerblackbox_sources.png
 
-Fine-tune a `language model <https://huggingface.co/transformers/pretrained_models.html>`_ for
-`named entity recognition <https://en.wikipedia.org/wiki/Named-entity_recognition>`_ in a few simple steps:
+Take a dataset from one of many available sources.
+Then train, evaluate and apply a language model
+in a few simple steps.
 
-1. Define a fine-tuning experiment by choosing a pretrained model and a dataset
+1. Data
+"""""""
 
-::
-
-   experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
-
-
-2. Run the experiment and get the performance of the fine-tuned model
+- Choose a dataset from **HuggingFace (HF)**, the **Local Filesystem (LF)**, an **Annotation Tool (AT)** server, or a **Built-in (BI)** dataset
 
 ::
 
-   experiment.run()
-   experiment.get_result(metric="f1", level="entity", phase="test")
-   # 0.9045
+    dataset = Dataset("conll2003",  source="HF")  # HuggingFace
+    dataset = Dataset("my_dataset", source="LF")  # Local Filesystem
+    dataset = Dataset("swe_nerc",   source="BI")  # Built-in
 
-3. Use the fine-tuned model for inference
+- Set up the dataset
+
+::
+
+    dataset.set_up()
+
+
+2. Training
+"""""""""""
+
+- Define a fine-tuning experiment by choosing a pretrained model and a dataset
+
+::
+
+    experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+
+- Run the experiment and get the performance of the fine-tuned model
+
+::
+
+    experiment.run()
+    experiment.get_result(metric="f1", level="entity", phase="test")
+    # 0.9045
+
+3. Evaluation
+^^^^^^^^^^^^^
+
+- Load the model
 
 ::
 
     model = Model.from_experiment("my_experiment")
+
+- Evaluate the model
+
+::
+
+    evaluation_dict = model.evaluate_on_dataset("ehealth_kd", "jsonl", phase="test")
+    evaluation_dict["micro"]["entity"]["f1"]
+    # 0.9045
+
+
+4. Inference
+^^^^^^^^^^^^
+
+- Load the model
+
+::
+
+    model = Model.from_experiment("my_experiment")
+
+- Let the model predict
+
+::
+
     model.predict("The United Nations has never recognised Jakarta's move.")
     # [[
     #  {'char_start': '4', 'char_end': '18', 'token': 'United Nations', 'tag': 'ORG'},
@@ -81,9 +128,9 @@ Features
 
 *Data*
 
-* Support for Different Data Formats
-* Support for Different Annotation Schemes
-* Integration of HuggingFace Datasets
+* Integration of Datasets from Multiple Sources (HuggingFace, Annotation Tools, ..)
+* Support for Multiple Dataset Types (Standard, Pretokenized)
+* Support for Multiple Annotation Schemes (IO, BIO, BILOU)
 * Text Encoding
 
 *Training*
@@ -95,15 +142,15 @@ Features
 
 *Evaluation*
 
-* Evaluation of a Model on a Dataset
+* Evaluation of Any Model on Any Dataset
 
 *Inference*
 
-* Versatile Model Inference
+* Versatile Model Inference (Entity/Word Level, Probabilities, ..)
 
 *Other*
 
-* Compatibility with HuggingFace
+* Full Compatibility with HuggingFace
 * GPU Support
 * Language Agnosticism
 

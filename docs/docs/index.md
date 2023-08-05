@@ -29,7 +29,7 @@ in a few simple steps.
 
 === "Data"
 
-    - Choose a dataset from **HuggingFace (HF)**, the **Local Filesystem (LF)**, or a **Built-in (BI)** dataset.
+    - Choose a dataset from **HuggingFace (HF)**, the **Local Filesystem (LF)**, or a **Built-in (BI)** dataset
     ``` python
     dataset = Dataset("conll2003",  source="HF")  # HuggingFace
     dataset = Dataset("my_dataset", source="LF")  # Local Filesystem
