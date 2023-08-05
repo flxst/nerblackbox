@@ -776,13 +776,13 @@ In order to employ models from HF, it is sufficient to specify the name of the m
 <hr />
 <h2 id="basic-training">Basic Training</h2>
 <p>Fine-tuning a <strong>specific model</strong> on a <strong>specific dataset</strong> using <strong>specific parameters</strong> is called an <strong>experiment</strong>. 
-An experiment is handled by the <a href="../../python_api/experiment">Experiment</a> class.</p>
+An experiment is handled by the <a href="../python_api/experiment">Experiment</a> class.</p>
 <hr />
 <h3 id="define-an-experiment">Define an Experiment</h3>
 <p>An experiment is defined </p>
 <ul>
 <li>
-<p>either <strong>dynamically</strong> through arguments when an <a href="../../python_api/experiment/">Experiment</a> instance is created</p>
+<p>either <strong>dynamically</strong> through arguments when an <a href="../python_api/experiment/">Experiment</a> instance is created</p>
 <details class="note">
 <summary>define experiment dynamically</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label></div>
@@ -828,7 +828,7 @@ In particular, <a href="#presets">adaptive fine-tuning</a> is employed to ensure
 </div>
 </div>
 </details>
-<p>See the <a href="../../python_api/experiment/#nerblackbox.api.experiment.Experiment.run">Python API documentation</a> for further details.</p>
+<p>See the <a href="../python_api/experiment/#nerblackbox.api.experiment.Experiment.run">Python API documentation</a> for further details.</p>
 <hr />
 <h3 id="main-results">Main Results</h3>
 <p>When an experiment is finished, one can get its main results like so:</p>
@@ -843,7 +843,7 @@ In particular, <a href="#presets">adaptive fine-tuning</a> is employed to ensure
 </div>
 </div>
 </details>
-<p>See <a href="../../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result">Python API documentation</a> for further details.</p>
+<p>See <a href="../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result">Python API documentation</a> for further details.</p>
 <p>An overview of all conducted experiments and their main results can be accessed using the <a href="../python_api/store">Store</a> class:</p>
 <details class="note">
 <summary>Main Results (all experiments)</summary>
@@ -1295,7 +1295,7 @@ lr_schedule = constant
 <h3 id="presets">Presets</h3>
 <p>In addition to the manual specification of the parameters discussed above, 
 the dynamic experiment definition allows for the use of several hyperparameter <a href="./#presets">presets</a>.
-They can be specified using the <code>from_preset</code> argument in <a href="../../python_api/experiment">Experiment()</a> like so:</p>
+They can be specified using the <code>from_preset</code> argument in <a href="../python_api/experiment">Experiment()</a> like so:</p>
 <details class="note">
 <summary>define experiment dynamically using preset</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Python</label></div>
@@ -1425,8 +1425,8 @@ nerbb<span class="w"> </span>tensorboard<span class="w">    </span><span class="
 </div>
 </div>
 <p>Python: The underlying processes can be stopped using
-<a href="../../python_api/store/#nerblackbox.api.store.Store.mlflow"><code>Store.mlflow("stop")</code></a>
-and <a href="../../python_api/store/#nerblackbox.api.store.Store.tensorboard"><code>Store.tensorboard("stop")</code></a>.</p>
+<a href="../python_api/store/#nerblackbox.api.store.Store.mlflow"><code>Store.mlflow("stop")</code></a>
+and <a href="../python_api/store/#nerblackbox.api.store.Store.tensorboard"><code>Store.tensorboard("stop")</code></a>.</p>
 </details>
 <ul>
 <li>
