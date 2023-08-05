@@ -10,7 +10,7 @@ to choose a dataset. Datasets for NER can differ in many regards:
 - [Dataset Type](#dataset-types): Some datasets are pretokenized while others come as plain text together with a list of entities and their spans. 
 - [Dataset Format](#dataset-formats): Even for two datasets of the same [Dataset Type](#dataset-types), the specific formatting of the data may differ.
 - [Dataset Splits](#dataset-splits): Some datasets are divided into train/validation/test subsets, while others only have train/test subsets, or aren't split into subsets at all.
-- [Annotation Scheme](#annotation-scheme): There exist different annotation schemes like IO, BIO, BILOU and variations thereof.
+- [Annotation Scheme](#annotation-schemes): There exist different annotation schemes like IO, BIO, BILOU and variations thereof.
 
 **nerblackbox** can handle all these different cases automatically. 
 It provides a simple [Dataset](../../python_api/dataset) class which allows to easily set up any dataset and make it readily available for training and evaluation:

@@ -58,7 +58,7 @@ The returned object `evaluation_dict` is a nested dictionary `evaluation_dict[la
     ```
 
 The metrics `precision`, `recall` and `f1` are **nerblackbox**'s evaluation results, whereas their counterparts with a `_seqeval` suffix correspond to the results you would get using the [**seqeval**](https://github.com/chakki-works/seqeval) library (which is also used by and [HuggingFace evaluate](https://huggingface.co/docs/evaluate/index)).
-The difference lies in the way model predictions which are inconsistent with the employed [annotation scheme](../../data/support_annotation_schemes) are handled.
+The difference lies in the way model predictions which are inconsistent with the employed [Annotation Scheme](../../data/#annotation-schemes) are handled.
 While **nerblackbox**'s evaluation ignores them, **seqeval** takes them into account.
 
 ### Example

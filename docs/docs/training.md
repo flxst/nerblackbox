@@ -60,7 +60,7 @@ A fine-tuning experiment is run using the following command:
         experiment.run()
         ```
 
-See [`Experiment.run()`](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
+See the [Python API documentation](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
 
 -----------
 ### Main Results
@@ -73,9 +73,9 @@ When an experiment is finished, one can get its main results like so:
         experiment.get_result(metric="f1", level="entity", phase="test")
         ```
 
-See [`Experiment.get_result()`](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result) for further details.
+See [Python API documentation](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result) for further details.
 
-An overview of all conducted experiments and their main results can be accessed using the [`Store`](../python_api/store) class:
+An overview of all conducted experiments and their main results can be accessed using the [Store](../python_api/store) class:
 
 ??? note "Main Results (all experiments)"
     === "Python"
@@ -102,13 +102,15 @@ An English BERT model can be fine-tuned on the CoNLL-2003 dataset like this:
 ### Parameters
 
 **nerblackbox** uses a large amount of default (hyper)parameters that can be customized as needed. 
-The concerned parameters just need to be specified when [an experiment is defined](#a-define-an-experiment), 
+The concerned parameters just need to be specified when [an experiment is defined](#define-an-experiment), 
 either statically or dynamically.
 
 - In the **static** case, an experiment configuration file may look like this:
 
     ??? example "Example: static experiment configuration file with parameters"
         ``` markdown
+        # my_experiment.ini
+
         [dataset]
         dataset_name = swedish_ner_corpus
         annotation_scheme = plain
@@ -144,19 +146,41 @@ either statically or dynamically.
         max_seq_length = 128
         lr_max = 2e-5
         lr_schedule = constant
-
-        [runB]
-        batch_size = 32
-        max_seq_length = 64
-        lr_max = 3e-5
-        lr_schedule = cosine
         ```
 
 - In the **dynamic** case, the equivalent example is:
 
     ??? example "Example: dynamic experiment with parameters"
-        ``` markdown
-        ...
+        ``` python
+        experiment = Experiment(
+            "my_experiment", 
+            model="af-ai-center/bert-base-swedish-uncased",  # model = model_name
+            dataset="swedish_ner_corpus",                    # dataset = dataset_name
+            annotation_scheme="plain",
+            prune_ratio_train=0.1,                           # for testing
+            prune_ratio_val=1.0,
+            prune_ratio_test=1.0,
+            train_on_val=False,
+            train_on_test=False,
+            checkpoints=True,
+            logging_level="info",
+            multiple_runs=1,
+            seed=42,
+            max_epochs=250,
+            early_stopping=True,
+            monitor="val_loss",
+            min_delta=0.0,
+            patience=0,
+            mode="min",
+            lr_warmup_epochs=2,
+            lr_num_cycles=4,
+            lr_cooldown_restarts=True,
+            lr_cooldown_epochs=7,
+            batch_size=16,
+            max_seq_length=128,
+            lr_max=2e-5,
+            lr_schedule="constant",
+        )
         ```
 
 The parameters can be divided into 4 **parameter groups**:
@@ -170,18 +194,21 @@ In the following, we will go through the different parameters step by step to se
 
 **1. Dataset**
 
-| Key               | Mandatory | Default Value | Type  | Values                  | Comment                                                                                                                                                                          |          
-|---                |---        |---            |---    |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| dataset_name      | Yes       | ---           | str   | e.g. conll2003          | [Built-in Dataset](../datasets_and_models/#built-in-datasets) or [Custom Dataset](../datasets_and_models/#custom-datasets)                                                       |
+| Key               | Mandatory | Default Value | Type  | Values                  | Comment                                                                                                                                                       |          
+|---                |---        |---            |---    |-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dataset_name      | Yes       | ---           | str   | e.g. conll2003          | key = dataset can be used instead                                                                                                                             |
 | annotation_scheme | No        | auto          | str   | auto, plain, bio, bilou | specify annotation scheme (e.g. [BIO](https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging))). auto means it is inferred from data |
-| prune_ratio_train | No        | 1.0           | float | 0.0 - 1.0               | fraction of train dataset to be used                                                                                                                                             |
-| prune_ratio_val   | No        | 1.0           | float | 0.0 - 1.0               | fraction of val   dataset to be used                                                                                                                                             | 
-| prune_ratio_test  | No        | 1.0           | float | 0.0 - 1.0               | fraction of test  dataset to be used                                                                                                                                             |
-| train_on_val      | No        | False         | bool  | True, False             | whether to train additionally on validation dataset                                                                                                                              |
-| train_on_test     | No        | False         | bool  | True, False             | whether to train additionally on test dataset                                                                                                                                    |
+| prune_ratio_train | No        | 1.0           | float | 0.0 - 1.0               | fraction of train dataset to be used                                                                                                                          |
+| prune_ratio_val   | No        | 1.0           | float | 0.0 - 1.0               | fraction of val   dataset to be used                                                                                                                          | 
+| prune_ratio_test  | No        | 1.0           | float | 0.0 - 1.0               | fraction of test  dataset to be used                                                                                                                          |
+| train_on_val      | No        | False         | bool  | True, False             | whether to train additionally on validation dataset                                                                                                           |
+| train_on_test     | No        | False         | bool  | True, False             | whether to train additionally on test dataset                                                                                                                 |
 
 ??? example "Example: static experiment configuration file with parameters (Dataset)"
     ``` markdown
+    # my_experiment.ini
+    # ..
+    
     [dataset]
     dataset_name = swedish_ner_corpus
     annotation_scheme = plain
@@ -194,12 +221,15 @@ In the following, we will go through the different parameters step by step to se
 
 **2. Model**
 
-| Key                   | Mandatory | Default Value | Type  | Values                                      | Comment                                                                                                            |          
-|---                    |---        |---            |---    |---                                          |---                                                                                                                 |
-| pretrained_model_name | Yes       | ---           | str   | e.g. af-ai-center/bert-base-swedish-uncased | [Built-in Model](../datasets_and_models/#built-in-models) or [Custom Model](../datasets_and_models/#custom-models) |
+| Key                   | Mandatory | Default Value | Type  | Values                                      | Comment                         |          
+|---                    |---        |---            |---    |---                                          |---------------------------------|
+| pretrained_model_name | Yes       | ---           | str   | e.g. af-ai-center/bert-base-swedish-uncased | key = model can be used instead |
 
 ??? example "Example: static experiment configuration file with parameters (Model)"
     ``` markdown
+    # my_experiment.ini
+    # ..
+
     [model]
     pretrained_model_name = af-ai-center/bert-base-swedish-uncased
     ```
@@ -215,6 +245,9 @@ In the following, we will go through the different parameters step by step to se
 
 ??? example "Example: static experiment configuration file with parameters (Settings)"
     ``` markdown
+    # my_experiment.ini
+    # ..
+
     [settings]
     checkpoints = True
     logging_level = info
@@ -243,6 +276,9 @@ In the following, we will go through the different parameters step by step to se
 
 ??? example "Example: static experiment configuration file with parameters (Hyperparameters)"
     ``` markdown
+    # my_experiment.ini
+    # ..
+
     [hparams]
     max_epochs = 250
     early_stopping = True
@@ -260,15 +296,7 @@ In the following, we will go through the different parameters step by step to se
     max_seq_length = 128
     lr_max = 2e-5
     lr_schedule = constant
-
-    [runB]
-    batch_size = 32
-    max_seq_length = 64
-    lr_max = 3e-5
-    lr_schedule = cosine
     ```
-
-    This creates **2 hyperparameter runs** (`runA` & `runB`). Each hyperparameter run is executed **multiple_runs** times (see [3. Settings](#3-settings)).
 
 -----------
 ### Presets
@@ -283,7 +311,7 @@ They can be specified using the ``from_preset`` argument in [Experiment()](../..
         experiment = Experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>", from_preset="adaptive")
         ```
 
-In the following, we list the different presets together with the [Hyperparameters](./#4-hyperparameters) that they entail:
+In the following, we list the different presets together with the [Hyperparameters](#parameters) that they entail:
 
 - ``from_preset = adaptive``
 
@@ -335,11 +363,14 @@ In the following, we list the different presets together with the [Hyperparamete
 -----------
 ### Hyperparameter Search
 
-A hyperparameter grid search can easily be conducted as part of an experiment.
+A hyperparameter grid search can easily be conducted as part of an experiment (currently only using the [static definition](#define-an-experiment)).
 The hyperparameters one wants to vary are to be specified in special sections ``[runA]``, ``[runB]`` etc. in the experiment configuration file.
 
-??? example "Example: custom_experiment.ini (Hyperparameter Search)"
+??? example "Example: Hyperparameter Search"
     ``` markdown
+    # my_experiment.ini
+    # ..
+
     [runA]
     batch_size = 16
     max_seq_length = 128
@@ -352,8 +383,7 @@ The hyperparameters one wants to vary are to be specified in special sections ``
     lr_max = 3e-5
     lr_schedule = cosine
     ```
-
-    This creates **2 hyperparameter runs** (`runA` & `runB`).
+    This creates **2 hyperparameter runs** (`runA` & `runB`). Each hyperparameter run is executed `multiple_runs` times (see [Parameters](#parameters)).
 
 -----------
 ### Multiple Seeds
@@ -361,14 +391,17 @@ The hyperparameters one wants to vary are to be specified in special sections ``
 The results of a fine-tuning run depend on the employed random seed, see e.g. [this paper](https://arxiv.org/abs/2202.02617) for a discussion.
 One may conduct multiple runs with different seeds that are otherwise identical, in order to
 
-- get control over the uncertainties (see [Detailed Analysis of Training Results](../detailed_results/))
+- get control over the uncertainties (see [Detailed Results](#detailed-results))
 
 - get an improved model performance
 
 Multiple runs can easily be specified in the experiment configuration.
 
-??? example "Example: custom_experiment.ini (Settings / Multiple Runs)"
+??? example "Example: Settings / Multiple Runs"
     ``` markdown
+    # my_experiment.ini
+    # ..
+
     [settings]
     multiple_runs = 3
     seed = 42

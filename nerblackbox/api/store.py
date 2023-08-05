@@ -214,9 +214,6 @@ class Store:
 
     @classmethod
     def clear_data(cls, results: bool = False) -> None:
-        """
-        :used attr: clear_all [bool] if True, clear not only checkpoints but also mlflow, tensorboard and logs
-        """
         assert isinstance(
             cls.path, str
         ), f"ERROR! type(cls.path) = {type(cls.path)} should be str."

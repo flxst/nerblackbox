@@ -24,6 +24,18 @@ class Experiment:
         verbose: bool = False,
         **kwargs_optional: Any,
     ):
+        """
+
+        Args:
+            experiment_name: e.g. 'my_experiment'
+            from_config: True => read parameters from config file (static definition). False => use Experiment  arguments (dynamic definition)
+            model: [equivalent to model_name] e.g. 'bert-base-cased'
+            dataset: [equivalent to dataset_name] e.g. 'conll2003'
+            from_preset: True => use parameters from preset
+            pytest: only for testing, don't specify
+            verbose: True => verbose output
+            **kwargs_optional: parameters
+        """
         self.experiment_name = experiment_name
         self.from_preset = from_preset
         self.verbose = verbose
@@ -56,9 +68,6 @@ class Experiment:
     def show_config(self) -> None:
         r"""
         print experiment config
-
-        Used Attr:
-            experiment_name: [str] e.g. 'exp0' or 'all'
         """
         from nerblackbox.modules.utils.env_variable import env_variable
 

@@ -2,7 +2,7 @@
 
 **nerblackbox** is heavily based on [HuggingFace Transformers](https://huggingface.co/transformers/). 
 Moreover, [HuggingFace Datasets](https://huggingface.co/docs/datasets/index) and [HuggingFace Evaluate](https://huggingface.co/docs/evaluate/index) are well-integrated, 
-see [Integration of HuggingFace Datasets](../../data/support_huggingface_datasets) and [Evaluation of a Model on a Dataset](../../evaluation/support_evaluation), respectively.
+see [Data](../../data/#huggingface-hf) and [Evaluation](../../evaluation), respectively.
 
 Therefore, compatibility with HuggingFace is given.
 In particular, 
