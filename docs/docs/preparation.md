@@ -3,7 +3,7 @@
 -----------
 ## Basic Usage
 
-**nerblackbox** provides a [Python API](../../python_api/overview) with four main classes 
+**nerblackbox** provides a [Python API](../python_api/overview) with four main classes 
 `Store`, `Dataset`, `Experiment` and `Model`.
 It is complemented by a [CLI](../../cli).
 
@@ -24,7 +24,7 @@ As a mandatory first step, a store has to be created.
 The store is a directory that contains all the data 
 (datasets, experiment configurations, results, model checkpoints)
 that **nerblackbox** needs access to. 
-It is handled by the [Store](../../python_api/store) class:
+It is handled by the [Store](../python_api/store) class:
 
 ??? note "create store"
     === "Python"

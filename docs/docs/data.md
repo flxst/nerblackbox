@@ -13,7 +13,7 @@ to choose a dataset. Datasets for NER can differ in many regards:
 - [Annotation Scheme](#annotation-schemes): There exist different annotation schemes like IO, BIO, BILOU and variations thereof.
 
 **nerblackbox** can handle all these different cases automatically. 
-It provides a simple [Dataset](../../python_api/dataset) class which allows to easily set up any dataset and make it readily available for training and evaluation:
+It provides a simple [Dataset](../python_api/dataset) class which allows to easily set up any dataset and make it readily available for training and evaluation:
 
 ??? note "set up a dataset"
     === "Python"
@@ -47,7 +47,7 @@ To employ a dataset from HuggingFace, specify ``"HF"`` as the source in addition
         ```
 
 Dataset subsets, if existent, can also be chosen. 
-For more details, we refer to the [Python API documentation](../../python_api/dataset).
+For more details, we refer to the [Python API documentation](../python_api/dataset).
 
 
 ### Built-in (BI)
@@ -270,7 +270,7 @@ The relative sizes of the subsets can be specified as arguments of the `set_up()
         dataset.set_up(val_fraction=0.2)                           # use 20% of the train subset for validation
         ```
 
-For more details, we refer to the [Python API documentation](../../python_api/dataset).
+For more details, we refer to the [Python API documentation](../python_api/dataset).
 
 --------
 ## Annotation Schemes

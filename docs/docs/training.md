@@ -21,14 +21,14 @@ Note that the name for `<my_model>` must include the architecture type, e.g. `be
 ## Basic Training
 
 Fine-tuning a **specific model** on a **specific dataset** using **specific parameters** is called an **experiment**. 
-An experiment is handled by the [Experiment](../../python_api/experiment) class.
+An experiment is handled by the [Experiment](../python_api/experiment) class.
 
 -----------
 ### Define an Experiment
 
 An experiment is defined 
 
-- either **dynamically** through arguments when an [Experiment](../../python_api/experiment/) instance is created
+- either **dynamically** through arguments when an [Experiment](../python_api/experiment/) instance is created
 
     ??? note "define experiment dynamically"
         === "Python"
@@ -60,7 +60,7 @@ A fine-tuning experiment is run using the following command:
         experiment.run()
         ```
 
-See the [Python API documentation](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
+See the [Python API documentation](../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
 
 -----------
 ### Main Results
@@ -73,7 +73,7 @@ When an experiment is finished, one can get its main results like so:
         experiment.get_result(metric="f1", level="entity", phase="test")
         ```
 
-See [Python API documentation](../../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result) for further details.
+See [Python API documentation](../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result) for further details.
 
 An overview of all conducted experiments and their main results can be accessed using the [Store](../python_api/store) class:
 
@@ -303,7 +303,7 @@ In the following, we will go through the different parameters step by step to se
 
 In addition to the manual specification of the parameters discussed above, 
 the dynamic experiment definition allows for the use of several hyperparameter [presets](./#presets).
-They can be specified using the ``from_preset`` argument in [Experiment()](../../python_api/experiment) like so:
+They can be specified using the ``from_preset`` argument in [Experiment()](../python_api/experiment) like so:
 
 ??? note "define experiment dynamically using preset"
     === "Python"
@@ -428,8 +428,8 @@ using `mlflow` or `tensorboard`.
         ```
 
     Python: The underlying processes can be stopped using
-    [`Store.mlflow("stop")`](../../python_api/store/#nerblackbox.api.store.Store.mlflow)
-    and [`Store.tensorboard("stop")`](../../python_api/store/#nerblackbox.api.store.Store.tensorboard).
+    [`Store.mlflow("stop")`](../python_api/store/#nerblackbox.api.store.Store.mlflow)
+    and [`Store.tensorboard("stop")`](../python_api/store/#nerblackbox.api.store.Store.tensorboard).
 
 - `mlflow` displays precision, recall and f1 score for every single class,
 as well the respective micro- and macro-averages over all classes, both on the token and entity level.
