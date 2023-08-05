@@ -1,6 +1,17 @@
 # Changelog
 This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.15 (2023-08-05)
+#### Added
+- annotation tool integration (Doccano and LabelStudio)
+- demonstration notebooks
+
+#### Changed
+- restructured docs
+- reduced CLI to two commands (nerblackbox mlflow & nerblackbox tensorboard)
+- dropped support for python version 3.11
+- upgraded dependencies (fixing potential security vulnerabilities)
+
 ## 0.0.14 (2023-02-18)
 #### Added
 - Model: prediction on file
