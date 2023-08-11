@@ -79,7 +79,7 @@ def test_evaluation(capsys):
             # nerblackbox
             model_huggingface = Model.from_huggingface(model)
             evaluation_dict_nerblackbox = model_huggingface.evaluate_on_dataset(dataset,
-                                                                                "huggingface",
+                                                                                # "huggingface",
                                                                                 phase=phase,
                                                                                 number=number,
                                                                                 rounded_decimals=None)

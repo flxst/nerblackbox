@@ -2,7 +2,7 @@
 nerblackbox
 ===========
 
-A python package to fine-tune transformer-based language models for named entity recognition (NER).
+A High-level Library for Named Entity Recognition in Python.
 
 .. image:: https://img.shields.io/pypi/v/nerblackbox
     :target: https://pypi.org/project/nerblackbox
@@ -84,8 +84,9 @@ in a few simple steps.
     experiment.get_result(metric="f1", level="entity", phase="test")
     # 0.9045
 
+
 3. Evaluation
-^^^^^^^^^^^^^
+"""""""""""""
 
 - Load the model
 
@@ -97,13 +98,13 @@ in a few simple steps.
 
 ::
 
-    evaluation_dict = model.evaluate_on_dataset("ehealth_kd", "jsonl", phase="test")
+    evaluation_dict = model.evaluate_on_dataset("ehealth_kd", phase="test")
     evaluation_dict["micro"]["entity"]["f1"]
     # 0.9045
 
 
 4. Inference
-^^^^^^^^^^^^
+""""""""""""
 
 - Load the model
 

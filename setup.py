@@ -35,7 +35,7 @@ setup(
     version=get_package_version("nerblackbox/__about__.py"),
     author="Felix Stollenwerk",
     author_email="felix.stollenwerk@ai.se",
-    description="fine-tune transformer-based language models for named entity recognition",
+    description="a high-level library for named entity recognition in python",
     long_description=readme(),
     long_description_content_type="text/x-rst",
     keywords=[
