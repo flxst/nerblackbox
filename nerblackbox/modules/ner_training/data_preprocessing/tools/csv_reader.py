@@ -117,7 +117,7 @@ class CsvReader:
         :return: [pandas dataframe]
         """
         return pd.read_csv(
-            path, names=["tags", "text"], header=None, sep=self.csv_file_separator
+            path, names=["tags", "text"], header=None, sep=self.csv_file_separator, keep_default_na=False,
         )
 
     def _create_list_of_input_examples(self, df, set_type) -> List[InputExample]:

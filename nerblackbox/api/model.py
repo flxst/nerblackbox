@@ -3,12 +3,14 @@ import string
 from os.path import join, isdir, isfile
 from typing import Tuple, Any, Optional
 import numpy as np
+import copy
 
 import torch
 from transformers import AutoModelForTokenClassification, AutoTokenizer
 from typing import List, Union, Dict
 from torch.nn.functional import softmax
 from huggingface_hub import hf_hub_download
+from huggingface_hub.utils import EntryNotFoundError
 from itertools import product
 
 from nerblackbox.modules.ner_training.annotation_tags.token_tags import TokenTags
@@ -27,11 +29,13 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import
     CsvReader,
 )
 from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
+from nerblackbox.modules.datasets.formatter.auto_formatter import AutoFormatter
 
 PREDICTIONS = List[List[Dict[str, Any]]]
 EVALUATION_DICT = Dict[str, Dict[str, Dict[str, Optional[float]]]]
 
 VERBOSE = False
+DEBUG = False
 
 
 class Model:
@@ -105,11 +109,12 @@ class Model:
             return Model(checkpoint_directory)
 
     @classmethod
-    def from_huggingface(cls, repo_id: str) -> Optional["Model"]:
+    def from_huggingface(cls, repo_id: str, dataset: Optional[str] = None) -> Optional["Model"]:
         r"""
 
         Args:
             repo_id: id of the huggingface hub repo id, e.g. 'KB/bert-base-swedish-cased-ner'
+            dataset: should be provided in case model is missing information on id2label in config
 
         Returns:
             model: model
@@ -118,17 +123,28 @@ class Model:
         filenames = [
             "config.json",
             "pytorch_model.bin",
+            "vocab.txt",
+            "vocab.json",
             "special_tokens_map.json",
             "tokenizer_config.json",
-            "vocab.txt",
+            "merges.txt",
         ]
         local_file_paths = []
+        count_vocab = 2
         for filename in filenames:
-            local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
-            local_file_paths.append(local_file_path)
-        assert len(local_file_paths) == len(
-            filenames
-        ), f"ERROR! #local_file_paths = {len(local_file_paths)} does not correspond to #files = {len(filenames)}."
+            try:
+                local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
+                local_file_paths.append(local_file_path)
+            except EntryNotFoundError:
+                if filename in ["special_tokens_map.json", "tokenizer_config.json", "merges.txt"]:
+                    # some models do not have these files
+                    pass
+                elif filename in ["vocab.txt", "vocab.json"]:
+                    # one of them needs to exist
+                    count_vocab -= 1
+                else:
+                    raise Exception(f"ERROR! could not find filename = {filename} - cannot use model.")
+        assert count_vocab == 1, f"ERROR! found {count_vocab} vocabulary files, should be 1."
 
         # extract cache directory
         cache_directories = [
@@ -141,7 +157,7 @@ class Model:
         cache_directory = cache_directories[0]
 
         # create Model from files in cache directory
-        return Model(cache_directory)
+        return Model(cache_directory, dataset=dataset)
 
     @classmethod
     def checkpoint_exists(cls, checkpoint_directory: str) -> bool:
@@ -152,12 +168,14 @@ class Model:
         checkpoint_directory: str,
         batch_size: int = 16,
         max_seq_length: Optional[int] = None,
+        dataset: Optional[str] = None,
     ):
         r"""
         Args:
             checkpoint_directory: path to the checkpoint directory
             batch_size: batch size used by dataloader
             max_seq_length: maximum sequence length (Optional). Loaded from checkpoint if not specified.
+            dataset: should be provided in case model is missing information on id2label in config
         """
         # 0. device
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -174,10 +192,36 @@ class Model:
         else:
             self.max_seq_length = config["max_position_embeddings"]
 
-        id2label = {int(_id): label for _id, label in config["id2label"].items()}
-        label2id = {label: int(_id) for _id, label in config["id2label"].items()}
-        self.annotation_classes = list(config["id2label"].values())
+        if "id2label" not in config.keys():
+            raise Exception("ERROR! config.json does not contain id2label - cannot use model.")
 
+        if not list(config["id2label"].values())[0].startswith("LABEL"):
+            # most cases, as it should be
+            id2label = {int(_id): label for _id, label in config["id2label"].items()}
+        elif not list(config["label2id"].keys())[0].startswith("LABEL"):
+            # e.g. IIC/bert-base-spanish-wwm-cased-ehealth_kd
+            id2label = {int(_id): label for label, _id in config["label2id"].items()}
+        elif dataset is not None:
+            # get information from dataset
+            try:
+                formatter = AutoFormatter.for_dataset(
+                    dataset
+                )
+                id2label = {int(_id): label for _id, label in config["id2label"].items()}
+                labels = formatter.tags
+                assert len(labels) == len(id2label), f"ERROR!"
+                id2label = {i: label for i, label in enumerate(labels)}
+            except Exception:
+                raise Exception(f"config.json does not contain proper id2label and dataset cannot be parsed. cannot use model.")
+        else:
+            # e.g. malduwais/distilbert-base-uncased-finetuned-ner
+            # e.g. gagan3012/bert-tiny-finetuned-ner
+            raise Exception(f"ERROR! config.json does not contain proper id2label - cannot use model. try to provide dataset.")
+
+        id2label = dict(sorted(id2label.items()))
+        label2id = {label: int(_id) for _id, label in id2label.items()}
+
+        self.annotation_classes = list(id2label.values())
         self.annotation_scheme = derive_annotation_scheme(id2label)
 
         # 3. model
@@ -359,7 +403,7 @@ class Model:
         # 1. pure model inference
         self.data_preprocessor = DataPreprocessor(
             tokenizer=self.tokenizer,
-            do_lower_case=self.tokenizer.do_lower_case,
+            do_lower_case=self.tokenizer.do_lower_case if hasattr(self.tokenizer, "do_lower_case") else False,
             max_seq_length=self.max_seq_length,
             default_logger=PseudoDefaultLogger(),
         )
@@ -483,7 +527,13 @@ class Model:
             predictions: e.g. ["O", "O", "O", "B-LOC", "O"]
 
         Returns:
-            input_text_word_predictions: ???
+            input_text_word_predictions: e.g. [
+                {'char_start': '0', 'char_end': '2', 'token': 'we', 'tag': 'O'},
+                {'char_start': '3', 'char_end': '6', 'token': 'are', 'tag': 'O'},
+                {'char_start': '7', 'char_end': '9', 'token': 'in', 'tag': 'O'},
+                {'char_start': '10', 'char_end': '19', 'token': 'stockholm', 'tag': 'B-LOC'},
+                {'char_start': '20', 'char_end': '21', 'token': '.', 'tag': 'O'},
+            ]
         """
         ######################################
         # 1 input_text, merged chunks, tokens -> words
@@ -624,14 +674,27 @@ class Model:
         """
         dataset = Dataset(name=dataset_name, source="HF")
         dataset.set_up()
-        dir_path = f"{Store.get_path()}/datasets/{dataset_name}"
-        return self._evaluate_on_csv(
-            dir_path,
-            phase=phase,
-            class_mapping=class_mapping,
-            number=number,
-            derived_from_jsonl=False,
+        store_path = Store.get_path()
+        dir_path = f"{store_path}/datasets/{dataset_name}"
+
+        file_path_jsonl = join(
+            store_path, "datasets", dataset_name, f"{phase}.jsonl"
         )
+        file_path_csv = join(store_path, "datasets", dataset_name, f"{phase}.csv")
+        if isfile(file_path_jsonl):
+            return self._evaluate_on_jsonl(
+                dir_path, phase, class_mapping, number
+            )
+        elif isfile(file_path_csv):
+            return self._evaluate_on_csv(
+                dir_path,
+                phase=phase,
+                class_mapping=class_mapping,
+                number=number,
+                derived_from_jsonl=False,
+            )
+        else:
+            raise Exception(f"ERROR! evaluation on HF dataset failed, neither jsonl nor csv files seem to exist.")
 
     def _evaluate_on_jsonl(
         self,
@@ -712,7 +775,7 @@ class Model:
             dir_path,
             self.tokenizer,
             pretokenized=derived_from_jsonl is False,
-            do_lower_case=self.tokenizer.do_lower_case,
+            do_lower_case=self.tokenizer.do_lower_case if hasattr(self.tokenizer, "do_lower_case") else False,
             default_logger=None,
         )
         data = csv_reader.get_input_examples(phase)
@@ -938,6 +1001,8 @@ def derive_annotation_scheme(_id2label: Dict[int, str]) -> str:
         return "bilou"
     elif "B" in label_prefixes and "I" in label_prefixes:
         return "bio"
+    elif "I" in label_prefixes:  # e.g. "Jean-Baptiste/camembert-ner"
+        return "plain"
     else:
         raise Exception(
             f"ERROR! could not derive annotation scheme. found label_prefixes = {label_prefixes}"
@@ -1056,9 +1121,13 @@ def restore_unknown_tokens(
     word_predictions_restored = list()
 
     # 1. get margins of known tokens
+    # word_predictions      = [('example', 'O'), ('of', 'O), ('author', 'PERSON'), ..]
+    # input_text            = 'example of author ..'
+    # => token_char_margins = [(0, 7), (8, 10), (11, 17), ..]
     token_char_margins: List[Tuple[Any, ...]] = list()
     char_start = 0
     unknown_counter = 0
+    invalid_counter = 0
     for token, _ in word_predictions:
         if token == "[UNK]":
             token_char_margins.append((None, None))
@@ -1072,7 +1141,7 @@ def restore_unknown_tokens(
                     else:  # i.e. len(token) == 1
                         char_start = input_text.index(f" {token}", char_start)
                 except ValueError:  # .index() did not find anything
-                    if verbose:
+                    if DEBUG:
                         print(
                             f"! token = {token} not found in example[{char_start}:] (unknown)"
                         )
@@ -1080,16 +1149,49 @@ def restore_unknown_tokens(
 
             # find token_char_margins for token
             try:
-                char_start = input_text.index(token, char_start)
-                token_char_margins.append((char_start, char_start + len(token)))
+                char_start_before = copy.deepcopy(char_start)
+                # dirty method to find start of 2nd whitespace character after char_start
+                _temp = input_text[char_start_before:].replace(' ', '-', 1).find(' ')
+                whitespace_start_2nd = _temp + char_start_before if _temp > -1 else -1
+                char_start = input_text.index(token, char_start_before)
+                whitespaces_before_char_start = len(input_text[:char_start]) - len(input_text[:char_start].rstrip())
+                whitespaces_after_char_start = len(input_text[char_start:]) - len(input_text[char_start:].lstrip())
+                whitespaces_around_char_start = whitespaces_before_char_start + whitespaces_after_char_start
+                if DEBUG:
+                    print(f"! token = {token.ljust(20)}, "
+                          f"char_start_before = {char_start_before}, "
+                          f"char_start = {char_start}, "
+                          f"whitespace_start_2nd = {whitespace_start_2nd}, "
+                          f"invalid_counter = {invalid_counter}",
+                          f"whitespaces_before_char_start = {whitespaces_before_char_start}, "
+                          f"whitespaces_after_char_start = {whitespaces_after_char_start}, "
+                          f"len(token) = {len(token)}, ",
+                    )
+                valid = char_start <= char_start_before + invalid_counter + whitespaces_around_char_start and \
+                    (whitespace_start_2nd == -1 or whitespace_start_2nd > char_start)
+                if valid:
+                    token_char_margins.append((char_start, char_start + len(token)))
+                    invalid_counter = 0
+                else:
+                    invalid_counter += 1
+                    if DEBUG:
+                        print(f"! token = {token} not found in example[{char_start}:]")
+                    char_start = char_start_before
+                    token_char_margins.append((None, None))
             except ValueError:
-                if verbose:
+                invalid_counter += 1
+                if DEBUG:
                     print(f"! token = {token} not found in example[{char_start}:]")
                 token_char_margins.append((None, None))
             char_start += len(token)
             unknown_counter = 0
 
     # 2. restore unknown tokens
+    # word_predictions   = [('example', 'O'), ('of', 'O), ('author', 'PERSON'), ..]
+    # input_text         = 'example of author ..'
+    # token_char_margins = [(0, 7), (8, 10), (11, 17), ..]
+    # => word_predictions_restored = [{"char_start": "0", "char_end": "7", "token": "example", "tag": "O"}, ..]
+    unresolved_margins = list()
     for i, (token, tag) in enumerate(word_predictions):
         if (
             token_char_margins[i][0] is not None
@@ -1110,6 +1212,10 @@ def restore_unknown_tokens(
                 ), f"ERROR! token_char_margin[{i}][{j}] is not None for token = {token}"
 
             char_start_margin, char_end_margin = None, None
+            # k_prev = steps until first known token to the left  is reached
+            # k_next = steps until first known token to the right is reached
+            # char_start_margin = start of unknown span
+            # char_end_margin   = end   of unknown span
             k_prev, k_next = None, None
             for k in range(1, 10):
                 k_prev = k
@@ -1133,9 +1239,10 @@ def restore_unknown_tokens(
             assert char_end_margin is not None, (
                 f"ERROR! could not find char_end_margin. token = {token}\n"
                 f"char_start_margin = {char_start_margin}\n"
-                f"word_predictions = {word_predictions}\n"
+                f"char_end_margin = {char_end_margin}\n"
                 f"input_text = {input_text}\n"
                 f"token_char_margins = {token_char_margins}\n"
+                f"word_predictions = {word_predictions}\n"
                 f"word_predictions_restored = {word_predictions_restored}"
             )
             assert (
@@ -1145,16 +1252,33 @@ def restore_unknown_tokens(
             new_token = input_text[char_start_margin:char_end_margin].strip()
             if k_prev != 1 or k_next != 1:
                 new_token_parts = new_token.split()
-                assert len(new_token_parts) == 1 + np.absolute(k_prev - k_next), (
-                    f"ERROR! new_token = {new_token} consists of {len(new_token_parts)} parts, "
-                    f"expected {1+np.absolute(k_prev-k_next)} (k_prev = {k_prev}, k_next = {k_next})"
-                )
-                new_token = new_token_parts[k_prev - 1]
+                assertion_1 = len(new_token_parts) == -1 + np.absolute(k_prev + k_next)
+                assertion_2 = None
+                if not assertion_1:
+                    # throw warning
+                    if DEBUG:
+                        print(
+                            f"--------- WARNING START --------\n",
+                            f"ERROR! new_token = {new_token} consists of {len(new_token_parts)} parts, "
+                            f"expected {1+np.absolute(k_prev-k_next)} (k_prev = {k_prev}, k_next = {k_next})\n"
+                            f"char_start_margin = {char_start_margin}\n"
+                            f"char_end_margin = {char_end_margin}\n"
+                            f"input_text = {input_text}\n"
+                            f"token_char_margins = {token_char_margins}\n"
+                            f"word_predictions = {word_predictions}\n"
+                            f"word_predictions_restored = {word_predictions_restored}\n"
+                            f"new_token = {new_token}\n"
+                            f"new_token_parts = {new_token_parts}\n"
+                            f"--------- WARNING END --------\n",
+                        )
+                    new_token = ""
+                else:
+                    new_token = new_token_parts[k_prev - 1]
 
             if len(new_token):
                 char_start = input_text.index(new_token, char_start_margin)
                 char_end = char_start + len(new_token)
-                if verbose:
+                if DEBUG:
                     print(
                         f"! restored unknown token = {new_token} between "
                         f"char_start = {char_start}, "
@@ -1168,13 +1292,36 @@ def restore_unknown_tokens(
                         "tag": tag,
                     }
                 )
+                token_char_margins[i] = (char_start, char_end)  # for next iteration
             else:
-                if verbose:
+                if DEBUG:
                     print(
-                        f"! dropped unknown empty token between "
-                        f"char_start = {char_start_margin}, "
-                        f"char_end = {char_end_margin}"
+                        f"!!! could not restore unknown token between "
+                        f"char_start_margin = {char_start_margin}, "
+                        f"char_end_margin = {char_end_margin}"
                     )
+                unresolved_margins.append((char_start_margin, char_end_margin))
+
+    # 3. resolve unresolved margins
+    unresolved_margins = list(set(unresolved_margins))
+    if len(unresolved_margins):
+        for (char_start_margin, char_end_margin) in unresolved_margins:
+            words_to_restore = input_text[char_start_margin:char_end_margin].split()
+            char_start_temp = char_start_margin
+            for word_to_restore in words_to_restore:
+                char_start = char_start_temp + input_text[char_start_temp:char_end_margin].index(word_to_restore)
+                char_end = char_start + len(word_to_restore)
+                char_start_temp = char_end
+                word_predictions_restored.append(
+                    {
+                        "char_start": str(char_start),
+                        "char_end": str(char_end),
+                        "token": word_to_restore,
+                        "tag": "O",
+                    }
+                )
+                print(f"WARNING! couldn't restore tokens. restored word w/ tag = O: {word_predictions_restored[-1]}")
+        word_predictions_restored = sorted(word_predictions_restored, key=lambda d: int(d['char_start']))
 
     return word_predictions_restored
 

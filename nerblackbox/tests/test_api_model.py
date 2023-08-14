@@ -621,6 +621,97 @@ class TestModelStatic:
                     },
                 ],
             ),
+            # EXAMPLE 9 #######################
+            (
+                    [
+                        ('diese', 'O'), ('großraumwagen', 'O'), ('2', 'O'), ('.', 'O'), ('klasse', 'O'), ('mit', 'O'),
+                        ('62', 'O'), ('sitzplatzen', 'O'), ('in', 'O'), ('vis', 'O'), ('-', 'O'), ('a', 'O'), ('-', 'O'),
+                        ('vis', 'O'), ('-', 'O'), ('anordnung', 'O'), ('vom', 'O')
+                    ],
+                    "diese großraumwagen 2. klasse mit 62 sitzplätzen in vis-à-vis-anordnung vom",
+                    [
+                        {'char_start': '0', 'char_end': '5', 'token': 'diese', 'tag': 'O'},
+                        {'char_start': '6', 'char_end': '19', 'token': 'großraumwagen', 'tag': 'O'},
+                        {'char_start': '20', 'char_end': '21', 'token': '2', 'tag': 'O'},
+                        {'char_start': '21', 'char_end': '22', 'token': '.', 'tag': 'O'},
+                        {'char_start': '23', 'char_end': '29', 'token': 'klasse', 'tag': 'O'},
+                        {'char_start': '30', 'char_end': '33', 'token': 'mit', 'tag': 'O'},
+                        {'char_start': '34', 'char_end': '36', 'token': '62', 'tag': 'O'},
+                        {'char_start': '37', 'char_end': '48', 'token': 'sitzplätzen', 'tag': 'O'},
+                        {'char_start': '49', 'char_end': '51', 'token': 'in', 'tag': 'O'},
+                        {'char_start': '52', 'char_end': '55', 'token': 'vis', 'tag': 'O'},
+                        {'char_start': '55', 'char_end': '56', 'token': '-', 'tag': 'O'},
+                        {'char_start': '56', 'char_end': '57', 'token': 'à', 'tag': 'O'},
+                        {'char_start': '57', 'char_end': '58', 'token': '-', 'tag': 'O'},
+                        {'char_start': '58', 'char_end': '61', 'token': 'vis', 'tag': 'O'},
+                        {'char_start': '61', 'char_end': '62', 'token': '-', 'tag': 'O'},
+                        {'char_start': '62', 'char_end': '71', 'token': 'anordnung', 'tag': 'O'},
+                        {'char_start': '72', 'char_end': '75', 'token': 'vom', 'tag': 'O'},
+                    ],
+            ),
+            # EXAMPLE 10 #######################
+            (
+                    [
+                        ('der', 'O'), ('titel', 'O'), (',', 'O'), ('den', 'O'), ('sie', 'O'), ('mit', 'O'),
+                        ('ihrer', 'O'),
+                        ('erhohung', 'O'), ('erhielt', 'O'), (',', 'O'), ('lautete', 'O'), ('yi', 'B-PER'),
+                        ('guifei', 'O'),
+                        ('(', 'O'), ('[UNK]', 'O'), ('[UNK]', 'O'), ('[UNK]', 'O'), (')', 'O'),
+                    ],
+                    "der titel , den sie mit ihrer erhöhung erhielt , lautete yi guifei ( 懿貴妃 )",
+                    [
+                        {'char_start': '0', 'char_end': '3', 'token': 'der', 'tag': 'O'},
+                        {'char_start': '4', 'char_end': '9', 'token': 'titel', 'tag': 'O'},
+                        {'char_start': '10', 'char_end': '11', 'token': ',', 'tag': 'O'},
+                        {'char_start': '12', 'char_end': '15', 'token': 'den', 'tag': 'O'},
+                        {'char_start': '16', 'char_end': '19', 'token': 'sie', 'tag': 'O'},
+                        {'char_start': '20', 'char_end': '23', 'token': 'mit', 'tag': 'O'},
+                        {'char_start': '24', 'char_end': '29', 'token': 'ihrer', 'tag': 'O'},
+                        {'char_start': '30', 'char_end': '38', 'token': 'erhöhung', 'tag': 'O'},
+                        {'char_start': '39', 'char_end': '46', 'token': 'erhielt', 'tag': 'O'},
+                        {'char_start': '47', 'char_end': '48', 'token': ',', 'tag': 'O'},
+                        {'char_start': '49', 'char_end': '56', 'token': 'lautete', 'tag': 'O'},
+                        {'char_start': '57', 'char_end': '59', 'token': 'yi', 'tag': 'B-PER'},
+                        {'char_start': '60', 'char_end': '66', 'token': 'guifei', 'tag': 'O'},
+                        {'char_start': '67', 'char_end': '68', 'token': '(', 'tag': 'O'},
+                        {'char_start': '69', 'char_end': '72', 'token': '懿貴妃', 'tag': 'O'},  # word restored.
+                        {'char_start': '73', 'char_end': '74', 'token': ')', 'tag': 'O'},
+                    ]
+            ),
+            # EXAMPLE 11 #######################
+            (
+                    [
+                        ('auf', 'O'), ('dem', 'O'), ('berg', 'O'), ('gibt', 'O'), ('es', 'O'),
+                        ('zwei', 'O'), ('aussichtspavillions', 'O'), (',', 'O'), ('tongdae', 'B-LOC'), ('(', 'O'),
+                        ('[UNK]', 'B-LOC'), ('[UNK]', 'I-LOC'), ('[UNK]', 'O'), (')', 'O'), ('und', 'O'),
+                        ('hakpyollu', 'B-LOC'),
+                        ('(', 'O'), ('[UNK]', 'B-LOC'), ('[UNK]', 'I-LOC'), ('[UNK]', 'I-LOC'), ('[UNK]', 'O'),
+                        (')', 'O'), ('.', 'O')
+                    ],
+                    "auf dem berg gibt es zwei aussichtspavillions , tongdae ( 동대 東台 ) und hakpyŏllu ( 학별루 鶴別樓 ) .",
+                    [
+                        {'char_start': '0', 'char_end': '3', 'token': 'auf', 'tag': 'O'},
+                        {'char_start': '4', 'char_end': '7', 'token': 'dem', 'tag': 'O'},
+                        {'char_start': '8', 'char_end': '12', 'token': 'berg', 'tag': 'O'},
+                        {'char_start': '13', 'char_end': '17', 'token': 'gibt', 'tag': 'O'},
+                        {'char_start': '18', 'char_end': '20', 'token': 'es', 'tag': 'O'},
+                        {'char_start': '21', 'char_end': '25', 'token': 'zwei', 'tag': 'O'},
+                        {'char_start': '26', 'char_end': '45', 'token': 'aussichtspavillions', 'tag': 'O'},
+                        {'char_start': '46', 'char_end': '47', 'token': ',', 'tag': 'O'},
+                        {'char_start': '48', 'char_end': '55', 'token': 'tongdae', 'tag': 'B-LOC'},
+                        {'char_start': '56', 'char_end': '57', 'token': '(', 'tag': 'O'},
+                        {'char_start': '58', 'char_end': '60', 'token': '동대', 'tag': 'O'},
+                        {'char_start': '61', 'char_end': '63', 'token': '東台', 'tag': 'O'},
+                        {'char_start': '64', 'char_end': '65', 'token': ')', 'tag': 'O'},
+                        {'char_start': '66', 'char_end': '69', 'token': 'und', 'tag': 'O'},
+                        {'char_start': '70', 'char_end': '79', 'token': 'hakpyŏllu', 'tag': 'B-LOC'},
+                        {'char_start': '80', 'char_end': '81', 'token': '(', 'tag': 'O'},
+                        {'char_start': '82', 'char_end': '85', 'token': '학별루', 'tag': 'O'},
+                        {'char_start': '86', 'char_end': '89', 'token': '鶴別樓', 'tag': 'O'},
+                        {'char_start': '90', 'char_end': '91', 'token': ')', 'tag': 'O'},
+                        {'char_start': '92', 'char_end': '93', 'token': '.', 'tag': 'O'},
+                    ]
+            ),
             #
         ],
     )

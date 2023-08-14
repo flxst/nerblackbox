@@ -85,7 +85,7 @@ class Analyzer:
     def plot_data(self) -> None:  # pragma: no cover
         if self.analysis_flag:
             fig_path = join(
-                self.dataset_path, "analyze_data", f"{self.ner_dataset}.png"
+                self.dataset_path, "analyze_data", f"{self.ner_dataset.replace('/', '-')}.png"
             )
             Plots(self.stats_aggregated, self.num_sentences).plot(fig_path=fig_path)
 
@@ -192,7 +192,7 @@ class Analyzer:
         self, num_sentences_total: int, num_tokens_total: int
     ) -> None:  # pragma: no cover
         # print/log
-        log_file = join(self.dataset_path, "analyze_data", f"{self.ner_dataset}.log")
+        log_file = join(self.dataset_path, "analyze_data", f"{self.ner_dataset.replace('/', '-')}.log")
         default_logger = DefaultLogger(
             __file__, log_file=log_file, level="info", mode="w"
         )
