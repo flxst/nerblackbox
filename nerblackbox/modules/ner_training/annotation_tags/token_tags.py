@@ -331,6 +331,26 @@ class TokenTags:
 
         self.level = "entity"
 
+    def correct_sentence_piece_tokens(self):
+        """
+        Changed Attr:
+            token_tag_list: List[Dict[str, str]], e.g.
+            [
+                {'char_start': '23', 'char_end': '38', 'token': 'ĠIncorporations', 'tag': 'ORG'}
+                ..
+            ]
+            --->
+            [
+                {'char_start': '24', 'char_end': '38', 'token': 'Incorporations', 'tag': 'ORG'}
+                ..
+            ]
+        """
+        for token_tag in self.token_tag_list:
+            if token_tag["token"].startswith("Ġ"):
+                char_start_new = str(int(token_tag["char_start"]) + 1)
+                token_tag.update({"char_start": char_start_new})
+                token_tag.update({"token": token_tag["token"].lstrip("Ġ")})
+
     ####################################################################################################################
     # HELPER
     ####################################################################################################################

@@ -93,7 +93,9 @@ class NerModel(pl.LightningModule, ABC):
         try:
             # use transformers model
             AutoTokenizer.from_pretrained(
-                self.params.pretrained_model_name, use_fast=False
+                self.params.pretrained_model_name,
+                use_fast=False,
+                add_prefix_space=True,  # only used for SentencePiece tokenizers
             )
             self.pretrained_model_name = self.params.pretrained_model_name
         except ValueError:
@@ -110,6 +112,7 @@ class NerModel(pl.LightningModule, ABC):
             do_lower_case=False,
             additional_special_tokens=self.special_tokens,
             use_fast=True,
+            add_prefix_space=True,  # only used for SentencePiece tokenizers
         )  # do_lower_case needs to be False !!
 
         # 3. data_preprocessor

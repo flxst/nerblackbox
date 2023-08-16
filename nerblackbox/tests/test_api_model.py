@@ -211,7 +211,7 @@ class TestModelStatic:
         ), f"ERROR! test_list_documents = {test_list_documents} != {list_documents} = list_documents"
 
     @pytest.mark.parametrize(
-        "tokens, predictions, token_predictions",
+        "tokens, predictions, tokenizer_type, token_predictions",
         [
             (
                 [
@@ -234,6 +234,7 @@ class TestModelStatic:
                     "[S]",
                     "[S]",
                 ],
+                "WordPiece",
                 [
                     ("arbetsförmedlingen", "ORG"),
                     ("finns", "O"),
@@ -262,6 +263,7 @@ class TestModelStatic:
                     "[S]",
                     "[S]",
                 ],
+                "WordPiece",
                 [
                     ("arbetsförmedlingen", "ORG"),
                     ("finns", "O"),
@@ -288,6 +290,7 @@ class TestModelStatic:
                     "O",
                     "[S]",
                 ],
+                "WordPiece",
                 [
                     ("1996", "ORG"),
                     ("-", "ORG"),
@@ -302,10 +305,12 @@ class TestModelStatic:
         self,
         tokens: List[str],
         predictions: List[Union[str, Dict[str, float]]],
+        tokenizer_type: str,
         token_predictions: List[Tuple[Union[str, Dict[str, float]]]],
     ):
+        tokenizer_special = ["[CLS]", "[SEP]", "[PAD]"] if tokenizer_type == "WordPiece" else ['</s>', '<s>', '<pad>']
         test_token_predictions = merge_subtoken_to_token_predictions(
-            tokens, predictions
+            tokens, predictions, tokenizer_special=tokenizer_special, tokenizer_type=tokenizer_type
         )
         assert test_token_predictions == token_predictions, (
             f"test_token_predictions = "
@@ -711,6 +716,39 @@ class TestModelStatic:
                         {'char_start': '90', 'char_end': '91', 'token': ')', 'tag': 'O'},
                         {'char_start': '92', 'char_end': '93', 'token': '.', 'tag': 'O'},
                     ]
+            ),
+            # EXAMPLE 12 #######################
+            (
+                    [
+                        ('The', 'O'), ('official', 'O'), ('Itar-Tass', 'B-ORG'), ('news', 'O'), ('agency', 'O'),
+                        ('quoted', 'O'), ('Livshits', 'B-PER'), ('as', 'O'), ('telling', 'O'), ('parliamentary', 'O'),
+                        ('deputies', 'O'), ('that', 'O'), ('RAO', 'B-ORG'), ('Norilsky', 'I-ORG'), ('Nikel', 'I-ORG'),
+                        ('0NKEL.RUO', 'O'), ('had', 'O'), ('to', 'O'), ('pay', 'O'), ('its', 'O'), ('tax', 'O')
+                    ],
+                    "The official Itar-Tass news agency quoted Livshits as telling parliamentary deputies that RAO Norilsky Nikel 0#NKEL.RUO had to pay its tax",
+                    [
+                        {'char_start': '0', 'char_end': '3', 'token': 'The', 'tag': 'O'},
+                        {'char_start': '4', 'char_end': '12', 'token': 'official', 'tag': 'O'},
+                        {'char_start': '13', 'char_end': '22', 'token': 'Itar-Tass', 'tag': 'B-ORG'},
+                        {'char_start': '23', 'char_end': '27', 'token': 'news', 'tag': 'O'},
+                        {'char_start': '28', 'char_end': '34', 'token': 'agency', 'tag': 'O'},
+                        {'char_start': '35', 'char_end': '41', 'token': 'quoted', 'tag': 'O'},
+                        {'char_start': '42', 'char_end': '50', 'token': 'Livshits', 'tag': 'B-PER'},
+                        {'char_start': '51', 'char_end': '53', 'token': 'as', 'tag': 'O'},
+                        {'char_start': '54', 'char_end': '61', 'token': 'telling', 'tag': 'O'},
+                        {'char_start': '62', 'char_end': '75', 'token': 'parliamentary', 'tag': 'O'},
+                        {'char_start': '76', 'char_end': '84', 'token': 'deputies', 'tag': 'O'},
+                        {'char_start': '85', 'char_end': '89', 'token': 'that', 'tag': 'O'},
+                        {'char_start': '90', 'char_end': '93', 'token': 'RAO', 'tag': 'B-ORG'},
+                        {'char_start': '94', 'char_end': '102', 'token': 'Norilsky', 'tag': 'I-ORG'},
+                        {'char_start': '103', 'char_end': '108', 'token': 'Nikel', 'tag': 'I-ORG'},
+                        {'char_start': '109', 'char_end': '119', 'token': '0#NKEL.RUO', 'tag': 'O'},
+                        {'char_start': '120', 'char_end': '123', 'token': 'had', 'tag': 'O'},
+                        {'char_start': '124', 'char_end': '126', 'token': 'to', 'tag': 'O'},
+                        {'char_start': '127', 'char_end': '130', 'token': 'pay', 'tag': 'O'},
+                        {'char_start': '131', 'char_end': '134', 'token': 'its', 'tag': 'O'},
+                        {'char_start': '135', 'char_end': '138', 'token': 'tax', 'tag': 'O'},
+                    ],
             ),
             #
         ],

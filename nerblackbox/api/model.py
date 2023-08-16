@@ -128,6 +128,7 @@ class Model:
             "special_tokens_map.json",
             "tokenizer_config.json",
             "merges.txt",
+            "sentencepiece.bpe.model",
         ]
         local_file_paths = []
         count_vocab = 2
@@ -136,7 +137,7 @@ class Model:
                 local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
                 local_file_paths.append(local_file_path)
             except EntryNotFoundError:
-                if filename in ["special_tokens_map.json", "tokenizer_config.json", "merges.txt"]:
+                if filename in ["special_tokens_map.json", "tokenizer_config.json", "merges.txt", "sentencepiece.bpe.model"]:
                     # some models do not have these files
                     pass
                 elif filename in ["vocab.txt", "vocab.json"]:
@@ -237,7 +238,9 @@ class Model:
         # 4. tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
             checkpoint_directory,
+            add_prefix_space=True,  # only used for SentencePiece tokenizers
         )
+        self._analyze_tokenizer()
 
         # 5. batch_size (dataloader)
         self.batch_size = batch_size
@@ -540,7 +543,7 @@ class Model:
         ######################################
         _token_predictions: List[
             Tuple[str, Union[str, Dict[str, float]]]
-        ] = merge_subtoken_to_token_predictions(tokens, predictions)
+        ] = merge_subtoken_to_token_predictions(tokens, predictions, self.tokenizer_special, self.tokenizer_type)
 
         token_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
             _token_predictions, input_text_pretokenized, verbose=VERBOSE
@@ -566,6 +569,8 @@ class Model:
             token_tags.merge_tokens_to_entities(
                 original_text=input_text, verbose=VERBOSE
             )
+
+        token_tags.correct_sentence_piece_tokens()
 
         predictions = token_tags.as_list()
 
@@ -922,6 +927,31 @@ class Model:
 
         return evaluation
 
+    def _analyze_tokenizer(self) -> None:
+        r"""
+        retrieve information about tokenizer
+
+        Created Attr:
+            self.tokenizer_special: e.g. ["[CLS]", "[SEP]", "[PAD]"] for WordPiece, ['</s>', '<s>', '<pad>'] for SentencePiece
+            self.tokenizer_type: e.g. "WordPiece" or "SentencePiece"
+        """
+        self.tokenizer_special = [
+            elem for elem in list({
+                self.tokenizer.bos_token,
+                self.tokenizer.eos_token,
+                self.tokenizer.sep_token,
+                self.tokenizer.pad_token,
+                self.tokenizer.cls_token,
+            })
+            if elem is not None
+        ]  # ["[CLS]", "[SEP]", "[PAD]"] for WordPiece, ['</s>', '<s>', '<pad>'] for SentencePiece
+        if set(self.tokenizer_special) == {'[PAD]', '[SEP]', '[CLS]'}:
+            self.tokenizer_type = "WordPiece"
+        elif set(self.tokenizer_special) == {'<pad>', '<s>', '</s>'}:
+            self.tokenizer_type = "SentencePiece"
+        else:
+            raise Exception(f"ERROR! could not assign tokenizer type based on special tokens {self.tokenizer_special}")
+
 
 ########################################################################################################################
 ########################################################################################################################
@@ -1075,23 +1105,34 @@ def merge_slices_for_single_document(_list: List[List[Any]]) -> List[Any]:
 def merge_subtoken_to_token_predictions(
     tokens: List[str],
     predictions: List[Any],
+    tokenizer_special: List[str],
+    tokenizer_type: str,
 ) -> List[Tuple[str, Any]]:
     """
     Args:
         tokens: e.g. ["[CLS]", "arbetsförmedl", "##ingen", "finns", "i", "stockholm", "[SEP]", "[PAD]"]
         predictions:  e.g. ["[S]", "ORG", "ORG", "O", "O", "O", "[S]", "[S]"]
+        tokenizer_special: e.g. ["[CLS]", "[SEP]", "[PAD]"] for WordPiece, ['</s>', '<s>', '<pad>'] for SentencePiece
+        tokenizer_type: e.g. "WordPiece" or "SentencePiece"
 
     Returns:
         token_predictions: e.g. [("arbetsförmedlingen", "ORG"), ("finns", "O"), ("i", "O"), ("stockholm", "O")]
     """
-    # predict tags on words between [CLS] and [SEP]
+    # predict tags on words between [CLS] and [SEP] or <s> and </s>
     token_predictions_list = list()
     for token, example_token_prediction in zip(tokens, predictions):
-        if token not in ["[CLS]", "[SEP]", "[PAD]"]:
-            if not token.startswith("##"):
-                token_predictions_list.append([token, example_token_prediction])
-            else:
-                token_predictions_list[-1][0] += token.strip("##")
+        if token not in tokenizer_special:
+            if tokenizer_type == "WordPiece":
+                if not token.startswith("##"):
+                    token_predictions_list.append([token, example_token_prediction])
+                else:
+                    token_predictions_list[-1][0] += token.lstrip("##")
+            elif tokenizer_type == "SentencePiece":
+                if token.startswith("Ġ"):
+                    token = token.strip("Ġ")
+                    token_predictions_list.append([token, example_token_prediction])
+                else:
+                    token_predictions_list[-1][0] += token
 
     token_predictions = [(elem[0], elem[1]) for elem in token_predictions_list]
 
@@ -1253,9 +1294,7 @@ def restore_unknown_tokens(
             if k_prev != 1 or k_next != 1:
                 new_token_parts = new_token.split()
                 assertion_1 = len(new_token_parts) == -1 + np.absolute(k_prev + k_next)
-                assertion_2 = None
                 if not assertion_1:
-                    # throw warning
                     if DEBUG:
                         print(
                             f"--------- WARNING START --------\n",
