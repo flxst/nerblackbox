@@ -126,26 +126,27 @@ class Model:
             "vocab.txt",
             "vocab.json",
             "special_tokens_map.json",
+            "tokenizer.json",
             "tokenizer_config.json",
             "merges.txt",
             "sentencepiece.bpe.model",
         ]
         local_file_paths = []
-        count_vocab = 2
+        count_vocab = 4
         for filename in filenames:
             try:
                 local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
                 local_file_paths.append(local_file_path)
             except EntryNotFoundError:
-                if filename in ["special_tokens_map.json", "tokenizer_config.json", "merges.txt", "sentencepiece.bpe.model"]:
+                if filename in ["special_tokens_map.json", "tokenizer_config.json", "merges.txt"]:
                     # some models do not have these files
                     pass
-                elif filename in ["vocab.txt", "vocab.json"]:
+                elif filename in ["vocab.txt", "vocab.json", "sentencepiece.bpe.model", "tokenizer.json"]:
                     # one of them needs to exist
                     count_vocab -= 1
                 else:
                     raise Exception(f"ERROR! could not find filename = {filename} - cannot use model.")
-        assert count_vocab == 1, f"ERROR! found {count_vocab} vocabulary files, should be 1."
+        assert count_vocab > 0, f"ERROR! found no tokenizer files, should be at least one."
 
         # extract cache directory
         cache_directories = [
@@ -213,11 +214,15 @@ class Model:
                 assert len(labels) == len(id2label), f"ERROR!"
                 id2label = {i: label for i, label in enumerate(labels)}
             except Exception:
-                raise Exception(f"config.json does not contain proper id2label and dataset cannot be parsed. cannot use model.")
+                raise Exception(
+                    f"config.json does not contain proper id2label and dataset cannot be parsed. cannot use model."
+                )
         else:
             # e.g. malduwais/distilbert-base-uncased-finetuned-ner
             # e.g. gagan3012/bert-tiny-finetuned-ner
-            raise Exception(f"ERROR! config.json does not contain proper id2label - cannot use model. try to provide dataset.")
+            raise Exception(
+                f"ERROR! config.json does not contain proper id2label - cannot use model. try to provide dataset."
+            )
 
         id2label = dict(sorted(id2label.items()))
         label2id = {label: int(_id) for _id, label in id2label.items()}
@@ -236,11 +241,18 @@ class Model:
         self.model = self.model.to(self.device)
 
         # 4. tokenizer
+        path_config = join(checkpoint_directory, "tokenizer_config.json")
+        if isfile(path_config):
+            with open(path_config, "r") as f:
+                tokenizer_config = json.load(f)
+        else:
+            tokenizer_config = dict()
+        self._analyze_tokenizer(tokenizer_config)
+
         self.tokenizer = AutoTokenizer.from_pretrained(
             checkpoint_directory,
-            add_prefix_space=True,  # only used for SentencePiece tokenizers
+            add_prefix_space=True,  # only used for SentencePiece tokenizers (needed for pretokenized text)
         )
-        self._analyze_tokenizer()
 
         # 5. batch_size (dataloader)
         self.batch_size = batch_size
@@ -470,11 +482,11 @@ class Model:
 
         # merge
         tokens = [
-            merge_slices_for_single_document(tokens[offsets[i] : offsets[i + 1]])
+            merge_slices_for_single_document(tokens[offsets[i]: offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] with len = number_of_input_texts
         predictions = [
-            merge_slices_for_single_document(predictions[offsets[i] : offsets[i + 1]])
+            merge_slices_for_single_document(predictions[offsets[i]: offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] or List[List[Dict[str, float]]] with len = number_of_input_texts
 
@@ -927,30 +939,77 @@ class Model:
 
         return evaluation
 
-    def _analyze_tokenizer(self) -> None:
+    def _analyze_tokenizer(self, tokenizer_config: Dict = {}) -> None:
         r"""
         retrieve information about tokenizer
 
         Created Attr:
             self.tokenizer_special: e.g. ["[CLS]", "[SEP]", "[PAD]"] for WordPiece, ['</s>', '<s>', '<pad>'] for SentencePiece
+            self.tokenizer_add_prefix_space: True/False
             self.tokenizer_type: e.g. "WordPiece" or "SentencePiece"
         """
+        # tokenizer_add_prefix_space
+        add_prefix_space = tokenizer_config["add_prefix_space"] if "add_prefix_space" in tokenizer_config.keys() else None
+        if add_prefix_space is not None:
+            self.tokenizer_add_prefix_space = add_prefix_space
+        else:
+            self.tokenizer_add_prefix_space = False
+
+        # tokenizer_type
+        tokenizer_class = tokenizer_config["tokenizer_class"] if "tokenizer_class" in tokenizer_config.keys() else None
+        if tokenizer_class is not None:
+            if tokenizer_class == "RobertaTokenizer":
+                self.tokenizer_type = "SentencePiece"
+            elif tokenizer_class == "DebertaTokenizer":
+                self.tokenizer_type = "SentencePiece"
+            elif tokenizer_class == "AlbertTokenizer":
+                self.tokenizer_type = "WordPiece"
+                raise Exception(f"ERROR! tokenizer = {tokenizer_class} not supported.")
+            elif tokenizer_class == "XLMRobertaTokenizer":
+                self.tokenizer_type = "SentencePiece"
+                raise Exception(f"ERROR! tokenizer = {tokenizer_class} not supported.")
+            else:
+                raise Exception(f"ERROR! tokenizer_class = {tokenizer_class} not supported.")
+        else:
+            if self.tokenizer_add_prefix_space is True:
+                self.tokenizer_type = "SentencePiece"
+            else:
+                self.tokenizer_type = "WordPiece"
+            print(f"WARNING! tokenizer_type = {self.tokenizer_type} "
+                  f"derived from add_prefix_space = {self.tokenizer_add_prefix_space}")
+
+        # tokenizer_special
+        def _extract_token(_token: str):
+            if _token in tokenizer_config.keys():
+                if isinstance(tokenizer_config[_token], str):
+                    return tokenizer_config[_token]
+                elif isinstance(tokenizer_config[_token], dict) and "content" in tokenizer_config[_token].keys():
+                    return tokenizer_config[_token]["content"]
+            return None
+
+        bos_token = _extract_token("bos_token")
+        eos_token = _extract_token("eos_token")
+        sep_token = _extract_token("sep_token")
+        pad_token = _extract_token("pad_token")
+        cls_token = _extract_token("cls_token")
+
         self.tokenizer_special = [
             elem for elem in list({
-                self.tokenizer.bos_token,
-                self.tokenizer.eos_token,
-                self.tokenizer.sep_token,
-                self.tokenizer.pad_token,
-                self.tokenizer.cls_token,
+                bos_token,
+                eos_token,
+                sep_token,
+                pad_token,
+                cls_token,
             })
             if elem is not None
-        ]  # ["[CLS]", "[SEP]", "[PAD]"] for WordPiece, ['</s>', '<s>', '<pad>'] for SentencePiece
-        if set(self.tokenizer_special) == {'[PAD]', '[SEP]', '[CLS]'}:
-            self.tokenizer_type = "WordPiece"
-        elif set(self.tokenizer_special) == {'<pad>', '<s>', '</s>'}:
-            self.tokenizer_type = "SentencePiece"
-        else:
-            raise Exception(f"ERROR! could not assign tokenizer type based on special tokens {self.tokenizer_special}")
+        ]  # ["[CLS]", "[SEP]", "[PAD]"] or ['</s>', '<s>', '<pad>']
+        if len(self.tokenizer_special) == 0:
+            if self.tokenizer_type == "WordPiece":
+                self.tokenizer_special = ["[CLS]", "[SEP]", "[PAD]"]
+            else:
+                self.tokenizer_special = ['</s>', '<s>', '<pad>']
+            print(f"WARNING! tokenizer_special = {self.tokenizer_special} "
+                  f"derived from tokenizer_type = {self.tokenizer_type}")
 
 
 ########################################################################################################################
@@ -1299,7 +1358,7 @@ def restore_unknown_tokens(
                         print(
                             f"--------- WARNING START --------\n",
                             f"ERROR! new_token = {new_token} consists of {len(new_token_parts)} parts, "
-                            f"expected {1+np.absolute(k_prev-k_next)} (k_prev = {k_prev}, k_next = {k_next})\n"
+                            f"expected {1 + np.absolute(k_prev - k_next)} (k_prev = {k_prev}, k_next = {k_next})\n"
                             f"char_start_margin = {char_start_margin}\n"
                             f"char_end_margin = {char_end_margin}\n"
                             f"input_text = {input_text}\n"
