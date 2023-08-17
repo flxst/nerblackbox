@@ -85,9 +85,9 @@ def get_hardcoded_parameters(keys=False):
     _params = {
         "dataset_name": "str",
         "annotation_scheme": "str",
-        "prune_ratio_train": "float",
-        "prune_ratio_val": "float",
-        "prune_ratio_test": "float",
+        "train_fraction": "float",
+        "val_fraction": "float",
+        "test_fraction": "float",
         "pretrained_model_name": "str",
         "uncased": "bool",
         "checkpoints": "bool",

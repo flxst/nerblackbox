@@ -11,9 +11,9 @@ GENERAL = {
 DATASET = {
     "dataset_name": "str",
     "annotation_scheme": "str",
-    "prune_ratio_train": "float",
-    "prune_ratio_val": "float",
-    "prune_ratio_test": "float",
+    "train_fraction": "float",
+    "val_fraction": "float",
+    "test_fraction": "float",
     "train_on_val": "bool",
     "train_on_test": "bool",
 }

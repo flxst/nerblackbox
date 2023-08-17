@@ -105,10 +105,10 @@ class NerModelTrain(NerModel):
             input_examples,
             self.annotation,
         ) = self.data_preprocessor.get_input_examples_train(
-            prune_ratio={
-                "train": self.params.prune_ratio_train,
-                "val": self.params.prune_ratio_val,
-                "test": self.params.prune_ratio_test,
+            fraction={
+                "train": self.params.train_fraction,
+                "val": self.params.val_fraction,
+                "test": self.params.test_fraction,
             },
             dataset_name=self.params.dataset_name,
             train_on_val=self.params.train_on_val,

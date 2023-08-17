@@ -29,9 +29,9 @@ class TestExperimentConfig:
                     "params": {
                         "dataset_name": "swedish_ner_corpus",
                         "annotation_scheme": "plain",
-                        "prune_ratio_train": 0.01,
-                        "prune_ratio_val": 0.01,
-                        "prune_ratio_test": 0.01,
+                        "train_fraction": 0.01,
+                        "val_fraction": 0.01,
+                        "test_fraction": 0.01,
                         "train_on_val": True,
                         "train_on_test": True,
                         "pretrained_model_name": "KB/bert-base-swedish-cased",
@@ -53,9 +53,9 @@ class TestExperimentConfig:
                 True,
                 {
                     "params": {
-                        "prune_ratio_train": 1.00,
-                        "prune_ratio_val": 1.00,
-                        "prune_ratio_test": 1.00,
+                        "train_fraction": 1.00,
+                        "val_fraction": 1.00,
+                        "test_fraction": 1.00,
                         "train_on_val": False,
                         "train_on_test": False,
                         "checkpoints": True,
@@ -113,7 +113,7 @@ class TestExperimentConfig:
                 False,
             ),
             (
-                "prune_ratio_train",
+                "train_fraction",
                 "0.01",
                 0.01,
                 False,

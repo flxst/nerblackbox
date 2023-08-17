@@ -114,9 +114,9 @@ either statically or dynamically.
         [dataset]
         dataset_name = swedish_ner_corpus
         annotation_scheme = plain
-        prune_ratio_train = 0.1  # for testing
-        prune_ratio_val = 1.0
-        prune_ratio_test = 1.0
+        train_fraction = 0.1  # for testing
+        val_fraction = 1.0
+        test_fraction = 1.0
         train_on_val = False
         train_on_test = False
 
@@ -157,9 +157,9 @@ either statically or dynamically.
             model="af-ai-center/bert-base-swedish-uncased",  # model = model_name
             dataset="swedish_ner_corpus",                    # dataset = dataset_name
             annotation_scheme="plain",
-            prune_ratio_train=0.1,                           # for testing
-            prune_ratio_val=1.0,
-            prune_ratio_test=1.0,
+            train_fraction=0.1,                              # for testing
+            val_fraction=1.0,
+            test_fraction=1.0,
             train_on_val=False,
             train_on_test=False,
             checkpoints=True,
@@ -195,12 +195,12 @@ In the following, we will go through the different parameters step by step to se
 **1. Dataset**
 
 | Key               | Mandatory | Default Value | Type  | Values                  | Comment                                                                                                                                                       |          
-|---                |---        |---            |---    |-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------------------|---        |---            |---    |-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | dataset_name      | Yes       | ---           | str   | e.g. conll2003          | key = dataset can be used instead                                                                                                                             |
 | annotation_scheme | No        | auto          | str   | auto, plain, bio, bilou | specify annotation scheme (e.g. [BIO](https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging))). auto means it is inferred from data |
-| prune_ratio_train | No        | 1.0           | float | 0.0 - 1.0               | fraction of train dataset to be used                                                                                                                          |
-| prune_ratio_val   | No        | 1.0           | float | 0.0 - 1.0               | fraction of val   dataset to be used                                                                                                                          | 
-| prune_ratio_test  | No        | 1.0           | float | 0.0 - 1.0               | fraction of test  dataset to be used                                                                                                                          |
+| train_fraction    | No        | 1.0           | float | 0.0 - 1.0               | fraction of train dataset to be used                                                                                                                          |
+| val_fraction      | No        | 1.0           | float | 0.0 - 1.0               | fraction of val   dataset to be used                                                                                                                          | 
+| test_fraction     | No        | 1.0           | float | 0.0 - 1.0               | fraction of test  dataset to be used                                                                                                                          |
 | train_on_val      | No        | False         | bool  | True, False             | whether to train additionally on validation dataset                                                                                                           |
 | train_on_test     | No        | False         | bool  | True, False             | whether to train additionally on test dataset                                                                                                                 |
 
@@ -212,9 +212,9 @@ In the following, we will go through the different parameters step by step to se
     [dataset]
     dataset_name = swedish_ner_corpus
     annotation_scheme = plain
-    prune_ratio_train = 0.1  # for testing
-    prune_ratio_val = 1.0
-    prune_ratio_test = 1.0
+    train_fraction = 0.1  # for testing
+    val_fraction = 1.0
+    test_fraction = 1.0
     train_on_val = False
     train_on_test = False
     ```

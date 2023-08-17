@@ -25,7 +25,7 @@ class MLflowClient:
         mlflow hyperparameter logging
         -----------------------------
         :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
         :param experiment: [bool] whether run is part of an experiment w/ multiple runs
         :return:
         """
@@ -54,9 +54,9 @@ class MLflowClient:
 
                 # most important hyperparameters
                 most_important_hyperparameters = [
-                    "prune_ratio_train",
-                    "prune_ratio_val",
-                    "prune_ratio_test",
+                    "train_fraction",
+                    "val_fraction",
+                    "test_fraction",
                     "max_epochs",
                     "lr_max",
                     "lr_schedule",

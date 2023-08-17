@@ -35,11 +35,11 @@ class TestExperimentResults:
     # results: intermediate
     true_parameters_experiment: Dict[str, Any] = {
         "early_stopping": ["True"],
-        "prune_ratio_test": ["0.2"],
+        "test_fraction": ["0.2"],
         "seed": ["42"],
         "monitor": ["val_loss"],
         "lr_num_cycles": ["4"],
-        "prune_ratio_val": ["0.2"],
+        "val_fraction": ["0.2"],
         "pretrained_model_name": ["af-ai-center/bert-base-swedish-uncased"],
         "max_epochs": ["3"],
         "mode": ["min"],
@@ -48,7 +48,7 @@ class TestExperimentResults:
         "checkpoints": ["True"],
         "lr_warmup_epochs": ["2"],
         "lr_cooldown": ["True"],
-        "prune_ratio_train": ["0.2"],
+        "train_fraction": ["0.2"],
         "annotation_scheme": ["plain"],
         "experiment_name": ["my_experiment_mlflow_runs"],
         "device": ["gpu"],

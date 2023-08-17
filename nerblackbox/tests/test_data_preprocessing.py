@@ -143,7 +143,7 @@ class TestCsvReaderAndDataProcessor:
             test_input_examples,
             test_annotation,
         ) = data_preprocessor.get_input_examples_train(
-            prune_ratio={"train": 0.5, "val": 1.0, "test": 1.0},
+            fraction={"train": 0.5, "val": 1.0, "test": 1.0},
             dataset_name=None,
         )
         assert (

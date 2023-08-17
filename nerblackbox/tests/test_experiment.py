@@ -38,9 +38,9 @@ class TestExperiment:
                         # params
                         "dataset_name": "swedish_ner_corpus",  # update non-default
                         "annotation_scheme": "plain",  # update non-default
-                        "prune_ratio_train": 0.01,  # update non-default
-                        "prune_ratio_val": 0.01,  # update non-default
-                        "prune_ratio_test": 0.01,  # update non-default
+                        "train_fraction": 0.01,  # update non-default
+                        "val_fraction": 0.01,  # update non-default
+                        "test_fraction": 0.01,  # update non-default
                         "train_on_val": True,  # update non-default
                         "train_on_test": True,  # update non-default
                         "checkpoints": True,
@@ -109,9 +109,9 @@ class TestExperiment:
                     # params
                     "dataset_name": "swedish_ner_corpus",  # update non-default
                     "annotation_scheme": "plain",  # update non-default
-                    "prune_ratio_train": 0.01,  # update non-default
-                    "prune_ratio_val": 0.01,  # update non-default
-                    "prune_ratio_test": 0.01,  # update non-default
+                    "train_fraction": 0.01,  # update non-default
+                    "val_fraction": 0.01,  # update non-default
+                    "test_fraction": 0.01,  # update non-default
                     "train_on_val": True,  # update non-default
                     "train_on_test": True,  # update non-default
                     "checkpoints": True,

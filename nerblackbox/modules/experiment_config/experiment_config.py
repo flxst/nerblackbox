@@ -87,11 +87,11 @@ class ExperimentConfig:
         convert _input string to str/int/float/bool
 
         Args:
-            _input_key:        [str],              e.g. 'lr_schedule' or 'prune_ratio_train' or 'checkpoints'
-            _input_value:      [str],              e.g. 'constant'    or '0.01'              or 'False'
+            _input_key:        [str],              e.g. 'lr_schedule' or 'train_fraction' or 'checkpoints'
+            _input_value:      [str],              e.g. 'constant'    or '0.01'           or 'False'
 
         Returns:
-            converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01               or  False
+            converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01            or  False
         """
         if _input_key in PARAMS.keys():
             convert_to = PARAMS[_input_key]

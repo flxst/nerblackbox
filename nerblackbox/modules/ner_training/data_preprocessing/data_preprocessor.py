@@ -54,7 +54,7 @@ class DataPreprocessor:
 
     def get_input_examples_train(
         self,
-        prune_ratio: Dict[str, float],
+        fraction: Dict[str, float],
         dataset_name: Optional[str] = None,
         train_on_val: Optional[bool] = None,
         train_on_test: Optional[bool] = None,
@@ -63,7 +63,7 @@ class DataPreprocessor:
         - get input examples for TRAIN from csv files
 
         Args:
-            prune_ratio:      [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
+            fraction:         [dict], e.g. {'train': 1.0, 'val': 1.0, 'test': 1.0} -- pruning ratio for data
             dataset_name:     [str], e.g. 'suc'
             train_on_val:     [bool] if True, train additionally on validation set
             train_on_test:    [bool] if True, train additionally on test set
@@ -95,7 +95,7 @@ class DataPreprocessor:
             # train data
             input_examples_all = csv_reader.get_input_examples(phase)
             input_examples[phase] = self._prune_examples(
-                input_examples_all, phase, ratio=prune_ratio[phase]
+                input_examples_all, phase, ratio=fraction[phase]
             )
 
         # note: w/o deepcopy, potential annotation scheme conversion fails

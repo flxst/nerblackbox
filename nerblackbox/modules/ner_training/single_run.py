@@ -104,12 +104,12 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
 def print_run_information(_params, _hparams, _logger, _seed: int):
     """
     :param _params:   [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-    :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
     :param _logger:   [DefaultLogger]
     :param _seed:     [int]
     :return: -
     """
-    _logger.log_info(f">>> NER BLACK BOX VERSION: {get_package_version()}")
+    _logger.log_info(f">>> NERBLACKBOX VERSION: {get_package_version()}")
     _logger.log_info("- PARAMS -----------------------------------------")
     _logger.log_info(f"> experiment_name: {_params.experiment_name}")
     _logger.log_info(f"> from_config:     {_params.from_config}")
@@ -121,9 +121,9 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info("..")
     _logger.log_info(f"> dataset_name:          {_params.dataset_name}")
     _logger.log_info(f"> annotation_scheme:     {_params.annotation_scheme}")
-    _logger.log_info(f"> prune_ratio_train:     {_params.prune_ratio_train}")
-    _logger.log_info(f"> prune_ratio_val:       {_params.prune_ratio_val}")
-    _logger.log_info(f"> prune_ratio_test:      {_params.prune_ratio_test}")
+    _logger.log_info(f"> train_fraction:        {_params.train_fraction}")
+    _logger.log_info(f"> val_fraction:          {_params.val_fraction}")
+    _logger.log_info(f"> test_fraction:         {_params.test_fraction}")
     _logger.log_info(f"> train_on_val:          {_params.train_on_val}")
     _logger.log_info(f"> train_on_test:         {_params.train_on_test}")
     _logger.log_info("..")
@@ -327,7 +327,7 @@ def _tb_logger_stopped_epoch(
     log hparams and metrics for stopped epoch
     -----------------------------------------
     :param _tb_logger:      [pytorch lightning TensorboardLogger]
-    :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
     :param _epoch_best:     [int]
     :param _epochs:         [int]
     :param _model_best:     [NerModelTrain] loaded model

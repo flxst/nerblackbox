@@ -51,9 +51,9 @@ def test_api(capsys):
             dataset=dataset_name,
             lr_warmup_epochs=0,
             max_epochs=3,  # 3
-            prune_ratio_train=0.2,  # 0.5
-            prune_ratio_val=0.01,  # 0.01
-            prune_ratio_test=0.2,  # 0.5
+            train_fraction=0.2,  # 0.5
+            val_fraction=0.01,  # 0.01
+            test_fraction=0.2,  # 0.5
             multiple_runs=1,
             from_preset="original",
         )
