@@ -30,6 +30,9 @@ from nerblackbox.modules.ner_training.data_preprocessing.tools.csv_reader import
 )
 from nerblackbox.modules.ner_training.annotation_tags.tags import Tags
 from nerblackbox.modules.datasets.formatter.auto_formatter import AutoFormatter
+from nerblackbox.modules.datasets.formatter.huggingface_datasets_formatter import (
+    HuggingfaceDatasetsFormatter,
+)
 
 PREDICTIONS = List[List[Dict[str, Any]]]
 EVALUATION_DICT = Dict[str, Dict[str, Dict[str, Optional[float]]]]
@@ -210,6 +213,10 @@ class Model:
                     dataset
                 )
                 id2label = {int(_id): label for _id, label in config["id2label"].items()}
+                assert isinstance(formatter, HuggingfaceDatasetsFormatter), \
+                    f"ERROR! only HuggingFace datasets can be provided as argument."
+                assert isinstance(formatter.tags, list), \
+                    f"ERROR! formatter.tags = {formatter.tags} for dataset = {dataset} is not a list."
                 labels = formatter.tags
                 assert len(labels) == len(id2label), f"ERROR!"
                 id2label = {i: label for i, label in enumerate(labels)}
@@ -692,6 +699,7 @@ class Model:
         dataset = Dataset(name=dataset_name, source="HF")
         dataset.set_up()
         store_path = Store.get_path()
+        assert isinstance(store_path, str), f"ERROR! could not find Store path = {store_path}."
         dir_path = f"{store_path}/datasets/{dataset_name}"
 
         file_path_jsonl = join(
@@ -956,7 +964,8 @@ class Model:
 
         # tokenizer_type
         tokenizer_class = tokenizer_config["tokenizer_class"] if "tokenizer_class" in tokenizer_config.keys() else None
-        self.tokenizer_type = None
+
+        self.tokenizer_type = ""
         if tokenizer_class is not None:
             # explicitly set tokenizer type
             if tokenizer_class == "BertTokenizer":
@@ -979,7 +988,7 @@ class Model:
                 print(f"WARNING! tokenizer_class = {tokenizer_class} not directly supported."
                       f"Properties will be derived.")
 
-        if self.tokenizer_type is None:
+        if len(self.tokenizer_type) == 0:
             # derive tokenizer type
             if self.tokenizer_add_prefix_space is True:
                 self.tokenizer_type = "SentencePiece"
@@ -1228,7 +1237,7 @@ def restore_unknown_tokens(
             ..
         ]
     """
-    word_predictions_restored = list()
+    word_predictions_restored: List[Dict[str, Any]] = list()
 
     # 1. get margins of known tokens
     # word_predictions      = [('example', 'O'), ('of', 'O), ('author', 'PERSON'), ..]

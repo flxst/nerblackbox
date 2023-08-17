@@ -70,7 +70,7 @@ in a few simple steps.
 
     - Evaluate the model
     ```python
-    results = model.evaluate_on_dataset("ehealth_kd", phase="test")
+    results = model.evaluate_on_dataset("conll2003", phase="test")
     results["micro"]["entity"]["f1"]
     # 0.9045
     ```

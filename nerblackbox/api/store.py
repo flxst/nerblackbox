@@ -115,7 +115,8 @@ class Store:
             training_exists, training_results = cls.get_training_results_single(
                 training_name,
             )
-            training["result (f1)"] = cls.parse_training_result_single(training_results)  # micro-averaged f1 test
+            training_result_single = cls.parse_training_result_single(training_results)  # micro-averaged f1 test
+            training["result (f1)"] = training_result_single if training_result_single is not None else "---"
 
         return pd.DataFrame(trainings_overview) if as_df else trainings_overview
 
@@ -202,7 +203,7 @@ class Store:
 
     @staticmethod
     def parse_training_result_single(
-            results: TrainingResults,
+            results: Optional[TrainingResults] = None,
             metric: str = "f1",
             level: str = "entity",
             label: str = "micro",
