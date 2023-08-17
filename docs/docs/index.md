@@ -150,7 +150,7 @@ In order to get familiar with **nerblackbox**, it is recommended to
 ``` tex
 @misc{nerblackbox,
   author = {Stollenwerk, Felix},
-  title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
+  title  = {nerblackbox: a high-level library for named entity recognition in python},
   year   = {2021},
   url    = {https://github.com/flxst/nerblackbox},
 }

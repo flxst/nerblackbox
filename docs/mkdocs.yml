@@ -34,6 +34,7 @@ nav:
     - Inference: 'inference.md'
     - Advanced:
         - 'advanced/compatibility_with_huggingface.md'
+        - 'advanced/reproduction_of_results.md'
         - 'advanced/text_encoding.md'
     - Python API:
       - Overview: 'python_api/overview.md'
