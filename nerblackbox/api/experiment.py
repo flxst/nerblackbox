@@ -157,7 +157,7 @@ class Experiment:
         level: str = "entity",
         label: str = "micro",
         phase: str = "test",
-        average: bool = False,
+        average: bool = True,
     ) -> Optional[str]:
         r"""
 
@@ -171,36 +171,7 @@ class Experiment:
         Returns:
             result: e.g. "0.9011 +- 0.0023" (average = True) or "0.9045" (average = False)
         """
-        if self.results is None:
-            print(f"ATTENTION! no results found")
-            return None
-        else:
-            key = f"{phase.upper()}_{level[:3].upper()}_{metric.upper()}"
-            base_quantity = (
-                self.results.best_average_run
-                if average
-                else self.results.best_single_run
-            )
-            assert isinstance(
-                base_quantity, dict
-            ), f"ERROR! type(base_quantity) = {type(base_quantity)} should be dict."
-
-            if key in base_quantity:
-                if isinstance(
-                    base_quantity[key], str
-                ):  # average = True,  e.g. "0.9011 +- 0.0023"
-                    return base_quantity[key]
-                elif isinstance(
-                    base_quantity[key], float
-                ):  # average = False, e.g. 0.9045..
-                    return f"{base_quantity[key]:.4f}"
-                else:
-                    raise Exception(
-                        f"ERROR! found result of unexpected type = {type(base_quantity[key])}"
-                    )
-            else:
-                print(f"ATTENTION! no results found")
-                return None
+        return Store.parse_experiment_result_single(self.results, metric, level, label, phase, average)
 
     ####################################################################################################################
     # HELPER METHODS

@@ -24,7 +24,7 @@ class Store:
     """
     path: Optional[str] = os.environ.get("DATA_DIR")
 
-    # will be set by _update_client() & _update_experiments()
+    # will be set by _update_client()
     client: Optional[MlflowClient] = None
     experiment_id2name: Optional[Dict[str, str]] = None
     experiment_name2id: Optional[Dict[str, str]] = None
@@ -96,6 +96,7 @@ class Store:
         Returns:
             experiments: overview of experiments that have been run
         """
+        cls._update_client()
         cls._update_experiments()
 
         assert isinstance(
@@ -109,6 +110,13 @@ class Store:
             ],
             key=lambda elem: elem["experiment_id"],
         )
+        for experiment in experiments_overview:
+            experiment_name = experiment["experiment_name"]
+            experiment_exists, experiment_results = cls.get_experiment_results_single(
+                experiment_name,
+            )
+            experiment["result (f1)"] = cls.parse_experiment_result_single(experiment_results)  # micro-averaged f1 test
+
         return pd.DataFrame(experiments_overview) if as_df else experiments_overview
 
     @classmethod
@@ -191,6 +199,62 @@ class Store:
                 return False, ExperimentResults()
         else:
             return False, ExperimentResults()
+
+    @staticmethod
+    def parse_experiment_result_single(
+            results: ExperimentResults,
+            metric: str = "f1",
+            level: str = "entity",
+            label: str = "micro",
+            phase: str = "test",
+            average: bool = True,
+    ) -> Optional[str]:
+        r"""
+
+        Args:
+            results: ExperimentResults gotten from get_experiment_results_single()
+            metric: "f1", "precision", "recall"
+            level: "entity" or "token"
+            label: "micro", "macro", "PER", ..
+            phase: "val" or "test"
+            average: if True, return average result of all runs. if False, return result of best run.
+
+        Returns:
+            result: e.g. "0.9011 +- 0.0023" (average = True) or "0.9045" (average = False)
+        """
+        assert metric in ["f1", "precision", "recall"], f"ERROR! metric = {metric} unknown. Try f1, precision, recall."
+        assert level in ["entity", "token"], f"ERROR! level = {level} unknown. Try entity, token."
+        assert phase in ["val", "test"], f"ERROR! phase = {phase} unknown. Try val, test."
+        if results is None:
+            print(f"ATTENTION! no results found")
+            return None
+        else:
+            key = f"{phase.upper()}_{level[:3].upper()}_{metric[:3].upper()}"
+            base_quantity = (
+                results.best_average_run
+                if average
+                else results.best_single_run
+            )
+            assert isinstance(
+                base_quantity, dict
+            ), f"ERROR! type(base_quantity) = {type(base_quantity)} should be dict."
+
+            if key in base_quantity:
+                if isinstance(
+                        base_quantity[key], str
+                ):  # average = True,  e.g. "0.9011 +- 0.0023"
+                    return base_quantity[key]
+                elif isinstance(
+                        base_quantity[key], float
+                ):  # average = False, e.g. 0.9045..
+                    return f"{base_quantity[key]:.4f}"
+                else:
+                    raise Exception(
+                        f"ERROR! found result of unexpected type = {type(base_quantity[key])}"
+                    )
+            else:
+                print(f"ATTENTION! no results found")
+                return None
 
     @classmethod
     def mlflow(cls, action: str) -> None:
