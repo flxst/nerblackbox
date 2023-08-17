@@ -85,7 +85,6 @@ class DataPreprocessor:
 
         csv_reader = CsvReader(
             dataset_path,
-            self.tokenizer,
             pretokenized=self.pretokenized,
             do_lower_case=self.do_lower_case,  # can be True (applies .lower()) !!
             default_logger=self.default_logger,

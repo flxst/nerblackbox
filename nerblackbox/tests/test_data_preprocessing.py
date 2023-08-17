@@ -44,7 +44,6 @@ tokenizer_KB = AutoTokenizer.from_pretrained(
 
 csv_reader = CsvReader(
     path=resource_filename("nerblackbox", "tests/test_data"),
-    tokenizer=tokenizer,
     pretokenized=True,
     do_lower_case=False,
     csv_file_separator="\t",

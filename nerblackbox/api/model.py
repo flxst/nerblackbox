@@ -790,7 +790,6 @@ class Model:
 
         csv_reader = CsvReader(
             dir_path,
-            self.tokenizer,
             pretokenized=derived_from_jsonl is False,
             do_lower_case=self.tokenizer.do_lower_case if hasattr(self.tokenizer, "do_lower_case") else False,
             default_logger=None,
@@ -957,8 +956,16 @@ class Model:
 
         # tokenizer_type
         tokenizer_class = tokenizer_config["tokenizer_class"] if "tokenizer_class" in tokenizer_config.keys() else None
+        self.tokenizer_type = None
         if tokenizer_class is not None:
-            if tokenizer_class == "RobertaTokenizer":
+            # explicitly set tokenizer type
+            if tokenizer_class == "BertTokenizer":
+                self.tokenizer_type = "WordPiece"
+            elif tokenizer_class == "DistilBertTokenizer":
+                self.tokenizer_type = "WordPiece"
+            elif tokenizer_class == "ElectraTokenizer":
+                self.tokenizer_type = "WordPiece"
+            elif tokenizer_class == "RobertaTokenizer":
                 self.tokenizer_type = "SentencePiece"
             elif tokenizer_class == "DebertaTokenizer":
                 self.tokenizer_type = "SentencePiece"
@@ -969,8 +976,11 @@ class Model:
                 self.tokenizer_type = "SentencePiece"
                 raise Exception(f"ERROR! tokenizer = {tokenizer_class} not supported.")
             else:
-                raise Exception(f"ERROR! tokenizer_class = {tokenizer_class} not supported.")
-        else:
+                print(f"WARNING! tokenizer_class = {tokenizer_class} not directly supported."
+                      f"Properties will be derived.")
+
+        if self.tokenizer_type is None:
+            # derive tokenizer type
             if self.tokenizer_add_prefix_space is True:
                 self.tokenizer_type = "SentencePiece"
             else:
