@@ -59,18 +59,14 @@ class Model:
         training_exists, training_results = Store.get_training_results_single(
             training_name
         )
-        assert (
-            training_exists
-        ), f"ERROR! training = {training_name} does not exist."
+        assert training_exists, f"ERROR! training = {training_name} does not exist."
 
         assert isinstance(
             training_results, TrainingResults
         ), f"ERROR! training_results expected to be an instance of TrainingResults."
 
         if training_results.best_single_run is None:
-            print(
-                f"> ATTENTION! could not find results for training = {training_name}"
-            )
+            print(f"> ATTENTION! could not find results for training = {training_name}")
             return None
         elif (
             "checkpoint" not in training_results.best_single_run.keys()
@@ -112,7 +108,9 @@ class Model:
             return Model(checkpoint_directory)
 
     @classmethod
-    def from_huggingface(cls, repo_id: str, dataset: Optional[str] = None) -> Optional["Model"]:
+    def from_huggingface(
+        cls, repo_id: str, dataset: Optional[str] = None
+    ) -> Optional["Model"]:
         r"""
 
         Args:
@@ -141,15 +139,28 @@ class Model:
                 local_file_path = hf_hub_download(repo_id=repo_id, filename=filename)
                 local_file_paths.append(local_file_path)
             except EntryNotFoundError:
-                if filename in ["special_tokens_map.json", "tokenizer_config.json", "merges.txt"]:
+                if filename in [
+                    "special_tokens_map.json",
+                    "tokenizer_config.json",
+                    "merges.txt",
+                ]:
                     # some models do not have these files
                     pass
-                elif filename in ["vocab.txt", "vocab.json", "sentencepiece.bpe.model", "tokenizer.json"]:
+                elif filename in [
+                    "vocab.txt",
+                    "vocab.json",
+                    "sentencepiece.bpe.model",
+                    "tokenizer.json",
+                ]:
                     # one of them needs to exist
                     count_vocab -= 1
                 else:
-                    raise Exception(f"ERROR! could not find filename = {filename} - cannot use model.")
-        assert count_vocab > 0, f"ERROR! found no tokenizer files, should be at least one."
+                    raise Exception(
+                        f"ERROR! could not find filename = {filename} - cannot use model."
+                    )
+        assert (
+            count_vocab > 0
+        ), f"ERROR! found no tokenizer files, should be at least one."
 
         # extract cache directory
         cache_directories = [
@@ -198,7 +209,9 @@ class Model:
             self.max_seq_length = config["max_position_embeddings"]
 
         if "id2label" not in config.keys():
-            raise Exception("ERROR! config.json does not contain id2label - cannot use model.")
+            raise Exception(
+                "ERROR! config.json does not contain id2label - cannot use model."
+            )
 
         if not list(config["id2label"].values())[0].startswith("LABEL"):
             # most cases, as it should be
@@ -209,14 +222,16 @@ class Model:
         elif dataset is not None:
             # get information from dataset
             try:
-                formatter = AutoFormatter.for_dataset(
-                    dataset
-                )
-                id2label = {int(_id): label for _id, label in config["id2label"].items()}
-                assert isinstance(formatter, HuggingfaceDatasetsFormatter), \
-                    f"ERROR! only HuggingFace datasets can be provided as argument."
-                assert isinstance(formatter.tags, list), \
-                    f"ERROR! formatter.tags = {formatter.tags} for dataset = {dataset} is not a list."
+                formatter = AutoFormatter.for_dataset(dataset)
+                id2label = {
+                    int(_id): label for _id, label in config["id2label"].items()
+                }
+                assert isinstance(
+                    formatter, HuggingfaceDatasetsFormatter
+                ), f"ERROR! only HuggingFace datasets can be provided as argument."
+                assert isinstance(
+                    formatter.tags, list
+                ), f"ERROR! formatter.tags = {formatter.tags} for dataset = {dataset} is not a list."
                 labels = formatter.tags
                 assert len(labels) == len(id2label), f"ERROR!"
                 id2label = {i: label for i, label in enumerate(labels)}
@@ -425,7 +440,9 @@ class Model:
         # 1. pure model inference
         self.data_preprocessor = DataPreprocessor(
             tokenizer=self.tokenizer,
-            do_lower_case=self.tokenizer.do_lower_case if hasattr(self.tokenizer, "do_lower_case") else False,
+            do_lower_case=self.tokenizer.do_lower_case
+            if hasattr(self.tokenizer, "do_lower_case")
+            else False,
             max_seq_length=self.max_seq_length,
             default_logger=PseudoDefaultLogger(),
         )
@@ -489,11 +506,11 @@ class Model:
 
         # merge
         tokens = [
-            merge_slices_for_single_document(tokens[offsets[i]: offsets[i + 1]])
+            merge_slices_for_single_document(tokens[offsets[i] : offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] with len = number_of_input_texts
         predictions = [
-            merge_slices_for_single_document(predictions[offsets[i]: offsets[i + 1]])
+            merge_slices_for_single_document(predictions[offsets[i] : offsets[i + 1]])
             for i in range(len(offsets) - 1)
         ]  # List[List[str]] or List[List[Dict[str, float]]] with len = number_of_input_texts
 
@@ -562,7 +579,9 @@ class Model:
         ######################################
         _token_predictions: List[
             Tuple[str, Union[str, Dict[str, float]]]
-        ] = merge_subtoken_to_token_predictions(tokens, predictions, self.tokenizer_special, self.tokenizer_type)
+        ] = merge_subtoken_to_token_predictions(
+            tokens, predictions, self.tokenizer_special, self.tokenizer_type
+        )
 
         token_predictions: List[Dict[str, Union[str, Dict]]] = restore_unknown_tokens(
             _token_predictions, input_text_pretokenized, verbose=VERBOSE
@@ -699,17 +718,15 @@ class Model:
         dataset = Dataset(name=dataset_name, source="HF")
         dataset.set_up()
         store_path = Store.get_path()
-        assert isinstance(store_path, str), f"ERROR! could not find Store path = {store_path}."
+        assert isinstance(
+            store_path, str
+        ), f"ERROR! could not find Store path = {store_path}."
         dir_path = f"{store_path}/datasets/{dataset_name}"
 
-        file_path_jsonl = join(
-            store_path, "datasets", dataset_name, f"{phase}.jsonl"
-        )
+        file_path_jsonl = join(store_path, "datasets", dataset_name, f"{phase}.jsonl")
         file_path_csv = join(store_path, "datasets", dataset_name, f"{phase}.csv")
         if isfile(file_path_jsonl):
-            return self._evaluate_on_jsonl(
-                dir_path, phase, class_mapping, number
-            )
+            return self._evaluate_on_jsonl(dir_path, phase, class_mapping, number)
         elif isfile(file_path_csv):
             return self._evaluate_on_csv(
                 dir_path,
@@ -719,7 +736,9 @@ class Model:
                 derived_from_jsonl=False,
             )
         else:
-            raise Exception(f"ERROR! evaluation on HF dataset failed, neither jsonl nor csv files seem to exist.")
+            raise Exception(
+                f"ERROR! evaluation on HF dataset failed, neither jsonl nor csv files seem to exist."
+            )
 
     def _evaluate_on_jsonl(
         self,
@@ -799,7 +818,9 @@ class Model:
         csv_reader = CsvReader(
             dir_path,
             pretokenized=derived_from_jsonl is False,
-            do_lower_case=self.tokenizer.do_lower_case if hasattr(self.tokenizer, "do_lower_case") else False,
+            do_lower_case=self.tokenizer.do_lower_case
+            if hasattr(self.tokenizer, "do_lower_case")
+            else False,
             default_logger=None,
         )
         data = csv_reader.get_input_examples(phase)
@@ -956,14 +977,22 @@ class Model:
             self.tokenizer_type: e.g. "WordPiece" or "SentencePiece"
         """
         # tokenizer_add_prefix_space
-        add_prefix_space = tokenizer_config["add_prefix_space"] if "add_prefix_space" in tokenizer_config.keys() else None
+        add_prefix_space = (
+            tokenizer_config["add_prefix_space"]
+            if "add_prefix_space" in tokenizer_config.keys()
+            else None
+        )
         if add_prefix_space is not None:
             self.tokenizer_add_prefix_space = add_prefix_space
         else:
             self.tokenizer_add_prefix_space = False
 
         # tokenizer_type
-        tokenizer_class = tokenizer_config["tokenizer_class"] if "tokenizer_class" in tokenizer_config.keys() else None
+        tokenizer_class = (
+            tokenizer_config["tokenizer_class"]
+            if "tokenizer_class" in tokenizer_config.keys()
+            else None
+        )
 
         self.tokenizer_type = ""
         if tokenizer_class is not None:
@@ -985,8 +1014,10 @@ class Model:
                 self.tokenizer_type = "SentencePiece"
                 raise Exception(f"ERROR! tokenizer = {tokenizer_class} not supported.")
             else:
-                print(f"WARNING! tokenizer_class = {tokenizer_class} not directly supported."
-                      f"Properties will be derived.")
+                print(
+                    f"WARNING! tokenizer_class = {tokenizer_class} not directly supported."
+                    f"Properties will be derived."
+                )
 
         if len(self.tokenizer_type) == 0:
             # derive tokenizer type
@@ -994,15 +1025,20 @@ class Model:
                 self.tokenizer_type = "SentencePiece"
             else:
                 self.tokenizer_type = "WordPiece"
-            print(f"WARNING! tokenizer_type = {self.tokenizer_type} "
-                  f"derived from add_prefix_space = {self.tokenizer_add_prefix_space}")
+            print(
+                f"WARNING! tokenizer_type = {self.tokenizer_type} "
+                f"derived from add_prefix_space = {self.tokenizer_add_prefix_space}"
+            )
 
         # tokenizer_special
         def _extract_token(_token: str):
             if _token in tokenizer_config.keys():
                 if isinstance(tokenizer_config[_token], str):
                     return tokenizer_config[_token]
-                elif isinstance(tokenizer_config[_token], dict) and "content" in tokenizer_config[_token].keys():
+                elif (
+                    isinstance(tokenizer_config[_token], dict)
+                    and "content" in tokenizer_config[_token].keys()
+                ):
                     return tokenizer_config[_token]["content"]
             return None
 
@@ -1013,22 +1049,27 @@ class Model:
         cls_token = _extract_token("cls_token")
 
         self.tokenizer_special = [
-            elem for elem in list({
-                bos_token,
-                eos_token,
-                sep_token,
-                pad_token,
-                cls_token,
-            })
+            elem
+            for elem in list(
+                {
+                    bos_token,
+                    eos_token,
+                    sep_token,
+                    pad_token,
+                    cls_token,
+                }
+            )
             if elem is not None
         ]  # ["[CLS]", "[SEP]", "[PAD]"] or ['</s>', '<s>', '<pad>']
         if len(self.tokenizer_special) == 0:
             if self.tokenizer_type == "WordPiece":
                 self.tokenizer_special = ["[CLS]", "[SEP]", "[PAD]"]
             else:
-                self.tokenizer_special = ['</s>', '<s>', '<pad>']
-            print(f"WARNING! tokenizer_special = {self.tokenizer_special} "
-                  f"derived from tokenizer_type = {self.tokenizer_type}")
+                self.tokenizer_special = ["</s>", "<s>", "<pad>"]
+            print(
+                f"WARNING! tokenizer_special = {self.tokenizer_special} "
+                f"derived from tokenizer_type = {self.tokenizer_type}"
+            )
 
 
 ########################################################################################################################
@@ -1270,24 +1311,38 @@ def restore_unknown_tokens(
             try:
                 char_start_before = copy.deepcopy(char_start)
                 # dirty method to find start of 2nd whitespace character after char_start
-                _temp = input_text[char_start_before:].replace(' ', '-', 1).find(' ')
+                _temp = input_text[char_start_before:].replace(" ", "-", 1).find(" ")
                 whitespace_start_2nd = _temp + char_start_before if _temp > -1 else -1
                 char_start = input_text.index(token, char_start_before)
-                whitespaces_before_char_start = len(input_text[:char_start]) - len(input_text[:char_start].rstrip())
-                whitespaces_after_char_start = len(input_text[char_start:]) - len(input_text[char_start:].lstrip())
-                whitespaces_around_char_start = whitespaces_before_char_start + whitespaces_after_char_start
+                whitespaces_before_char_start = len(input_text[:char_start]) - len(
+                    input_text[:char_start].rstrip()
+                )
+                whitespaces_after_char_start = len(input_text[char_start:]) - len(
+                    input_text[char_start:].lstrip()
+                )
+                whitespaces_around_char_start = (
+                    whitespaces_before_char_start + whitespaces_after_char_start
+                )
                 if DEBUG:
-                    print(f"! token = {token.ljust(20)}, "
-                          f"char_start_before = {char_start_before}, "
-                          f"char_start = {char_start}, "
-                          f"whitespace_start_2nd = {whitespace_start_2nd}, "
-                          f"invalid_counter = {invalid_counter}",
-                          f"whitespaces_before_char_start = {whitespaces_before_char_start}, "
-                          f"whitespaces_after_char_start = {whitespaces_after_char_start}, "
-                          f"len(token) = {len(token)}, ",
+                    print(
+                        f"! token = {token.ljust(20)}, "
+                        f"char_start_before = {char_start_before}, "
+                        f"char_start = {char_start}, "
+                        f"whitespace_start_2nd = {whitespace_start_2nd}, "
+                        f"invalid_counter = {invalid_counter}",
+                        f"whitespaces_before_char_start = {whitespaces_before_char_start}, "
+                        f"whitespaces_after_char_start = {whitespaces_after_char_start}, "
+                        f"len(token) = {len(token)}, ",
                     )
-                valid = char_start <= char_start_before + invalid_counter + whitespaces_around_char_start and \
-                    (whitespace_start_2nd == -1 or whitespace_start_2nd > char_start)
+                valid = (
+                    char_start
+                    <= char_start_before
+                    + invalid_counter
+                    + whitespaces_around_char_start
+                    and (
+                        whitespace_start_2nd == -1 or whitespace_start_2nd > char_start
+                    )
+                )
                 if valid:
                     token_char_margins.append((char_start, char_start + len(token)))
                     invalid_counter = 0
@@ -1426,7 +1481,9 @@ def restore_unknown_tokens(
             words_to_restore = input_text[char_start_margin:char_end_margin].split()
             char_start_temp = char_start_margin
             for word_to_restore in words_to_restore:
-                char_start = char_start_temp + input_text[char_start_temp:char_end_margin].index(word_to_restore)
+                char_start = char_start_temp + input_text[
+                    char_start_temp:char_end_margin
+                ].index(word_to_restore)
                 char_end = char_start + len(word_to_restore)
                 char_start_temp = char_end
                 word_predictions_restored.append(
@@ -1437,8 +1494,12 @@ def restore_unknown_tokens(
                         "tag": "O",
                     }
                 )
-                print(f"WARNING! couldn't restore tokens. restored word w/ tag = O: {word_predictions_restored[-1]}")
-        word_predictions_restored = sorted(word_predictions_restored, key=lambda d: int(d['char_start']))
+                print(
+                    f"WARNING! couldn't restore tokens. restored word w/ tag = O: {word_predictions_restored[-1]}"
+                )
+        word_predictions_restored = sorted(
+            word_predictions_restored, key=lambda d: int(d["char_start"])
+        )
 
     return word_predictions_restored
 

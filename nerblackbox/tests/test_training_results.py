@@ -297,16 +297,13 @@ class TestTrainingResults:
 
             for k2 in self.true_parameters_training.keys():
                 assert (
-                    test_parameters_training[k2]
-                    == self.true_parameters_training[k2]
+                    test_parameters_training[k2] == self.true_parameters_training[k2]
                 ), f"ERROR! test_parameter_training[{k2}] = {test_parameters_training[k2]} != {self.true_parameters_training[k2]}"
 
     def test_rename_parameters_runs(self):
         if self.runs is not None:
             test_parameters_runs_renamed = (
-                self.training_results._rename_parameters_runs(
-                    self.true_parameters_runs
-                )
+                self.training_results._rename_parameters_runs(self.true_parameters_runs)
             )
 
             for k in self.true_parameters_runs_renamed.keys():

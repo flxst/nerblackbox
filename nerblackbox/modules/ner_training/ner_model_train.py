@@ -76,9 +76,7 @@ class NerModelTrain(NerModel):
             logged_metrics=self.logged_metrics.as_flat_list(),
             default_logger=self.default_logger,
         )
-        self.mlflow_client.log_params(
-            self.params, self.hparams, training=self.training
-        )
+        self.mlflow_client.log_params(self.params, self.hparams, training=self.training)
 
         self.epoch_metrics: Dict[str, Dict] = {"val": dict(), "test": dict()}
         self.classification_reports: Dict[str, Dict] = {"val": dict(), "test": dict()}

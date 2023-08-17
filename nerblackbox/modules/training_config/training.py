@@ -77,7 +77,9 @@ class Training:
             run_names = self.training.run_names
         else:
             run_names = [
-                run_name for run_name in self.training.run_names if run_name == self.run_name
+                run_name
+                for run_name in self.training.run_names
+                if run_name == self.run_name
             ]
             assert (
                 len(run_names) == 1
@@ -135,8 +137,12 @@ class Training:
         self.params_and_hparams = {
             "general": {},
         }
-        self.params_and_hparams["general"].update(self.training_default.config["params"])
-        self.params_and_hparams["general"].update(self.training_default.config["hparams"])
+        self.params_and_hparams["general"].update(
+            self.training_default.config["params"]
+        )
+        self.params_and_hparams["general"].update(
+            self.training_default.config["hparams"]
+        )
         self.params_and_hparams["general"].update(self.training.config["params"])
         self.params_and_hparams["general"].update(self.training.config["hparams"])
 

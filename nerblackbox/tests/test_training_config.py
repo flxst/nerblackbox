@@ -149,9 +149,7 @@ class TestTrainingConfig:
             with pytest.raises(Exception):
                 _ = self.training_config._convert(input_key, input_value)
         else:
-            test_converted_input = self.training_config._convert(
-                input_key, input_value
-            )
+            test_converted_input = self.training_config._convert(input_key, input_value)
             assert test_converted_input == converted_input, (
                 f"ERROR! test_converted_input = {test_converted_input} != {converted_input} "
                 f"for input_key = {input_key} and input_value = {input_value}"

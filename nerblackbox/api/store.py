@@ -86,9 +86,7 @@ class Store:
             exit(0)
 
     @classmethod
-    def show_trainings(
-        cls, as_df: bool = True
-    ) -> Union[pd.DataFrame, Dict[str, str]]:
+    def show_trainings(cls, as_df: bool = True) -> Union[pd.DataFrame, Dict[str, str]]:
         r"""
         Args:
             as_df: if True, return pandas DataFrame. if False, return dict
@@ -115,8 +113,12 @@ class Store:
             training_exists, training_results = cls.get_training_results_single(
                 training_name,
             )
-            training_result_single = cls.parse_training_result_single(training_results)  # micro-averaged f1 test
-            training["result (f1)"] = training_result_single if training_result_single is not None else "---"
+            training_result_single = cls.parse_training_result_single(
+                training_results
+            )  # micro-averaged f1 test
+            training["result (f1)"] = (
+                training_result_single if training_result_single is not None else "---"
+            )
 
         return pd.DataFrame(trainings_overview) if as_df else trainings_overview
 
@@ -130,9 +132,7 @@ class Store:
         """
         cls._update_trainings()
 
-        assert (
-            cls.training_name2id is not None
-        ), f"ERROR! cls.training_name2id is None."
+        assert cls.training_name2id is not None, f"ERROR! cls.training_name2id is None."
 
         # get TrainingResults
         training_results_list: List[TrainingResults] = list()
@@ -192,9 +192,7 @@ class Store:
                 )
             else:
                 if verbose:
-                    print(
-                        f"no training with training_name = {training_name} found"
-                    )
+                    print(f"no training with training_name = {training_name} found")
                     print(f"trainings that were found:")
                     print(list(cls.training_name2id.keys()))
                 return False, TrainingResults()
@@ -203,12 +201,12 @@ class Store:
 
     @staticmethod
     def parse_training_result_single(
-            results: Optional[TrainingResults] = None,
-            metric: str = "f1",
-            level: str = "entity",
-            label: str = "micro",
-            phase: str = "test",
-            average: bool = True,
+        results: Optional[TrainingResults] = None,
+        metric: str = "f1",
+        level: str = "entity",
+        label: str = "micro",
+        phase: str = "test",
+        average: bool = True,
     ) -> Optional[str]:
         r"""
 
@@ -223,18 +221,26 @@ class Store:
         Returns:
             result: e.g. "0.9011 +- 0.0023" (average = True) or "0.9045" (average = False)
         """
-        assert metric in ["f1", "precision", "recall"], f"ERROR! metric = {metric} unknown. Try f1, precision, recall."
-        assert level in ["entity", "token"], f"ERROR! level = {level} unknown. Try entity, token."
-        assert phase in ["val", "test"], f"ERROR! phase = {phase} unknown. Try val, test."
+        assert metric in [
+            "f1",
+            "precision",
+            "recall",
+        ], f"ERROR! metric = {metric} unknown. Try f1, precision, recall."
+        assert level in [
+            "entity",
+            "token",
+        ], f"ERROR! level = {level} unknown. Try entity, token."
+        assert phase in [
+            "val",
+            "test",
+        ], f"ERROR! phase = {phase} unknown. Try val, test."
         if results is None:
             print(f"ATTENTION! no results found")
             return None
         else:
             key = f"{phase.upper()}_{level[:3].upper()}_{metric[:3].upper()}"
             base_quantity = (
-                results.best_average_run
-                if average
-                else results.best_single_run
+                results.best_average_run if average else results.best_single_run
             )
             assert isinstance(
                 base_quantity, dict
@@ -242,11 +248,11 @@ class Store:
 
             if key in base_quantity:
                 if isinstance(
-                        base_quantity[key], str
+                    base_quantity[key], str
                 ):  # average = True,  e.g. "0.9011 +- 0.0023"
                     return base_quantity[key]
                 elif isinstance(
-                        base_quantity[key], float
+                    base_quantity[key], float
                 ):  # average = False, e.g. 0.9045..
                     return f"{base_quantity[key]:.4f}"
                 else:
@@ -367,15 +373,11 @@ class Store:
         assert cls.client is not None, f"ERROR! cls.client is None."
         cls.training_id2name = {
             elem["_experiment_id"]: elem["_name"]
-            for elem in [
-                vars(training) for training in cls.client.search_experiments()
-            ]
+            for elem in [vars(training) for training in cls.client.search_experiments()]
             if elem["_name"] != "Default"
         }
 
-        assert (
-            cls.training_id2name is not None
-        ), f"ERROR! cls.training_id2name is None."
+        assert cls.training_id2name is not None, f"ERROR! cls.training_id2name is None."
         cls.training_name2id = {v: k for k, v in cls.training_id2name.items()}
 
     @classmethod

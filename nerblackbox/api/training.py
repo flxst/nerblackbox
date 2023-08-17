@@ -61,9 +61,7 @@ class Training:
                 )
                 self._checks()  # self.hparams, self.from_preset, self.from_config
                 self.results = None
-                print(
-                    f"> training = {training_name} not found, create new training."
-                )
+                print(f"> training = {training_name} not found, create new training.")
 
     def show_config(self) -> None:
         r"""
@@ -91,9 +89,7 @@ class Training:
             training_configs = [
                 elem.split("/")[-1].strip(".ini") for elem in training_configs
             ]
-            training_configs = [
-                elem for elem in training_configs if elem != "default"
-            ]
+            training_configs = [elem for elem in training_configs if elem != "default"]
             for training_config in training_configs:
                 print(training_config)
 
@@ -171,7 +167,9 @@ class Training:
         Returns:
             result: e.g. "0.9011 +- 0.0023" (average = True) or "0.9045" (average = False)
         """
-        return Store.parse_training_result_single(self.results, metric, level, label, phase, average)
+        return Store.parse_training_result_single(
+            self.results, metric, level, label, phase, average
+        )
 
     ####################################################################################################################
     # HELPER METHODS

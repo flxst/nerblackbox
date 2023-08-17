@@ -85,9 +85,7 @@ class TrainingResults:
         Returns:
             TrainingResults instance
         """
-        training_results = TrainingResults(
-            _id=_training_id, name=_training_name
-        )
+        training_results = TrainingResults(_id=_training_id, name=_training_name)
         training_results._parse_and_create_dataframe(
             _runs
         )  # attr: training, single_runs, average_runs
@@ -153,9 +151,7 @@ class TrainingResults:
         _parameters_training: Dict[str, Any] = dict()
         for i in range(len(_runs)):
             if len(_runs[i].data.metrics) == 0:  # training
-                _parameters_training = {
-                    k: [v] for k, v in _runs[i].data.params.items()
-                }
+                _parameters_training = {k: [v] for k, v in _runs[i].data.params.items()}
             else:  # run
                 if ("info", "run_id") not in _parameters_runs.keys():
                     _parameters_runs[("info", "run_id")] = [_runs[i].info.run_id]

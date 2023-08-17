@@ -36,9 +36,7 @@ class TrainingConfig:
             _config_dict: w/ keys = sections [str], values = [dict] w/ key: value = params: values
             _run_names: e.g. ["runA", "runB"]
         """
-        config_path = join(
-            env_variable("DIR_TRAINING_CONFIGS"), f"{training_name}.ini"
-        )
+        config_path = join(env_variable("DIR_TRAINING_CONFIGS"), f"{training_name}.ini")
         if not os.path.isfile(config_path):
             raise Exception(f"config file at {config_path} does not exist")
 
