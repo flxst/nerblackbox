@@ -27,26 +27,26 @@ Both the fine-tuned NER model and the dataset can either be loaded from [Hugging
     === "Python"
         ``` python
         # local dataset in standard format (jsonl)
-        evaluation_dict = model.evaluate_on_dataset("<local_dataset_in_standard_format>", "jsonl", phase="test")
+        results = model.evaluate_on_dataset("<local_dataset_in_standard_format>", "jsonl", phase="test")
 
         # local dataset in pretokenized format (csv)
-        evaluation_dict = model.evaluate_on_dataset("<local_dataset_in_pretokenized_format>", "csv", phase="test")
+        results = model.evaluate_on_dataset("<local_dataset_in_pretokenized_format>", "csv", phase="test")
 
         # huggingface dataset in pretokenized format
-        evaluation_dict = model.evaluate_on_dataset("<huggingface_dataset_in_pretokenized_format>", "huggingface", phase="test")
+        results = model.evaluate_on_dataset("<huggingface_dataset_in_pretokenized_format>", "huggingface", phase="test")
         ```
 
 ### Interpretation
 
-The returned object `evaluation_dict` is a nested dictionary `evaluation_dict[label][level][metric]` where
+The returned object `results` is a nested dictionary `results[label][level][metric]` where
 
 - `label` in `['micro', 'macro']`
 - `level` in `['entity', 'token']`
 - `metric` in `['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']`
 
-??? example "evaluation_dict"
+??? example "results"
     ``` python
-    evaluation_dict["micro"]["entity"]
+    results["micro"]["entity"]
     # {
     #   'precision': 0.912,
     #   'recall': 0.919,
@@ -71,10 +71,10 @@ A complete example of an evaluation using both the model and the dataset from Hu
         model = Model.from_huggingface("dslim/bert-base-NER")
 
         # 2. evaluate the model on the dataset
-        evaluation_dict = model.evaluate_on_dataset("conll2003", "huggingface", phase="test")
+        results = model.evaluate_on_dataset("conll2003", "huggingface", phase="test")
 
         # 3. inspect the results
-        evaluation_dict["micro"]["entity"]
+        results["micro"]["entity"]
         # {
         #   'precision': 0.912,
         #   'recall': 0.919,

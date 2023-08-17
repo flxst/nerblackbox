@@ -98,8 +98,8 @@ in a few simple steps.
 
 ::
 
-    evaluation_dict = model.evaluate_on_dataset("ehealth_kd", phase="test")
-    evaluation_dict["micro"]["entity"]["f1"]
+    results = model.evaluate_on_dataset("ehealth_kd", phase="test")
+    results["micro"]["entity"]["f1"]
     # 0.9045
 
 
