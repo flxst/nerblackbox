@@ -4,20 +4,20 @@ from typing import Union, Dict, Optional, List
 from pkg_resources import resource_filename
 import os
 
-from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
+from nerblackbox.modules.training_config.training_config import TrainingConfig
 
 os.environ["DATA_DIR"] = resource_filename("nerblackbox", f"tests/test_data")
 
 
-class TestExperimentConfig:
+class TestTrainingConfig:
 
-    experiment_config_default = ExperimentConfig(experiment_name="default")
-    experiment_config = ExperimentConfig(experiment_name="test_experiment")
+    training_config_default = TrainingConfig(training_name="default")
+    training_config = TrainingConfig(training_name="test_training")
 
     # 1 ################################################################################################################
     def test_no_config_file(self):
         with pytest.raises(Exception):
-            _ = ExperimentConfig(experiment_name="test_experiment_that_does_not_exist")
+            _ = TrainingConfig(training_name="test_training_that_does_not_exist")
 
     # 2 ################################################################################################################
     @pytest.mark.parametrize(
@@ -83,9 +83,9 @@ class TestExperimentConfig:
     )
     def test_get_config(self, default: bool, config_dict: Dict[str, Dict[str, str]]):
         if default:
-            test_config_dict = self.experiment_config_default.config
+            test_config_dict = self.training_config_default.config
         else:
-            test_config_dict = self.experiment_config.config
+            test_config_dict = self.training_config.config
         assert sorted(list(test_config_dict.keys())) == sorted(
             list(config_dict.keys())
         ), (
@@ -147,9 +147,9 @@ class TestExperimentConfig:
     ):
         if error:
             with pytest.raises(Exception):
-                _ = self.experiment_config._convert(input_key, input_value)
+                _ = self.training_config._convert(input_key, input_value)
         else:
-            test_converted_input = self.experiment_config._convert(
+            test_converted_input = self.training_config._convert(
                 input_key, input_value
             )
             assert test_converted_input == converted_input, (

@@ -20,79 +20,78 @@ Note that the name for `<my_model>` must include the architecture type, e.g. `be
 -----------
 ## Basic Training
 
-Fine-tuning a **specific model** on a **specific dataset** using **specific parameters** is called an **experiment**. 
-An experiment is handled by the [Experiment](../python_api/experiment) class.
+A **specific model** can be trained on a **specific dataset** using **specific parameters** using the [Training](../python_api/training) class.
 
 -----------
-### Define an Experiment
+### Define the Training
 
-An experiment is defined 
+The training is defined 
 
-- either **dynamically** through arguments when an [Experiment](../python_api/experiment/) instance is created
+- either **dynamically** through arguments when an [Training](../python_api/training/) instance is created
 
-    ??? note "define experiment dynamically"
+    ??? note "define training dynamically"
         === "Python"
             ``` python
-            experiment = Experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>")
+            training = Training("<training_name>", model="<model_name>", dataset="<dataset_name>")
             ```
 
-- or **statically** by an **experiment configuration** file ``./store/experiment_configs/<experiment_name>.ini``.
+- or **statically** by an **training configuration** file ``./store/training_configs/<training_name>.ini``.
 
-    ??? note "define experiment statically"
+    ??? note "define training statically"
         === "Python"
             ``` python
-            experiment = Experiment("<experiment_name>", from_config=True)
+            training = Training("<training_name>", from_config=True)
             ```
 
-Note that the dynamic variant also creates an experiment configuration, which is subsequently used.
+Note that the dynamic variant also creates a training configuration, which is subsequently used.
 In both cases, the specification of the `model` and the `dataset` are mandatory and sufficient.
 Training [Parameters](#parameters) may be specified but are optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
 In particular, [adaptive fine-tuning](#presets) is employed to ensure that this holds irrespective of the size of the dataset.  
 
 -----------
-### Run an Experiment
+### Run the Training
 
-A fine-tuning experiment is run using the following command:
+The training is run using the following command:
 
-??? note "run experiment"
+??? note "run training"
     === "Python"
         ``` python
-        experiment.run()
+        training.run()
         ```
 
-See the [Python API documentation](../python_api/experiment/#nerblackbox.api.experiment.Experiment.run) for further details.
+See the [Python API documentation](../python_api/training/#nerblackbox.api.training.Training.run) for further details.
 
 -----------
 ### Main Results
 
-When an experiment is finished, one can get its main results like so:
+When the training is finished, one can get its main results like so:
 
-??? note "Main Results (single experiment)"
+??? note "Main Results (single training)"
     === "Python"
         ``` python
-        experiment.get_result(metric="f1", level="entity", phase="test")
+        training.get_result(metric="f1", level="entity", phase="test")
         ```
 
-See [Python API documentation](../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result) for further details.
+See the [Python API documentation](../python_api/training/#nerblackbox.api.training.Training.get_result) for further details.
 
-An overview of all conducted experiments and their main results can be accessed using the [Store](../python_api/store) class:
+An overview of all conducted trainings and their main results can be accessed using the [Store](../python_api/store) class:
 
-??? note "Main Results (all experiments)"
+??? note "Main Results (all trainings)"
     === "Python"
         ``` python
-        Store.show_experiments()
+        Store.show_trainings()
         ```
 
 -----------
 ### Example
 
-An English BERT model can be fine-tuned on the CoNLL-2003 dataset like this:
+An English BERT model can be trained on the CoNLL-2003 dataset like this:
 
 ??? example "Example: Training"
     ``` python
-    experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003") 
-    experiment.run()                                                                       
-    experiment.get_result(metric="f1", level="entity", phase="test")                       
+    training = Training("my_training", model="bert-base-cased", dataset="conll2003") 
+    training.run()                                                                       
+    training.get_result(metric="f1", level="entity", phase="test")                       
     # 0.9045
     ```
 
@@ -102,14 +101,14 @@ An English BERT model can be fine-tuned on the CoNLL-2003 dataset like this:
 ### Parameters
 
 **nerblackbox** uses a large amount of default (hyper)parameters that can be customized as needed. 
-The concerned parameters just need to be specified when [an experiment is defined](#define-an-experiment), 
+The concerned parameters just need to be specified when [the training is defined](#define-a-training), 
 either statically or dynamically.
 
-- In the **static** case, an experiment configuration file may look like this:
+- In the **static** case, a training configuration file may look like this:
 
-    ??? example "Example: static experiment configuration file with parameters"
+    ??? example "Example: static training configuration file with parameters"
         ``` markdown
-        # my_experiment.ini
+        # my_training.ini
 
         [dataset]
         dataset_name = swedish_ner_corpus
@@ -150,10 +149,10 @@ either statically or dynamically.
 
 - In the **dynamic** case, the equivalent example is:
 
-    ??? example "Example: dynamic experiment with parameters"
+    ??? example "Example: dynamic training with parameters"
         ``` python
-        experiment = Experiment(
-            "my_experiment", 
+        training = Training(
+            "my_training", 
             model="af-ai-center/bert-base-swedish-uncased",  # model = model_name
             dataset="swedish_ner_corpus",                    # dataset = dataset_name
             annotation_scheme="plain",
@@ -204,9 +203,9 @@ In the following, we will go through the different parameters step by step to se
 | train_on_val      | No        | False         | bool  | True, False             | whether to train additionally on validation dataset                                                                                                           |
 | train_on_test     | No        | False         | bool  | True, False             | whether to train additionally on test dataset                                                                                                                 |
 
-??? example "Example: static experiment configuration file with parameters (Dataset)"
+??? example "Example: static training configuration file with parameters (Dataset)"
     ``` markdown
-    # my_experiment.ini
+    # my_training.ini
     # ..
     
     [dataset]
@@ -225,9 +224,9 @@ In the following, we will go through the different parameters step by step to se
 |---                    |---        |---            |---    |---                                          |---------------------------------|
 | pretrained_model_name | Yes       | ---           | str   | e.g. af-ai-center/bert-base-swedish-uncased | key = model can be used instead |
 
-??? example "Example: static experiment configuration file with parameters (Model)"
+??? example "Example: static training configuration file with parameters (Model)"
     ``` markdown
-    # my_experiment.ini
+    # my_training.ini
     # ..
 
     [model]
@@ -243,9 +242,9 @@ In the following, we will go through the different parameters step by step to se
 | multiple_runs     | No        | 1             | int   | 1+             | choose how often each hyperparameter run is executed (to control for statistical uncertainties)      |
 | seed              | No        | 42            | int   | 1+             | for reproducibility. multiple runs get assigned different seeds.                                     |
 
-??? example "Example: static experiment configuration file with parameters (Settings)"
+??? example "Example: static training configuration file with parameters (Settings)"
     ``` markdown
-    # my_experiment.ini
+    # my_training.ini
     # ..
 
     [settings]
@@ -274,9 +273,9 @@ In the following, we will go through the different parameters step by step to se
 | lr_cooldown_restarts | No        | True          | bool  | True, False              | if early stopping is True: whether to restart normal training if monitored metric improves during cool-down phase                          |
 | lr_cooldown_epochs   | No        | 7             | int   | 0+                       | if early stopping is True or lr_schedule == hybrid: number of epochs to linearly decrease the learning rate during the cool-down phase                          |
 
-??? example "Example: static experiment configuration file with parameters (Hyperparameters)"
+??? example "Example: static training configuration file with parameters (Hyperparameters)"
     ``` markdown
-    # my_experiment.ini
+    # my_training.ini
     # ..
 
     [hparams]
@@ -302,13 +301,13 @@ In the following, we will go through the different parameters step by step to se
 ### Presets
 
 In addition to the manual specification of the parameters discussed above, 
-the dynamic experiment definition allows for the use of several hyperparameter [presets](./#presets).
-They can be specified using the ``from_preset`` argument in [Experiment()](../python_api/experiment) like so:
+the dynamic training definition allows for the use of several hyperparameter [presets](./#presets).
+They can be specified using the ``from_preset`` argument in [Training()](../python_api/training) like so:
 
-??? note "define experiment dynamically using preset"
+??? note "define training dynamically using preset"
     === "Python"
         ``` python
-        experiment = Experiment("<experiment_name>", model="<model_name>", dataset="<dataset_name>", from_preset="adaptive")
+        training = Training("<training_name>", model="<model_name>", dataset="<dataset_name>", from_preset="adaptive")
         ```
 
 In the following, we list the different presets together with the [Hyperparameters](#parameters) that they entail:
@@ -363,12 +362,12 @@ In the following, we list the different presets together with the [Hyperparamete
 -----------
 ### Hyperparameter Search
 
-A hyperparameter grid search can easily be conducted as part of an experiment (currently only using the [static definition](#define-an-experiment)).
-The hyperparameters one wants to vary are to be specified in special sections ``[runA]``, ``[runB]`` etc. in the experiment configuration file.
+A hyperparameter grid search can easily be conducted as part of a training (currently only using the [static definition](#define-a-training)).
+The hyperparameters one wants to vary are to be specified in special sections ``[runA]``, ``[runB]`` etc. in the training configuration file.
 
 ??? example "Example: Hyperparameter Search"
     ``` markdown
-    # my_experiment.ini
+    # my_training.ini
     # ..
 
     [runA]
@@ -395,11 +394,11 @@ One may conduct multiple runs with different seeds that are otherwise identical,
 
 - get an improved model performance
 
-Multiple runs can easily be specified in the experiment configuration.
+Multiple runs can easily be specified in the training configuration.
 
 ??? example "Example: Settings / Multiple Runs"
     ``` markdown
-    # my_experiment.ini
+    # my_training.ini
     # ..
 
     [settings]
@@ -412,7 +411,7 @@ Multiple runs can easily be specified in the experiment configuration.
 -----------
 ### Detailed Results
 
-In addition to the [Main Results](#main-results), one may have a look at much more detailed results of an experiment
+In addition to the [Main Results](#main-results), one may have a look at much more detailed results of a training run
 using `mlflow` or `tensorboard`.
 
 ??? note "Detailed Results"
@@ -423,8 +422,8 @@ using `mlflow` or `tensorboard`.
         ```
     === "CLI"
         ``` bash
-        nerbb mlflow         # + enter http://localhost:5000 in your browser
-        nerbb tensorboard    # + enter http://localhost:6006 in your browser
+        nerblackbox mlflow         # + enter http://localhost:5000 in your browser
+        nerblackbox tensorboard    # + enter http://localhost:6006 in your browser
         ```
 
     Python: The underlying processes can be stopped using

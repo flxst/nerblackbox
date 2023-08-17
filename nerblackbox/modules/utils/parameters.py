@@ -1,11 +1,11 @@
 GENERAL = {
-    "experiment_name": "str",
+    "training_name": "str",
     "from_config": "bool",
     "run_name": "str",
     "run_name_nr": "str",
     "device": "str",
     "fp16": "bool",
-    "experiment_run_name_nr": "str",
+    "training_run_name_nr": "str",
 }
 
 DATASET = {

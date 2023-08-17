@@ -21,7 +21,7 @@ from nerblackbox.tests.utils import PseudoDefaultLogger
 from nerblackbox.api.store import Store
 from nerblackbox.api.dataset import Dataset
 from nerblackbox.modules.ner_training.metrics.ner_metrics import NerMetrics
-from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.training_results import TrainingResults
 from nerblackbox.modules.ner_training.ner_model_train2model import (
     NerModelTrain2Model,
 )
@@ -44,41 +44,41 @@ class Model:
     """
 
     @classmethod
-    def from_experiment(cls, experiment_name: str) -> Optional["Model"]:
-        r"""load best model from experiment.
+    def from_training(cls, training_name: str) -> Optional["Model"]:
+        r"""load best model from training.
 
         Args:
-            experiment_name: name of the experiment, e.g. "exp0"
+            training_name: name of the training, e.g. "training0"
 
         Returns:
-            model: best model from experiment
+            model: best model from training
         """
-        experiment_exists, experiment_results = Store.get_experiment_results_single(
-            experiment_name
+        training_exists, training_results = Store.get_training_results_single(
+            training_name
         )
         assert (
-            experiment_exists
-        ), f"ERROR! experiment = {experiment_name} does not exist."
+            training_exists
+        ), f"ERROR! training = {training_name} does not exist."
 
         assert isinstance(
-            experiment_results, ExperimentResults
-        ), f"ERROR! experiment_results expected to be an instance of ExperimentResults."
+            training_results, TrainingResults
+        ), f"ERROR! training_results expected to be an instance of TrainingResults."
 
-        if experiment_results.best_single_run is None:
+        if training_results.best_single_run is None:
             print(
-                f"> ATTENTION! could not find results for experiment = {experiment_name}"
+                f"> ATTENTION! could not find results for training = {training_name}"
             )
             return None
         elif (
-            "checkpoint" not in experiment_results.best_single_run.keys()
-            or experiment_results.best_single_run["checkpoint"] is None
+            "checkpoint" not in training_results.best_single_run.keys()
+            or training_results.best_single_run["checkpoint"] is None
         ):
             print(
-                f"> ATTENTION! there is no checkpoint for experiment = {experiment_name}."
+                f"> ATTENTION! there is no checkpoint for training = {training_name}."
             )
             return None
         else:
-            checkpoint_path_train = experiment_results.best_single_run["checkpoint"]
+            checkpoint_path_train = training_results.best_single_run["checkpoint"]
             checkpoint_path_predict = checkpoint_path_train.strip(".ckpt")
 
             # translate NerModelTrain checkpoint to Model checkpoint if necessary
@@ -98,7 +98,7 @@ class Model:
             checkpoint_directory: path to the checkpoint directory
 
         Returns:
-            model: best model from experiment
+            model: best model from training
         """
         if not cls.checkpoint_exists(checkpoint_directory):
             print(

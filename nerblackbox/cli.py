@@ -38,14 +38,14 @@ def nerblackbox(ctx, **kwargs_optional):
 ########################################################################################################################
 @nerblackbox.command(name="mlflow")
 def mlflow():
-    """show detailed experiment results in mlflow (port = 5000)."""
+    """show detailed training results in mlflow (port = 5000)."""
     cd_dir = f'{join(env_variable("DATA_DIR"), "results")}'
     subprocess.run(f"cd {cd_dir}; mlflow ui", shell=True)
 
 
 @nerblackbox.command(name="tensorboard")
 def tensorboard():
-    """show detailed experiment results in tensorboard. (port = 6006)."""
+    """show detailed training results in tensorboard. (port = 6006)."""
     cd_dir = f'{join(env_variable("DATA_DIR"), "results")}'
     subprocess.run(
         f"cd {cd_dir}; tensorboard --logdir tensorboard --reload_multifile=true",

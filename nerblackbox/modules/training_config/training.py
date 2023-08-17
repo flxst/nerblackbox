@@ -1,14 +1,14 @@
 from itertools import product
 from typing import Optional, Dict, Union, List, Any
 from nerblackbox.modules.utils.parameters import PARAMS, HPARAMS
-from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
+from nerblackbox.modules.training_config.training_config import TrainingConfig
 from nerblackbox.modules.utils.util_functions import get_run_name_nr
 
 
-class Experiment:
+class Training:
     def __init__(
         self,
-        experiment_name: str,
+        training_name: str,
         from_config: bool = True,
         run_name: Optional[str] = None,
         device: str = "gpu",
@@ -16,20 +16,20 @@ class Experiment:
     ):
         """
         Args:
-            experiment_name: e.g. 'exp1'
-            from_config:     whether to read experiment config from file
-            run_name:        e.g. 'runA'
-            device:          e.g. 'gpu'
+            training_name: e.g. 'training1'
+            from_config:   whether to read training config from file
+            run_name:      e.g. 'runA'
+            device:        e.g. 'gpu'
             fp16:
         """
-        self.experiment_name = experiment_name
+        self.training_name = training_name
         self.from_config = from_config
         self.run_name = run_name
         self.device = device
         self.fp16 = fp16
 
-        self.exp_default = ExperimentConfig("default")
-        self.exp = ExperimentConfig(self.experiment_name)
+        self.training_default = TrainingConfig("default")
+        self.training = TrainingConfig(self.training_name)
 
         # info for runs
         self.runs_name_nr: List[str] = list()
@@ -43,7 +43,7 @@ class Experiment:
 
     def _create_info_for_runs(self) -> None:
         """
-        parse <experiment_name>.ini files
+        parse <training_name>.ini files
         if self.run_name is specified, parse only that run. else parse all runs.
 
         Created Attr:
@@ -55,18 +55,18 @@ class Experiment:
                          e.g. {'runA-1': {'lr_max': 2e-5, 'max_epochs': 20, ..}, ..}
         """
         if (
-            "params" in self.exp.config.keys()
-            and "multiple_runs" in self.exp.config["params"].keys()
+            "params" in self.training.config.keys()
+            and "multiple_runs" in self.training.config["params"].keys()
         ):
-            multiple_runs = self.exp.config["params"]["multiple_runs"]
+            multiple_runs = self.training.config["params"]["multiple_runs"]
         elif (
-            "params" in self.exp_default.config.keys()
-            and "multiple_runs" in self.exp_default.config["params"].keys()
+            "params" in self.training_default.config.keys()
+            and "multiple_runs" in self.training_default.config["params"].keys()
         ):
-            multiple_runs = self.exp_default.config["params"]["multiple_runs"]
+            multiple_runs = self.training_default.config["params"]["multiple_runs"]
         else:
             raise Exception(
-                f"multiple runs is neither specified in the experiment config nor in the default config."
+                f"multiple runs is neither specified in the training config nor in the default config."
             )
 
         # _params_config & _hparams_config
@@ -74,10 +74,10 @@ class Experiment:
         _runs_hparams: Dict[str, Union[str, int, float, bool]] = dict()
 
         if self.run_name is None:  # multiple runs
-            run_names = self.exp.run_names
+            run_names = self.training.run_names
         else:
             run_names = [
-                run_name for run_name in self.exp.run_names if run_name == self.run_name
+                run_name for run_name in self.training.run_names if run_name == self.run_name
             ]
             assert (
                 len(run_names) == 1
@@ -90,23 +90,23 @@ class Experiment:
 
             # _run_params
             _run_params: Dict[str, Union[str, int, float, bool]] = {
-                "experiment_name": self.experiment_name,
+                "training_name": self.training_name,
                 "from_config": self.from_config,
                 "run_name": run_name,
                 "run_name_nr": run_name_nr,
                 "device": self.device,
                 "fp16": self.fp16,
-                "experiment_run_name_nr": f"{self.experiment_name}/{run_name_nr}",
+                "training_run_name_nr": f"{self.training_name}/{run_name_nr}",
             }
-            _run_params.update(self.exp_default.config["params"])
-            _run_params.update(self.exp.config["params"])
+            _run_params.update(self.training_default.config["params"])
+            _run_params.update(self.training.config["params"])
 
             # _run_hparams
             _run_hparams: Dict[str, Union[str, int, float, bool]] = dict()
-            _run_hparams.update(self.exp_default.config["hparams"])
-            _run_hparams.update(self.exp.config["hparams"])
+            _run_hparams.update(self.training_default.config["hparams"])
+            _run_hparams.update(self.training.config["hparams"])
 
-            for k, v in self.exp.config[run_name].items():
+            for k, v in self.training.config[run_name].items():
                 if k in PARAMS:
                     _run_params[k] = v
                 elif k in HPARAMS:
@@ -123,8 +123,8 @@ class Experiment:
     def _create_info_for_mlflow(self) -> None:
         """
         get dictionary of all parameters & their values that belong to
-        either generally    to experiment (key = "general")
-        or     specifically to run        (key = run_name)
+        either generally    to training (key = "general")
+        or     specifically to run      (key = run_name)
 
         Create Attr:
             params_and_hparams: [dict] e.g. {'patience': 2, 'mode': 'min', ..}
@@ -135,10 +135,10 @@ class Experiment:
         self.params_and_hparams = {
             "general": {},
         }
-        self.params_and_hparams["general"].update(self.exp_default.config["params"])
-        self.params_and_hparams["general"].update(self.exp_default.config["hparams"])
-        self.params_and_hparams["general"].update(self.exp.config["params"])
-        self.params_and_hparams["general"].update(self.exp.config["hparams"])
+        self.params_and_hparams["general"].update(self.training_default.config["params"])
+        self.params_and_hparams["general"].update(self.training_default.config["hparams"])
+        self.params_and_hparams["general"].update(self.training.config["params"])
+        self.params_and_hparams["general"].update(self.training.config["hparams"])
 
-        for run_name in self.exp.run_names:
-            self.params_and_hparams[run_name] = self.exp.config[run_name]
+        for run_name in self.training.run_names:
+            self.params_and_hparams[run_name] = self.training.config[run_name]

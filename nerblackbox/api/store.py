@@ -12,12 +12,12 @@ from mlflow.tracking import MlflowClient
 from mlflow.entities import Run
 
 from nerblackbox.modules.utils.env_variable import env_variable
-from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.training_results import TrainingResults
 
 
 class Store:
     r"""
-    client for the store that contains all data (datasets, experiment configuration files, models, results)
+    client for the store that contains all data (datasets, training configuration files, models, results)
 
     Attributes:
          path: path to store's main directory
@@ -26,8 +26,8 @@ class Store:
 
     # will be set by _update_client()
     client: Optional[MlflowClient] = None
-    experiment_id2name: Optional[Dict[str, str]] = None
-    experiment_name2id: Optional[Dict[str, str]] = None
+    training_id2name: Optional[Dict[str, str]] = None
+    training_name2id: Optional[Dict[str, str]] = None
 
     process: Dict[str, Any] = {
         "mlflow": None,
@@ -86,7 +86,7 @@ class Store:
             exit(0)
 
     @classmethod
-    def show_experiments(
+    def show_trainings(
         cls, as_df: bool = True
     ) -> Union[pd.DataFrame, Dict[str, str]]:
         r"""
@@ -94,115 +94,115 @@ class Store:
             as_df: if True, return pandas DataFrame. if False, return dict
 
         Returns:
-            experiments: overview of experiments that have been run
+            trainings: overview of trainings that have been run
         """
         cls._update_client()
-        cls._update_experiments()
+        cls._update_trainings()
 
         assert isinstance(
-            cls.experiment_id2name, dict
-        ), f"ERROR! type(cls.experiment_id2name) = {type(cls.experiment_id2name)} should be dict."
+            cls.training_id2name, dict
+        ), f"ERROR! type(cls.training_id2name) = {type(cls.training_id2name)} should be dict."
 
-        experiments_overview = sorted(
+        trainings_overview = sorted(
             [
-                {"experiment_id": k, "experiment_name": v}
-                for k, v in cls.experiment_id2name.items()
+                {"training_id": k, "training_name": v}
+                for k, v in cls.training_id2name.items()
             ],
-            key=lambda elem: elem["experiment_id"],
+            key=lambda elem: elem["training_id"],
         )
-        for experiment in experiments_overview:
-            experiment_name = experiment["experiment_name"]
-            experiment_exists, experiment_results = cls.get_experiment_results_single(
-                experiment_name,
+        for training in trainings_overview:
+            training_name = training["training_name"]
+            training_exists, training_results = cls.get_training_results_single(
+                training_name,
             )
-            experiment["result (f1)"] = cls.parse_experiment_result_single(experiment_results)  # micro-averaged f1 test
+            training["result (f1)"] = cls.parse_training_result_single(training_results)  # micro-averaged f1 test
 
-        return pd.DataFrame(experiments_overview) if as_df else experiments_overview
+        return pd.DataFrame(trainings_overview) if as_df else trainings_overview
 
     @classmethod
-    def get_experiment_results(cls) -> List[ExperimentResults]:
+    def get_training_results(cls) -> List[TrainingResults]:
         r"""
-        get results for all experiments
+        get results for all trainings
 
         Returns:
-            experiment_results_list: TODO: instead of list return dict that maps experiment_name to ExperimentResults?
+            training_results_list: TODO: instead of list return dict that maps training_name to TrainingResults?
         """
-        cls._update_experiments()
+        cls._update_trainings()
 
         assert (
-            cls.experiment_name2id is not None
-        ), f"ERROR! cls.experiment_name2id is None."
+            cls.training_name2id is not None
+        ), f"ERROR! cls.training_name2id is None."
 
-        # get ExperimentResults
-        experiment_results_list: List[ExperimentResults] = list()
+        # get TrainingResults
+        training_results_list: List[TrainingResults] = list()
         for _name, _id in sorted(
-            list(cls.experiment_name2id.items()), key=lambda x: x[1]
+            list(cls.training_name2id.items()), key=lambda x: x[1]
         ):  # sort by id
-            experiment_exists, experiment_results = cls.get_experiment_results_single(
-                _name, update_experiments=False
+            training_exists, training_results = cls.get_training_results_single(
+                _name, update_trainings=False
             )
-            assert experiment_exists, f"ERROR! experiment = {_name} does not exist."
-            experiment_results_list.append(experiment_results)
+            assert training_exists, f"ERROR! training = {_name} does not exist."
+            training_results_list.append(training_results)
 
         # return
         # CLI skipped
-        return experiment_results_list
+        return training_results_list
 
     @classmethod
-    def get_experiment_results_single(
+    def get_training_results_single(
         cls,
-        experiment_name: str,
-        update_experiments: bool = True,
+        training_name: str,
+        update_trainings: bool = True,
         verbose: bool = False,
-    ) -> Tuple[bool, ExperimentResults]:
+    ) -> Tuple[bool, TrainingResults]:
         r"""
-        get results for single experiment
+        get results for single training
 
         Args:
-            experiment_name: e.g. 'exp0'
-            update_experiments: whether to update cls.experiment_id2name & cls.experiment_name2id
+            training_name: e.g. 'exp0'
+            update_trainings: whether to update cls.training_id2name & cls.training_name2id
             verbose: output
 
         Returns:
-            experiment_results: for experiment with experiment_name
+            training_results: for training with training_name
         """
         if cls.client is None:
             cls._update_client()
 
         if isdir(env_variable("DIR_MLFLOW")):
-            if update_experiments:
-                cls._update_experiments()
+            if update_trainings:
+                cls._update_trainings()
 
             assert (
-                cls.experiment_name2id is not None
-            ), f"ERROR! cls.experiment_name2id is None."
+                cls.training_name2id is not None
+            ), f"ERROR! cls.training_name2id is None."
 
-            if experiment_name in cls.experiment_name2id.keys():
-                experiment_id: str = cls.experiment_name2id[experiment_name]
+            if training_name in cls.training_name2id.keys():
+                training_id: str = cls.training_name2id[training_name]
                 assert isinstance(
                     cls.client, MlflowClient
                 ), f"ERROR! type(cls.client) = {type(cls.client)} should be MlflowClient"
-                runs: List[Run] = cls.client.search_runs([experiment_id])
+                runs: List[Run] = cls.client.search_runs([training_id])
 
-                return True, ExperimentResults.from_mlflow_runs(
+                return True, TrainingResults.from_mlflow_runs(
                     runs,
-                    experiment_id,
-                    experiment_name,
+                    training_id,
+                    training_name,
                 )
             else:
                 if verbose:
                     print(
-                        f"no experiment with experiment_name = {experiment_name} found"
+                        f"no training with training_name = {training_name} found"
                     )
-                    print(f"experiments that were found:")
-                    print(list(cls.experiment_name2id.keys()))
-                return False, ExperimentResults()
+                    print(f"trainings that were found:")
+                    print(list(cls.training_name2id.keys()))
+                return False, TrainingResults()
         else:
-            return False, ExperimentResults()
+            return False, TrainingResults()
 
     @staticmethod
-    def parse_experiment_result_single(
-            results: ExperimentResults,
+    def parse_training_result_single(
+            results: TrainingResults,
             metric: str = "f1",
             level: str = "entity",
             label: str = "micro",
@@ -212,7 +212,7 @@ class Store:
         r"""
 
         Args:
-            results: ExperimentResults gotten from get_experiment_results_single()
+            results: TrainingResults gotten from get_training_results_single()
             metric: "f1", "precision", "recall"
             level: "entity" or "token"
             label: "micro", "macro", "PER", ..
@@ -357,25 +357,25 @@ class Store:
             os.makedirs(join(env_variable("DIR_MLFLOW"), ".trash"), exist_ok=True)
 
     @classmethod
-    def _update_experiments(cls) -> None:
+    def _update_trainings(cls) -> None:
         """
         Changed Attr:
-            experiment_id2name: [dict] w/ keys = experiment_id   [str] & values = experiment_name [str]
-            experiment_name2id: [dict] w/ keys = experiment_name [str] & values = experiment_id   [str]
+            training_id2name: [dict] w/ keys = training_id   [str] & values = training_name [str]
+            training_name2id: [dict] w/ keys = training_name [str] & values = training_id   [str]
         """
         assert cls.client is not None, f"ERROR! cls.client is None."
-        cls.experiment_id2name = {
+        cls.training_id2name = {
             elem["_experiment_id"]: elem["_name"]
             for elem in [
-                vars(experiment) for experiment in cls.client.search_experiments()
+                vars(training) for training in cls.client.search_experiments()
             ]
             if elem["_name"] != "Default"
         }
 
         assert (
-            cls.experiment_id2name is not None
-        ), f"ERROR! cls.experiment_id2name is None."
-        cls.experiment_name2id = {v: k for k, v in cls.experiment_id2name.items()}
+            cls.training_id2name is not None
+        ), f"ERROR! cls.training_id2name is None."
+        cls.training_name2id = {v: k for k, v in cls.training_id2name.items()}
 
     @classmethod
     def _subprocess(cls, _action: str, server_type: str) -> None:

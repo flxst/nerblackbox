@@ -1,44 +1,44 @@
 import mlflow
-from nerblackbox.modules.experiment_config.experiment import Experiment
+from nerblackbox.modules.training_config.training import Training
 from nerblackbox.modules.utils.util_functions import get_run_name
 
 
 class MLflowClient:
     def __init__(
-        self, experiment_name, run_name, log_dirs, logged_metrics, default_logger
+        self, training_name, run_name, log_dirs, logged_metrics, default_logger
     ):
         """
-        :param experiment_name: [str], e.g. 'Default'
+        :param training_name:   [str], e.g. 'Default'
         :param run_name:        [str], e.g. 'Default'
         :param log_dirs:        [Namespace], including 'mlflow_artifact' & 'default_logger_artifact'
         :param logged_metrics:  [list] of [str], e.g. ['all_precision_micro', 'all_precision_macro', ..]
         """
-        self.experiment_name = experiment_name
+        self.training_name = training_name
         self.run_name = run_name
         self.log_dirs = log_dirs
         self.logged_metrics = logged_metrics  # TODO: not used !!
         self.default_logger = default_logger
 
     @staticmethod
-    def log_params(params, hparams, experiment: bool = False):
+    def log_params(params, hparams, training: bool = False):
         """
         mlflow hyperparameter logging
         -----------------------------
-        :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-        :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
-        :param experiment: [bool] whether run is part of an experiment w/ multiple runs
+        :param params:   [argparse.Namespace] attr: training_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
+        :param training: [bool] whether run is part of an training w/ multiple runs
         :return:
         """
-        if experiment:
+        if training:
             # log only run (hyper)parameters
-            experiment_config = Experiment(
-                experiment_name=params.experiment_name,
+            training_config = Training(
+                training_name=params.training_name,
                 from_config=params.from_config,
                 run_name=params.run_name,
                 device=params.device,
                 fp16=params.fp16,
             )
-            for k, v in experiment_config.params_and_hparams[
+            for k, v in training_config.params_and_hparams[
                 get_run_name(params.run_name_nr)
             ].items():
                 mlflow.log_param(k, v)

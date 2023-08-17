@@ -1,5 +1,5 @@
-from nerblackbox import Store, Dataset, Experiment, Model
-from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox import Store, Dataset, Training, Model
+from nerblackbox.modules.training_results import TrainingResults
 from os.path import abspath, isdir, join, isfile
 import shutil
 from utils import print_section_header, print_section_finish
@@ -8,7 +8,7 @@ from utils import print_section_header, print_section_finish
 def test_api(capsys):
 
     data_dir = abspath("./e2e_tests/e2e_test_api_data")
-    experiment_name = "e2e_test_api_experiment"
+    training_name = "e2e_test_api_training"
     model_name = "mrm8488/electricidad-base-discriminator"
     dataset_name = "ehealth_kd"
     dataset_suffix = "jsonl"
@@ -29,7 +29,7 @@ def test_api(capsys):
         print_section_header(f"1. Store.create()")
         Store.create()
         assert isdir(data_dir), f"ERROR! data_dir = {data_dir} does not exist."
-        for subdirectory in ["datasets", "experiment_configs", "pretrained_models", "results"]:
+        for subdirectory in ["datasets", "training_configs", "pretrained_models", "results"]:
             assert isdir(join(data_dir, subdirectory)), \
                 f"ERROR! data_dir/subdirectory = {join(data_dir, subdirectory)} does not exist."
         print_section_finish()
@@ -44,9 +44,9 @@ def test_api(capsys):
         print_section_finish()
 
         ################################################################################################################
-        print_section_header(f"3. experiment = Experiment([..]).run()")
-        experiment = Experiment(
-            experiment_name,
+        print_section_header(f"3. training = Training([..]).run()")
+        training = Training(
+            training_name,
             model=model_name,
             dataset=dataset_name,
             lr_warmup_epochs=0,
@@ -57,27 +57,27 @@ def test_api(capsys):
             multiple_runs=1,
             from_preset="original",
         )
-        experiment.run()
+        training.run()
         print_section_finish()
 
         ################################################################################################################
-        print_section_header(f"4. experiment.results")
-        assert isinstance(experiment.results, ExperimentResults), \
-            f"ERROR! experiment.results is not an instance of ExperimentResults."
+        print_section_header(f"4. training.results")
+        assert isinstance(training.results, TrainingResults), \
+            f"ERROR! training.results is not an instance of TrainingResults."
         for attribute in ["best_single_run"]:
-            assert hasattr(experiment.results, attribute), \
-                f"ERROR! experiment.results does not have attribute = {attribute}"
+            assert hasattr(training.results, attribute), \
+                f"ERROR! training.results does not have attribute = {attribute}"
 
         for average in [False, True]:
-            score = experiment.get_result(metric="f1", level="entity", label="micro", phase="test", average=average)
+            score = training.get_result(metric="f1", level="entity", label="micro", phase="test", average=average)
             print(f"score (average={average}) = {score}")
             assert isinstance(score, str), \
-                f"ERROR! experiment.get_result() did not return a str for average = {average}."
+                f"ERROR! training.get_result() did not return a str for average = {average}."
         print_section_finish()
 
         ################################################################################################################
-        print_section_header(f"5. model = Model.from_experiment()")
-        model = Model.from_experiment(experiment_name)
+        print_section_header(f"5. model = Model.from_training()")
+        model = Model.from_training(training_name)
         assert isinstance(model, Model), \
             f"ERROR! model is of type {type(model)} but should be Model"
         print_section_finish()

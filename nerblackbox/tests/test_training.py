@@ -4,16 +4,16 @@ from typing import Union, Dict, Optional, List
 from pkg_resources import resource_filename
 import os
 
-from nerblackbox.modules.experiment_config.experiment import Experiment
+from nerblackbox.modules.training_config.training import Training
 from nerblackbox.modules.utils.util_functions import get_run_name
 
 os.environ["DATA_DIR"] = resource_filename("nerblackbox", f"tests/test_data")
 
 
-class TestExperiment:
+class TestTraining:
 
-    experiment = Experiment(
-        experiment_name="test_experiment",
+    training = Training(
+        training_name="test_training",
         from_config=True,
         run_name="runA",
         device="gpu",
@@ -28,13 +28,13 @@ class TestExperiment:
                 ["runA-1"],
                 {
                     "runA-1": {
-                        "experiment_name": "test_experiment",
+                        "training_name": "test_training",
                         "from_config": True,
                         "run_name": "runA",
                         "run_name_nr": "runA-1",
                         "device": "gpu",
                         "fp16": True,
-                        "experiment_run_name_nr": "test_experiment/runA-1",
+                        "training_run_name_nr": "test_training/runA-1",
                         # params
                         "dataset_name": "swedish_ner_corpus",  # update non-default
                         "annotation_scheme": "plain",  # update non-default
@@ -82,21 +82,21 @@ class TestExperiment:
     ):
         # 1. runs_name_nr
         assert (
-            self.experiment.runs_name_nr == runs_name_nr
-        ), f"ERROR! self.experiment.runs_name_nr = {self.experiment.runs_name_nr} != {runs_name_nr}"
+            self.training.runs_name_nr == runs_name_nr
+        ), f"ERROR! self.training.runs_name_nr = {self.training.runs_name_nr} != {runs_name_nr}"
 
         # 2. runs_params
-        assert sorted(list(self.experiment.runs_params.keys())) == sorted(
+        assert sorted(list(self.training.runs_params.keys())) == sorted(
             list(runs_params.keys())
         ), (
-            f"ERROR! self.experiment.runs_params.keys() = {sorted(list(self.experiment.runs_params.keys()))} "
+            f"ERROR! self.training.runs_params.keys() = {sorted(list(self.training.runs_params.keys()))} "
             f"does not equal runs_params.keys() = {sorted(list(runs_params.keys()))}"
         )
-        keys = list(self.experiment.runs_params.keys())
+        keys = list(self.training.runs_params.keys())
         for key in keys:
-            assert self.experiment.runs_params[key] == runs_params[key], (
-                f"ERROR! self.experiment.runs_params[{key}] = {self.experiment.runs_params[key]} "
-                f"!= {self.experiment.runs_params[key]}"
+            assert self.training.runs_params[key] == runs_params[key], (
+                f"ERROR! self.training.runs_params[{key}] = {self.training.runs_params[key]} "
+                f"!= {self.training.runs_params[key]}"
             )
 
     # 2 ################################################################################################################
@@ -151,9 +151,9 @@ class TestExperiment:
         params_and_hparams: Dict[str, Union[str, int, float, bool]],
     ):
         if run_name_nr is None:
-            test_params_and_hparams = self.experiment.params_and_hparams["general"]
+            test_params_and_hparams = self.training.params_and_hparams["general"]
         else:
-            test_params_and_hparams = self.experiment.params_and_hparams[
+            test_params_and_hparams = self.training.params_and_hparams[
                 get_run_name(run_name_nr)
             ]
         assert sorted(list(test_params_and_hparams.keys())) == sorted(

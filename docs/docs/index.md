@@ -47,15 +47,15 @@ in a few simple steps.
 
 === "Training"
     
-    - Define a fine-tuning experiment by choosing a pretrained model and a dataset
+    - Define the training by choosing a pretrained model and a dataset
     ``` python
-    experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+    training = Training("my_training", model="bert-base-cased", dataset="conll2003")
     ```
 
-    - Run the experiment and get the performance of the fine-tuned model
+    - Run the training and get the performance of the fine-tuned model
     ``` python
-    experiment.run()
-    experiment.get_result(metric="f1", level="entity", phase="test")
+    training.run()
+    training.get_result(metric="f1", level="entity", phase="test")
     # 0.9045
     ```
     &nbsp;
@@ -65,7 +65,7 @@ in a few simple steps.
 
     - Load the model
     ```python
-    model = Model.from_experiment("my_experiment")
+    model = Model.from_training("my_training")
     ```
 
     - Evaluate the model
@@ -81,7 +81,7 @@ in a few simple steps.
 
     - Load the model
     ``` python
-    model = Model.from_experiment("my_experiment")
+    model = Model.from_training("my_training")
     ```
 
     - Let the model predict

@@ -40,7 +40,7 @@ def get_preset(
 ) -> Optional[Dict[str, Union[str, int, bool]]]:
     """
     Args:
-        from_preset:     [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
+        from_preset:     [str], e.g. 'adaptive' get training params & hparams from preset [HIERARCHY: II]
 
     Returns:
         preset: e.g. {'lr_schedule': 'constant', [..]}

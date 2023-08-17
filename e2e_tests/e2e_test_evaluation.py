@@ -90,7 +90,7 @@ def test_evaluation(capsys):
         print_section_header(f"1. Store.create()")
         Store.create()
         assert isdir(data_dir), f"ERROR! data_dir = {data_dir} does not exist."
-        for subdirectory in ["datasets", "experiment_configs", "pretrained_models", "results"]:
+        for subdirectory in ["datasets", "training_configs", "pretrained_models", "results"]:
             assert isdir(join(data_dir, subdirectory)), \
                 f"ERROR! data_dir/subdirectory = {join(data_dir, subdirectory)} does not exist."
         print_section_finish()

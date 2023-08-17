@@ -8,14 +8,14 @@ from nerblackbox.api.utils import Utils
 from nerblackbox.api.store import Store
 from nerblackbox.modules.utils.env_variable import env_variable
 from nerblackbox.modules.utils.parameters import DATASET, MODEL, SETTINGS, HPARAMS
-from nerblackbox.modules.experiment_config.preset import get_preset
-from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.training_config.preset import get_preset
+from nerblackbox.modules.training_results import TrainingResults
 
 
-class Experiment:
+class Training:
     def __init__(
         self,
-        experiment_name: str,
+        training_name: str,
         from_config: bool = False,
         model: Optional[str] = None,
         dataset: Optional[str] = None,
@@ -27,8 +27,8 @@ class Experiment:
         """
 
         Args:
-            experiment_name: e.g. 'my_experiment'
-            from_config: True => read parameters from config file (static definition). False => use Experiment  arguments (dynamic definition)
+            training_name: e.g. 'my_training'
+            from_config: True => read parameters from config file (static definition). False => use Training arguments (dynamic definition)
             model: [equivalent to model_name] e.g. 'bert-base-cased'
             dataset: [equivalent to dataset_name] e.g. 'conll2003'
             from_preset: True => use parameters from preset
@@ -36,24 +36,24 @@ class Experiment:
             verbose: True => verbose output
             **kwargs_optional: parameters
         """
-        self.experiment_name = experiment_name
+        self.training_name = training_name
         self.from_preset = from_preset
         self.verbose = verbose
 
         self.from_config: bool
         self.kwargs: Dict[str, str]
         self.hparams: Optional[Dict[str, str]]
-        self.results: Optional[ExperimentResults]
+        self.results: Optional[TrainingResults]
 
         if not pytest:
-            experiment_exists, experiment_results = Store.get_experiment_results_single(
-                experiment_name,
+            training_exists, training_results = Store.get_training_results_single(
+                training_name,
                 verbose=self.verbose,
             )
-            if experiment_exists:
+            if training_exists:
                 self.from_config = True
-                self.results = experiment_results
-                print(f"> experiment = {experiment_name} found, results loaded.")
+                self.results = training_results
+                print(f"> training = {training_name} found, results loaded.")
             else:
                 self.from_config = from_config
                 self.kwargs, self.hparams = self._parse_arguments(
@@ -62,49 +62,49 @@ class Experiment:
                 self._checks()  # self.hparams, self.from_preset, self.from_config
                 self.results = None
                 print(
-                    f"> experiment = {experiment_name} not found, create new experiment."
+                    f"> training = {training_name} not found, create new training."
                 )
 
     def show_config(self) -> None:
         r"""
-        print experiment config
+        print training config
         """
         from nerblackbox.modules.utils.env_variable import env_variable
 
-        if self.experiment_name != "all":
-            path_experiment_config = join(
-                env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+        if self.training_name != "all":
+            path_training_config = join(
+                env_variable("DIR_TRAINING_CONFIGS"), f"{self.training_name}.ini"
             )
-            if isfile(path_experiment_config):
-                with open(path_experiment_config, "r") as file:
+            if isfile(path_training_config):
+                with open(path_training_config, "r") as file:
                     lines = file.read()
 
-                print(f"> experiment_config = {path_experiment_config}")
+                print(f"> training_config = {path_training_config}")
                 print()
                 print(lines)
             else:
-                print(f"> experiment_config = {path_experiment_config} does not exist.")
+                print(f"> training_config = {path_training_config} does not exist.")
         else:
-            experiment_configs = glob.glob(
-                join(env_variable("DIR_EXPERIMENT_CONFIGS"), "*.ini")
+            training_configs = glob.glob(
+                join(env_variable("DIR_TRAINING_CONFIGS"), "*.ini")
             )
-            experiment_configs = [
-                elem.split("/")[-1].strip(".ini") for elem in experiment_configs
+            training_configs = [
+                elem.split("/")[-1].strip(".ini") for elem in training_configs
             ]
-            experiment_configs = [
-                elem for elem in experiment_configs if elem != "default"
+            training_configs = [
+                elem for elem in training_configs if elem != "default"
             ]
-            for experiment_config in experiment_configs:
-                print(experiment_config)
+            for training_config in training_configs:
+                print(training_config)
 
     def run(self):
-        r"""run a single experiment.
+        r"""run a single training.
 
         Note:
 
-        - from_config == True -> experiment config file is used, no other optional arguments will be used
+        - from_config == True -> training config file is used, no other optional arguments will be used
 
-        - from_config == False -> experiment config file is created dynamically, optional arguments will be used
+        - from_config == False -> training config file is created dynamically, optional arguments will be used
 
             - model and dataset are mandatory.
 
@@ -116,10 +116,10 @@ class Experiment:
               2) from_preset (adaptive, original, stable),
                  which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"
 
-              3) default experiment configuration
+              3) default training configuration
         """
         _parameters = {
-            "experiment_name": self.experiment_name,
+            "training_name": self.training_name,
             "from_config": int(self.from_config),
             "run_name": self.kwargs["run_name"],
             "device": self.kwargs["device"],
@@ -132,19 +132,19 @@ class Experiment:
 
         mlflow.projects.run(
             uri=resource_filename(Requirement.parse("nerblackbox"), "nerblackbox"),
-            entry_point="run_experiment",
-            experiment_name=self.experiment_name,
+            entry_point="run_training",
+            experiment_name=self.training_name,
             parameters=_parameters,
             env_manager="local",
         )
 
-        experiment_exists, self.results = Store.get_experiment_results_single(
-            self.experiment_name,
+        training_exists, self.results = Store.get_training_results_single(
+            self.training_name,
             verbose=self.verbose,
         )
         assert (
-            experiment_exists
-        ), f"ERROR! experiment = {self.experiment_name} does not exist."
+            training_exists
+        ), f"ERROR! training = {self.training_name} does not exist."
         print("### single runs ###")
         print(self.results.single_runs.T)
         print()
@@ -171,7 +171,7 @@ class Experiment:
         Returns:
             result: e.g. "0.9011 +- 0.0023" (average = True) or "0.9045" (average = False)
         """
-        return Store.parse_experiment_result_single(self.results, metric, level, label, phase, average)
+        return Store.parse_training_result_single(self.results, metric, level, label, phase, average)
 
     ####################################################################################################################
     # HELPER METHODS
@@ -182,11 +182,11 @@ class Experiment:
         """
         # assert that config file does not exist
         config_path = join(
-            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{self.experiment_name}.ini"
+            env_variable("DIR_TRAINING_CONFIGS"), f"{self.training_name}.ini"
         )
         assert (
             isfile(config_path) is False
-        ), f"ERROR! experiment config file {config_path} already exists!"
+        ), f"ERROR! training config file {config_path} already exists!"
 
         # write config file: helper functions
         def _write(_str: str):
@@ -258,8 +258,8 @@ class Experiment:
     ) -> Optional[Dict[str, Union[str, int, bool]]]:
         """
         Args:
-            hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use            [HIERARCHY:  I]
-            from_preset:     [str], e.g. 'adaptive' get experiment params & hparams from preset [HIERARCHY: II]
+            hparams:         [dict], e.g. {'multiple_runs': '2'} with hparams to use          [HIERARCHY:  I]
+            from_preset:     [str], e.g. 'adaptive' get training params & hparams from preset [HIERARCHY: II]
 
         Returns:
             _hparams:        [dict], e.g. {'multiple_runs': '2'} with hparams to use
@@ -277,7 +277,7 @@ class Experiment:
         """
         checks that
         - either static or dynamic approach is used, not a mixture
-        - if static, that experiment config exists
+        - if static, that training config exists
         - if dynamic, that both model and dataset are specified
         """
         # assert STATIC or DYNAMIC
@@ -291,14 +291,14 @@ class Experiment:
         )
 
         if self.from_config:
-            # STATIC - assert that experiment config exists
-            path_experiment_config = join(
-                env_variable("DIR_EXPERIMENT_CONFIGS"),
-                f"{self.experiment_name}.ini",
+            # STATIC - assert that training config exists
+            path_training_config = join(
+                env_variable("DIR_TRAINING_CONFIGS"),
+                f"{self.training_name}.ini",
             )
-            if not isfile(path_experiment_config):
+            if not isfile(path_training_config):
                 self._exit_gracefully(
-                    f"experiment_config = {path_experiment_config} does not exist."
+                    f"training_config = {path_training_config} does not exist."
                 )
         else:
             # DYNAMIC - assert that model & dataset are specified

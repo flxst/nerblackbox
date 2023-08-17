@@ -19,7 +19,7 @@ from nerblackbox.modules.utils.util_functions import read_encoding
 class NerModelTrain(NerModel):
     def __init__(self, hparams: DictConfig):
         """
-        :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams: attr: training_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__(hparams)
 
@@ -70,14 +70,14 @@ class NerModelTrain(NerModel):
         self.logged_metrics = LoggedMetrics()
 
         self.mlflow_client = MLflowClient(
-            experiment_name=self.params.experiment_name,
+            training_name=self.params.training_name,
             run_name=self.params.run_name,
             log_dirs=self.log_dirs,
             logged_metrics=self.logged_metrics.as_flat_list(),
             default_logger=self.default_logger,
         )
         self.mlflow_client.log_params(
-            self.params, self.hparams, experiment=self.experiment
+            self.params, self.hparams, training=self.training
         )
 
         self.epoch_metrics: Dict[str, Dict] = {"val": dict(), "test": dict()}

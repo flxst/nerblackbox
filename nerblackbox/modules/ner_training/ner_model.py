@@ -34,7 +34,7 @@ from nerblackbox.modules.utils.env_variable import env_variable
 class NerModel(pl.LightningModule, ABC):
     def __init__(self, hparams: DictConfig):
         """
-        :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams: attr: training_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__()
         self.save_hyperparameters(hparams)
@@ -44,7 +44,7 @@ class NerModel(pl.LightningModule, ABC):
             self.params,
             self.hyperparameters,
             self.log_dirs,
-            self.experiment,
+            self.training,
         ) = split_parameters(hparams)
 
         # preparations

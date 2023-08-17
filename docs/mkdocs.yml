@@ -40,7 +40,7 @@ nav:
       - Overview: 'python_api/overview.md'
       - 'python_api/store.md'
       - 'python_api/dataset.md'
-      - 'python_api/experiment.md'
+      - 'python_api/training.md'
       - 'python_api/model.md'
       - 'python_api/annotation_tool.md'
       - 'python_api/text_encoder.md'

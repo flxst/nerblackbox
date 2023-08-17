@@ -30,16 +30,16 @@ The results may be reproduced using the following code:
 ??? note "reproduction of training results"
     === "Python"
         ``` python
-        from nerblackbox import Dataset, Experiment
+        from nerblackbox import Dataset, Training
 
         dataset = Dataset(name=<dataset>, source="HF")
         dataset.set_up()
 
         parameters = {"from_preset": "original", [..]}
-        experiment = Experiment("exp", model="<model>", dataset="<dataset>", **parameters)
-        experiment.run()
+        training = Training("training", model="<model>", dataset="<dataset>", **parameters)
+        training.run()
 
-        result = experiment.get_result(metric="f1", level="entity", phase="validation")
+        result = training.get_result(metric="f1", level="entity", phase="validation")
         print(result)
         ```
         Note that the first use of **nerblackbox** requires the creation of a [Store](../../preparation/#store).

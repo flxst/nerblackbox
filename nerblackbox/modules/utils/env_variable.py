@@ -8,7 +8,7 @@ def env_variable(key: str) -> str:
     env_variable_dict = {
         "DATA_DIR": data_dir,
         "DIR_DATASETS": f"{data_dir}/datasets",
-        "DIR_EXPERIMENT_CONFIGS": f"{data_dir}/experiment_configs",
+        "DIR_TRAINING_CONFIGS": f"{data_dir}/training_configs",
         "DIR_RESULTS": f"{data_dir}/results",
         "DIR_CHECKPOINTS": f"{data_dir}/results/checkpoints",
         "DIR_TENSORBOARD": f"{data_dir}/results/tensorboard",

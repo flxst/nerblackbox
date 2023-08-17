@@ -9,7 +9,7 @@ import warnings
 
 from nerblackbox.modules.ner_training.single_run import execute_single_run
 from nerblackbox.modules.utils.env_variable import env_variable
-from nerblackbox.modules.experiment_config.experiment import Experiment
+from nerblackbox.modules.training_config.training import Training
 
 logging.basicConfig(
     level=logging.WARNING
@@ -20,32 +20,32 @@ warnings.filterwarnings("ignore")
 def main(params: argparse.Namespace, log_dirs: argparse.Namespace) -> None:
     """
     Args:
-        params: w/ keys experiment_name, run_name, device, fp16, experiment_run_name_nr
+        params: w/ keys training_name, run_name, device, fp16, training_run_name_nr
         log_dirs: w/ keys mlflow, tensorboard
 
     Returns: -
     """
-    assert_that_experiment_hasnt_been_run_before(params.experiment_name)
+    assert_that_training_hasnt_been_run_before(params.training_name)
 
-    experiment = Experiment(
-        experiment_name=params.experiment_name,
+    training = Training(
+        training_name=params.training_name,
         from_config=params.from_config,
         run_name=params.run_name,
         device=params.device,
         fp16=params.fp16,
     )
 
-    with mlflow.start_run(run_name=params.experiment_name):
-        for k, v in experiment.params_and_hparams["general"].items():
+    with mlflow.start_run(run_name=params.training_name):
+        for k, v in training.params_and_hparams["general"].items():
             mlflow.log_param(k, v)
 
-        for run_name_nr in experiment.runs_name_nr:
+        for run_name_nr in training.runs_name_nr:
             # params & hparams: dict -> namespace
-            params = argparse.Namespace(**experiment.runs_params[run_name_nr])
-            hparams = argparse.Namespace(**experiment.runs_hparams[run_name_nr])
+            params = argparse.Namespace(**training.runs_params[run_name_nr])
+            hparams = argparse.Namespace(**training.runs_hparams[run_name_nr])
 
             # execute single run
-            execute_single_run(params, hparams, log_dirs, experiment=True)
+            execute_single_run(params, hparams, log_dirs, training=True)
 
             # clear gpu memory
             clear_gpu_memory(
@@ -53,15 +53,15 @@ def main(params: argparse.Namespace, log_dirs: argparse.Namespace) -> None:
             )
 
 
-def assert_that_experiment_hasnt_been_run_before(experiment_name: str) -> None:
+def assert_that_training_hasnt_been_run_before(training_name: str) -> None:
     """
     Args:
-        experiment_name: e.g. 'my_experiment'
+        training_name: e.g. 'my_training'
     """
-    experiment_directory = join(env_variable("DIR_CHECKPOINTS"), experiment_name)
-    if isdir(experiment_directory):
+    training_directory = join(env_variable("DIR_CHECKPOINTS"), training_name)
+    if isdir(training_directory):
         raise Exception(
-            f"ERROR! experiment = {experiment_name} has been run before ({experiment_directory} exists)"
+            f"ERROR! training = {training_name} has been run before ({training_directory} exists)"
         )
 
 
@@ -99,7 +99,7 @@ def _parse_args(_parser, _args):
     """
     :param _parser: [argparse ArgumentParser]
     :param _args:   [argparse arguments]
-    :return _params:   [argparse.Namespace] attr: experiment_name, run_name, device, fp16
+    :return _params:   [argparse.Namespace] attr: training_name, run_name, device, fp16
     :return _log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
     """
     # parsing
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     # params
     args_general = parser.add_argument_group("args_general")
     args_general.add_argument(
-        "--experiment_name", type=str, required=True
+        "--training_name", type=str, required=True
     )  # .. logging w/ mlflow & tensorboard
     args_general.add_argument(
         "--from_config", type=int, required=True

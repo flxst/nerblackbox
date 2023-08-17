@@ -3,4 +3,4 @@ include requirements_dev.txt
 include nerblackbox/MLproject
 include nerblackbox/modules/data/datasets/*
 include nerblackbox/modules/data/pretrained_models/*
-include nerblackbox/modules/data/experiment_configs/*
+include nerblackbox/modules/data/training_configs/*

@@ -14,8 +14,8 @@ Both the fine-tuned NER model and the dataset can either be loaded from [Hugging
         # from local checkpoint directory
         model = Model.from_checkpoint("<checkpoint_directory>")
 
-        # from experiment
-        model = Model.from_experiment("<experiment_name>")
+        # from training
+        model = Model.from_training("<training_name>")
 
         # from HuggingFace
         model = Model.from_huggingface("<repo_id>")
