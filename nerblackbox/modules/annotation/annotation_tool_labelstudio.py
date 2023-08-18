@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Dict, List
 from label_studio_sdk import Client as LabelStudioClient
 from label_studio_sdk import Project as LabelStudioProject
@@ -97,6 +98,7 @@ class AnnotationToolLabelStudio(AnnotationToolBase):
         """
         tasks = _project.export_tasks()
         tasks.reverse()
+        os.makedirs(os.path.dirname(_paths["file_tool"]), exist_ok=True)
         with open(_paths["file_tool"], "w") as f:
             f.write(json.dumps(tasks, ensure_ascii=False))
         if verbose:
