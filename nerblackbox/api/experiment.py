@@ -3,7 +3,9 @@ import glob
 from typing import Optional, Any, Dict, Union, Tuple
 from pkg_resources import Requirement
 from pkg_resources import resource_filename
+from sys import exit
 import mlflow
+import torch
 from nerblackbox.api.utils import Utils
 from nerblackbox.api.store import Store
 from nerblackbox.modules.utils.env_variable import env_variable
@@ -59,7 +61,7 @@ class Experiment:
                 self.kwargs, self.hparams = self._parse_arguments(
                     model, dataset, self.from_preset, **kwargs_optional
                 )
-                self._checks()  # self.hparams, self.from_preset, self.from_config
+                self._checks()
                 self.results = None
                 print(
                     f"> experiment = {experiment_name} not found, create new experiment."
@@ -308,6 +310,7 @@ class Experiment:
         - either static or dynamic approach is used, not a mixture
         - if static, that experiment config exists
         - if dynamic, that both model and dataset are specified
+        - that 0 or 1 gpus are used
         """
         # assert STATIC or DYNAMIC
         assert (self.hparams is None and self.from_config is True) or (
@@ -340,6 +343,13 @@ class Experiment:
                     self._exit_gracefully(
                         f"{field_displayed} is not specified but mandatory if dynamic arguments are used."
                     )
+
+        # assert number of GPUs = 0 or 1 (see issue #5)
+        nr_gpus = torch.cuda.device_count()
+        if nr_gpus > 1:
+            msg = f"> found {nr_gpus} GPUs. nerblackbox currently only works on a CPU or a single GPU. " \
+                  f"Try for instance os.environ['CUDA_VISIBLE_DEVICES'] = '0'."
+            self._exit_gracefully(msg)
 
     @staticmethod
     def _exit_gracefully(message: str) -> None:
