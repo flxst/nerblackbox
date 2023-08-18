@@ -3,6 +3,7 @@ import glob
 from typing import Optional, Any, Dict, Union, Tuple
 from pkg_resources import Requirement
 from pkg_resources import resource_filename
+from sys import exit
 import mlflow
 import torch
 from nerblackbox.api.utils import Utils
