@@ -160,7 +160,7 @@ def labelstudio2nerblackbox(
                     "token": label["value"]["text"],
                     "tag": label["value"]["labels"][0],
                 }
-                for label in input_line["annotations"][0]["result"]
+                for label in input_line["annotations"][0]["result"] if label["type"] == "labels"
             ],
         }
         _output_lines.append(output_line)
