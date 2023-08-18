@@ -114,6 +114,10 @@ class Training:
 
               3) default training configuration
         """
+        if self.results is not None:
+            msg = f"> The training seems to have been run before (and results exist)."
+            self._exit_gracefully(msg)
+
         _parameters = {
             "training_name": self.training_name,
             "from_config": int(self.from_config),
