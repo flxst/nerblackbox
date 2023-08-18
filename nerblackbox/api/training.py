@@ -104,16 +104,16 @@ class Training:
 
             - model and dataset are mandatory.
 
-            - All other arguments relate to hyperparameters and are optional.
-              They are determined using the following hierarchy:
+            - All other arguments relate to hyperparameters and are optional. They are determined using the following hierarchy:
 
-              1) optional argument
+                1) optional argument
 
-              2) from_preset (adaptive, original, stable),
-                 which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"
+                2) from_preset (adaptive, original, stable),
+                   which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"
 
-              3) default training configuration
+                3) default training configuration
         """
+
         if self.results is not None:
             msg = f"> The training seems to have been run before (and results exist)."
             self._exit_gracefully(msg)

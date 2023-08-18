@@ -9,11 +9,11 @@ Given a dataset that is properly [set up](../data), we can fine-tune a pretraine
 They can either be taken straight from HuggingFace (HF) or the Local Filesystem (LF).
 In order to employ models from HF, it is sufficient to specify the name of the model (see [Basic Training](#basic-training)).
 
-Local models need to be stored in a directory `./store/pretrained_models/<my_model>` and include the following files:
+Local models need to be stored in a directory `./store/pretrained_models/<my_model>` and (at least) include the following files:
 
 - `config.json`
 - `pytorch_model.bin`
-- `vocab.txt`
+- `tokenizer_config.json`, `tokenizer.json`, `vocab.json` (or `vocab.txt`) 
 
 Note that the name for `<my_model>` must include the architecture type, e.g. `bert`.
 
@@ -27,7 +27,7 @@ A **specific model** can be trained on a **specific dataset** using **specific p
 
 The training is defined 
 
-- either **dynamically** through arguments when an [Training](../python_api/training/) instance is created
+- either **dynamically** through arguments when a [Training](../python_api/training/) instance is created
 
     ??? note "define training dynamically"
         === "Python"
@@ -35,7 +35,7 @@ The training is defined
             training = Training("<training_name>", model="<model_name>", dataset="<dataset_name>")
             ```
 
-- or **statically** by an **training configuration** file ``./store/training_configs/<training_name>.ini``.
+- or **statically** by a **training configuration** file ``./store/training_configs/<training_name>.ini``.
 
     ??? note "define training statically"
         === "Python"
@@ -387,7 +387,7 @@ The hyperparameters one wants to vary are to be specified in special sections ``
 -----------
 ### Multiple Seeds
 
-The results of a fine-tuning run depend on the employed random seed, see e.g. [this paper](https://arxiv.org/abs/2202.02617) for a discussion.
+The results of a training run depend on the employed random seed, see e.g. [this paper](https://arxiv.org/abs/2202.02617) for a discussion.
 One may conduct multiple runs with different seeds that are otherwise identical, in order to
 
 - get control over the uncertainties (see [Detailed Results](#detailed-results))
