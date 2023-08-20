@@ -105,18 +105,6 @@ def labelstudio2nerblackbox(
         _input_lines: e.g.
             [
                 {
-                    "text": "\n2020-05-20 John Doe pratar.",
-                    "tags": [
-                        {"char_start": 1, "char_end": 11, "token": "2020-05-20", "tag": "PI"},
-                        {"char_start": 12, "char_end": 20, "token": "John Doe", "tag": "PI"},
-                        ]
-                }
-            ]
-
-    Returns:
-        _output_lines: e.g.
-            [
-                {
                     {
                         "data": {
                             "text": "\n2020-05-20 John Doe pratar.",
@@ -146,6 +134,18 @@ def labelstudio2nerblackbox(
                             ]
                         }]
                     }
+                }
+            ]
+
+    Returns:
+        _output_lines: e.g.
+            [
+                {
+                    "text": "\n2020-05-20 John Doe pratar.",
+                    "tags": [
+                        {"char_start": 1, "char_end": 11, "token": "2020-05-20", "tag": "PI"},
+                        {"char_start": 12, "char_end": 20, "token": "John Doe", "tag": "PI"},
+                        ]
                 }
             ]
     """

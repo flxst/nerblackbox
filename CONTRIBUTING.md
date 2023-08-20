@@ -4,7 +4,7 @@ Everybody is welcome to contribute to **nerblackbox**, in particular by submitti
 
 ## Issues
 
-Issue can regard bugs, feature requests, the documentation or security vulnerabilities.
+Issues can regard bugs, feature requests, the documentation or security vulnerabilities.
 Go to [Issues](https://github.com/flxst/nerblackbox/issues), click "New issue" and choose the appropriate template.
 Please make sure to provide all the requested information. 
 

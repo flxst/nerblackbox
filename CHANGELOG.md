@@ -1,5 +1,18 @@
 # Changelog
-This project CURRENTLY DOES NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+nerblackbox adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 1.0.0 (2023-08-20)
+#### Added
+- Support for additional model architectures: RoBERTa, DeBERTa
+- Documentation: reproduction of results
+
+#### Changed
+- Renamed class: Experiment -> Training
+- Renamed training parameters: prune_ratio_train -> train_fraction (+ same for val & test)
+
+#### Fixed
+- Controlled exception in case of multiple GPUs ([#6](https://github.com/flxst/nerblackbox/pull/6))
+- Download data from LabelStudio ([#9](https://github.com/flxst/nerblackbox/pull/9), [#10](https://github.com/flxst/nerblackbox/pull/10))
 
 ## 0.0.15 (2023-08-05)
 #### Added

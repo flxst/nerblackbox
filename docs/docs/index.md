@@ -2,7 +2,7 @@
 
 **nerblackbox** - a high-level library for named entity recognition in python
 
-latest version: 0.0.15
+latest version: 1.0.0
 
 -----------
 ## Resources
