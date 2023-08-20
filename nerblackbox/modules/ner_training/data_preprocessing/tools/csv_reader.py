@@ -16,7 +16,6 @@ class CsvReader:
     def __init__(
         self,
         path,
-        tokenizer,
         pretokenized,
         do_lower_case,
         default_logger=None,
@@ -24,7 +23,6 @@ class CsvReader:
     ):
         """
         :param path:               [str] to folder that contains dataset csv files (train, val, test)
-        :param tokenizer:          [transformers Tokenizer]
         :param pretokenized:       [bool]
         :param do_lower_case:      [bool]
         :param default_logger:     []
@@ -32,7 +30,6 @@ class CsvReader:
         """
         # input arguments
         self.path = path
-        self.tokenizer = tokenizer
         self.pretokenized = pretokenized
         self.do_lower_case = do_lower_case
         self.default_logger = default_logger
@@ -117,7 +114,11 @@ class CsvReader:
         :return: [pandas dataframe]
         """
         return pd.read_csv(
-            path, names=["tags", "text"], header=None, sep=self.csv_file_separator
+            path,
+            names=["tags", "text"],
+            header=None,
+            sep=self.csv_file_separator,
+            keep_default_na=False,
         )
 
     def _create_list_of_input_examples(self, df, set_type) -> List[InputExample]:

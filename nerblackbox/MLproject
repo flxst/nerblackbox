@@ -3,16 +3,16 @@ name: NerBlackBox project
 
 entry_points:
 
-  run_experiment:
+  run_training:
     parameters:
-      experiment_name: {type: string}
+      training_name: {type: string}
       from_config: {type: int}
       run_name: {type: string}
       device: {type: string}
       fp16: {type: int}
     command: |
-        python modules/scripts/script_run_experiment.py \
-        --experiment_name {experiment_name} \
+        python modules/scripts/script_run_training.py \
+        --training_name {training_name} \
         --from_config {from_config} \
         --run_name {run_name} \
         --device {device} \

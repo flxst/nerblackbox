@@ -5,7 +5,7 @@
 
     === "Python"
         ``` python
-        from nerblackbox import Store, Dataset, Experiment, Model, [..]
+        from nerblackbox import Store, Dataset, Training, Model, [..]
         ```
 
 ----------
@@ -13,7 +13,7 @@
 
     * [Store](../store)
     * [Dataset](../dataset)
-    * [Experiment](../experiment)
+    * [Training](../training)
     * [Model](../model)
 
 ----------

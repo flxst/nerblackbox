@@ -4,20 +4,20 @@ from typing import Union, Dict, Optional, List
 from pkg_resources import resource_filename
 import os
 
-from nerblackbox.modules.experiment_config.experiment_config import ExperimentConfig
+from nerblackbox.modules.training_config.training_config import TrainingConfig
 
 os.environ["DATA_DIR"] = resource_filename("nerblackbox", f"tests/test_data")
 
 
-class TestExperimentConfig:
+class TestTrainingConfig:
 
-    experiment_config_default = ExperimentConfig(experiment_name="default")
-    experiment_config = ExperimentConfig(experiment_name="test_experiment")
+    training_config_default = TrainingConfig(training_name="default")
+    training_config = TrainingConfig(training_name="test_training")
 
     # 1 ################################################################################################################
     def test_no_config_file(self):
         with pytest.raises(Exception):
-            _ = ExperimentConfig(experiment_name="test_experiment_that_does_not_exist")
+            _ = TrainingConfig(training_name="test_training_that_does_not_exist")
 
     # 2 ################################################################################################################
     @pytest.mark.parametrize(
@@ -29,9 +29,9 @@ class TestExperimentConfig:
                     "params": {
                         "dataset_name": "swedish_ner_corpus",
                         "annotation_scheme": "plain",
-                        "prune_ratio_train": 0.01,
-                        "prune_ratio_val": 0.01,
-                        "prune_ratio_test": 0.01,
+                        "train_fraction": 0.01,
+                        "val_fraction": 0.01,
+                        "test_fraction": 0.01,
                         "train_on_val": True,
                         "train_on_test": True,
                         "pretrained_model_name": "KB/bert-base-swedish-cased",
@@ -53,9 +53,9 @@ class TestExperimentConfig:
                 True,
                 {
                     "params": {
-                        "prune_ratio_train": 1.00,
-                        "prune_ratio_val": 1.00,
-                        "prune_ratio_test": 1.00,
+                        "train_fraction": 1.00,
+                        "val_fraction": 1.00,
+                        "test_fraction": 1.00,
                         "train_on_val": False,
                         "train_on_test": False,
                         "checkpoints": True,
@@ -83,9 +83,9 @@ class TestExperimentConfig:
     )
     def test_get_config(self, default: bool, config_dict: Dict[str, Dict[str, str]]):
         if default:
-            test_config_dict = self.experiment_config_default.config
+            test_config_dict = self.training_config_default.config
         else:
-            test_config_dict = self.experiment_config.config
+            test_config_dict = self.training_config.config
         assert sorted(list(test_config_dict.keys())) == sorted(
             list(config_dict.keys())
         ), (
@@ -113,7 +113,7 @@ class TestExperimentConfig:
                 False,
             ),
             (
-                "prune_ratio_train",
+                "train_fraction",
                 "0.01",
                 0.01,
                 False,
@@ -147,11 +147,9 @@ class TestExperimentConfig:
     ):
         if error:
             with pytest.raises(Exception):
-                _ = self.experiment_config._convert(input_key, input_value)
+                _ = self.training_config._convert(input_key, input_value)
         else:
-            test_converted_input = self.experiment_config._convert(
-                input_key, input_value
-            )
+            test_converted_input = self.training_config._convert(input_key, input_value)
             assert test_converted_input == converted_input, (
                 f"ERROR! test_converted_input = {test_converted_input} != {converted_input} "
                 f"for input_key = {input_key} and input_value = {input_value}"

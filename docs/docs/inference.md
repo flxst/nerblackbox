@@ -14,8 +14,8 @@ The corresponding fine-tuned NER model can either be loaded from [HuggingFace (H
         # from local checkpoint directory
         model = Model.from_checkpoint("<checkpoint_directory>")
 
-        # from experiment
-        model = Model.from_experiment("<experiment_name>")
+        # from training
+        model = Model.from_training("<training_name>")
 
         # from HuggingFace
         model = Model.from_huggingface("<repo_id>")
@@ -34,7 +34,7 @@ The corresponding fine-tuned NER model can either be loaded from [HuggingFace (H
 ??? example "Basic Inference"
     === "Python"
         ``` python
-        model = Model.from_experiment("my_experiment")
+        model = Model.from_training("my_training")
 
         # predict on entity level
         model.predict("The United Nations has never recognised Jakarta's move.", level="entity")  
@@ -69,7 +69,7 @@ An overview is given in the following table:
 ??? example "Advanced Inference"
     === "Python"
         ``` python
-        model = Model.from_experiment("my_experiment")
+        model = Model.from_training("my_training")
 
         # predict on entity level using file 
         model.predict_on_file("<input_file>", "<output_file>")  

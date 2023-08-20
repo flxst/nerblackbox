@@ -29,12 +29,12 @@ from nerblackbox.modules.ner_training.callbacks.learning_rate_changer import (
 )
 
 
-def execute_single_run(params, hparams, log_dirs, experiment: bool):
+def execute_single_run(params, hparams, log_dirs, training: bool):
     """
-    :param params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-    :param hparams:    [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
-    :param log_dirs:   [argparse.Namespace] attr: mlflow, tensorboard
-    :param experiment: [bool] whether run is part of an experiment w/ multiple runs
+    :param params:   [argparse.Namespace] attr: training_name, run_name, pretrained_model_name, dataset_name, ..
+    :param hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, lr_*
+    :param log_dirs: [argparse.Namespace] attr: mlflow, tensorboard
+    :param training: [bool] whether run is part of an training w/ multiple runs
     :return: -
     """
     # seed
@@ -50,10 +50,10 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
 
     print_run_information(params, hparams, default_logger, seed)
 
-    lightning_hparams = unify_parameters(params, hparams, log_dirs, experiment)
+    lightning_hparams = unify_parameters(params, hparams, log_dirs, training)
 
     tb_logger = logging_start(params, log_dirs)
-    with mlflow.start_run(run_name=params.run_name_nr, nested=experiment):
+    with mlflow.start_run(run_name=params.run_name_nr, nested=training):
 
         model = NerModelTrain(lightning_hparams)
         callbacks = get_callbacks(params, hparams, log_dirs)
@@ -103,17 +103,17 @@ def execute_single_run(params, hparams, log_dirs, experiment: bool):
 ########################################################################################################################
 def print_run_information(_params, _hparams, _logger, _seed: int):
     """
-    :param _params:   [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
-    :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param _params:   [argparse.Namespace] attr: training_name, run_name, pretrained_model_name, dataset_name, ..
+    :param _hparams:  [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
     :param _logger:   [DefaultLogger]
     :param _seed:     [int]
     :return: -
     """
-    _logger.log_info(f">>> NER BLACK BOX VERSION: {get_package_version()}")
+    _logger.log_info(f">>> NERBLACKBOX VERSION: {get_package_version()}")
     _logger.log_info("- PARAMS -----------------------------------------")
-    _logger.log_info(f"> experiment_name: {_params.experiment_name}")
-    _logger.log_info(f"> from_config:     {_params.from_config}")
-    _logger.log_info(f"> run_name_nr:     {_params.run_name_nr}")
+    _logger.log_info(f"> training_name: {_params.training_name}")
+    _logger.log_info(f"> from_config:   {_params.from_config}")
+    _logger.log_info(f"> run_name_nr:   {_params.run_name_nr}")
     _logger.log_info("..")
     _logger.log_info(f"> available GPUs: {torch.cuda.device_count()}")
     _logger.log_info(f"> device:         {_params.device}")
@@ -121,9 +121,9 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
     _logger.log_info("..")
     _logger.log_info(f"> dataset_name:          {_params.dataset_name}")
     _logger.log_info(f"> annotation_scheme:     {_params.annotation_scheme}")
-    _logger.log_info(f"> prune_ratio_train:     {_params.prune_ratio_train}")
-    _logger.log_info(f"> prune_ratio_val:       {_params.prune_ratio_val}")
-    _logger.log_info(f"> prune_ratio_test:      {_params.prune_ratio_test}")
+    _logger.log_info(f"> train_fraction:        {_params.train_fraction}")
+    _logger.log_info(f"> val_fraction:          {_params.val_fraction}")
+    _logger.log_info(f"> test_fraction:         {_params.test_fraction}")
     _logger.log_info(f"> train_on_val:          {_params.train_on_val}")
     _logger.log_info(f"> train_on_test:         {_params.train_on_test}")
     _logger.log_info("..")
@@ -155,10 +155,10 @@ def print_run_information(_params, _hparams, _logger, _seed: int):
 
 def _get_model_checkpoint_directory(_params):
     """
-    :param _params:     [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+    :param _params:     [argparse.Namespace] attr: training_name, run_name, pretrained_model_name, dataset_name, ..
     :return: model_checkpoint_directory [str]
     """
-    return join(env_variable("DIR_CHECKPOINTS"), _params.experiment_run_name_nr)
+    return join(env_variable("DIR_CHECKPOINTS"), _params.training_run_name_nr)
 
 
 def get_callbacks(
@@ -168,7 +168,7 @@ def get_callbacks(
 ) -> Tuple[Callback, ...]:
     """
     Args:
-        _params:     attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        _params:     attr: training_name, run_name, pretrained_model_name, dataset_name, ..
         _hparams:    attr: batch_size, max_seq_length, max_epochs, lr_*
         _log_dirs:   attr: mlflow, tensorboard
 
@@ -241,7 +241,7 @@ def get_callback_info(
     """
     Args:
         _callbacks: either (ModelCheckpoint) or (ModelCheckpoint, EarlyStopping)
-        _params:    attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        _params:    attr: training_name, run_name, pretrained_model_name, dataset_name, ..
         _hparams:   attr: batch_size, max_seq_length, max_epochs, lr_*
         _epochs:    total number of training epochs
 
@@ -267,15 +267,15 @@ def get_callback_info(
 
 def logging_start(_params, _log_dirs):
     """
-    :param _params:      [argparse.Namespace] attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+    :param _params:      [argparse.Namespace] attr: training_name, run_name, pretrained_model_name, dataset_name, ..
     :param _log_dirs:    [argparse.Namespace] attr: mlflow, tensorboard
     :return: _tb_logger: [pytorch lightning TensorBoardLogger]
     """
-    # mlflow.tracking.set_tracking_uri(_log_dirs.mlflow)                # mlflow
-    # mlflow.set_experiment(_params.experiment_name)                    # mlflow
+    # mlflow.tracking.set_tracking_uri(_log_dirs.mlflow)            # mlflow
+    # mlflow.set_training(_params.training_name)                    # mlflow
     _tb_logger = TensorBoardLogger(
         save_dir=_log_dirs.tensorboard,  # tensorboard
-        name=_params.experiment_run_name_nr,
+        name=_params.training_run_name_nr,
     )
     return _tb_logger
 
@@ -327,7 +327,7 @@ def _tb_logger_stopped_epoch(
     log hparams and metrics for stopped epoch
     -----------------------------------------
     :param _tb_logger:      [pytorch lightning TensorboardLogger]
-    :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, prune_ratio_*, lr_*
+    :param _hparams:        [argparse.Namespace] attr: batch_size, max_seq_length, max_epochs, *_fraction, lr_*
     :param _epoch_best:     [int]
     :param _epochs:         [int]
     :param _model_best:     [NerModelTrain] loaded model
@@ -377,7 +377,7 @@ def remove_checkpoint(_checkpoint_path, _default_logger):
     """
     remove checkpoint stored at _checkpoint_path
     --------------------------------------------
-    :param _checkpoint_path: [str], e.g. '[..]/store/results/checkpoints/exp_default/run1/epoch=0.ckpt'
+    :param _checkpoint_path: [str], e.g. '[..]/store/results/checkpoints/training_default/run1/epoch=0.ckpt'
     :param _default_logger:  [DefaultLogger]
     :return: -
     """

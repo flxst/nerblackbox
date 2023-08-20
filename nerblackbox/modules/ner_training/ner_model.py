@@ -34,7 +34,7 @@ from nerblackbox.modules.utils.env_variable import env_variable
 class NerModel(pl.LightningModule, ABC):
     def __init__(self, hparams: DictConfig):
         """
-        :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams: attr: training_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__()
         self.save_hyperparameters(hparams)
@@ -44,7 +44,7 @@ class NerModel(pl.LightningModule, ABC):
             self.params,
             self.hyperparameters,
             self.log_dirs,
-            self.experiment,
+            self.training,
         ) = split_parameters(hparams)
 
         # preparations
@@ -93,7 +93,9 @@ class NerModel(pl.LightningModule, ABC):
         try:
             # use transformers model
             AutoTokenizer.from_pretrained(
-                self.params.pretrained_model_name, use_fast=False
+                self.params.pretrained_model_name,
+                use_fast=False,
+                add_prefix_space=True,  # only used for SentencePiece tokenizers (needed for pretokenized text)
             )
             self.pretrained_model_name = self.params.pretrained_model_name
         except ValueError:
@@ -110,6 +112,7 @@ class NerModel(pl.LightningModule, ABC):
             do_lower_case=False,
             additional_special_tokens=self.special_tokens,
             use_fast=True,
+            add_prefix_space=True,  # only used for SentencePiece tokenizers (needed for pretokenized text)
         )  # do_lower_case needs to be False !!
 
         # 3. data_preprocessor

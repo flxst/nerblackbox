@@ -10,9 +10,9 @@ from nerblackbox.modules.utils.util_functions import (
 )
 
 
-class ExperimentResults:
+class TrainingResults:
 
-    """class that contains results of a single experiment."""
+    """class that contains results of a single training."""
 
     METRICS = {
         "EPOCH_BEST": "EPOCH_BEST",
@@ -38,7 +38,7 @@ class ExperimentResults:
         self,
         _id: Optional[str] = None,
         name: Optional[str] = None,
-        experiment: Optional[pd.DataFrame] = None,
+        training: Optional[pd.DataFrame] = None,
         single_runs: Optional[pd.DataFrame] = None,
         average_runs: Optional[pd.DataFrame] = None,
         best_single_run: Optional[Dict] = None,
@@ -47,8 +47,8 @@ class ExperimentResults:
         """
         Args:
             _id: e.g. '1'
-            name: e.g. 'my_experiment'
-            experiment: overview on experiment parameters
+            name: e.g. 'my_training'
+            training: overview on training parameters
             single_runs: overview on run parameters & single  results
             average_runs: overview on run parameters & average results
             best_single_run: overview on best run parameters & single results
@@ -56,8 +56,8 @@ class ExperimentResults:
         """
         self._id: str = _id if _id is not None else ""
         self.name: str = name if name is not None else ""
-        self.experiment: pd.DataFrame = (
-            experiment if experiment is not None else pd.DataFrame()
+        self.training: pd.DataFrame = (
+            training if training is not None else pd.DataFrame()
         )
         self.single_runs: pd.DataFrame = (
             single_runs if single_runs is not None else pd.DataFrame()
@@ -74,30 +74,28 @@ class ExperimentResults:
 
     @classmethod
     def from_mlflow_runs(
-        cls, _runs: List[Run], _experiment_id: str, _experiment_name: str
-    ) -> "ExperimentResults":
+        cls, _runs: List[Run], _training_id: str, _training_name: str
+    ) -> "TrainingResults":
         """
         Args:
             _runs: [List of mlflow.entities.Run]
-            _experiment_id: [str], e.g. '0'
-            _experiment_name: [str], e.g. 'my_experiment'
+            _training_id: [str], e.g. '0'
+            _training_name: [str], e.g. 'my_training'
 
         Returns:
-            ExperimentResults instance
+            TrainingResults instance
         """
-        experiment_results = ExperimentResults(
-            _id=_experiment_id, name=_experiment_name
-        )
-        experiment_results._parse_and_create_dataframe(
+        training_results = TrainingResults(_id=_training_id, name=_training_name)
+        training_results._parse_and_create_dataframe(
             _runs
-        )  # attr: experiment, single_runs, average_runs
-        experiment_results.extract_best_single_run()  # attr: best_single_run
-        experiment_results.extract_best_average_run()  # attr: best_average_run
+        )  # attr: training, single_runs, average_runs
+        training_results.extract_best_single_run()  # attr: best_single_run
+        training_results.extract_best_average_run()  # attr: best_average_run
 
-        return experiment_results
+        return training_results
 
     ####################################################################################################################
-    # 1. PARSE AND CREATE DATAFRAME -> experiment, single_runs, average_runs
+    # 1. PARSE AND CREATE DATAFRAME -> training, single_runs, average_runs
     ####################################################################################################################
     def _parse_and_create_dataframe(
         self,
@@ -110,14 +108,14 @@ class ExperimentResults:
             _runs:   [list] of [mlflow.entities.Run objects]
 
         Created Attr:
-            experiment:   [pandas DataFrame] overview on experiment parameters
+            training:     [pandas DataFrame] overview on training parameters
             single_runs:  [pandas DataFrame] overview on single  run parameters & results
             average_runs: [pandas DataFrame] overview on average run parameters & results
         """
         ###########################################
-        # parameters_experiment & parameters_runs
+        # parameters_training & parameters_runs
         ###########################################
-        parameters_runs, parameters_experiment = self._parse_runs(_runs)
+        parameters_runs, parameters_training = self._parse_runs(_runs)
 
         ###########################################
         # rename
@@ -132,7 +130,7 @@ class ExperimentResults:
         ###########################################
         # dataframes
         ###########################################
-        self.experiment = pd.DataFrame(parameters_experiment, index=["experiment"]).T
+        self.training = pd.DataFrame(parameters_training, index=["training"]).T
         self.single_runs, self.average_runs = self._2_sorted_dataframes(
             parameters_runs_renamed, parameters_runs_renamed_average
         )
@@ -146,16 +144,14 @@ class ExperimentResults:
             _runs: list of mlflow.entities.Run objects
 
         Returns:
-            _parameters_runs:       information on single runs
-            _parameters_experiment: information on whole experiment
+            _parameters_runs:     information on single runs
+            _parameters_training: information on whole training
         """
         _parameters_runs: Dict[Tuple[str, str], Any] = dict()
-        _parameters_experiment: Dict[str, Any] = dict()
+        _parameters_training: Dict[str, Any] = dict()
         for i in range(len(_runs)):
-            if len(_runs[i].data.metrics) == 0:  # experiment
-                _parameters_experiment = {
-                    k: [v] for k, v in _runs[i].data.params.items()
-                }
+            if len(_runs[i].data.metrics) == 0:  # training
+                _parameters_training = {k: [v] for k, v in _runs[i].data.params.items()}
             else:  # run
                 if ("info", "run_id") not in _parameters_runs.keys():
                     _parameters_runs[("info", "run_id")] = [_runs[i].info.run_id]
@@ -201,7 +197,7 @@ class ExperimentResults:
             except:
                 _parameters_runs[("metrics", k)] = [-1]
 
-        return _parameters_runs, _parameters_experiment
+        return _parameters_runs, _parameters_training
 
     @classmethod
     def _rename_parameters_runs_single(cls, _tuple: Tuple[str, str]) -> Tuple[str, str]:
@@ -317,8 +313,11 @@ class ExperimentResults:
                     _parameters_runs_renamed,
                     _metric=_metric,
                 )
-                metrics[_metric] = f"{_mean:.5f} +- "
-                metrics[_metric] += f"{_dmean:.5f}" if _dmean is not None else "###"
+                metrics[_metric] = (
+                    f"{_mean:.5f} +- {_dmean:.5f}"
+                    if _dmean is not None
+                    else f"{_mean:.4f}"
+                )
             for k in metrics.keys():
                 key = ("metrics", k)
                 _parameters_runs_renamed_average[key].append(metrics[k])
@@ -369,7 +368,7 @@ class ExperimentResults:
     # 2a. EXTRACT BEST SINGLE RUN -> best_single_run
     ####################################################################################################################
     def extract_best_single_run(self) -> None:
-        if self.experiment is not None and self.single_runs is not None:
+        if self.training is not None and self.single_runs is not None:
             _df_best_single_run = self.single_runs.iloc[0, :]
 
             assert (
@@ -386,8 +385,8 @@ class ExperimentResults:
 
             self.best_single_run = dict(
                 **{
-                    "exp_id": self._id,
-                    "exp_name": self.name,
+                    "training_id": self._id,
+                    "training_name": self.name,
                     "checkpoint": checkpoint if isfile(checkpoint) else None,
                 },
                 **{
@@ -405,13 +404,13 @@ class ExperimentResults:
     # 2b. EXTRACT BEST AVERAGE RUN -> best_average_run
     ####################################################################################################################
     def extract_best_average_run(self) -> None:
-        if self.experiment is not None and self.average_runs is not None:
+        if self.training is not None and self.average_runs is not None:
             _df_best_average_run = self.average_runs.iloc[0, :]
 
             self.best_average_run = dict(
                 **{
-                    "exp_id": self._id,
-                    "exp_name": self.name,
+                    "training_id": self._id,
+                    "training_name": self.name,
                     "run_name": _df_best_average_run[("info", "run_name")],
                 },
                 **{

@@ -6,39 +6,37 @@ from nerblackbox.modules.utils.env_variable import env_variable
 from typing import Union, Tuple, Any, Dict, List
 
 
-class ExperimentConfig:
+class TrainingConfig:
     """
-    class that parses <experiment_name>.ini files
+    class that parses <training_name>.ini files
     """
 
-    def __init__(self, experiment_name: str):
+    def __init__(self, training_name: str):
         """
         Args:
-            experiment_name: e.g. 'exp1', 'default
+            training_name: e.g. 'training1', 'default
         """
         self.config: Dict[str, Dict[str, str]]
         self.run_names: List[str]
-        self.config, self.run_names = self._get_config(experiment_name)
+        self.config, self.run_names = self._get_config(training_name)
 
     ####################################################################################################################
     # HELPER METHODS
     ####################################################################################################################
     def _get_config(
-        self, experiment_name: str
+        self, training_name: str
     ) -> Tuple[Dict[str, Dict[str, str]], List[str]]:
         """
         get ConfigParser instance and derive config dictionary from it
 
         Args:
-            experiment_name: e.g. 'exp1', 'default
+            training_name: e.g. 'training1', 'default
 
         Returns:
             _config_dict: w/ keys = sections [str], values = [dict] w/ key: value = params: values
             _run_names: e.g. ["runA", "runB"]
         """
-        config_path = join(
-            env_variable("DIR_EXPERIMENT_CONFIGS"), f"{experiment_name}.ini"
-        )
+        config_path = join(env_variable("DIR_TRAINING_CONFIGS"), f"{training_name}.ini")
         if not os.path.isfile(config_path):
             raise Exception(f"config file at {config_path} does not exist")
 
@@ -87,11 +85,11 @@ class ExperimentConfig:
         convert _input string to str/int/float/bool
 
         Args:
-            _input_key:        [str],              e.g. 'lr_schedule' or 'prune_ratio_train' or 'checkpoints'
-            _input_value:      [str],              e.g. 'constant'    or '0.01'              or 'False'
+            _input_key:        [str],              e.g. 'lr_schedule' or 'train_fraction' or 'checkpoints'
+            _input_value:      [str],              e.g. 'constant'    or '0.01'           or 'False'
 
         Returns:
-            converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01               or  False
+            converted_input: [str/int/float/bool], e.g. 'constant'    or  0.01            or  False
         """
         if _input_key in PARAMS.keys():
             convert_to = PARAMS[_input_key]

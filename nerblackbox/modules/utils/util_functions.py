@@ -75,19 +75,19 @@ def get_hardcoded_parameters(keys=False):
     :return: _log_dirs: [dict] w/ keys = parameter name [str] & values = type [str] --- or [list] of keys
     """
     _general = {
-        "experiment_name": "str",
+        "training_name": "str",
         "run_name": "str",
         "run_name_nr": "str",
         "device": "str",
         "fp16": "bool",
-        "experiment_run_name_nr": "str",
+        "training_run_name_nr": "str",
     }
     _params = {
         "dataset_name": "str",
         "annotation_scheme": "str",
-        "prune_ratio_train": "float",
-        "prune_ratio_val": "float",
-        "prune_ratio_test": "float",
+        "train_fraction": "float",
+        "val_fraction": "float",
+        "test_fraction": "float",
         "pretrained_model_name": "str",
         "uncased": "bool",
         "checkpoints": "bool",
@@ -130,7 +130,7 @@ def get_hardcoded_parameters(keys=False):
 
 
 def unify_parameters(
-    _params: Namespace, _hparams: Namespace, _log_dirs: Namespace, _experiment: bool
+    _params: Namespace, _hparams: Namespace, _log_dirs: Namespace, _training: bool
 ) -> DictConfig:
     """
     unify parameters (namespaces, bool) to one namespace
@@ -139,16 +139,16 @@ def unify_parameters(
         _params:        keys = 'dataset_name', 'annotation_scheme', ..
         _hparams:       keys = 'batch_size', 'max_seq_length', ..
         _log_dirs:      keys = 'mlflow', 'tensorboard', ..
-        _experiment:
+        _training:
 
     Returns:
-        _lightning_hparams: keys = all keys from input namespaces + 'experiment'
+        _lightning_hparams: keys = all keys from input namespaces + 'training'
     """
     _dict = dict()
     _dict.update(vars(_params))
     _dict.update(vars(_hparams))
     _dict.update(vars(_log_dirs))
-    _dict.update({"experiment": _experiment})
+    _dict.update({"training": _training})
     _lightning_hparams = Namespace(**_dict)
     _lightning_hparams.device = (
         _lightning_hparams.device.type
@@ -168,13 +168,13 @@ def split_parameters(
     split namespace to parameters (namespaces, bool)
 
     Args:
-        _lightning_hparams: keys = all keys from output namespaces + 'experiment'
+        _lightning_hparams: keys = all keys from output namespaces + 'training'
 
     Returns:
         _params:            keys = 'dataset_name', 'annotation_scheme', ..
         _hparams:           keys = 'batch_size', 'max_seq_length', ..
         _log_dirs:          keys = 'mlflow', 'tensorboard', ..
-        _experiment:
+        _training:
     """
     _lightning_hparams_dict = OmegaConf.to_container(_lightning_hparams)
     assert isinstance(
@@ -202,8 +202,8 @@ def split_parameters(
             if k in list(LOG_DIRS.keys())
         }
     )
-    _experiment = _lightning_hparams.get("experiment")
-    return _params, _hparams, _log_dirs, _experiment
+    _training = _lightning_hparams.get("training")
+    return _params, _hparams, _log_dirs, _training
 
 
 def get_package_version() -> str:

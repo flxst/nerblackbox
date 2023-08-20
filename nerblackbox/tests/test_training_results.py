@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import List, Dict, Tuple, Any, Union
 from mlflow.entities import Run
-from nerblackbox.modules.experiment_results import ExperimentResults
+from nerblackbox.modules.training_results import TrainingResults
 
 import os
 from os.path import join, abspath, dirname, isfile
@@ -20,7 +20,7 @@ FILE_PATH = join(
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
-class TestExperimentResults:
+class TestTrainingResults:
 
     # load data
     if isfile(FILE_PATH):
@@ -28,18 +28,18 @@ class TestExperimentResults:
     else:
         runs = None  # NO TESTING
 
-    experiment_id: str = "0"
-    experiment_name: str = "my_experiment_mlflow_runs"
-    experiment_results = ExperimentResults(_id=experiment_id, name=experiment_name)
+    training_id: str = "0"
+    training_name: str = "my_training_mlflow_runs"
+    training_results = TrainingResults(_id=training_id, name=training_name)
 
     # results: intermediate
-    true_parameters_experiment: Dict[str, Any] = {
+    true_parameters_training: Dict[str, Any] = {
         "early_stopping": ["True"],
-        "prune_ratio_test": ["0.2"],
+        "test_fraction": ["0.2"],
         "seed": ["42"],
         "monitor": ["val_loss"],
         "lr_num_cycles": ["4"],
-        "prune_ratio_val": ["0.2"],
+        "val_fraction": ["0.2"],
         "pretrained_model_name": ["af-ai-center/bert-base-swedish-uncased"],
         "max_epochs": ["3"],
         "mode": ["min"],
@@ -48,9 +48,9 @@ class TestExperimentResults:
         "checkpoints": ["True"],
         "lr_warmup_epochs": ["2"],
         "lr_cooldown": ["True"],
-        "prune_ratio_train": ["0.2"],
+        "train_fraction": ["0.2"],
         "annotation_scheme": ["plain"],
-        "experiment_name": ["my_experiment_mlflow_runs"],
+        "training_name": ["my_training_mlflow_runs"],
         "device": ["gpu"],
         "min_delta": ["0.3"],
         "dataset_name": ["swedish_ner_corpus"],
@@ -147,9 +147,9 @@ class TestExperimentResults:
         ("metrics", "TEST_ENT_ASR_F1"): ["0.71511 +- 0.01679"],
     }
 
-    # results: ExperimentResults attributes
-    true_experiment: pd.DataFrame = pd.DataFrame(
-        true_parameters_experiment, index=["experiment"]
+    # results: TrainingResults attributes
+    true_training: pd.DataFrame = pd.DataFrame(
+        true_parameters_training, index=["training"]
     ).T
     true_single_runs: pd.DataFrame = pd.DataFrame(
         {
@@ -208,8 +208,8 @@ class TestExperimentResults:
         }
     )
     true_best_single_run: Dict[str, Union[str, float]] = {
-        "exp_id": "0",
-        "exp_name": "my_experiment_mlflow_runs",
+        "training_id": "0",
+        "training_name": "my_training_mlflow_runs",
         "run_id": "<run_id_2>",
         "run_name_nr": "runA-1",
         "VAL_ENT_F1": 0.7757575757575756,
@@ -225,8 +225,8 @@ class TestExperimentResults:
         "checkpoint": "<checkpoint>",
     }
     true_best_average_run: Dict[str, str] = {
-        "exp_id": "0",
-        "exp_name": "my_experiment_mlflow_runs",
+        "training_id": "0",
+        "training_name": "my_training_mlflow_runs",
         "run_name": "runA",
         "CONVERGENCE": "2/2",
         "VAL_ENT_F1": "0.75170 +- 0.01701",
@@ -246,48 +246,48 @@ class TestExperimentResults:
     ####################################################################################################################
     def test_from_mlflow_runs(self):
         if self.runs is not None:
-            test_experiment_results: ExperimentResults = (
-                self.experiment_results.from_mlflow_runs(
-                    self.runs, self.experiment_id, self.experiment_name
+            test_training_results: TrainingResults = (
+                self.training_results.from_mlflow_runs(
+                    self.runs, self.training_id, self.training_name
                 )
             )
-            test_experiment_results.single_runs[("info", "run_id")] = [
+            test_training_results.single_runs[("info", "run_id")] = [
                 "<run_id_2>",
                 "<run_id_1>",
             ]
-            test_experiment_results.best_single_run["run_id"] = "<run_id_2>"
-            test_experiment_results.best_single_run["checkpoint"] = "<checkpoint>"
+            test_training_results.best_single_run["run_id"] = "<run_id_2>"
+            test_training_results.best_single_run["checkpoint"] = "<checkpoint>"
 
             pd.testing.assert_frame_equal(
-                test_experiment_results.experiment, self.true_experiment
-            ), f"ERROR! test_parse_and_create_dataframe / experiment did not pass test"
+                test_training_results.training, self.true_training
+            ), f"ERROR! test_parse_and_create_dataframe / training did not pass test"
             pd.testing.assert_frame_equal(
-                test_experiment_results.single_runs, self.true_single_runs
+                test_training_results.single_runs, self.true_single_runs
             ), f"ERROR! test_parse_and_create_dataframe / single_runs did not pass test"
             pd.testing.assert_frame_equal(
-                test_experiment_results.average_runs, self.true_average_runs
+                test_training_results.average_runs, self.true_average_runs
             ), f"ERROR! test_parse_and_create_dataframe / average_runs did not pass test"
 
             for k in self.true_best_single_run.keys():
                 assert (
-                    test_experiment_results.best_single_run[k]
+                    test_training_results.best_single_run[k]
                     == self.true_best_single_run[k]
-                ), f"ERROR! test_best_single_run[{k}] = {test_experiment_results.best_single_run[k]} != {self.true_best_single_run[k]}"
+                ), f"ERROR! test_best_single_run[{k}] = {test_training_results.best_single_run[k]} != {self.true_best_single_run[k]}"
             for k in self.true_best_average_run.keys():
                 assert (
-                    test_experiment_results.best_average_run[k]
+                    test_training_results.best_average_run[k]
                     == self.true_best_average_run[k]
-                ), f"ERROR! test_best_average_run[{k}] = {test_experiment_results.best_average_run[k]} != {self.true_best_average_run[k]}"
+                ), f"ERROR! test_best_average_run[{k}] = {test_training_results.best_average_run[k]} != {self.true_best_average_run[k]}"
 
     ####################################################################################################################
-    # 1. PARSE AND CREATE DATAFRAME -> experiment, single_runs, average_runs
+    # 1. PARSE AND CREATE DATAFRAME -> training, single_runs, average_runs
     ####################################################################################################################
     def test_parse_runs(self):
         if self.runs is not None:
             (
                 test_parameters_runs,
-                test_parameters_experiment,
-            ) = self.experiment_results._parse_runs(self.runs)
+                test_parameters_training,
+            ) = self.training_results._parse_runs(self.runs)
             test_parameters_runs[("info", "run_id")] = ["<run_id_2>", "<run_id_1>"]
 
             for k1 in self.true_parameters_runs.keys():
@@ -295,18 +295,15 @@ class TestExperimentResults:
                     test_parameters_runs[k1] == self.true_parameters_runs[k1]
                 ), f"ERROR! test_parameter_runs[{k1}] = {test_parameters_runs[k1]} != {self.true_parameters_runs[k1]}"
 
-            for k2 in self.true_parameters_experiment.keys():
+            for k2 in self.true_parameters_training.keys():
                 assert (
-                    test_parameters_experiment[k2]
-                    == self.true_parameters_experiment[k2]
-                ), f"ERROR! test_parameter_experiment[{k2}] = {test_parameters_experiment[k2]} != {self.true_parameters_experiment[k2]}"
+                    test_parameters_training[k2] == self.true_parameters_training[k2]
+                ), f"ERROR! test_parameter_training[{k2}] = {test_parameters_training[k2]} != {self.true_parameters_training[k2]}"
 
     def test_rename_parameters_runs(self):
         if self.runs is not None:
             test_parameters_runs_renamed = (
-                self.experiment_results._rename_parameters_runs(
-                    self.true_parameters_runs
-                )
+                self.training_results._rename_parameters_runs(self.true_parameters_runs)
             )
 
             for k in self.true_parameters_runs_renamed.keys():
@@ -317,7 +314,7 @@ class TestExperimentResults:
 
     def test_average(self):
         if self.runs is not None:
-            test_parameters_runs_renamed_average = self.experiment_results._average(
+            test_parameters_runs_renamed_average = self.training_results._average(
                 self.true_parameters_runs_renamed
             )
             for k in self.true_parameters_runs_renamed_average.keys():
@@ -328,21 +325,21 @@ class TestExperimentResults:
 
     def test_parse_and_create_dataframe(self):
         if self.runs is not None:
-            self.experiment_results._parse_and_create_dataframe(
+            self.training_results._parse_and_create_dataframe(
                 self.runs
-            )  # attr: experiment, single_runs, average_runs
-            self.experiment_results.single_runs[("info", "run_id")] = [
+            )  # attr: training, single_runs, average_runs
+            self.training_results.single_runs[("info", "run_id")] = [
                 "<run_id_2>",
                 "<run_id_1>",
             ]
             pd.testing.assert_frame_equal(
-                self.experiment_results.experiment, self.true_experiment
-            ), f"ERROR! test_parse_and_create_dataframe / experiment did not pass test"
+                self.training_results.training, self.true_training
+            ), f"ERROR! test_parse_and_create_dataframe / training did not pass test"
             pd.testing.assert_frame_equal(
-                self.experiment_results.single_runs, self.true_single_runs
+                self.training_results.single_runs, self.true_single_runs
             ), f"ERROR! test_parse_and_create_dataframe / single_runs did not pass test"
             pd.testing.assert_frame_equal(
-                self.experiment_results.average_runs, self.true_average_runs
+                self.training_results.average_runs, self.true_average_runs
             ), f"ERROR! test_parse_and_create_dataframe / average_runs did not pass test"
 
     ####################################################################################################################
@@ -350,24 +347,24 @@ class TestExperimentResults:
     ####################################################################################################################
     def test_extract_best_single_run(self):
         if self.runs is not None:
-            self.experiment_results.extract_best_single_run()  # attr: best_single_run
-            self.experiment_results.best_single_run["checkpoint"] = "<checkpoint>"
+            self.training_results.extract_best_single_run()  # attr: best_single_run
+            self.training_results.best_single_run["checkpoint"] = "<checkpoint>"
             for k in self.true_best_single_run.keys():
                 assert (
-                    self.experiment_results.best_single_run[k]
+                    self.training_results.best_single_run[k]
                     == self.true_best_single_run[k]
-                ), f"ERROR! test_best_single_run[{k}] = {self.experiment_results.best_single_run[k]} != {self.true_best_single_run[k]}"
+                ), f"ERROR! test_best_single_run[{k}] = {self.training_results.best_single_run[k]} != {self.true_best_single_run[k]}"
 
     ####################################################################################################################
     # 2b. EXTRACT BEST AVERAGE RUN -> best_average_run
     ####################################################################################################################
     def test_extract_best_average_run(self):
         if self.runs is not None:
-            self.experiment_results.extract_best_average_run()  # attr: best_average_run
+            self.training_results.extract_best_average_run()  # attr: best_average_run
             print("test_best_average_run")
-            print(self.experiment_results.best_average_run)
+            print(self.training_results.best_average_run)
             for k in self.true_best_average_run.keys():
                 assert (
-                    self.experiment_results.best_average_run[k]
+                    self.training_results.best_average_run[k]
                     == self.true_best_average_run[k]
-                ), f"ERROR! test_best_average_run[{k}] = {self.experiment_results.best_average_run[k]} != {self.true_best_average_run[k]}"
+                ), f"ERROR! test_best_average_run[{k}] = {self.training_results.best_average_run[k]} != {self.true_best_average_run[k]}"

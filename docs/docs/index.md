@@ -1,6 +1,6 @@
 # Start
 
-**nerblackbox** - a python package to fine-tune transformer-based language models for named entity recognition (NER).
+**nerblackbox** - a high-level library for named entity recognition in python
 
 latest version: 0.0.15
 
@@ -47,15 +47,15 @@ in a few simple steps.
 
 === "Training"
     
-    - Define a fine-tuning experiment by choosing a pretrained model and a dataset
+    - Define the training by choosing a pretrained model and a dataset
     ``` python
-    experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+    training = Training("my_training", model="bert-base-cased", dataset="conll2003")
     ```
 
-    - Run the experiment and get the performance of the fine-tuned model
+    - Run the training and get the performance of the fine-tuned model
     ``` python
-    experiment.run()
-    experiment.get_result(metric="f1", level="entity", phase="test")
+    training.run()
+    training.get_result(metric="f1", level="entity", phase="test")
     # 0.9045
     ```
     &nbsp;
@@ -65,13 +65,13 @@ in a few simple steps.
 
     - Load the model
     ```python
-    model = Model.from_experiment("my_experiment")
+    model = Model.from_training("my_training")
     ```
 
     - Evaluate the model
     ```python
-    evaluation_dict = model.evaluate_on_dataset("ehealth_kd", "jsonl", phase="test")
-    evaluation_dict["micro"]["entity"]["f1"]
+    results = model.evaluate_on_dataset("conll2003", phase="test")
+    results["micro"]["entity"]["f1"]
     # 0.9045
     ```
     &nbsp;
@@ -81,7 +81,7 @@ in a few simple steps.
 
     - Load the model
     ``` python
-    model = Model.from_experiment("my_experiment")
+    model = Model.from_training("my_training")
     ```
 
     - Let the model predict
@@ -150,7 +150,7 @@ In order to get familiar with **nerblackbox**, it is recommended to
 ``` tex
 @misc{nerblackbox,
   author = {Stollenwerk, Felix},
-  title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
+  title  = {nerblackbox: a high-level library for named entity recognition in python},
   year   = {2021},
   url    = {https://github.com/flxst/nerblackbox},
 }

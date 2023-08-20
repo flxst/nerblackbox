@@ -31,7 +31,7 @@ class Utils:
             _hparams: e.g. {"a": 1}
         """
         # hparams
-        exclude_keys = ["experiment_name", "run_name", "device", "fp16"]
+        exclude_keys = ["training_name", "run_name", "device", "fp16"]
         _hparams = {
             _key: _kwargs[_key] for _key in _kwargs.keys() if _key not in exclude_keys
         }

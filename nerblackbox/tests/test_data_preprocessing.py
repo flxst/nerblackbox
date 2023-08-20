@@ -44,7 +44,6 @@ tokenizer_KB = AutoTokenizer.from_pretrained(
 
 csv_reader = CsvReader(
     path=resource_filename("nerblackbox", "tests/test_data"),
-    tokenizer=tokenizer,
     pretokenized=True,
     do_lower_case=False,
     csv_file_separator="\t",
@@ -144,7 +143,7 @@ class TestCsvReaderAndDataProcessor:
             test_input_examples,
             test_annotation,
         ) = data_preprocessor.get_input_examples_train(
-            prune_ratio={"train": 0.5, "val": 1.0, "test": 1.0},
+            fraction={"train": 0.5, "val": 1.0, "test": 1.0},
             dataset_name=None,
         )
         assert (

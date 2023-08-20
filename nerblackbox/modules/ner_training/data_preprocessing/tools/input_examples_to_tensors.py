@@ -105,6 +105,8 @@ class InputExamplesToTensors:
             tags_split_into_words
         ), f"ERROR! len(tokens) = {len(tokens_split_into_words)} is different from len(tags) = {len(tags_split_into_words)}"
 
+        tokens_split_into_words = [elem.lstrip("Ġ") for elem in tokens_split_into_words]
+
         encodings = self.tokenizer(
             tokens_split_into_words,
             padding="max_length",

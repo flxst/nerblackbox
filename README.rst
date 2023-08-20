@@ -2,7 +2,7 @@
 nerblackbox
 ===========
 
-A python package to fine-tune transformer-based language models for named entity recognition (NER).
+A High-level Library for Named Entity Recognition in Python.
 
 .. image:: https://img.shields.io/pypi/v/nerblackbox
     :target: https://pypi.org/project/nerblackbox
@@ -70,46 +70,47 @@ in a few simple steps.
 2. Training
 """""""""""
 
-- Define a fine-tuning experiment by choosing a pretrained model and a dataset
+- Define the training by choosing a pretrained model and a dataset
 
 ::
 
-    experiment = Experiment("my_experiment", model="bert-base-cased", dataset="conll2003")
+    training = Training("my_training", model="bert-base-cased", dataset="conll2003")
 
-- Run the experiment and get the performance of the fine-tuned model
+- Run the training and get the performance of the fine-tuned model
 
 ::
 
-    experiment.run()
-    experiment.get_result(metric="f1", level="entity", phase="test")
+    training.run()
+    training.get_result(metric="f1", level="entity", phase="test")
     # 0.9045
 
+
 3. Evaluation
-^^^^^^^^^^^^^
+"""""""""""""
 
 - Load the model
 
 ::
 
-    model = Model.from_experiment("my_experiment")
+    model = Model.from_training("my_training")
 
 - Evaluate the model
 
 ::
 
-    evaluation_dict = model.evaluate_on_dataset("ehealth_kd", "jsonl", phase="test")
-    evaluation_dict["micro"]["entity"]["f1"]
+    results = model.evaluate_on_dataset("ehealth_kd", phase="test")
+    results["micro"]["entity"]["f1"]
     # 0.9045
 
 
 4. Inference
-^^^^^^^^^^^^
+""""""""""""
 
 - Load the model
 
 ::
 
-    model = Model.from_experiment("my_experiment")
+    model = Model.from_training("my_training")
 
 - Let the model predict
 
@@ -163,7 +164,7 @@ Citation
 
     @misc{nerblackbox,
       author = {Stollenwerk, Felix},
-      title  = {nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition},
+      title  = {nerblackbox: a high-level library for named entity recognition in python},
       year   = {2021},
       url    = {https://github.com/flxst/nerblackbox},
     }

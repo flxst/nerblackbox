@@ -21,7 +21,7 @@ class NerModelTrain2Model(NerModel):
 
     def __init__(self, hparams: DictConfig):
         """
-        :param hparams: attr: experiment_name, run_name, pretrained_model_name, dataset_name, ..
+        :param hparams: attr: training_name, run_name, pretrained_model_name, dataset_name, ..
         """
         super().__init__(hparams)
 
