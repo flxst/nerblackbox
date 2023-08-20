@@ -415,15 +415,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#define-an-experiment" class="md-nav__link">
-    Define an Experiment
+  <a href="#define-the-training" class="md-nav__link">
+    Define the Training
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#run-an-experiment" class="md-nav__link">
-    Run an Experiment
+  <a href="#run-the-training" class="md-nav__link">
+    Run the Training
   </a>
   
 </li>
@@ -582,6 +582,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -673,8 +687,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../python_api/experiment/" class="md-nav__link">
-        Experiment
+      <a href="../python_api/training/" class="md-nav__link">
+        Training
       </a>
     </li>
   
@@ -766,29 +780,28 @@
 <p><strong>nerblackbox</strong> works with PyTorch transformer models only. 
 They can either be taken straight from HuggingFace (HF) or the Local Filesystem (LF).
 In order to employ models from HF, it is sufficient to specify the name of the model (see <a href="#basic-training">Basic Training</a>).</p>
-<p>Local models need to be stored in a directory <code>./store/pretrained_models/&lt;my_model&gt;</code> and include the following files:</p>
+<p>Local models need to be stored in a directory <code>./store/pretrained_models/&lt;my_model&gt;</code> and (at least) include the following files:</p>
 <ul>
 <li><code>config.json</code></li>
 <li><code>pytorch_model.bin</code></li>
-<li><code>vocab.txt</code></li>
+<li><code>tokenizer_config.json</code>, <code>tokenizer.json</code>, <code>vocab.json</code> (or <code>vocab.txt</code>) </li>
 </ul>
 <p>Note that the name for <code>&lt;my_model&gt;</code> must include the architecture type, e.g. <code>bert</code>.</p>
 <hr />
 <h2 id="basic-training">Basic Training</h2>
-<p>Fine-tuning a <strong>specific model</strong> on a <strong>specific dataset</strong> using <strong>specific parameters</strong> is called an <strong>experiment</strong>. 
-An experiment is handled by the <a href="../python_api/experiment">Experiment</a> class.</p>
+<p>A <strong>specific model</strong> can be trained on a <strong>specific dataset</strong> using <strong>specific parameters</strong> using the <a href="../python_api/training">Training</a> class.</p>
 <hr />
-<h3 id="define-an-experiment">Define an Experiment</h3>
-<p>An experiment is defined </p>
+<h3 id="define-the-training">Define the Training</h3>
+<p>The training is defined </p>
 <ul>
 <li>
-<p>either <strong>dynamically</strong> through arguments when an <a href="../python_api/experiment/">Experiment</a> instance is created</p>
+<p>either <strong>dynamically</strong> through arguments when a <a href="../python_api/training/">Training</a> instance is created</p>
 <details class="note">
-<summary>define experiment dynamically</summary>
+<summary>define training dynamically</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span><span class="s2">&quot;&lt;training_name&gt;&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">)</span>
 </code></pre></div>
 </div>
 </div>
@@ -796,13 +809,13 @@ An experiment is handled by the <a href="../python_api/experiment">Experiment</a
 </details>
 </li>
 <li>
-<p>or <strong>statically</strong> by an <strong>experiment configuration</strong> file <code>./store/experiment_configs/&lt;experiment_name&gt;.ini</code>.</p>
+<p>or <strong>statically</strong> by a <strong>training configuration</strong> file <code>./store/training_configs/&lt;training_name&gt;.ini</code>.</p>
 <details class="note">
-<summary>define experiment statically</summary>
+<summary>define training statically</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">,</span> <span class="n">from_config</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span><span class="s2">&quot;&lt;training_name&gt;&quot;</span><span class="p">,</span> <span class="n">from_config</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 </div>
 </div>
@@ -810,47 +823,47 @@ An experiment is handled by the <a href="../python_api/experiment">Experiment</a
 </details>
 </li>
 </ul>
-<p>Note that the dynamic variant also creates an experiment configuration, which is subsequently used.
+<p>Note that the dynamic variant also creates a training configuration, which is subsequently used.
 In both cases, the specification of the <code>model</code> and the <code>dataset</code> are mandatory and sufficient.
 Training <a href="#parameters">Parameters</a> may be specified but are optional. The hyperparameters that are used by default are globally applicable settings that should give close-to-optimal results for any use case.
 In particular, <a href="#presets">adaptive fine-tuning</a> is employed to ensure that this holds irrespective of the size of the dataset.  </p>
 <hr />
-<h3 id="run-an-experiment">Run an Experiment</h3>
-<p>A fine-tuning experiment is run using the following command:</p>
+<h3 id="run-the-training">Run the Training</h3>
+<p>The training is run using the following command:</p>
 <details class="note">
-<summary>run experiment</summary>
+<summary>run training</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">training</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
 </div>
 </div>
 </div>
 </details>
-<p>See the <a href="../python_api/experiment/#nerblackbox.api.experiment.Experiment.run">Python API documentation</a> for further details.</p>
+<p>See the <a href="../python_api/training/#nerblackbox.api.training.Training.run">Python API documentation</a> for further details.</p>
 <hr />
 <h3 id="main-results">Main Results</h3>
-<p>When an experiment is finished, one can get its main results like so:</p>
+<p>When the training is finished, one can get its main results like so:</p>
 <details class="note">
-<summary>Main Results (single experiment)</summary>
+<summary>Main Results (single training)</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">training</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 </code></pre></div>
 </div>
 </div>
 </div>
 </details>
-<p>See <a href="../python_api/experiment/#nerblackbox.api.experiment.Experiment.get_result">Python API documentation</a> for further details.</p>
-<p>An overview of all conducted experiments and their main results can be accessed using the <a href="../python_api/store">Store</a> class:</p>
+<p>See the <a href="../python_api/training/#nerblackbox.api.training.Training.get_result">Python API documentation</a> for further details.</p>
+<p>An overview of all conducted trainings and their main results can be accessed using the <a href="../python_api/store">Store</a> class:</p>
 <details class="note">
-<summary>Main Results (all experiments)</summary>
+<summary>Main Results (all trainings)</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">Store</span><span class="o">.</span><span class="n">show_experiments</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">Store</span><span class="o">.</span><span class="n">show_trainings</span><span class="p">()</span>
 </code></pre></div>
 </div>
 </div>
@@ -858,12 +871,12 @@ In particular, <a href="#presets">adaptive fine-tuning</a> is employed to ensure
 </details>
 <hr />
 <h3 id="example">Example</h3>
-<p>An English BERT model can be fine-tuned on the CoNLL-2003 dataset like this:</p>
+<p>An English BERT model can be trained on the CoNLL-2003 dataset like this:</p>
 <details class="example">
 <summary>Example: Training</summary>
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bert-base-cased&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;conll2003&quot;</span><span class="p">)</span> 
-<span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>                                                                       
-<span class="n">experiment</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>                       
+<div class="highlight"><pre><span></span><code><span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span><span class="s2">&quot;my_training&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bert-base-cased&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;conll2003&quot;</span><span class="p">)</span> 
+<span class="n">training</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>                                                                       
+<span class="n">training</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>                       
 <span class="c1"># 0.9045</span>
 </code></pre></div>
 </details>
@@ -871,21 +884,21 @@ In particular, <a href="#presets">adaptive fine-tuning</a> is employed to ensure
 <h2 id="advanced-training">Advanced Training</h2>
 <h3 id="parameters">Parameters</h3>
 <p><strong>nerblackbox</strong> uses a large amount of default (hyper)parameters that can be customized as needed. 
-The concerned parameters just need to be specified when <a href="#define-an-experiment">an experiment is defined</a>, 
+The concerned parameters just need to be specified when <a href="#define-a-training">the training is defined</a>, 
 either statically or dynamically.</p>
 <ul>
 <li>
-<p>In the <strong>static</strong> case, an experiment configuration file may look like this:</p>
+<p>In the <strong>static</strong> case, a training configuration file may look like this:</p>
 <details class="example">
-<summary>Example: static experiment configuration file with parameters</summary>
-<div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<summary>Example: static training configuration file with parameters</summary>
+<div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 
 [dataset]
 dataset_name = swedish_ner_corpus
 annotation_scheme = plain
-prune_ratio_train = 0.1  # for testing
-prune_ratio_val = 1.0
-prune_ratio_test = 1.0
+train_fraction = 0.1  # for testing
+val_fraction = 1.0
+test_fraction = 1.0
 train_on_val = False
 train_on_test = False
 
@@ -921,15 +934,15 @@ lr_schedule = constant
 <li>
 <p>In the <strong>dynamic</strong> case, the equivalent example is:</p>
 <details class="example">
-<summary>Example: dynamic experiment with parameters</summary>
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span>
-    <span class="s2">&quot;my_experiment&quot;</span><span class="p">,</span> 
+<summary>Example: dynamic training with parameters</summary>
+<div class="highlight"><pre><span></span><code><span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span>
+    <span class="s2">&quot;my_training&quot;</span><span class="p">,</span> 
     <span class="n">model</span><span class="o">=</span><span class="s2">&quot;af-ai-center/bert-base-swedish-uncased&quot;</span><span class="p">,</span>  <span class="c1"># model = model_name</span>
     <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;swedish_ner_corpus&quot;</span><span class="p">,</span>                    <span class="c1"># dataset = dataset_name</span>
     <span class="n">annotation_scheme</span><span class="o">=</span><span class="s2">&quot;plain&quot;</span><span class="p">,</span>
-    <span class="n">prune_ratio_train</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>                           <span class="c1"># for testing</span>
-    <span class="n">prune_ratio_val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">prune_ratio_test</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">train_fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>                              <span class="c1"># for testing</span>
+    <span class="n">val_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">test_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">train_on_val</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">train_on_test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">checkpoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -993,7 +1006,7 @@ lr_schedule = constant
 <td>specify annotation scheme (e.g. <a href="https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging)">BIO</a>). auto means it is inferred from data</td>
 </tr>
 <tr>
-<td>prune_ratio_train</td>
+<td>train_fraction</td>
 <td>No</td>
 <td>1.0</td>
 <td>float</td>
@@ -1001,7 +1014,7 @@ lr_schedule = constant
 <td>fraction of train dataset to be used</td>
 </tr>
 <tr>
-<td>prune_ratio_val</td>
+<td>val_fraction</td>
 <td>No</td>
 <td>1.0</td>
 <td>float</td>
@@ -1009,7 +1022,7 @@ lr_schedule = constant
 <td>fraction of val   dataset to be used</td>
 </tr>
 <tr>
-<td>prune_ratio_test</td>
+<td>test_fraction</td>
 <td>No</td>
 <td>1.0</td>
 <td>float</td>
@@ -1035,16 +1048,16 @@ lr_schedule = constant
 </tbody>
 </table>
 <details class="example">
-<summary>Example: static experiment configuration file with parameters (Dataset)</summary>
-<div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<summary>Example: static training configuration file with parameters (Dataset)</summary>
+<div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 <span class="gh"># ..</span>
 
 [dataset]
 dataset_name = swedish_ner_corpus
 annotation_scheme = plain
-prune_ratio_train = 0.1  # for testing
-prune_ratio_val = 1.0
-prune_ratio_test = 1.0
+train_fraction = 0.1  # for testing
+val_fraction = 1.0
+test_fraction = 1.0
 train_on_val = False
 train_on_test = False
 </code></pre></div>
@@ -1073,8 +1086,8 @@ train_on_test = False
 </tbody>
 </table>
 <details class="example">
-<summary>Example: static experiment configuration file with parameters (Model)</summary>
-<div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<summary>Example: static training configuration file with parameters (Model)</summary>
+<div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 <span class="gh"># ..</span>
 
 [model]
@@ -1129,8 +1142,8 @@ pretrained_model_name = af-ai-center/bert-base-swedish-uncased
 </tbody>
 </table>
 <details class="example">
-<summary>Example: static experiment configuration file with parameters (Settings)</summary>
-<div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<summary>Example: static training configuration file with parameters (Settings)</summary>
+<div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 <span class="gh"># ..</span>
 
 [settings]
@@ -1268,8 +1281,8 @@ seed = 42
 </tbody>
 </table>
 <details class="example">
-<summary>Example: static experiment configuration file with parameters (Hyperparameters)</summary>
-<div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<summary>Example: static training configuration file with parameters (Hyperparameters)</summary>
+<div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 <span class="gh"># ..</span>
 
 [hparams]
@@ -1294,14 +1307,14 @@ lr_schedule = constant
 <hr />
 <h3 id="presets">Presets</h3>
 <p>In addition to the manual specification of the parameters discussed above, 
-the dynamic experiment definition allows for the use of several hyperparameter <a href="./#presets">presets</a>.
-They can be specified using the <code>from_preset</code> argument in <a href="../python_api/experiment">Experiment()</a> like so:</p>
+the dynamic training definition allows for the use of several hyperparameter <a href="./#presets">presets</a>.
+They can be specified using the <code>from_preset</code> argument in <a href="../python_api/training">Training()</a> like so:</p>
 <details class="note">
-<summary>define experiment dynamically using preset</summary>
+<summary>define training dynamically using preset</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">,</span> <span class="n">from_preset</span><span class="o">=</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span><span class="s2">&quot;&lt;training_name&gt;&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;&lt;dataset_name&gt;&quot;</span><span class="p">,</span> <span class="n">from_preset</span><span class="o">=</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>
 </code></pre></div>
 </div>
 </div>
@@ -1359,11 +1372,11 @@ lr_schedule = linear
 </ul>
 <hr />
 <h3 id="hyperparameter-search">Hyperparameter Search</h3>
-<p>A hyperparameter grid search can easily be conducted as part of an experiment (currently only using the <a href="#define-an-experiment">static definition</a>).
-The hyperparameters one wants to vary are to be specified in special sections <code>[runA]</code>, <code>[runB]</code> etc. in the experiment configuration file.</p>
+<p>A hyperparameter grid search can easily be conducted as part of a training (currently only using the <a href="#define-a-training">static definition</a>).
+The hyperparameters one wants to vary are to be specified in special sections <code>[runA]</code>, <code>[runB]</code> etc. in the training configuration file.</p>
 <details class="example">
 <summary>Example: Hyperparameter Search</summary>
-<p><div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<p><div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 <span class="gh"># ..</span>
 
 [runA]
@@ -1382,7 +1395,7 @@ This creates <strong>2 hyperparameter runs</strong> (<code>runA</code> &amp; <co
 </details>
 <hr />
 <h3 id="multiple-seeds">Multiple Seeds</h3>
-<p>The results of a fine-tuning run depend on the employed random seed, see e.g. <a href="https://arxiv.org/abs/2202.02617">this paper</a> for a discussion.
+<p>The results of a training run depend on the employed random seed, see e.g. <a href="https://arxiv.org/abs/2202.02617">this paper</a> for a discussion.
 One may conduct multiple runs with different seeds that are otherwise identical, in order to</p>
 <ul>
 <li>
@@ -1392,10 +1405,10 @@ One may conduct multiple runs with different seeds that are otherwise identical,
 <p>get an improved model performance</p>
 </li>
 </ul>
-<p>Multiple runs can easily be specified in the experiment configuration.</p>
+<p>Multiple runs can easily be specified in the training configuration.</p>
 <details class="example">
 <summary>Example: Settings / Multiple Runs</summary>
-<div class="highlight"><pre><span></span><code><span class="gh"># my_experiment.ini</span>
+<div class="highlight"><pre><span></span><code><span class="gh"># my_training.ini</span>
 <span class="gh"># ..</span>
 
 [settings]
@@ -1406,20 +1419,20 @@ seed = 42
 </details>
 <hr />
 <h3 id="detailed-results">Detailed Results</h3>
-<p>In addition to the <a href="#main-results">Main Results</a>, one may have a look at much more detailed results of an experiment
+<p>In addition to the <a href="#main-results">Main Results</a>, one may have a look at much more detailed results of a training run
 using <code>mlflow</code> or <code>tensorboard</code>.</p>
 <details class="note">
 <summary>Detailed Results</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">Python</label><label for="__tabbed_7_2">CLI</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">Store</span><span class="o">.</span><span class="n">mlflow</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>       <span class="c1"># + enter http://localhost:5000 in your browser</span>
-<span class="n">Store</span><span class="o">.</span><span class="n">tensorboard</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>  <span class="c1"># + enter http://localhost:6006 in your browser</span>
+<div class="highlight"><pre><span></span><code><span class="n">Store</span><span class="o">.</span><span class="n">mlflow</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>       <span class="c1"># + enter http://127.0.0.1:5000 in your browser</span>
+<span class="n">Store</span><span class="o">.</span><span class="n">tensorboard</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>  <span class="c1"># + enter http://127.0.0.1:6006 in your browser</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>nerbb<span class="w"> </span>mlflow<span class="w">         </span><span class="c1"># + enter http://localhost:5000 in your browser</span>
-nerbb<span class="w"> </span>tensorboard<span class="w">    </span><span class="c1"># + enter http://localhost:6006 in your browser</span>
+<div class="highlight"><pre><span></span><code>nerblackbox<span class="w"> </span>mlflow<span class="w">         </span><span class="c1"># + enter http://127.0.0.1:5000 in your browser</span>
+nerblackbox<span class="w"> </span>tensorboard<span class="w">    </span><span class="c1"># + enter http://127.0.0.1:6006 in your browser</span>
 </code></pre></div>
 </div>
 </div>

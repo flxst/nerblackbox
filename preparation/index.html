@@ -500,6 +500,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -591,8 +605,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../python_api/experiment/" class="md-nav__link">
-        Experiment
+      <a href="../python_api/training/" class="md-nav__link">
+        Training
       </a>
     </li>
   
@@ -681,14 +695,14 @@
 <hr />
 <h2 id="basic-usage">Basic Usage</h2>
 <p><strong>nerblackbox</strong> provides a <a href="../python_api/overview">Python API</a> with four main classes 
-<code>Store</code>, <code>Dataset</code>, <code>Experiment</code> and <code>Model</code>.
+<code>Store</code>, <code>Dataset</code>, <code>Training</code> and <code>Model</code>.
 It is complemented by a <a href="../../cli">CLI</a>.</p>
 <details class="note">
 <summary>basic usage</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label><label for="__tabbed_1_2">CLI</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">Store</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Experiment</span><span class="p">,</span> <span class="n">Model</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">Store</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Training</span><span class="p">,</span> <span class="n">Model</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
@@ -702,7 +716,7 @@ It is complemented by a <a href="../../cli">CLI</a>.</p>
 <h2 id="store">Store</h2>
 <p>As a mandatory first step, a store has to be created. 
 The store is a directory that contains all the data 
-(datasets, experiment configurations, results, model checkpoints)
+(datasets, training configurations, results, model checkpoints)
 that <strong>nerblackbox</strong> needs access to. 
 It is handled by the <a href="../python_api/store">Store</a> class:</p>
 <details class="note">
@@ -719,7 +733,7 @@ It is handled by the <a href="../python_api/store">Store</a> class:</p>
 <p>By default, the store is located at <code>./store</code> and has the following subdirectories:</p>
 <div class="highlight"><pre><span></span><code>store/
 └──<span class="w"> </span>datasets
-└──<span class="w"> </span>experiment_configs
+└──<span class="w"> </span>training_configs
 └──<span class="w"> </span>pretrained_models
 └──<span class="w"> </span>results
 </code></pre></div>

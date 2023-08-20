@@ -513,6 +513,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -604,8 +618,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../python_api/experiment/" class="md-nav__link">
-        Experiment
+      <a href="../python_api/training/" class="md-nav__link">
+        Training
       </a>
     </li>
   
@@ -704,8 +718,8 @@ Both the fine-tuned NER model and the dataset can either be loaded from <a href=
 <div class="highlight"><pre><span></span><code><span class="c1"># from local checkpoint directory</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_checkpoint</span><span class="p">(</span><span class="s2">&quot;&lt;checkpoint_directory&gt;&quot;</span><span class="p">)</span>
 
-<span class="c1"># from experiment</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_experiment</span><span class="p">(</span><span class="s2">&quot;&lt;experiment_name&gt;&quot;</span><span class="p">)</span>
+<span class="c1"># from training</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_training</span><span class="p">(</span><span class="s2">&quot;&lt;training_name&gt;&quot;</span><span class="p">)</span>
 
 <span class="c1"># from HuggingFace</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_huggingface</span><span class="p">(</span><span class="s2">&quot;&lt;repo_id&gt;&quot;</span><span class="p">)</span>
@@ -721,28 +735,28 @@ Both the fine-tuned NER model and the dataset can either be loaded from <a href=
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="c1"># local dataset in standard format (jsonl)</span>
-<span class="n">evaluation_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;local_dataset_in_standard_format&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;jsonl&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;local_dataset_in_standard_format&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;jsonl&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 
 <span class="c1"># local dataset in pretokenized format (csv)</span>
-<span class="n">evaluation_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;local_dataset_in_pretokenized_format&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;local_dataset_in_pretokenized_format&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 
 <span class="c1"># huggingface dataset in pretokenized format</span>
-<span class="n">evaluation_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;huggingface_dataset_in_pretokenized_format&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;huggingface_dataset_in_pretokenized_format&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 </code></pre></div>
 </div>
 </div>
 </div>
 </details>
 <h3 id="interpretation">Interpretation</h3>
-<p>The returned object <code>evaluation_dict</code> is a nested dictionary <code>evaluation_dict[label][level][metric]</code> where</p>
+<p>The returned object <code>results</code> is a nested dictionary <code>results[label][level][metric]</code> where</p>
 <ul>
 <li><code>label</code> in <code>['micro', 'macro']</code></li>
 <li><code>level</code> in <code>['entity', 'token']</code></li>
 <li><code>metric</code> in <code>['precision', 'recall', 'f1', 'precision_seqeval', 'recall_seqeval', 'f1_seqeval']</code></li>
 </ul>
 <details class="example">
-<summary>evaluation_dict</summary>
-<div class="highlight"><pre><span></span><code><span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span>
+<summary>results</summary>
+<div class="highlight"><pre><span></span><code><span class="n">results</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span>
 <span class="c1"># {</span>
 <span class="c1">#   &#39;precision&#39;: 0.912,</span>
 <span class="c1">#   &#39;recall&#39;: 0.919,</span>
@@ -767,10 +781,10 @@ While <strong>nerblackbox</strong>'s evaluation ignores them, <strong>seqeval</s
 <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_huggingface</span><span class="p">(</span><span class="s2">&quot;dslim/bert-base-NER&quot;</span><span class="p">)</span>
 
 <span class="c1"># 2. evaluate the model on the dataset</span>
-<span class="n">evaluation_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;conll2003&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;conll2003&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 
 <span class="c1"># 3. inspect the results</span>
-<span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span>
+<span class="n">results</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span>
 <span class="c1"># {</span>
 <span class="c1">#   &#39;precision&#39;: 0.912,</span>
 <span class="c1">#   &#39;recall&#39;: 0.919,</span>

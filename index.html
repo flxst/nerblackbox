@@ -526,6 +526,20 @@
   
   
     <li class="md-nav__item">
+      <a href="advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -617,8 +631,8 @@
   
   
     <li class="md-nav__item">
-      <a href="python_api/experiment/" class="md-nav__link">
-        Experiment
+      <a href="python_api/training/" class="md-nav__link">
+        Training
       </a>
     </li>
   
@@ -704,8 +718,8 @@
 
 
 <h1 id="start">Start</h1>
-<p><strong>nerblackbox</strong> - a python package to fine-tune transformer-based language models for named entity recognition (NER).</p>
-<p>latest version: 0.0.15</p>
+<p><strong>nerblackbox</strong> - a high-level library for named entity recognition in python</p>
+<p>latest version: 1.0.0</p>
 <hr />
 <h2 id="resources">Resources</h2>
 <ul>
@@ -746,14 +760,14 @@ in a few simple steps.</p>
 <div class="tabbed-block">
 <ul>
 <li>
-<p>Define a fine-tuning experiment by choosing a pretrained model and a dataset
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bert-base-cased&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;conll2003&quot;</span><span class="p">)</span>
+<p>Define the training by choosing a pretrained model and a dataset
+<div class="highlight"><pre><span></span><code><span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span><span class="s2">&quot;my_training&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bert-base-cased&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;conll2003&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
-<p>Run the experiment and get the performance of the fine-tuned model
-<div class="highlight"><pre><span></span><code><span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="n">experiment</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<p>Run the training and get the performance of the fine-tuned model
+<div class="highlight"><pre><span></span><code><span class="n">training</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">training</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
 <span class="c1"># 0.9045</span>
 </code></pre></div>
 &nbsp;</p>
@@ -765,13 +779,13 @@ in a few simple steps.</p>
 <ul>
 <li>
 <p>Load the model
-<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_experiment</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_training</span><span class="p">(</span><span class="s2">&quot;my_training&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>Evaluate the model
-<div class="highlight"><pre><span></span><code><span class="n">evaluation_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;ehealth_kd&quot;</span><span class="p">,</span> <span class="s2">&quot;jsonl&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<span class="n">evaluation_dict</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">][</span><span class="s2">&quot;f1&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;conll2003&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">results</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">][</span><span class="s2">&quot;f1&quot;</span><span class="p">]</span>
 <span class="c1"># 0.9045</span>
 </code></pre></div>
 &nbsp;</p>
@@ -783,7 +797,7 @@ in a few simple steps.</p>
 <ul>
 <li>
 <p>Load the model
-<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_experiment</span><span class="p">(</span><span class="s2">&quot;my_experiment&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_training</span><span class="p">(</span><span class="s2">&quot;my_training&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -853,7 +867,7 @@ in a few simple steps.</p>
 <h2 id="citation">Citation</h2>
 <div class="highlight"><pre><span></span><code>@misc<span class="nb">{</span>nerblackbox,
   author = <span class="nb">{</span>Stollenwerk, Felix<span class="nb">}</span>,
-  title  = <span class="nb">{</span>nerblackbox: a python package to fine-tune transformer-based language models for named entity recognition<span class="nb">}</span>,
+  title  = <span class="nb">{</span>nerblackbox: a high-level library for named entity recognition in python<span class="nb">}</span>,
   year   = <span class="nb">{</span>2021<span class="nb">}</span>,
   url    = <span class="nb">{</span>https://github.com/flxst/nerblackbox<span class="nb">}</span>,
 <span class="nb">}</span>

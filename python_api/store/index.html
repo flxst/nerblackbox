@@ -452,6 +452,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -558,22 +572,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.store.Store.get_experiment_results" class="md-nav__link">
-    get_experiment_results()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nerblackbox.api.store.Store.get_experiment_results_single" class="md-nav__link">
-    get_experiment_results_single()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#nerblackbox.api.store.Store.get_path" class="md-nav__link">
     get_path()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.store.Store.get_training_results" class="md-nav__link">
+    get_training_results()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nerblackbox.api.store.Store.get_training_results_single" class="md-nav__link">
+    get_training_results_single()
   </a>
   
 </li>
@@ -586,6 +600,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nerblackbox.api.store.Store.parse_training_result_single" class="md-nav__link">
+    parse_training_result_single()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nerblackbox.api.store.Store.set_path" class="md-nav__link">
     set_path()
   </a>
@@ -593,8 +614,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.store.Store.show_experiments" class="md-nav__link">
-    show_experiments()
+  <a href="#nerblackbox.api.store.Store.show_trainings" class="md-nav__link">
+    show_trainings()
   </a>
   
 </li>
@@ -635,8 +656,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../experiment/" class="md-nav__link">
-        Experiment
+      <a href="../training/" class="md-nav__link">
+        Training
       </a>
     </li>
   
@@ -731,7 +752,7 @@
   <div class="doc doc-contents first">
 
   
-      <p>client for the store that contains all data (datasets, experiment configuration files, models, results)</p>
+      <p>client for the store that contains all data (datasets, training configuration files, models, results)</p>
 
   <p><strong>Attributes:</strong></p>
   <table>
@@ -817,130 +838,6 @@
 
 
 
-<h2 id="nerblackbox.api.store.Store.get_experiment_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_experiment_results</span><span class="p">()</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>get results for all experiments</p>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>experiment_results_list</code></td>          <td>
-                <code><span title="typing.List">List</span>[<span title="nerblackbox.modules.experiment_results.ExperimentResults">ExperimentResults</span>]</code>
-          </td>
-          <td><p>TODO: instead of list return dict that maps experiment_name to ExperimentResults?</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h2 id="nerblackbox.api.store.Store.get_experiment_results_single" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_experiment_results_single</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">,</span> <span class="n">update_experiments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>get results for single experiment</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>experiment_name</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>e.g. 'exp0'</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>update_experiments</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td><p>whether to update cls.experiment_id2name &amp; cls.experiment_name2id</p></td>
-          <td>
-                <code>True</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>verbose</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td><p>output</p></td>
-          <td>
-                <code>False</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>experiment_results</code></td>          <td>
-                <code><span title="typing.Tuple">Tuple</span>[bool, <span title="nerblackbox.modules.experiment_results.ExperimentResults">ExperimentResults</span>]</code>
-          </td>
-          <td><p>for experiment with experiment_name</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h2 id="nerblackbox.api.store.Store.get_path" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_path</span><span class="p">()</span></code>
   
@@ -968,6 +865,130 @@
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>cls.path: path to store's main directory</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.store.Store.get_training_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_training_results</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>get results for all trainings</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>training_results_list</code></td>          <td>
+                <code><span title="typing.List">List</span>[<span title="nerblackbox.modules.training_results.TrainingResults">TrainingResults</span>]</code>
+          </td>
+          <td><p>TODO: instead of list return dict that maps training_name to TrainingResults?</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.store.Store.get_training_results_single" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_training_results_single</span><span class="p">(</span><span class="n">training_name</span><span class="p">,</span> <span class="n">update_trainings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>get results for single training</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>training_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>e.g. 'exp0'</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>update_trainings</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>whether to update cls.training_id2name &amp; cls.training_name2id</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>verbose</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>output</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>training_results</code></td>          <td>
+                <code><span title="typing.Tuple">Tuple</span>[bool, <span title="nerblackbox.modules.training_results.TrainingResults">TrainingResults</span>]</code>
+          </td>
+          <td><p>for training with training_name</p></td>
         </tr>
     </tbody>
   </table>
@@ -1014,6 +1035,119 @@
           <td>
               <em>required</em>
           </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.store.Store.parse_training_result_single" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parse_training_result_single</span><span class="p">(</span><span class="n">results</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;f1&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>results</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.modules.training_results.TrainingResults">TrainingResults</span>]</code>
+          </td>
+          <td><p>TrainingResults gotten from get_training_results_single()</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metric</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>"f1", "precision", "recall"</p></td>
+          <td>
+                <code>&#39;f1&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>level</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>"entity" or "token"</p></td>
+          <td>
+                <code>&#39;entity&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>label</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>"micro", "macro", "PER", ..</p></td>
+          <td>
+                <code>&#39;micro&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>phase</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>"val" or "test"</p></td>
+          <td>
+                <code>&#39;test&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>average</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>if True, return average result of all runs. if False, return result of best run.</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>result</code></td>          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>e.g. "0.9011 +- 0.0023" (average = True) or "0.9045" (average = False)</p></td>
         </tr>
     </tbody>
   </table>
@@ -1089,8 +1223,8 @@
 
 
 
-<h2 id="nerblackbox.api.store.Store.show_experiments" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">show_experiments</span><span class="p">(</span><span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<h2 id="nerblackbox.api.store.Store.show_trainings" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">show_trainings</span><span class="p">(</span><span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -1136,10 +1270,10 @@
     </thead>
     <tbody>
         <tr>
-<td><code>experiments</code></td>          <td>
+<td><code>trainings</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span>, <span title="typing.Dict">Dict</span>[str, str]]</code>
           </td>
-          <td><p>overview of experiments that have been run</p></td>
+          <td><p>overview of trainings that have been run</p></td>
         </tr>
     </tbody>
   </table>

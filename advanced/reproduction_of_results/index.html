@@ -9,17 +9,17 @@
       
       
       
-        <link rel="prev" href="../../inference/">
+        <link rel="prev" href="../compatibility_with_huggingface/">
       
       
-        <link rel="next" href="../reproduction_of_results/">
+        <link rel="next" href="../text_encoding/">
       
       <link rel="icon" href="../../images/package-16.svg">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.1">
     
     
       
-        <title>Compatibility with HuggingFace - nerblackbox</title>
+        <title>Reproduction of Results - nerblackbox</title>
       
     
     
@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#compatibility-with-huggingface" class="md-skip">
+        <a href="#reproduction-of-results" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Compatibility with HuggingFace
+              Reproduction of Results
             
           </span>
         </div>
@@ -244,7 +244,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="./" class="md-tabs__link md-tabs__link--active">
+      <a href="../compatibility_with_huggingface/" class="md-tabs__link md-tabs__link--active">
         Advanced
       </a>
     </li>
@@ -438,6 +438,20 @@
               
   
   
+  
+    <li class="md-nav__item">
+      <a href="../compatibility_with_huggingface/" class="md-nav__link">
+        Compatibility with HuggingFace
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
     
   
   
@@ -450,12 +464,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Compatibility with HuggingFace
+          Reproduction of Results
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Compatibility with HuggingFace
+        Reproduction of Results
       </a>
       
         
@@ -474,15 +488,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#general" class="md-nav__link">
-    General
+  <a href="#training" class="md-nav__link">
+    Training
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#models" class="md-nav__link">
-    Models
+  <a href="#evaluation" class="md-nav__link">
+    Evaluation
   </a>
   
 </li>
@@ -491,20 +505,6 @@
   
 </nav>
       
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reproduction_of_results/" class="md-nav__link">
-        Reproduction of Results
-      </a>
     </li>
   
 
@@ -693,78 +693,273 @@
                   
 
 
-<h1 id="compatibility-with-huggingface">Compatibility with HuggingFace</h1>
-<hr />
-<h2 id="general">General</h2>
-<p><strong>nerblackbox</strong> is heavily based on <a href="https://huggingface.co/transformers/">HuggingFace Transformers</a>. 
-Moreover, <a href="https://huggingface.co/docs/datasets/index">HuggingFace Datasets</a> and <a href="https://huggingface.co/docs/evaluate/index">HuggingFace Evaluate</a> are well-integrated, 
-see <a href="../../data/#huggingface-hf">Data</a> and <a href="../../evaluation">Evaluation</a>, respectively.</p>
-<p>Therefore, compatibility with HuggingFace is generally given.
-In particular, </p>
+<h1 id="reproduction-of-results">Reproduction of Results</h1>
+<p>Results reported on HuggingFace are reproduced with <strong>nerblackbox</strong> as a cross-check. 
+We do this separately for:</p>
 <ul>
-<li>
-<p><strong>nerblackbox</strong>'s model checkpoints (and tokenizer files)  are identical to the ones from HuggingFace.</p>
-<details class="example">
-<summary>model checkpoint directory</summary>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Bash</label></div>
+<li><a href="#training">Training</a> (pretrained models are fine-tuned for NER and subsequently evaluated on the validation set)</li>
+<li><a href="#evaluation">Evaluation</a> (NER models are evaluated on either the validation or test set)</li>
+</ul>
+<p>Note that all numbers refer to the micro-averaged f1 score as computed by the <code>seqeval</code> library, see <a href="../../evaluation">Evaluation</a>.</p>
+<hr />
+<h2 id="training">Training</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Dataset</th>
+<th>Parameters</th>
+<th>version</th>
+<th>nerblackbox</th>
+<th>reported</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bert-base-cased</td>
+<td>conll2003</td>
+<td>{"from_preset": "original", "multiple_runs": 3, "max_epochs": 5, "lr_warmup_epochs": 0}</td>
+<td><code>1.0.0</code></td>
+<td>0.946(1)</td>
+<td>0.951</td>
+<td><a href="https://huggingface.co/dslim/bert-base-NER">reference</a></td>
+</tr>
+<tr>
+<td>distilbert-base-multilingual-cased</td>
+<td>conll2003</td>
+<td>{"from_preset": "original", "multiple_runs": 3, "max_epochs": 3, "lr_warmup_epochs": 0}</td>
+<td><code>1.0.0</code></td>
+<td>0.943(1)</td>
+<td>0.941</td>
+<td><a href="https://huggingface.co/gunghio/distilbert-base-multilingual-cased-finetuned-conll2003-ner">reference</a></td>
+</tr>
+<tr>
+<td>dmis-lab/biobert-base-cased-v1.2</td>
+<td>ncbi_disease</td>
+<td>{"from_preset": "original", "multiple_runs": 3, "max_epochs": 3, "lr_warmup_epochs": 0, "batch_size": 4}</td>
+<td><code>1.0.0</code></td>
+<td>0.855(4)</td>
+<td>0.845</td>
+<td><a href="https://huggingface.co/jordyvl/biobert-base-cased-v1.2_ncbi_disease-softmax-labelall-ner">reference</a></td>
+</tr>
+<tr>
+<td>distilroberta-base</td>
+<td>conll2003</td>
+<td>{"from_preset": "original", "multiple_runs": 3, "max_epochs": 6, "lr_warmup_epochs": 0, "batch_size": 32, "lr_max": 5e-5}</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.953(1)</strong></td>
+<td><strong>0.953</strong></td>
+<td><a href="https://huggingface.co/philschmid/distilroberta-base-ner-conll2003">reference</a></td>
+</tr>
+<tr>
+<td>microsoft/deberta-base</td>
+<td>conll2003</td>
+<td>{"from_preset": "original", "multiple_runs": 3, "max_epochs": 5, "lr_warmup_epochs": 0, "batch_size": 16, "lr_max": 5e-5}</td>
+<td><code>1.0.0</code></td>
+<td>0.957(1)</td>
+<td>0.961</td>
+<td><a href="https://huggingface.co/geckos/deberta-base-fine-tuned-ner">reference</a></td>
+</tr>
+</tbody>
+</table>
+<p>Each model was fine-tuned multiple times using <strong>nerblackbox</strong> and different random seeds. 
+The resulting uncertainty of the mean value is specified in parentheses and refers to the last digit. 
+In all cases, the evaluation was conducted on the respective validation dataset.
+Note that small, systematic differences are to be expected as the reported results were created using very similar 
+yet slightly different hyperparameters.</p>
+<p>The results may be reproduced using the following code:</p>
+<details class="note">
+<summary>reproduction of training results</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>ls<span class="w"> </span>&lt;checkpoint_directory&gt;
-<span class="c1"># config.json             </span>
-<span class="c1"># pytorch_model.bin</span>
-<span class="c1"># special_tokens_map.json </span>
-<span class="c1"># tokenizer.json          </span>
-<span class="c1"># tokenizer_config.json   </span>
-<span class="c1"># vocab.txt</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Training</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">name</span><span class="o">=&lt;</span><span class="n">dataset</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;HF&quot;</span><span class="p">)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">set_up</span><span class="p">()</span>
+
+<span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;from_preset&quot;</span><span class="p">:</span> <span class="s2">&quot;original&quot;</span><span class="p">,</span> <span class="p">[</span><span class="o">..</span><span class="p">]}</span>
+<span class="n">training</span> <span class="o">=</span> <span class="n">Training</span><span class="p">(</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;&lt;model&gt;&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;&lt;dataset&gt;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">)</span>
+<span class="n">training</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">training</span><span class="o">.</span><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;validation&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </code></pre></div>
+Note that the first use of <strong>nerblackbox</strong> requires the creation of a <a href="../../preparation/#store">Store</a>.</p>
 </div>
 </div>
 </div>
 </details>
-</li>
-<li>
-<p>After a <a href="../../python_api/model">Model</a> instance is created from a checkpoint, it contains a HuggingFace model and tokenizer as attributes:</p>
-<details class="example">
-<summary>model attributes</summary>
+<hr />
+<h2 id="evaluation">Evaluation</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Dataset</th>
+<th>Phase</th>
+<th>version</th>
+<th>nerblackbox</th>
+<th>evaluate</th>
+<th>reported</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dslim/bert-base-NER</td>
+<td>conll2003</td>
+<td>validation</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.951</strong></td>
+<td><strong>0.951</strong></td>
+<td><strong>0.951</strong></td>
+<td><a href="https://huggingface.co/dslim/bert-base-NER">reference</a></td>
+</tr>
+<tr>
+<td>jordyvl/biobert-base-cased-v1.2_ncbi_disease-softmax-labelall-ner</td>
+<td>ncbi_disease</td>
+<td>validation</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.845</strong></td>
+<td><strong>0.845</strong></td>
+<td><strong>0.845</strong></td>
+<td><a href="https://huggingface.co/jordyvl/biobert-base-cased-v1.2_ncbi_disease-softmax-labelall-ner">reference</a></td>
+</tr>
+<tr>
+<td>fhswf/bert_de_ner</td>
+<td>germeval_14</td>
+<td>test</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.818</strong></td>
+<td><strong>0.818</strong></td>
+<td>0.829</td>
+<td><a href="https://huggingface.co/fhswf/bert_de_ner">reference</a></td>
+</tr>
+<tr>
+<td>philschmid/distilroberta-base-ner-conll2003</td>
+<td>conll2003</td>
+<td>validation</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.955</strong></td>
+<td><strong>0.955</strong></td>
+<td>0.953</td>
+<td><a href="https://huggingface.co/philschmid/distilroberta-base-ner-conll2003">reference</a></td>
+</tr>
+<tr>
+<td>philschmid/distilroberta-base-ner-conll2003</td>
+<td>conll2003</td>
+<td>test</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.913</strong></td>
+<td><strong>0.913</strong></td>
+<td>0.907</td>
+<td><a href="https://huggingface.co/philschmid/distilroberta-base-ner-conll2003">reference</a></td>
+</tr>
+<tr>
+<td>projecte-aina/roberta-base-ca-cased-ner</td>
+<td>projecte-aina/ancora-ca-ner</td>
+<td>test</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.896</strong></td>
+<td><strong>0.896</strong></td>
+<td>0.881</td>
+<td><a href="https://huggingface.co/projecte-aina/roberta-base-ca-cased-ner">reference</a></td>
+</tr>
+<tr>
+<td>gagan3012/bert-tiny-finetuned-ner</td>
+<td>conll2003</td>
+<td>validation</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.847</strong></td>
+<td>---</td>
+<td>0.818</td>
+<td><a href="https://huggingface.co/gagan3012/bert-tiny-finetuned-ner">reference</a></td>
+</tr>
+<tr>
+<td>malduwais/distilbert-base-uncased-finetuned-ner</td>
+<td>conll2003</td>
+<td>test</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.894</strong></td>
+<td>---</td>
+<td>0.930</td>
+<td><a href="https://huggingface.co/malduwais/distilbert-base-uncased-finetuned-ner">reference</a></td>
+</tr>
+<tr>
+<td>IIC/bert-base-spanish-wwm-cased-ehealth_kd</td>
+<td>ehealth_kd</td>
+<td>test</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.825</strong></td>
+<td>---</td>
+<td>0.843</td>
+<td><a href="https://huggingface.co/IIC/bert-base-spanish-wwm-cased-ehealth_kd">reference</a></td>
+</tr>
+<tr>
+<td>drAbreu/bioBERT-NER-BC2GM_corpus</td>
+<td>bc2gm_corpus</td>
+<td>test</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.808</strong></td>
+<td>---</td>
+<td>0.815</td>
+<td><a href="https://huggingface.co/drAbreu/bioBERT-NER-BC2GM_corpus">reference</a></td>
+</tr>
+<tr>
+<td>geckos/deberta-base-fine-tuned-ner</td>
+<td>conll2003</td>
+<td>validation</td>
+<td><code>1.0.0</code></td>
+<td><strong>0.962</strong></td>
+<td>---</td>
+<td>0.961</td>
+<td><a href="https://huggingface.co/geckos/deberta-base-fine-tuned-ner">reference</a></td>
+</tr>
+</tbody>
+</table>
+<p>The results may be reproduced using the following code:</p>
+<details class="note">
+<summary>reproduction of evaluation results</summary>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Python</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="o">&lt;</span><span class="n">checkpoint_directory</span><span class="o">&gt;</span><span class="p">)</span>
+<p><div class="highlight"><pre><span></span><code><span class="c1">###############</span>
+<span class="c1"># nerblackbox</span>
+<span class="c1">###############</span>
+<span class="kn">from</span> <span class="nn">nerblackbox</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_huggingface</span><span class="p">(</span><span class="s2">&quot;&lt;model&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;dataset&gt;&quot;</span><span class="p">)</span>
+<span class="n">results_nerblackbox</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate_on_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;dataset&gt;&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;&lt;phase&gt;&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results_nerblackbox</span><span class="p">[</span><span class="s2">&quot;micro&quot;</span><span class="p">][</span><span class="s2">&quot;entity&quot;</span><span class="p">][</span><span class="s2">&quot;f1_seqeval&quot;</span><span class="p">])</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">model</span><span class="p">))</span>
-<span class="c1"># &lt;class &#39;transformers.models.bert.modeling_bert.BertForTokenClassification&#39;&gt;</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">))</span>
-<span class="c1"># &lt;class &#39;transformers.models.bert.tokenization_bert_fast.BertTokenizerFast&#39;&gt;</span>
+<span class="c1">###############</span>
+<span class="c1"># evaluate</span>
+<span class="c1">###############</span>
+<span class="kn">from</span> <span class="nn">datasets</span> <span class="kn">import</span> <span class="n">load_dataset</span>
+<span class="kn">from</span> <span class="nn">evaluate</span> <span class="kn">import</span> <span class="n">evaluator</span>
+<span class="n">evaluator</span> <span class="o">=</span> <span class="n">evaluator</span><span class="p">(</span><span class="s2">&quot;token-classification&quot;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;&lt;dataset&gt;&quot;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s2">&quot;&lt;phase&gt;&quot;</span><span class="p">)</span>
+<span class="n">results_evaluate</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span>
+    <span class="n">model_or_pipeline</span><span class="o">=</span><span class="s2">&quot;&lt;model&gt;&quot;</span><span class="p">,</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;seqeval&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results_evaluate</span><span class="p">[</span><span class="s2">&quot;overall_f1&quot;</span><span class="p">])</span>
 </code></pre></div>
+Note that the first use of <strong>nerblackbox</strong> requires the creation of a <a href="../../preparation/#store">Store</a>.</p>
 </div>
 </div>
 </div>
 </details>
-<p>Hence, <code>model.model</code> and <code>model.tokenizer</code> can be used like any other <strong>transformers</strong> model and tokenizer, respectively.</p>
-</li>
-</ul>
-<hr />
-<h2 id="models">Models</h2>
-<ul>
-<li>
-<p>Model architectures that have successfully been tested (see <a href="../reproduction_of_results">Reproduction of Results</a>) with <strong>nerblackbox</strong> are:</p>
-<ul>
-<li><code>BERT</code></li>
-<li><code>DistilBERT</code></li>
-<li><code>RoBERTa</code></li>
-<li><code>DeBERTa</code></li>
-<li><code>ELECTRA</code></li>
-</ul>
-</li>
-<li>
-<p>Model architectures that are known to currently <strong>not</strong> work with <strong>nerblackbox</strong> are:</p>
-<ul>
-<li><code>XLM-RoBERTa</code></li>
-<li><code>ALBERT</code></li>
-</ul>
-</li>
-</ul>
+<p>Evaluation using the <a href="https://huggingface.co/docs/evaluate/index">evaluate</a> library fails for some of the tested datasets (---). 
+For all cases where it works, we find that results from <strong>nerblackbox</strong> and <a href="https://huggingface.co/docs/evaluate/index">evaluate</a> are in agreement.
+In contrast, the self-reported results on HuggingFace sometimes differ. </p>
+<!---
+Datasets that the evaluation did not work for:
+
+- lener_br
+---->
 
 
 

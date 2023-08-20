@@ -9,7 +9,7 @@
       
       
       
-        <link rel="prev" href="../experiment/">
+        <link rel="prev" href="../training/">
       
       
         <link rel="next" href="../annotation_tool/">
@@ -452,6 +452,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -545,8 +559,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../experiment/" class="md-nav__link">
-        Experiment
+      <a href="../training/" class="md-nav__link">
+        Training
       </a>
     </li>
   
@@ -614,15 +628,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.model.Model.from_experiment" class="md-nav__link">
-    from_experiment()
+  <a href="#nerblackbox.api.model.Model.from_huggingface" class="md-nav__link">
+    from_huggingface()
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.model.Model.from_huggingface" class="md-nav__link">
-    from_huggingface()
+  <a href="#nerblackbox.api.model.Model.from_training" class="md-nav__link">
+    from_training()
   </a>
   
 </li>
@@ -752,7 +766,7 @@
 
 
 <h2 id="nerblackbox.api.model.Model.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">checkpoint_directory</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">max_seq_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">checkpoint_directory</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">max_seq_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h2>
 
@@ -797,6 +811,16 @@
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
           <td><p>maximum sequence length (Optional). Loaded from checkpoint if not specified.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>should be provided in case model is missing information on id2label in config</p></td>
           <td>
                 <code>None</code>
           </td>
@@ -986,71 +1010,7 @@ and values = float between 0 and 1</p></td>
 <td><code>model</code></td>          <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
           </td>
-          <td><p>best model from experiment</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h2 id="nerblackbox.api.model.Model.from_experiment" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_experiment</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">)</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>load best model from experiment.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>experiment_name</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>name of the experiment, e.g. "exp0"</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>model</code></td>          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
-          </td>
-          <td><p>best model from experiment</p></td>
+          <td><p>best model from training</p></td>
         </tr>
     </tbody>
   </table>
@@ -1064,7 +1024,7 @@ and values = float between 0 and 1</p></td>
 
 
 <h2 id="nerblackbox.api.model.Model.from_huggingface" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">from_huggingface</span><span class="p">(</span><span class="n">repo_id</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">from_huggingface</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -1097,6 +1057,16 @@ and values = float between 0 and 1</p></td>
               <em>required</em>
           </td>
         </tr>
+        <tr>
+          <td><code>dataset</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>should be provided in case model is missing information on id2label in config</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -1114,6 +1084,70 @@ and values = float between 0 and 1</p></td>
                 <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
           </td>
           <td><p>model</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nerblackbox.api.model.Model.from_training" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_training</span><span class="p">(</span><span class="n">training_name</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>load best model from training.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>training_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>name of the training, e.g. "training0"</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>model</code></td>          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="nerblackbox.api.model.Model">Model</span>]</code>
+          </td>
+          <td><p>best model from training</p></td>
         </tr>
     </tbody>
   </table>

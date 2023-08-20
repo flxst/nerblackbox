@@ -19,7 +19,7 @@
     
     
       
-        <title>Experiment - nerblackbox</title>
+        <title>Training - nerblackbox</title>
       
     
     
@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#experiment" class="md-skip">
+        <a href="#training" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Experiment
+              Training
             
           </span>
         </div>
@@ -452,6 +452,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../advanced/reproduction_of_results/" class="md-nav__link">
+        Reproduction of Results
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../advanced/text_encoding/" class="md-nav__link">
         Text Encoding
       </a>
@@ -555,12 +569,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Experiment
+          Training
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Experiment
+        Training
       </a>
       
         
@@ -579,28 +593,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.experiment.Experiment.__init__" class="md-nav__link">
+  <a href="#nerblackbox.api.training.Training.__init__" class="md-nav__link">
     __init__()
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.experiment.Experiment.get_result" class="md-nav__link">
+  <a href="#nerblackbox.api.training.Training.get_result" class="md-nav__link">
     get_result()
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.experiment.Experiment.run" class="md-nav__link">
+  <a href="#nerblackbox.api.training.Training.run" class="md-nav__link">
     run()
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#nerblackbox.api.experiment.Experiment.show_config" class="md-nav__link">
+  <a href="#nerblackbox.api.training.Training.show_config" class="md-nav__link">
     show_config()
   </a>
   
@@ -693,7 +707,7 @@
                   
 
 
-<h1 id="experiment">Experiment</h1>
+<h1 id="training">Training</h1>
 
 
 <div class="doc doc-object doc-class">
@@ -721,8 +735,8 @@
 
 
 
-<h2 id="nerblackbox.api.experiment.Experiment.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">,</span> <span class="n">from_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">from_preset</span><span class="o">=</span><span class="s1">&#39;adaptive&#39;</span><span class="p">,</span> <span class="n">pytest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
+<h2 id="nerblackbox.api.training.Training.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">training_name</span><span class="p">,</span> <span class="n">from_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">from_preset</span><span class="o">=</span><span class="s1">&#39;adaptive&#39;</span><span class="p">,</span> <span class="n">pytest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_optional</span><span class="p">)</span></code>
 
 </h2>
 
@@ -742,11 +756,11 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>experiment_name</code></td>
+          <td><code>training_name</code></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>e.g. 'my_experiment'</p></td>
+          <td><p>e.g. 'my_training'</p></td>
           <td>
               <em>required</em>
           </td>
@@ -756,7 +770,7 @@
           <td>
                 <code>bool</code>
           </td>
-          <td><p>True =&gt; read parameters from config file (static definition). False =&gt; use Experiment  arguments (dynamic definition)</p></td>
+          <td><p>True =&gt; read parameters from config file (static definition). False =&gt; use Training arguments (dynamic definition)</p></td>
           <td>
                 <code>False</code>
           </td>
@@ -832,8 +846,8 @@
 
 
 
-<h2 id="nerblackbox.api.experiment.Experiment.get_result" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;f1&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<h2 id="nerblackbox.api.training.Training.get_result" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_result</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;f1&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 </h2>
 
@@ -899,7 +913,7 @@
           </td>
           <td><p>if True, return average result of all runs. if False, return result of best run.</p></td>
           <td>
-                <code>False</code>
+                <code>True</code>
           </td>
         </tr>
     </tbody>
@@ -931,7 +945,7 @@
 
 
 
-<h2 id="nerblackbox.api.experiment.Experiment.run" class="doc doc-heading">
+<h2 id="nerblackbox.api.training.Training.run" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">run</span><span class="p">()</span></code>
 
 </h2>
@@ -939,27 +953,26 @@
 
   <div class="doc doc-contents ">
   
-      <p>run a single experiment.</p>
+      <p>run a single training.</p>
 <p>Note:</p>
 <ul>
 <li>
-<p>from_config == True -&gt; experiment config file is used, no other optional arguments will be used</p>
+<p>from_config == True -&gt; training config file is used, no other optional arguments will be used</p>
 </li>
 <li>
-<p>from_config == False -&gt; experiment config file is created dynamically, optional arguments will be used</p>
+<p>from_config == False -&gt; training config file is created dynamically, optional arguments will be used</p>
 <ul>
 <li>
 <p>model and dataset are mandatory.</p>
 </li>
 <li>
-<p>All other arguments relate to hyperparameters and are optional.
-  They are determined using the following hierarchy:</p>
-</li>
-</ul>
+<p>All other arguments relate to hyperparameters and are optional. They are determined using the following hierarchy:</p>
 <p>1) optional argument</p>
 <p>2) from_preset (adaptive, original, stable),
-     which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"</p>
-<p>3) default experiment configuration</p>
+   which specifies e.g. the hyperparameters "max_epochs", "early_stopping", "lr_schedule"</p>
+<p>3) default training configuration</p>
+</li>
+</ul>
 </li>
 </ul>
 
@@ -971,7 +984,7 @@
 
 
 
-<h2 id="nerblackbox.api.experiment.Experiment.show_config" class="doc doc-heading">
+<h2 id="nerblackbox.api.training.Training.show_config" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">show_config</span><span class="p">()</span></code>
 
 </h2>
@@ -979,7 +992,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>print experiment config</p>
+      <p>print training config</p>
 
   </div>
 
