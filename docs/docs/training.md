@@ -417,13 +417,13 @@ using `mlflow` or `tensorboard`.
 ??? note "Detailed Results"
     === "Python"
         ``` python
-        Store.mlflow("start")       # + enter http://localhost:5000 in your browser
-        Store.tensorboard("start")  # + enter http://localhost:6006 in your browser
+        Store.mlflow("start")       # + enter http://127.0.0.1:5000 in your browser
+        Store.tensorboard("start")  # + enter http://127.0.0.1:6006 in your browser
         ```
     === "CLI"
         ``` bash
-        nerblackbox mlflow         # + enter http://localhost:5000 in your browser
-        nerblackbox tensorboard    # + enter http://localhost:6006 in your browser
+        nerblackbox mlflow         # + enter http://127.0.0.1:5000 in your browser
+        nerblackbox tensorboard    # + enter http://127.0.0.1:6006 in your browser
         ```
 
     Python: The underlying processes can be stopped using

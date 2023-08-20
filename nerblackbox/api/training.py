@@ -320,8 +320,10 @@ class Training:
         # assert number of GPUs = 0 or 1 (see issue #5)
         nr_gpus = torch.cuda.device_count()
         if nr_gpus > 1:
-            msg = f"> found {nr_gpus} GPUs. nerblackbox currently only works on a CPU or a single GPU. " \
-                  f"Try for instance os.environ['CUDA_VISIBLE_DEVICES'] = '0'."
+            msg = (
+                f"> found {nr_gpus} GPUs. nerblackbox currently only works on a CPU or a single GPU. "
+                f"Try for instance os.environ['CUDA_VISIBLE_DEVICES'] = '0'."
+            )
             self._exit_gracefully(msg)
 
     @staticmethod

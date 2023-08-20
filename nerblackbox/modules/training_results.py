@@ -313,8 +313,11 @@ class TrainingResults:
                     _parameters_runs_renamed,
                     _metric=_metric,
                 )
-                metrics[_metric] = f"{_mean:.5f} +- "
-                metrics[_metric] += f"{_dmean:.5f}" if _dmean is not None else "###"
+                metrics[_metric] = (
+                    f"{_mean:.5f} +- {_dmean:.5f}"
+                    if _dmean is not None
+                    else f"{_mean:.4f}"
+                )
             for k in metrics.keys():
                 key = ("metrics", k)
                 _parameters_runs_renamed_average[key].append(metrics[k])
