@@ -20,7 +20,7 @@ Note that the name for `<my_model>` must include the architecture type, e.g. `be
 -----------
 ## Basic Training
 
-A **specific model** can be trained on a **specific dataset** using **specific parameters** using the [Training](../python_api/training) class.
+A **specific model** can be trained on a **specific dataset** with **specific parameters** by means of the [Training](../python_api/training) class.
 
 -----------
 ### Define the Training
@@ -101,7 +101,7 @@ An English BERT model can be trained on the CoNLL-2003 dataset like this:
 ### Parameters
 
 **nerblackbox** uses a large amount of default (hyper)parameters that can be customized as needed. 
-The concerned parameters just need to be specified when [the training is defined](#define-a-training), 
+The concerned parameters just need to be specified when [the training is defined](#define-the-training), 
 either statically or dynamically.
 
 - In the **static** case, a training configuration file may look like this:
