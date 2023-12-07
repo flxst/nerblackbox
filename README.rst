@@ -2,7 +2,7 @@
 nerblackbox
 ===========
 
-A High-level Library for Named Entity Recognition in Python.
+A High-level Library for Named Entity Recognition in Python
 
 .. image:: https://img.shields.io/pypi/v/nerblackbox
     :target: https://pypi.org/project/nerblackbox
@@ -31,6 +31,7 @@ Resources
 
 - Source Code: https://github.com/flxst/nerblackbox
 - Documentation: https://flxst.github.io/nerblackbox
+- Paper: https://aclanthology.org/2023.nlposs-1.20
 - PyPI: https://pypi.org/project/nerblackbox
 
 Installation
@@ -162,9 +163,20 @@ Citation
 
 ::
 
-    @misc{nerblackbox,
-      author = {Stollenwerk, Felix},
-      title  = {nerblackbox: a high-level library for named entity recognition in python},
-      year   = {2021},
-      url    = {https://github.com/flxst/nerblackbox},
+    @inproceedings{stollenwerk-2023-nerblackbox,
+        title = "nerblackbox: A High-level Library for Named Entity Recognition in Python",
+        author = "Stollenwerk, Felix",
+        editor = "Tan, Liling  and
+          Milajevs, Dmitrijs  and
+          Chauhan, Geeticka  and
+          Gwinnup, Jeremy  and
+          Rippeth, Elijah",
+        booktitle = "Proceedings of the 3rd Workshop for Natural Language Processing Open Source Software (NLP-OSS 2023)",
+        month = dec,
+        year = "2023",
+        address = "Singapore, Singapore",
+        publisher = "Empirical Methods in Natural Language Processing",
+        url = "https://aclanthology.org/2023.nlposs-1.20",
+        pages = "174--178",
+        abstract = "We present **nerblackbox**, a python library to facilitate the use of state-of-the-art transformer-based models for named entity recognition. It provides simple-to-use yet powerful methods to access data and models from a wide range of sources, for fully automated model training and evaluation as well as versatile model inference. While many technical challenges are solved and hidden from the user by default, **nerblackbox** also offers fine-grained control and a rich set of customizable features. It is thus targeted both at application-oriented developers as well as machine learning experts and researchers.",
     }
