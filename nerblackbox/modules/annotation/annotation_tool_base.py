@@ -185,13 +185,16 @@ class AnnotationToolBase(ABC):
         else:  # expected_nr_of_projects == 1
             return projects[0]
 
-    def download(self, project_name: str, verbose: bool = False) -> None:
+    def download(self, project_name: str, verbose: bool = False) -> str:
         """
         download data from project to file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"`
 
         Args:
             project_name: e.g. 'batch_1'
             verbose: output
+
+        Returns:
+            file_path: e.g. f"{Store.get_path()}/datasets/<dataset_name>/batch_1.jsonl"
         """
         paths = self._get_paths(project_name)
 
@@ -206,6 +209,8 @@ class AnnotationToolBase(ABC):
         if verbose:
             print(f"> translate data to nerblackbox format")
         print(f"> save data at {paths['file_nerblackbox']}")
+
+        return self.get_file_path(project_name)
 
     def upload(self, project_name: str, verbose: bool = False) -> None:
         """

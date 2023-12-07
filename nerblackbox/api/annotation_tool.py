@@ -43,23 +43,26 @@ class AnnotationTool:
             project_name: e.g. 'batch_1'
 
         Returns:
-            file_path: e.g. f"{Store.get_path()}/datasets/<dataset_name>/batch_1.jsonl"
+            file_path: e.g. f"{Store.get_path()}/datasets/{dataset_name}/batch_1.jsonl"
         """
         return ""
 
-    def download(self, project_name: str, verbose: bool = False) -> None:
+    def download(self, project_name: str, verbose: bool = False) -> str:
         """
-        download data from project to file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"`
+        download data from project to file_path `f"{Store.get_path()}/datasets/{dataset_name}/{project_name}.jsonl"`
 
         Args:
             project_name: e.g. 'batch_1'
             verbose: output
+
+        Returns:
+            file_path: e.g. f"{Store.get_path()}/datasets/{dataset_name}/batch_1.jsonl"
         """
         return ""
 
     def upload(self, project_name: str, verbose: bool = False) -> None:
         """
-        upload data from file_path `f"{Store.get_path()}/datasets/<dataset_name>/<project_name>.jsonl"` to project
+        upload data from file_path `f"{Store.get_path()}/datasets/{dataset_name}/{project_name}.jsonl"` to project
 
         Args:
             project_name: e.g. 'batch_2'
