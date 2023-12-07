@@ -55,7 +55,7 @@ class AnnotationTool:
             project_name: e.g. 'batch_1'
             verbose: output
         """
-        pass
+        return ""
 
     def upload(self, project_name: str, verbose: bool = False) -> None:
         """
