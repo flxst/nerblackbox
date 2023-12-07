@@ -1,6 +1,13 @@
 # Changelog
 nerblackbox adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Latest
+#### Changed
+- AnnotationTool.download() returns file path ([#16](https://github.com/flxst/nerblackbox/pull/16))
+
+#### Fixed
+- Upgraded dependencies ([#15](https://github.com/flxst/nerblackbox/pull/15))
+
 ## 1.0.0 (2023-08-20)
 #### Added
 - Support for additional model architectures: RoBERTa, DeBERTa
