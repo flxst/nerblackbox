@@ -16,4 +16,4 @@ ipywidgets~=8.0.4
 doccano-client~=1.2.8
 label-studio-sdk~=0.0.19
 sentencepiece~=0.1.99
-request-toolbelt~=1.0.0
+urllib3~=1.26.18
